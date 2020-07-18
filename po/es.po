@@ -1,0 +1,143 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: opencpn\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-02-27 09:53-0300\n"
+"PO-Revision-Date: 2016-02-27 08:04-0500\n"
+"Last-Translator: nohal <pavel@kalian.cz>\n"
+"Language-Team: Spanish\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: opencpn\n"
+"X-Crowdin-Language: es-ES\n"
+"X-Crowdin-File: /plugins/JavaScript_pi/po/JavaScript_pi.pot\n"
+
+#: src/JavaScript_pi.cpp:103 src/JavaScript_pi.cpp:174 src/DRgui.h:58 src/DRgui_impl.cpp:170
+msgid "DR"
+msgstr ""
+
+#: src/JavaScript_pi.cpp:180
+msgid "DR Positions"
+msgstr ""
+
+#: src/JavaScript_pi.cpp:185
+msgid "Creates GPX files with\n"
+"DR Positions"
+msgstr ""
+
+#: src/JavaScript_pi.cpp:271
+msgid "Route Preferences"
+msgstr ""
+
+#: src/DRgui.cpp:21
+msgid "DR Options"
+msgstr ""
+
+#: src/DRgui.cpp:33
+msgid "Speed             "
+msgstr ""
+
+#: src/DRgui.cpp:41
+msgid "kts"
+msgstr ""
+
+#: src/DRgui.cpp:51
+msgid "Interval"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "0"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "1"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "2"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "3"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "4"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "5"
+msgstr ""
+
+#: src/DRgui.cpp:55
+msgid "6"
+msgstr ""
+
+#: src/DRgui.cpp:61
+msgid "Hours"
+msgstr ""
+
+#: src/DRgui.cpp:71
+msgid "Generate &GPX"
+msgstr ""
+
+#: src/DRgui.cpp:86
+msgid "Route Name"
+msgstr ""
+
+#: src/DRgui.cpp:126
+msgid "General settings"
+msgstr ""
+
+#: src/DRgui.cpp:133
+msgid "Speed"
+msgstr ""
+
+#: src/DRgui.cpp:144
+msgid "DR Interval"
+msgstr ""
+
+#: src/DRgui.h:78 src/DRgui_impl.h:52
+msgid "DR preferences"
+msgstr ""
+
+#: src/DRgui_impl.cpp:98
+msgid "Import GPX Route file"
+msgstr ""
+
+#: src/DRgui_impl.cpp:122
+msgid "Failed to load file: "
+msgstr ""
+
+#: src/DRgui_impl.cpp:127
+msgid "rte Invalid xml file"
+msgstr ""
+
+#: src/DRgui_impl.cpp:141
+msgid "Route"
+msgstr ""
+
+#: src/DRgui_impl.cpp:141
+msgid "Loading"
+msgstr ""
+
+#: src/DRgui_impl.cpp:201
+msgid "Export DR Positions in GPX file as"
+msgstr ""
+
+#: src/DRgui_impl.cpp:217
+msgid "error in input range validation"
+msgstr ""
+
+#: src/DRgui_impl.cpp:460 src/DRgui_impl.cpp:461
+msgid "Error in calculation. Please check input!"
+msgstr ""
+
+#: src/DRgui_impl.h:58
+msgid "DR Plugin"
+msgstr ""
+

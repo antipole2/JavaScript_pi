@@ -1,0 +1,13 @@
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/install.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/JavaScript-pot-update.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/JavaScript_pi.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/list_install_components.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/create-pkg.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/edit_cache.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/install/strip.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/package.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/rebuild_cache.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/package_source.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/JavaScript-i18n.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/install/local.dir
+/Users/Tony/OpenCPN_project/JavaScript_pi/build-cmake/CMakeFiles/JavaScript-po-update.dir
