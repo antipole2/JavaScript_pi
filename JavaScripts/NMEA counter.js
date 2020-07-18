@@ -29,8 +29,7 @@ function logit(returned){
 		thisType = returned.value.slice(1, 6);
 		count = log.length
 		if (count > 0){
-			var i = 0;	// declared outside for loop to keep scope available
-			for ( ; i < count; i++){
+			for (i in log){
 				if (log[i].type == thisType){
 					log[i].count += 1;
 					return;
