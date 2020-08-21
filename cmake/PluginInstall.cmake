@@ -3,6 +3,8 @@
 ## Copyright:   2014
 ## License:     GPLv3+
 ##---------------------------------------------------------------------------
+##
+## Tony Voss	14 Aug 2020		added installation of scripts directory
 
 IF(NOT APPLE)
   TARGET_LINK_LIBRARIES( ${PACKAGE_NAME} ${wxWidgets_LIBRARIES} ${EXTRA_LIBS} )
@@ -78,6 +80,9 @@ IF(WIN32)
   IF(EXISTS ${PROJECT_SOURCE_DIR}/data)
     INSTALL(DIRECTORY data DESTINATION "${INSTALL_DIRECTORY}")
   ENDIF(EXISTS ${PROJECT_SOURCE_DIR}/data)
+    IF(EXISTS ${PROJECT_SOURCE_DIR}/scripts)
+    INSTALL(DIRECTORY scripts DESTINATION "${INSTALL_DIRECTORY}")
+  ENDIF(EXISTS ${PROJECT_SOURCE_DIR}/scripts)
 ENDIF(WIN32)
 
 IF(UNIX AND NOT APPLE)
@@ -87,5 +92,8 @@ IF(UNIX AND NOT APPLE)
 
   IF(EXISTS ${PROJECT_SOURCE_DIR}/data)
     INSTALL(DIRECTORY data DESTINATION ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME})
+  ENDIF()
+  IF(EXISTS ${PROJECT_SOURCE_DIR}/scripts)
+    INSTALL(DIRECTORY scripts DESTINATION ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME})
   ENDIF()
 ENDIF(UNIX AND NOT APPLE)

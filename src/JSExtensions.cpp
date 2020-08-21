@@ -18,6 +18,7 @@
 #include "JavaScriptgui_impl.h"
 #include <stdarg.h>
 #include "ocpn_duk.h"
+#include <string>
 
 /*  On hold for now
  // sprintf function
@@ -38,6 +39,13 @@
  //    return (*duk_push_sprintf(ctx, "meaning of life: %d, name", 42));
  }
  */
+
+void JS_dk_error(duk_context *ctx, wxString message){
+    extern JS_control_class JS_control;
+    JS_control.m_pJSconsole->Show(); // make sure console is visible
+    duk_error(ctx, DUK_ERR_NONE, message); // we never return from this
+}
+    
 wxString js_formOutput(duk_context *ctx){
     duk_idx_t nargs;  // number of args in call
     wxString output = "";
@@ -53,10 +61,9 @@ wxString js_formOutput(duk_context *ctx){
                 output = output + ((duk_to_boolean(ctx,i) == 1) ? "true":"false");
                 break;
             case DUK_TYPE_OBJECT:
-                output << "\nJavaScript print error: arg " << i << " is object" << "\n";
-                break;  // avoid fatal error fo now DUK_RET_TYPE_ERROR;
+                JS_dk_error(ctx, "print - arg " + to_string(i) + " is object");
             default:
-                output << "\nJavaScript print error: arg " << i << " of unexpected type " << type << "\n";
+                JS_dk_error(ctx, "print - arg " + to_string(i) + " of unexpected type " + to_string(type));
         }
     }
     return(output);
@@ -73,18 +80,18 @@ static duk_ret_t duk_print(duk_context *ctx) {   // print
     duk_ret_t result = 0;
     extern JS_control_class JS_control;
     JS_control.m_pJSconsole->Show(); // make sure console is visible
-    cout << js_formOutput(ctx);
+    JS_control.m_pJSconsole->m_Output->AppendText(js_formOutput(ctx));
     return (result);
 }
 
 static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     // read in a text file
-    wxString fileNameGiven, fileString;
+    wxString fileNameGiven, fileString, lineOfFile, text;
     wxFileName filePath;
-    wxFile inputFile;
+    wxTextFile inputFile;
     wxFileName homeDirectory;
     bool ok;
-    void *p; // pointer to buffer
+    wxString JScleanString(wxString line);
     
     fileNameGiven = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
@@ -99,51 +106,49 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
                 }
             }
         if (!filePath.FileExists()) {  // try again
-            duk_error(ctx, DUK_ERR_NONE, "JavaScript readTextFile " + filePath.GetFullPath() + " not found");
+            JS_dk_error(ctx, "readTextFile " + filePath.GetFullPath() + " not found");
             }
-        if (!filePath.IsFileReadable()) duk_error(ctx, DUK_ERR_NONE, "readTextFile " + filePath.GetFullPath() + " not readable");
+        if (!filePath.IsFileReadable()) JS_dk_error(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
         }
-    else duk_error(ctx, DUK_ERR_NONE, "JavaScript readTextFile " + filePath.GetFullPath() + " does not make sense");
+    else JS_dk_error(ctx, "readTextFile " + filePath.GetFullPath() + " does not make sense");
     fileString = filePath.GetFullPath();
-    ok = inputFile.Open(fileString, wxFile::read);
-    wxFileOffset fileLength = inputFile.Length();
-    if (!ok || (fileLength == wxInvalidOffset)){
-        duk_error(ctx, DUK_ERR_NONE, "JavaScript readTextFile - unable to read " + fileString);
-            }
-    p = duk_push_fixed_buffer(ctx, fileLength);     // get space for file data
-    if (inputFile.Read(p, fileLength) != fileLength){
-        duk_error(ctx, DUK_ERR_NONE, "JavaScript readTextFile - problem reading " + fileString);
-            }
-    duk_buffer_to_string(ctx, 0);
+    ok = inputFile.Open(fileString);
+    for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
+        text += lineOfFile + "\n";
+        }
+    text = JScleanString(text);
+    duk_push_string(ctx, text);
     return 1;
     };
 
 
 
 duk_ret_t duk_require(duk_context *ctx){ // the module search function
-    wxString fileNameGiven, fileString;
+    wxString fileNameGiven, fileString, lineOfData, script;
     wxFileName filePath;
-    wxFile inputFile;
+    wxTextFile inputFile;
     wxFileName homeDirectory;
+    wxString JScleanString(wxString line);
     bool ok;
-    void *p; // pointer to buffer
     
     fileNameGiven = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
     filePath = wxFileName(fileNameGiven);
     if ((filePath.GetDirCount() == 0) && !filePath.HasExt()){
-            // simple file name - we will look in the plugin library
-            filePath = *GetpSharedDataLocation() +
+        // simple file name - we will look in the plugin library
+        filePath = *GetpSharedDataLocation() +
             _T("plugins") + wxFileName::GetPathSeparator() +
-            _T("JavaScript_pi") + wxFileName::GetPathSeparator()
-            + _T("scripts") + wxFileName::GetPathSeparator()
-           + fileNameGiven;
+            _T("JavaScript_pi") + wxFileName::GetPathSeparator() +
+            _T("data") + wxFileName::GetPathSeparator() +
+            _T("scripts") + wxFileName::GetPathSeparator() +
+            fileNameGiven;
         if (!filePath.FileExists()){
-                duk_error(ctx, DUK_ERR_NONE, "require - " + filePath.GetFullName() + " not in scripts library");
+                JS_dk_error(ctx, "require - " + filePath.GetFullName() + " not in scripts library");
             }
-        if (!filePath.IsFileReadable()) duk_error(ctx, DUK_ERR_NONE, "require - " + filePath.GetFullName() + " not readable");
+        if (!filePath.IsFileReadable()) JS_dk_error(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
         // ready to go
         }
+    
     else{   // not a library script}
         if (filePath.IsOk()){
             if (!filePath.FileExists()) {
@@ -155,26 +160,22 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
                     }
                 }
             if (!filePath.FileExists()) {  // try again
-                duk_error(ctx, DUK_ERR_NONE, "require - " + filePath.GetFullPath() + " not found");
+                JS_dk_error(ctx, "require - " + filePath.GetFullPath() + " not found");
                 }
-            if (!filePath.IsFileReadable()) duk_error(ctx, DUK_ERR_NONE, "require - " + filePath.GetFullPath() + " not readable");
+            if (!filePath.IsFileReadable()) JS_dk_error(ctx, "require - " + filePath.GetFullPath() + " not readable");
             }
-        else duk_error(ctx, DUK_ERR_NONE, "require - " + filePath.GetFullPath() + " does not make sense");
+        else JS_dk_error(ctx, "require - " + filePath.GetFullPath() + " does not make sense");
         }
     fileString = filePath.GetFullPath();
-    ok = inputFile.Open(fileString, wxFile::read);
-    wxFileOffset fileLength = inputFile.Length();
-    if (!ok || (fileLength == wxInvalidOffset)){
-        duk_error(ctx, DUK_ERR_NONE, "require - unable to read " + fileString);
-            }
-    p = duk_push_fixed_buffer(ctx, fileLength);     // get space for file data
-    if (inputFile.Read(p, fileLength) != fileLength){
-        duk_error(ctx, DUK_ERR_NONE, "require - problem reading " + fileString);
-            }
-    duk_buffer_to_string(ctx, -1);
+    ok = inputFile.Open(fileString);
+    for (lineOfData = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfData = inputFile.GetNextLine()){
+        script += lineOfData + "\n";
+        }
+    script = JScleanString(script);
+    duk_push_string(ctx, script);
     duk_push_string(ctx, "position");
     if (duk_pcompile(ctx, DUK_COMPILE_FUNCTION)){
-           duk_error(ctx, DUK_RET_SYNTAX_ERROR, duk_safe_to_string(ctx, -1));
+        JS_dk_error(ctx, duk_safe_to_string(ctx, -1));
         }
     return(1);
     };

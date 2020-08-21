@@ -28,6 +28,7 @@
 #include "JavaScriptgui.h"
 #include "JavaScriptgui_impl.h"
 #include "ocpn_duk.h"
+#include "wx/stc/stc.h"
 
 extern JS_control_class JS_control;
 
@@ -42,17 +43,35 @@ extern JS_control_class JS_control;
     *((volatile unsigned int *) 0) = (unsigned int) 0xdeadbeefUL;
     abort();
 }
+wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
+    const wxString leftQuote    { _("\u201c")};
+    const wxString rightQuote   {_("\u201d")};
+//  const wxString quote        {_("\u0022")};
+    const wxString quote        {_("\"")};
+    const wxString accute       {_("\u00b4")};
+    const wxString prime        {_("\u2032")};
+//  const wxString apostrophe   {_("\u0027")};
+    const wxString apostrophe   {_("\'")};
+    given.Replace(leftQuote, quote, true);
+    given.Replace(rightQuote, quote, true);
+    given.Replace(accute, apostrophe, true);
+    given.Replace(prime, apostrophe, true);
+    return (given);
+    }
 
-void jsMessage(duk_context *ctx, wxTextAttr textColour, wxString messageAttribute, wxString message){
+void jsMessage(duk_context *ctx, int style, wxString messageAttribute, wxString message){
     JS_control.m_pJSconsole->Show(); // make sure console is visible
-    wxTextCtrl* output_window = JS_control.m_pJSconsole->m_Output;
-    output_window->SetDefaultStyle(wxTextAttr(textColour));
+    wxStyledTextCtrl* output_window = JS_control.m_pJSconsole->m_Output;
+    int long beforeLength = output_window->GetTextLength(); // where we are before adding text
     output_window->AppendText("JavaScript ");
     output_window->AppendText(messageAttribute);
     output_window->AppendText(message);
     output_window->AppendText("\n");
-    output_window->SetDefaultStyle(wxTextAttr(*wxBLACK));
-}
+    int long afterLength = output_window->GetTextLength(); // where we are after adding text
+    output_window->StartStyling(beforeLength);
+    output_window->SetStyling(afterLength-beforeLength-1, style);
+ //   cout << "wordcounts:" << beforeLength << " " << afterLength << "\n";
+    }
 
 bool compileJS(wxString script, Console* console){
     // compiles and runs supplied JavaScript script and returns true if succesful
@@ -63,17 +82,14 @@ bool compileJS(wxString script, Console* console){
     void ocpn_apis_init(duk_context *ctx);
     
     JS_control.m_pJSconsole = console;  // remember our console
-    wxTextCtrl* output_window = console->m_Output;    // where we want stdout to go
+    wxStyledTextCtrl* output_window = console->m_Output;    // where we want stdout to go
 
     // clean up fatefull characters in script
-    script.Replace(wxString("“"),wxString('"'), true);  // opening double quote
-    script.Replace(wxString("”"),wxString('"'), true);  // closing double quote
-    script.Replace(wxString("’"),wxString("'"), true);  // fix opening prime ’
-    script.Replace(wxString("’"),wxString("'"), true);  // fix closing prime ’
+    script = JScleanString(script);
 
     duk_context *ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
     JS_control.m_pctx = ctx;  // remember it
-    wxStreamToTextRedirector redirect(output_window);  // redirect sdout to our window pane
+//    wxStreamToTextRedirector redirect(output_window);  // redirect sdout to our window pane
     duk_extensions_init(ctx);  // register our own extensions
     ocpn_apis_init(ctx);       // register our API extensions
     more = false;      // start with no call-backs - will be set true in 'on' callback APIs
@@ -82,10 +98,10 @@ bool compileJS(wxString script, Console* console){
 
     duk_push_string(ctx, script.mb_str());   // load the script
     if (duk_peval(ctx) != 0) { // compile and run - how did it go?
-        jsMessage(ctx, *wxRED, _(""), duk_safe_to_string(ctx, -1));
+        jsMessage(ctx, STYLE_RED, _(""), duk_safe_to_string(ctx, -1));
         return false;
         }
-    jsMessage(ctx, *wxBLUE, _("result: "), duk_safe_to_string(ctx, -1));
+    jsMessage(ctx, STYLE_BLUE, _("result: "), duk_safe_to_string(ctx, -1));
      duk_pop(ctx);  /* pop result/error */
 
     // check if script has set up call backs with nominated functions
@@ -98,7 +114,7 @@ bool compileJS(wxString script, Console* console){
                 // script set call back to this function - check it exists
                 duk_push_global_object(ctx);  // ready with our compiled script
                 if (!duk_get_prop_string(ctx, -1, function.c_str())){  // Does function exist in there?
-                    jsMessage(ctx, *wxRED, _("function ") + function + " ", duk_safe_to_string(ctx, -1));
+                    jsMessage(ctx, STYLE_RED, _("function ") + function + " ", duk_safe_to_string(ctx, -1));
                     errors = true;   // will not proceed with call-backs
                     }
                 duk_pop(ctx);
@@ -115,7 +131,7 @@ bool compileJS(wxString script, Console* console){
                 // script set call back to this function - check it exists
                 duk_push_global_object(ctx);  // ready with our compiled script
                 if (!duk_get_prop_string(ctx, -1, function.c_str())){  // Does function exist?
-                    jsMessage(ctx, *wxRED, _("Timed function ") + function + " ", duk_safe_to_string(ctx, -1));
+                    jsMessage(ctx, STYLE_RED, _("Timed function ") + function + " ", duk_safe_to_string(ctx, -1));
                     errors = true;   // will not proceed with call-backs
                     }
                 duk_pop(ctx);
@@ -130,7 +146,7 @@ bool compileJS(wxString script, Console* console){
         // script set call back to this function - check it exists
         duk_push_global_object(ctx);  // ready with our compiled script
         if (!duk_get_prop_string(ctx, -1, function.c_str())){  // Does function exist?
-            jsMessage(ctx, *wxRED, _("function ") + function + " ", duk_safe_to_string(ctx, -1));
+            jsMessage(ctx, STYLE_RED, _("function ") + function + " ", duk_safe_to_string(ctx, -1));
             errors = true;   // will not proceed with call-backs
             }
         duk_pop(ctx);

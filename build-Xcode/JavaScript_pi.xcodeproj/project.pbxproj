@@ -1,0 +1,2376 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		26ABEF415236490EAE97D854 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 997D2338C1B64BCD9930938F /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				C728A0DAB790470F8CCFA006 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		29FC6326AA614DF89439173A /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 996C7783E0D64A098A437B86 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				18BE10908FE14735ADA7F4B6 /* CMake Rules */,
+			);
+			dependencies = (
+				C36677AE1B9A4F1DAAD30781 /* PBXTargetDependency */,
+				5BD760205F894F30A5A21901 /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		46E203F3721245CC9D31442A /* JavaScript-po-update */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 302E24EC8B4A4A63A2D6BD9C /* Build configuration list for PBXAggregateTarget "JavaScript-po-update" */;
+			buildPhases = (
+				DF4A3821B7584D9A86F5981E /* CMake Rules */,
+			);
+			dependencies = (
+				E590AF9DD23D4A758381EF57 /* PBXTargetDependency */,
+			);
+			name = "JavaScript-po-update";
+			productName = "JavaScript-po-update";
+		};
+		639C333E736244D48FC484BC /* JavaScript-i18n */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = DF39631AC26E46A88D584036 /* Build configuration list for PBXAggregateTarget "JavaScript-i18n" */;
+			buildPhases = (
+				E559369FBCB14106A3BCCD64 /* CMake Rules */,
+			);
+			dependencies = (
+				033FC50E25464E3EBC2C9E51 /* PBXTargetDependency */,
+			);
+			name = "JavaScript-i18n";
+			productName = "JavaScript-i18n";
+		};
+		67B09607D2AA465FADC332AB /* JavaScript-pot-update */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 43A2DFD10ED34E299E7BDC02 /* Build configuration list for PBXAggregateTarget "JavaScript-pot-update" */;
+			buildPhases = (
+				B4B1DFE10B54447CB5DE0AE6 /* CMake Rules */,
+			);
+			dependencies = (
+				B72C344D1D2C4DF881EBB644 /* PBXTargetDependency */,
+			);
+			name = "JavaScript-pot-update";
+			productName = "JavaScript-pot-update";
+		};
+		79718B10A5574747B0DCCBEC /* create-pkg */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = C94919F409114E81A0F81540 /* Build configuration list for PBXAggregateTarget "create-pkg" */;
+			buildPhases = (
+				618026FCF3CD42B3B1EF0A34 /* CMake Rules */,
+			);
+			dependencies = (
+				9EF50E40804741269DFA3578 /* PBXTargetDependency */,
+				AF2D6A3E3C0D43F7B4F51F21 /* PBXTargetDependency */,
+			);
+			name = "create-pkg";
+			productName = "create-pkg";
+		};
+		A47EB0A331A4488097553A92 /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 8F9C4E2255C54B649C3B79ED /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				AB93F48FA89F413FAC6644F2 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				D85AEB912C90447493DBAF67 /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+		FEA2C16C719F4450A8EFE586 /* package */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = C18F7DE11B504E8FB76EBDB4 /* Build configuration list for PBXAggregateTarget "package" */;
+			buildPhases = (
+				97E02169AF8A4A61A0BA747C /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				3437239FF73E418581E7CB97 /* PBXTargetDependency */,
+			);
+			name = package;
+			productName = package;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0110C561D34F4914AA633556 /* LexAbaqus.cxx in Sources */ = {isa = PBXBuildFile; fileRef = C8D39457041D45B8BBA60102 /* LexAbaqus.cxx */; };
+		02B1F9527CE24D00AFD01E47 /* LexCaml.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 9C3AF9C7FD9E4B8EB85721C7 /* LexCaml.cxx */; };
+		044C8AC86BD34A5A97B065AD /* Catalogue.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 102396A660C343018AFFEC81 /* Catalogue.cxx */; };
+		050C5AEC8EF947CDBE9A0589 /* PropSetSimple.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44CB40DF4F684FE491AA056F /* PropSetSimple.cxx */; };
+		05A81B39A322457E9D233A48 /* LexTxt2tags.cxx in Sources */ = {isa = PBXBuildFile; fileRef = B4DD68BF54654BAD9EF1E7D3 /* LexTxt2tags.cxx */; };
+		05F47563926F4C8F9305065D /* LexHTML.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 78F49877B96D4BFCAC1E169B /* LexHTML.cxx */; };
+		0670D166A1D2476EB6A92E49 /* StyleContext.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 7166F1A42992462C86C2030E /* StyleContext.cxx */; };
+		083852EEAFD544328E59836A /* Style.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 635153C1325E447A9A80EF7D /* Style.cxx */; };
+		08C867ECB97B4EE1B05B2B24 /* LexRust.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6532E42CD8F54C89A5C5E4C5 /* LexRust.cxx */; };
+		08D5E865307C4317AC3948D5 /* LexTCMD.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 9B275EDC88C944D9844A75DE /* LexTCMD.cxx */; };
+		091D61E32AFC42A18AC2FBC5 /* RESearch.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 59D1C95C12084E879B82A834 /* RESearch.cxx */; };
+		0B3D2362CE6942F1B468EE8E /* LexDMIS.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 06BEE7F04104470E8990EE89 /* LexDMIS.cxx */; };
+		0C069775DB534F7C829DEABA /* LexProps.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3318EB494D504B80B46F2AC1 /* LexProps.cxx */; };
+		0DF8AAAF73CD43C99BFE1BAA /* LexKix.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 18FD5591778F4760925CE4B6 /* LexKix.cxx */; };
+		0EBACF13C00E4B0290C4F55B /* ExternalLexer.cxx in Sources */ = {isa = PBXBuildFile; fileRef = ECCF491ACAC34E02B2F265CF /* ExternalLexer.cxx */; };
+		0FE0D917D2F046F2BE2BB6AE /* LexPerl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A0E680A30705412C9A65C0FD /* LexPerl.cxx */; };
+		1127531D751545278939A626 /* LexRegistry.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F1D3148CF2D747ECB31A6C3F /* LexRegistry.cxx */; };
+		149AA2E10FDA445B9BBBEFCA /* LexGui4Cli.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 69A38BCB260C4C9CA97E822D /* LexGui4Cli.cxx */; };
+		154FED2AB9DE4CEDB9A1D117 /* LexPowerShell.cxx in Sources */ = {isa = PBXBuildFile; fileRef = DEF2312F2FB44B578FCC48CD /* LexPowerShell.cxx */; };
+		15839CDA827F4A9A9BA462EE /* LexEiffel.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 925CBEB3D2284C958647886B /* LexEiffel.cxx */; };
+		1631A56EF6584D309F7AA9CA /* LexOpal.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3845CD2D33394267BCA99E3A /* LexOpal.cxx */; };
+		16EBB98756DA49EEB1C10A07 /* LexBaan.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 571E20B9011040F2B75357FA /* LexBaan.cxx */; };
+		1799266A55EC485484B1E63F /* LexVerilog.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 7AE44C480DAD48E5B460804C /* LexVerilog.cxx */; };
+		1BD5F9A33F4A42F1BCC4060E /* ViewStyle.cxx in Sources */ = {isa = PBXBuildFile; fileRef = BAC9A790E33845EAA285E068 /* ViewStyle.cxx */; };
+		1F98574109814344836E5522 /* LexJSON.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 44D79E2030924CFA93511585 /* LexJSON.cxx */; };
+		213C742A89DD4B79B618683B /* LineMarker.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 61F10DF819CA4C2095FE419D /* LineMarker.cxx */; };
+		22A702CBE112441BB2DC6F9A /* LexLisp.cxx in Sources */ = {isa = PBXBuildFile; fileRef = DAD21D25D51B4097AD7E9359 /* LexLisp.cxx */; };
+		23B4278C37754D0AA0C7D18C /* duktape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5D71F67F7FF04C73A13B7FAA /* duktape.cpp */; };
+		26A3C7F6A98542F0BBDF5837 /* LexLout.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 53B62C1BBA6A465AA6820ADF /* LexLout.cxx */; };
+		272AB5AC91B34700BCD81F12 /* LexInno.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 1572E83873354AF78D64FECA /* LexInno.cxx */; };
+		291277B4A54D4C8298C3137F /* LexBasic.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 7F59E536D7F44FA3860D173E /* LexBasic.cxx */; };
+		297B3A01198C4F8186256E3F /* LexD.cxx in Sources */ = {isa = PBXBuildFile; fileRef = B1EE2DA0C23E422CAD29EFE0 /* LexD.cxx */; };
+		29F88EF1D4444DDD9AEFCDAC /* Decoration.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6BD975E857CF4F308A783906 /* Decoration.cxx */; };
+		2A4ABDE48AA542869251D37F /* LexModula.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3597607C817E4CB4935CD27E /* LexModula.cxx */; };
+		2C8E105F6ACA4246B3E5EC83 /* LexForth.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 37AB599BC00F40AFBBB17C66 /* LexForth.cxx */; };
+		2E74DC4DF401417CBB8E0BCE /* icons.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2272EBA5A0F4109AF560E45 /* icons.cpp */; };
+		35BE70A7709945E1B6AC88ED /* LexNimrod.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F7343662333F4FF692DFF3DA /* LexNimrod.cxx */; };
+		3DFF4905E51C4452A4A75489 /* LexBibTeX.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A20CD77B05644E99976A5252 /* LexBibTeX.cxx */; };
+		3F29838727E8463AB4473BBA /* LexAsm.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 5FD9BAEE07D24E5BA120EE32 /* LexAsm.cxx */; };
+		3FDD882541964863AC4C23F0 /* LexR.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F106677DA4E24983B8F44CDF /* LexR.cxx */; };
+		407CA886F0114E748C40DA85 /* LexerNoExceptions.cxx in Sources */ = {isa = PBXBuildFile; fileRef = BF0C4945231D4ACD92EA9E6A /* LexerNoExceptions.cxx */; };
+		409046F4F3264007B9141DC2 /* LexSorcus.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 374636FB777D445D82A12B72 /* LexSorcus.cxx */; };
+		42B01886DDA64CBD82A99B5B /* LexAda.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 296D92785222428DA9B8BCDF /* LexAda.cxx */; };
+		43347765FFA3415796A9F306 /* LexA68k.cxx in Sources */ = {isa = PBXBuildFile; fileRef = DC358B952CCB4D9CB4767283 /* LexA68k.cxx */; };
+		439404F9C6364929843D04DA /* LexTCL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3082BC6C9B514747A39CC1F2 /* LexTCL.cxx */; };
+		43D595DD7B944FB3AD5AF838 /* LexMatlab.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 06F1834B829F40C5BF9BD600 /* LexMatlab.cxx */; };
+		475034FB64DE44A486E4AAD0 /* LexEDIFACT.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 27ACA594ABB74B789FD663CB /* LexEDIFACT.cxx */; };
+		4766D9F703134015880BC883 /* CellBuffer.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6D584F5291F3491DA6A20895 /* CellBuffer.cxx */; };
+		49767206B88442AC9105ED7A /* ScintillaWX.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37F0D2DBFE054211B00EB2D1 /* ScintillaWX.cpp */; };
+		49B854C1BB6F4B3DB111BAC5 /* LexMake.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 9ECCE8663AC5414F8696D996 /* LexMake.cxx */; };
+		4B2B600D4A2B44808999FAEA /* PlatWX.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B63C5A02CE841CDA4DFA5CB /* PlatWX.cpp */; };
+		4FC69BD6E9B04E6098C331E7 /* LexPython.cxx in Sources */ = {isa = PBXBuildFile; fileRef = AED5FBE857A74985933EBFEE /* LexPython.cxx */; };
+		5008E04798DA4EE3A39F7ECF /* LexHex.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3D506743EF2C46E484588120 /* LexHex.cxx */; };
+		5016DAFF86F54BD5B7F27932 /* LexPLM.cxx in Sources */ = {isa = PBXBuildFile; fileRef = C2A83D01B4E548668C53A667 /* LexPLM.cxx */; };
+		5154D7005D684D29BFC10C04 /* stc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3E25929B86B420780476B88 /* stc.cpp */; };
+		53F79791FEF74D7896CE1AA1 /* LexBash.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0606B0DA607B4E0290A0478E /* LexBash.cxx */; };
+		5499478D8105442691886FEC /* LexCLW.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D75E014C5CF549F692057F67 /* LexCLW.cxx */; };
+		58A05E3E138E422DAB95D88F /* LexPOV.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 88DF6CD9AD8D40909F6C55B1 /* LexPOV.cxx */; };
+		5A5927049E5E43F096724212 /* runJS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA66772B16AC4E5086823339 /* runJS.cpp */; };
+		5A85288D34A843B68900073B /* JavaScriptgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB09AD08F744B9A42D916B /* JavaScriptgui.cpp */; };
+		5BAF0EFDADFD4CBF988C38AD /* LexPowerPro.cxx in Sources */ = {isa = PBXBuildFile; fileRef = C3A33E7B23B64C1F8006E776 /* LexPowerPro.cxx */; };
+		5D84928E084D46BF9624FC86 /* LexFortran.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F329895D2D824B19AF62C905 /* LexFortran.cxx */; };
+		5D884234D61F4E688A956262 /* LexNull.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 4E4D7D6CF6A340E8954E44D8 /* LexNull.cxx */; };
+		5E1F6BFCFFAD4C129DF76158 /* LexAVS.cxx in Sources */ = {isa = PBXBuildFile; fileRef = AE4B5767AB6F4F87A8610558 /* LexAVS.cxx */; };
+		5EF6BA276A134881B3AB4804 /* CharClassify.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 5982335E608F452693975AF3 /* CharClassify.cxx */; };
+		5F9160D39A6D4D748A4A947D /* LexCPP.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 35F7DBEC879142E884572BFA /* LexCPP.cxx */; };
+		5F95A3FECE4C4E1684932592 /* LexAU3.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 540E45452CE14B4FB51EF332 /* LexAU3.cxx */; };
+		6150BF0E6FB44FB4AAC40DA5 /* Editor.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 2BF83D96856D4F43893E4B28 /* Editor.cxx */; };
+		6492115EFAA840FBB9E2CCDB /* LexLua.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A69D1790731249C9B9EB7C04 /* LexLua.cxx */; };
+		669CB5CD1300484983FD7974 /* LexOScript.cxx in Sources */ = {isa = PBXBuildFile; fileRef = BF4B0BB3D32540729C1A398C /* LexOScript.cxx */; };
+		67112C06516943218860BE0F /* LexTACL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 59D1F1442AEC4F328BD3D1FC /* LexTACL.cxx */; };
+		67B1EA67FCDB4E3C9C3A2CF1 /* KeyMap.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3A9E277192AE4C2794A7DA23 /* KeyMap.cxx */; };
+		69A317BFF6194FB98F1FC4C1 /* LexConf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A9F772C7D1F641AE9A4A52FD /* LexConf.cxx */; };
+		69D33D5B024B4EC18716EFA0 /* CharacterSet.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 06F4869C47DA4854A0040127 /* CharacterSet.cxx */; };
+		69F2527B91DA413DBC504125 /* ContractionState.cxx in Sources */ = {isa = PBXBuildFile; fileRef = B12E60DB3A31483B8A6104EC /* ContractionState.cxx */; };
+		6DA0946CCEEB498AB47D80CF /* PerLine.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 889336B9DE364FB5BF66C227 /* PerLine.cxx */; };
+		6DE081C5B1964343AEBDF701 /* UniConversion.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 1362420EB54A4194BD62F507 /* UniConversion.cxx */; };
+		6E85ECE0039545A89A5D82B4 /* LexerSimple.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 8DD0589A881249B7B8345C67 /* LexerSimple.cxx */; };
+		6F1A19DD5BAF4CEDBD892B35 /* LexBullant.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 51191651BF7E40B09CEF599B /* LexBullant.cxx */; };
+		713C26F656DB4D88A7B78BB9 /* LexSML.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A2EAE4BBBDB446CB902B131C /* LexSML.cxx */; };
+		72161C602F924C6EB8CD9955 /* LexerModule.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0416B17455E94B75BEBC472A /* LexerModule.cxx */; };
+		7238912B04574B028F6BED5C /* LexHaskell.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 41C01717A5D64F2DA14972F4 /* LexHaskell.cxx */; };
+		72E988B30784480BBE63F761 /* LexVB.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 1FB1A0CD1A6345B3982223CA /* LexVB.cxx */; };
+		7CE63EA9FC4B413BA6213F65 /* RunStyles.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 93B49A753F384C458A917645 /* RunStyles.cxx */; };
+		7D9945085B3B4E9EAF86B81B /* LexErrorList.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 2F23F626C61348C9B42753F4 /* LexErrorList.cxx */; };
+		7FA08CAB600B417F8658DF1B /* LexSpice.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 672FFC9A72694BDABE9952EE /* LexSpice.cxx */; };
+		86770BE25CF34DC1ACF1E008 /* LexKVIrc.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 9F4CBA87F1CE414AA783E76F /* LexKVIrc.cxx */; };
+		870688EE05E046B696A9A723 /* JavaScript_pi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34231F206E8C40278E0FFC9E /* JavaScript_pi.cpp */; };
+		89ADA4A61F4D4A7BAD39522C /* LexSTTXT.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 7EBAB117C7FB4B7C9995D697 /* LexSTTXT.cxx */; };
+		8F08181AD57B412886C9F1B4 /* LexMagik.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 9CFB8317CCA84068A088EC5F /* LexMagik.cxx */; };
+		8F8BE12881104549BEF80AC6 /* LexSQL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F4839DF4D4514BFF8A8EAC41 /* LexSQL.cxx */; };
+		90E22A303CC6469EA4CB7A32 /* CharacterCategory.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 991A110B7D444077A43694E8 /* CharacterCategory.cxx */; };
+		9264A40D442E49CFAC647236 /* LexMetapost.cxx in Sources */ = {isa = PBXBuildFile; fileRef = B799C85F13394A8DAB21CDCF /* LexMetapost.cxx */; };
+		934B3A665CB2444CA14731F3 /* LexTADS3.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F671ACE310234159BAE64953 /* LexTADS3.cxx */; };
+		939C09B508204DBAB1F85842 /* ScintillaBase.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 8CEEA4CE2EA04AAD8E01F473 /* ScintillaBase.cxx */; };
+		9AFC3D0535CA47078745721B /* LexTAL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = FA9B7988835A45A687CD43A9 /* LexTAL.cxx */; };
+		9F04664697E04AF798E862FD /* LexPB.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 124CAFA96434427BBDB839E2 /* LexPB.cxx */; };
+		9F4F3E95022843C0A366170E /* LexMySQL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 1963E386D6E54C0D9A83C518 /* LexMySQL.cxx */; };
+		9F72B3F7BB8F4C6BA77B175C /* LexFlagship.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 281D12C912094641AB9A53F7 /* LexFlagship.cxx */; };
+		A7F0960375A34DA7A58CCDCE /* WordList.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 61949FDC586F40939B4CD563 /* WordList.cxx */; };
+		A860FBFEBF714CE4B2543F1B /* JSExtensions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 970F9ACDE0774DB4B4354D05 /* JSExtensions.cpp */; };
+		A8E688485ADC4258ABEABB23 /* LexCmake.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A7D069B23CC04ABBB7D68BE9 /* LexCmake.cxx */; };
+		AAD3DDBF1F9C4117B586DB0D /* LexPS.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 358EF9BECC744FFEB4BC7DD0 /* LexPS.cxx */; };
+		AB55A8ED444E4809B8159032 /* LexYAML.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6CAC78DB7579483990E0D883 /* LexYAML.cxx */; };
+		AF24732767CA4C6794C13378 /* Document.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6D58C64332E74845A98B1876 /* Document.cxx */; };
+		AFEE1AF50CF647EC822A31F8 /* CaseFolder.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 4720087121B047CFB0DD5081 /* CaseFolder.cxx */; };
+		B185694EAAD54B64BDCB2AC0 /* LexSpecman.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 8B37585CA8374E44BCA32F8A /* LexSpecman.cxx */; };
+		B30077FB78294C8FA70153EF /* LexCOBOL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 8793E4941B064CBD8B7C819F /* LexCOBOL.cxx */; };
+		B4600D8CEB2C4BF38500AF1C /* Indicator.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 07FB64E1C10B4F99B7E8FD1E /* Indicator.cxx */; };
+		B757174C695149F8A4010671 /* LexCrontab.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 4DCC2A5672384E69B6102A5E /* LexCrontab.cxx */; };
+		B873DA9B993E41E48EB1FB15 /* LexGAP.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F1668DFB0F98465F93567A57 /* LexGAP.cxx */; };
+		B8D21156BD514AFB8E2C32D8 /* Selection.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6C1AE8AFE994484E91024C0D /* Selection.cxx */; };
+		B9804E4F926A4C16BD980C3A /* EditModel.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0C2CE5641CC74D7FB128E844 /* EditModel.cxx */; };
+		C4FB37056ED142CFABCFB8A6 /* LexMPT.cxx in Sources */ = {isa = PBXBuildFile; fileRef = CD74D44EAA4E411E97139462 /* LexMPT.cxx */; };
+		C80F618EBB914D74AEFF9DD5 /* LexASY.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 055639487C4E4916A58A2D72 /* LexASY.cxx */; };
+		C810E86C33FE40DDB45A2258 /* CallTip.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 2793E4E14BC942C7A6AF5DF3 /* CallTip.cxx */; };
+		C8E1E186DFB24DBAAB0AD878 /* Accessor.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A360A8B9B1C446C180EAA233 /* Accessor.cxx */; };
+		C9D9BEF789C0449AB0AE1E9E /* LexCSS.cxx in Sources */ = {isa = PBXBuildFile; fileRef = CD5561917C1B4EE084ED2F07 /* LexCSS.cxx */; };
+		CA01713366BC409DB70D4923 /* LexAVE.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6E1B853A69634A2986A25DE1 /* LexAVE.cxx */; };
+		CAB18A7F64AA49B18444A85B /* LexMMIXAL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6D6F6528D4604D76949FC3F5 /* LexMMIXAL.cxx */; };
+		CC3DB38F5628471CB4798D81 /* LexScriptol.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 422D01F89AF84722B1E215F8 /* LexScriptol.cxx */; };
+		CCD165239DA84ED18EFDD04C /* LexRuby.cxx in Sources */ = {isa = PBXBuildFile; fileRef = DCB1FE3D695443B99A441FE9 /* LexRuby.cxx */; };
+		CDE1F0BC27A046F29CA28F8B /* LexBatch.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 71BD7E1E5E1A4A3DA781D4F3 /* LexBatch.cxx */; };
+		CED33342FF5A43299B45BCCE /* XPM.cxx in Sources */ = {isa = PBXBuildFile; fileRef = D2594C1E15134EC688772DFB /* XPM.cxx */; };
+		CF71D31A0495455EAF3210E6 /* LexVisualProlog.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 15EF1FB86EF8463EB7AE8AD7 /* LexVisualProlog.cxx */; };
+		D1D8855C9D7244EDA41583CE /* LexMarkdown.cxx in Sources */ = {isa = PBXBuildFile; fileRef = E28E6AD428E74E84A1DFF889 /* LexMarkdown.cxx */; };
+		D1DC34C76B3B4C3492E50C20 /* EditView.cxx in Sources */ = {isa = PBXBuildFile; fileRef = CA50B824A24047A1941A17CF /* EditView.cxx */; };
+		D2815E382792470AA50D81A8 /* LexAsn1.cxx in Sources */ = {isa = PBXBuildFile; fileRef = DFB714EF4E3C4CF2AA239311 /* LexAsn1.cxx */; };
+		D385053D3A6B4337858163E9 /* LexECL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 964E11CCCF3A455DA0A10DC7 /* LexECL.cxx */; };
+		D39D082BCF234836BA870216 /* LexNsis.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 51F654F8A4F14454B23597A9 /* LexNsis.cxx */; };
+		D57AC165BA114683B1C3EE0B /* LexPascal.cxx in Sources */ = {isa = PBXBuildFile; fileRef = AF0F2A269E614A56BD45F6D5 /* LexPascal.cxx */; };
+		D59B4D0926D24236B561B626 /* LexCsound.cxx in Sources */ = {isa = PBXBuildFile; fileRef = DB6C9556B14047C990816B60 /* LexCsound.cxx */; };
+		D6F7367470134EFAB24C63E4 /* LexSmalltalk.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 225FAB13E55C4F9E99CA2C02 /* LexSmalltalk.cxx */; };
+		D89D7CE5A83040BA9A51D4E1 /* LexLaTeX.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6CD6ADAB37C14F49A2523C93 /* LexLaTeX.cxx */; };
+		DA597AA4FCFC46DFA5BEA28B /* LexRebol.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A28D4A35D447416E94E4BCC8 /* LexRebol.cxx */; };
+		DD3FC1F5F11348B88B687D9C /* LexDiff.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0E2927ACC4014BC08B1643CA /* LexDiff.cxx */; };
+		DF72B238115F422BAA7A8678 /* LexEScript.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F78EB206195C4835A53B6F3A /* LexEScript.cxx */; };
+		E4C1E5CFD09149359C198363 /* OPCNapis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F14872AE116149CA8F522F6E /* OPCNapis.cpp */; };
+		E7DF196FE5D14757A90977A9 /* LexErlang.cxx in Sources */ = {isa = PBXBuildFile; fileRef = B7514A0974BF47859C272A04 /* LexErlang.cxx */; };
+		E875B7E991FF47DC86DB46A8 /* CaseConvert.cxx in Sources */ = {isa = PBXBuildFile; fileRef = F946D1F300674F378AE2DF3F /* CaseConvert.cxx */; };
+		EAEBBD90549A4C7697C5E126 /* LexAPDL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 061C5604EA074B17B2DEA50A /* LexAPDL.cxx */; };
+		EBB306E6457E40A7AC64AA44 /* LexMSSQL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3ED044E274F04BF39E0A135A /* LexMSSQL.cxx */; };
+		EBBC52331D3D4C03BA9F88ED /* AutoComplete.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 2BBDD3461EAF42BCAB1C68A4 /* AutoComplete.cxx */; };
+		EDB8AF9E94C74DCB850E9BED /* LexerBase.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 365E025089684C608BF25452 /* LexerBase.cxx */; };
+		F0F9FFC067364475A8DED336 /* LexCoffeeScript.cxx in Sources */ = {isa = PBXBuildFile; fileRef = B1EFCCC03D324BB59FDB392C /* LexCoffeeScript.cxx */; };
+		F1D01AB391B14E8F9F324B0D /* LexVHDL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 1E8516D84BED4C5D8770BEFC /* LexVHDL.cxx */; };
+		F47D11058F464A0EAEA4B1B6 /* MarginView.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 40AAF7B1F56C4B77A2D70633 /* MarginView.cxx */; };
+		F636EE6198624FB9A5430BC4 /* PositionCache.cxx in Sources */ = {isa = PBXBuildFile; fileRef = EA58E8108FCF45DAB8869DF7 /* PositionCache.cxx */; };
+		F8D3EF435A7447B0927DB594 /* LexDMAP.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 99D1D93423EC4ABCB801C367 /* LexDMAP.cxx */; };
+		FB04120CCB434CEA92DFF3DC /* JavaScriptgui_impl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBA993811B0C4611826453D2 /* JavaScriptgui_impl.cpp */; };
+		FBB35ED65922418B9ABF7533 /* LexPO.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A192DD7BCDD04111B7B01A0F /* LexPO.cxx */; };
+		FC061C1917304631BD02219F /* LexProgress.cxx in Sources */ = {isa = PBXBuildFile; fileRef = C77542815A474EFAAE21E20D /* LexProgress.cxx */; };
+		FE985827269B47B59C6621DA /* LexTeX.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 6944DB7759194F7AB15316A8 /* LexTeX.cxx */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		27EDD430B0E543C6A016AB6A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 29FC6326AA614DF89439173A;
+			remoteInfo = ALL_BUILD;
+		};
+		486476F30AF047C7928BEC9B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 639C333E736244D48FC484BC;
+			remoteInfo = "JavaScript-i18n";
+		};
+		61F38CFB70B440A9B3243ECE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ABEF415236490EAE97D854;
+			remoteInfo = ZERO_CHECK;
+		};
+		69FA0A3B632A4FD4B83E785F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ABEF415236490EAE97D854;
+			remoteInfo = ZERO_CHECK;
+		};
+		86D4E6B17FB440F3B1369796 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 182C3A790BD24C4DAF54DB90;
+			remoteInfo = JavaScript_pi;
+		};
+		9B4FC69A582B48849838ACC0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ABEF415236490EAE97D854;
+			remoteInfo = ZERO_CHECK;
+		};
+		B343D6A6D07F4D368D660CB3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ABEF415236490EAE97D854;
+			remoteInfo = ZERO_CHECK;
+		};
+		BADC6C34B26A4205BCAEBC4C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 182C3A790BD24C4DAF54DB90;
+			remoteInfo = JavaScript_pi;
+		};
+		C21920CC28734AB1A740E942 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ABEF415236490EAE97D854;
+			remoteInfo = ZERO_CHECK;
+		};
+		CB84067C0E684BFA80EFDD4F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ABEF415236490EAE97D854;
+			remoteInfo = ZERO_CHECK;
+		};
+		D38FA0EF23AF42728DB1B63D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8D97981B2E924C25A2501ABA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 29FC6326AA614DF89439173A;
+			remoteInfo = ALL_BUILD;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		032C2CC69F9E4F4891C176FD /* LexerNoExceptions.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = LexerNoExceptions.h; path = scintilla/lexlib/LexerNoExceptions.h; sourceTree = SOURCE_ROOT; };
+		0416B17455E94B75BEBC472A /* LexerModule.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexerModule.cxx; path = scintilla/lexlib/LexerModule.cxx; sourceTree = SOURCE_ROOT; };
+		055639487C4E4916A58A2D72 /* LexASY.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexASY.cxx; path = scintilla/lexers/LexASY.cxx; sourceTree = SOURCE_ROOT; };
+		0606B0DA607B4E0290A0478E /* LexBash.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexBash.cxx; path = scintilla/lexers/LexBash.cxx; sourceTree = SOURCE_ROOT; };
+		061C5604EA074B17B2DEA50A /* LexAPDL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAPDL.cxx; path = scintilla/lexers/LexAPDL.cxx; sourceTree = SOURCE_ROOT; };
+		06BEE7F04104470E8990EE89 /* LexDMIS.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexDMIS.cxx; path = scintilla/lexers/LexDMIS.cxx; sourceTree = SOURCE_ROOT; };
+		06F1834B829F40C5BF9BD600 /* LexMatlab.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMatlab.cxx; path = scintilla/lexers/LexMatlab.cxx; sourceTree = SOURCE_ROOT; };
+		06F4869C47DA4854A0040127 /* CharacterSet.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CharacterSet.cxx; path = scintilla/lexlib/CharacterSet.cxx; sourceTree = SOURCE_ROOT; };
+		07349EB856624DC8AD12FE7F /* Decoration.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Decoration.h; path = scintilla/src/Decoration.h; sourceTree = SOURCE_ROOT; };
+		07FB64E1C10B4F99B7E8FD1E /* Indicator.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Indicator.cxx; path = scintilla/src/Indicator.cxx; sourceTree = SOURCE_ROOT; };
+		0A37E854FE6C4E2887A0DC10 /* CallTip.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CallTip.h; path = scintilla/src/CallTip.h; sourceTree = SOURCE_ROOT; };
+		0C2CE5641CC74D7FB128E844 /* EditModel.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = EditModel.cxx; path = scintilla/src/EditModel.cxx; sourceTree = SOURCE_ROOT; };
+		0E2927ACC4014BC08B1643CA /* LexDiff.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexDiff.cxx; path = scintilla/lexers/LexDiff.cxx; sourceTree = SOURCE_ROOT; };
+		102396A660C343018AFFEC81 /* Catalogue.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Catalogue.cxx; path = scintilla/src/Catalogue.cxx; sourceTree = SOURCE_ROOT; };
+		1219A63B90604BD4BE3A9B34 /* UnicodeFromUTF8.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = UnicodeFromUTF8.h; path = scintilla/src/UnicodeFromUTF8.h; sourceTree = SOURCE_ROOT; };
+		124CAFA96434427BBDB839E2 /* LexPB.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPB.cxx; path = scintilla/lexers/LexPB.cxx; sourceTree = SOURCE_ROOT; };
+		1362420EB54A4194BD62F507 /* UniConversion.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = UniConversion.cxx; path = scintilla/src/UniConversion.cxx; sourceTree = SOURCE_ROOT; };
+		14BFD74B5B184C7D920F67DB /* Platform.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Platform.h; path = scintilla/include/Platform.h; sourceTree = SOURCE_ROOT; };
+		1572E83873354AF78D64FECA /* LexInno.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexInno.cxx; path = scintilla/lexers/LexInno.cxx; sourceTree = SOURCE_ROOT; };
+		15E7076AE6164526AAF0F503 /* FontQuality.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = FontQuality.h; path = scintilla/src/FontQuality.h; sourceTree = SOURCE_ROOT; };
+		15EF1FB86EF8463EB7AE8AD7 /* LexVisualProlog.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexVisualProlog.cxx; path = scintilla/lexers/LexVisualProlog.cxx; sourceTree = SOURCE_ROOT; };
+		18FD5591778F4760925CE4B6 /* LexKix.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexKix.cxx; path = scintilla/lexers/LexKix.cxx; sourceTree = SOURCE_ROOT; };
+		1963E386D6E54C0D9A83C518 /* LexMySQL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMySQL.cxx; path = scintilla/lexers/LexMySQL.cxx; sourceTree = SOURCE_ROOT; };
+		1DE89C49B1D34905AD2955C6 /* LexerSimple.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = LexerSimple.h; path = scintilla/lexlib/LexerSimple.h; sourceTree = SOURCE_ROOT; };
+		1E8516D84BED4C5D8770BEFC /* LexVHDL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexVHDL.cxx; path = scintilla/lexers/LexVHDL.cxx; sourceTree = SOURCE_ROOT; };
+		1ECB09AD08F744B9A42D916B /* JavaScriptgui.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JavaScriptgui.cpp; path = src/JavaScriptgui.cpp; sourceTree = SOURCE_ROOT; };
+		1FB1A0CD1A6345B3982223CA /* LexVB.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexVB.cxx; path = scintilla/lexers/LexVB.cxx; sourceTree = SOURCE_ROOT; };
+		21C2EBE398E4468B99101EA7 /* PositionCache.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = PositionCache.h; path = scintilla/src/PositionCache.h; sourceTree = SOURCE_ROOT; };
+		225FAB13E55C4F9E99CA2C02 /* LexSmalltalk.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSmalltalk.cxx; path = scintilla/lexers/LexSmalltalk.cxx; sourceTree = SOURCE_ROOT; };
+		231D9A8FF08346AF9E9C9CC1 /* PropSetSimple.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = PropSetSimple.h; path = scintilla/lexlib/PropSetSimple.h; sourceTree = SOURCE_ROOT; };
+		23E5AF970AA44131ACFC0FCD /* CharClassify.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CharClassify.h; path = scintilla/src/CharClassify.h; sourceTree = SOURCE_ROOT; };
+		25A7E762DF6845C2B6AE58C4 /* JavaScriptgui_impl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = JavaScriptgui_impl.h; path = src/JavaScriptgui_impl.h; sourceTree = SOURCE_ROOT; };
+		2793E4E14BC942C7A6AF5DF3 /* CallTip.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CallTip.cxx; path = scintilla/src/CallTip.cxx; sourceTree = SOURCE_ROOT; };
+		27ACA594ABB74B789FD663CB /* LexEDIFACT.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexEDIFACT.cxx; path = scintilla/lexers/LexEDIFACT.cxx; sourceTree = SOURCE_ROOT; };
+		281D12C912094641AB9A53F7 /* LexFlagship.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexFlagship.cxx; path = scintilla/lexers/LexFlagship.cxx; sourceTree = SOURCE_ROOT; };
+		296D92785222428DA9B8BCDF /* LexAda.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAda.cxx; path = scintilla/lexers/LexAda.cxx; sourceTree = SOURCE_ROOT; };
+		2981DAE947C84610B851BE8D /* LexerModule.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = LexerModule.h; path = scintilla/lexlib/LexerModule.h; sourceTree = SOURCE_ROOT; };
+		2BBDD3461EAF42BCAB1C68A4 /* AutoComplete.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = AutoComplete.cxx; path = scintilla/src/AutoComplete.cxx; sourceTree = SOURCE_ROOT; };
+		2BF83D96856D4F43893E4B28 /* Editor.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Editor.cxx; path = scintilla/src/Editor.cxx; sourceTree = SOURCE_ROOT; };
+		2F23F626C61348C9B42753F4 /* LexErrorList.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexErrorList.cxx; path = scintilla/lexers/LexErrorList.cxx; sourceTree = SOURCE_ROOT; };
+		3082BC6C9B514747A39CC1F2 /* LexTCL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTCL.cxx; path = scintilla/lexers/LexTCL.cxx; sourceTree = SOURCE_ROOT; };
+		3318EB494D504B80B46F2AC1 /* LexProps.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexProps.cxx; path = scintilla/lexers/LexProps.cxx; sourceTree = SOURCE_ROOT; };
+		34231F206E8C40278E0FFC9E /* JavaScript_pi.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JavaScript_pi.cpp; path = src/JavaScript_pi.cpp; sourceTree = SOURCE_ROOT; };
+		358EF9BECC744FFEB4BC7DD0 /* LexPS.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPS.cxx; path = scintilla/lexers/LexPS.cxx; sourceTree = SOURCE_ROOT; };
+		3597607C817E4CB4935CD27E /* LexModula.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexModula.cxx; path = scintilla/lexers/LexModula.cxx; sourceTree = SOURCE_ROOT; };
+		35EA016268DA43FF9B896190 /* Sci_Position.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Sci_Position.h; path = scintilla/include/Sci_Position.h; sourceTree = SOURCE_ROOT; };
+		35F7DBEC879142E884572BFA /* LexCPP.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCPP.cxx; path = scintilla/lexers/LexCPP.cxx; sourceTree = SOURCE_ROOT; };
+		365E025089684C608BF25452 /* LexerBase.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexerBase.cxx; path = scintilla/lexlib/LexerBase.cxx; sourceTree = SOURCE_ROOT; };
+		36DB58E2DD5348CFB0740FCB /* Catalogue.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Catalogue.h; path = scintilla/src/Catalogue.h; sourceTree = SOURCE_ROOT; };
+		37194D05CC1B4EC7952FF4B6 /* EditModel.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = EditModel.h; path = scintilla/src/EditModel.h; sourceTree = SOURCE_ROOT; };
+		374636FB777D445D82A12B72 /* LexSorcus.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSorcus.cxx; path = scintilla/lexers/LexSorcus.cxx; sourceTree = SOURCE_ROOT; };
+		37AB599BC00F40AFBBB17C66 /* LexForth.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexForth.cxx; path = scintilla/lexers/LexForth.cxx; sourceTree = SOURCE_ROOT; };
+		37F0D2DBFE054211B00EB2D1 /* ScintillaWX.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ScintillaWX.cpp; path = scintilla/ScintillaWX.cpp; sourceTree = SOURCE_ROOT; };
+		3845CD2D33394267BCA99E3A /* LexOpal.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexOpal.cxx; path = scintilla/lexers/LexOpal.cxx; sourceTree = SOURCE_ROOT; };
+		3A1463062D7B4D63A86B7527 /* Document.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Document.h; path = scintilla/src/Document.h; sourceTree = SOURCE_ROOT; };
+		3A9E277192AE4C2794A7DA23 /* KeyMap.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = KeyMap.cxx; path = scintilla/src/KeyMap.cxx; sourceTree = SOURCE_ROOT; };
+		3D506743EF2C46E484588120 /* LexHex.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexHex.cxx; path = scintilla/lexers/LexHex.cxx; sourceTree = SOURCE_ROOT; };
+		3ED044E274F04BF39E0A135A /* LexMSSQL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMSSQL.cxx; path = scintilla/lexers/LexMSSQL.cxx; sourceTree = SOURCE_ROOT; };
+		3FD9C80BDA2E45B6B4312AA8 /* SciLexer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = SciLexer.h; path = scintilla/include/SciLexer.h; sourceTree = SOURCE_ROOT; };
+		408094142E174B658E27C7A5 /* LexerBase.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = LexerBase.h; path = scintilla/lexlib/LexerBase.h; sourceTree = SOURCE_ROOT; };
+		40AAF7B1F56C4B77A2D70633 /* MarginView.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = MarginView.cxx; path = scintilla/src/MarginView.cxx; sourceTree = SOURCE_ROOT; };
+		41C01717A5D64F2DA14972F4 /* LexHaskell.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexHaskell.cxx; path = scintilla/lexers/LexHaskell.cxx; sourceTree = SOURCE_ROOT; };
+		422D01F89AF84722B1E215F8 /* LexScriptol.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexScriptol.cxx; path = scintilla/lexers/LexScriptol.cxx; sourceTree = SOURCE_ROOT; };
+		4476A747E92E40C181C7A6C9 /* Scintilla.iface */ = {isa = PBXFileReference; explicitFileType = sourcecode; fileEncoding = 4; name = Scintilla.iface; path = scintilla/include/Scintilla.iface; sourceTree = SOURCE_ROOT; };
+		44CB40DF4F684FE491AA056F /* PropSetSimple.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = PropSetSimple.cxx; path = scintilla/lexlib/PropSetSimple.cxx; sourceTree = SOURCE_ROOT; };
+		44D79E2030924CFA93511585 /* LexJSON.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexJSON.cxx; path = scintilla/lexers/LexJSON.cxx; sourceTree = SOURCE_ROOT; };
+		44E789C34FC14540B769CF36 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		468681F6F56F445C9B82028F /* ocpn_plugin.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ocpn_plugin.h; path = src/ocpn_plugin.h; sourceTree = SOURCE_ROOT; };
+		4720087121B047CFB0DD5081 /* CaseFolder.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CaseFolder.cxx; path = scintilla/src/CaseFolder.cxx; sourceTree = SOURCE_ROOT; };
+		4832AE25E6014C608A584BC7 /* ILexer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ILexer.h; path = scintilla/include/ILexer.h; sourceTree = SOURCE_ROOT; };
+		49D13B75CCA0493FB8120C6F /* ScintillaWX.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ScintillaWX.h; path = scintilla/ScintillaWX.h; sourceTree = SOURCE_ROOT; };
+		4DCC2A5672384E69B6102A5E /* LexCrontab.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCrontab.cxx; path = scintilla/lexers/LexCrontab.cxx; sourceTree = SOURCE_ROOT; };
+		4E1D1C374BC14208B3E79434 /* Selection.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Selection.h; path = scintilla/src/Selection.h; sourceTree = SOURCE_ROOT; };
+		4E4D7D6CF6A340E8954E44D8 /* LexNull.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexNull.cxx; path = scintilla/lexers/LexNull.cxx; sourceTree = SOURCE_ROOT; };
+		4F3A2AD6CB0E450DAFA18AB2 /* StringCopy.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = StringCopy.h; path = scintilla/lexlib/StringCopy.h; sourceTree = SOURCE_ROOT; };
+		4F7469433D2A494883A2BF6F /* Style.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Style.h; path = scintilla/src/Style.h; sourceTree = SOURCE_ROOT; };
+		4F8E5733661D4AEA9703945E /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		51191651BF7E40B09CEF599B /* LexBullant.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexBullant.cxx; path = scintilla/lexers/LexBullant.cxx; sourceTree = SOURCE_ROOT; };
+		51EA2BAF585B49A88D205E89 /* Partitioning.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Partitioning.h; path = scintilla/src/Partitioning.h; sourceTree = SOURCE_ROOT; };
+		51F654F8A4F14454B23597A9 /* LexNsis.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexNsis.cxx; path = scintilla/lexers/LexNsis.cxx; sourceTree = SOURCE_ROOT; };
+		52D3D5F1215B4A5DAD86DA6E /* RESearch.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = RESearch.h; path = scintilla/src/RESearch.h; sourceTree = SOURCE_ROOT; };
+		53B62C1BBA6A465AA6820ADF /* LexLout.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexLout.cxx; path = scintilla/lexers/LexLout.cxx; sourceTree = SOURCE_ROOT; };
+		540E45452CE14B4FB51EF332 /* LexAU3.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAU3.cxx; path = scintilla/lexers/LexAU3.cxx; sourceTree = SOURCE_ROOT; };
+		55CE813FCA804CE5A617B64E /* Position.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Position.h; path = scintilla/src/Position.h; sourceTree = SOURCE_ROOT; };
+		5605EF542E2D4821837A0F14 /* Indicator.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Indicator.h; path = scintilla/src/Indicator.h; sourceTree = SOURCE_ROOT; };
+		571E20B9011040F2B75357FA /* LexBaan.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexBaan.cxx; path = scintilla/lexers/LexBaan.cxx; sourceTree = SOURCE_ROOT; };
+		58D8C0A443F749669C1C0733 /* SplitVector.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = SplitVector.h; path = scintilla/src/SplitVector.h; sourceTree = SOURCE_ROOT; };
+		5982335E608F452693975AF3 /* CharClassify.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CharClassify.cxx; path = scintilla/src/CharClassify.cxx; sourceTree = SOURCE_ROOT; };
+		59D1C95C12084E879B82A834 /* RESearch.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = RESearch.cxx; path = scintilla/src/RESearch.cxx; sourceTree = SOURCE_ROOT; };
+		59D1F1442AEC4F328BD3D1FC /* LexTACL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTACL.cxx; path = scintilla/lexers/LexTACL.cxx; sourceTree = SOURCE_ROOT; };
+		59EF8CB7CBE6460DAB29F66F /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		5CCF31181D2A43B2B6BF6A35 /* ocpn_duk.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ocpn_duk.h; path = src/ocpn_duk.h; sourceTree = SOURCE_ROOT; };
+		5D71F67F7FF04C73A13B7FAA /* duktape.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = duktape.cpp; path = src/duktape.cpp; sourceTree = SOURCE_ROOT; };
+		5FD9BAEE07D24E5BA120EE32 /* LexAsm.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAsm.cxx; path = scintilla/lexers/LexAsm.cxx; sourceTree = SOURCE_ROOT; };
+		5FF19E6E31FE41B2AE9DA954 /* RunStyles.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = RunStyles.h; path = scintilla/src/RunStyles.h; sourceTree = SOURCE_ROOT; };
+		61949FDC586F40939B4CD563 /* WordList.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = WordList.cxx; path = scintilla/lexlib/WordList.cxx; sourceTree = SOURCE_ROOT; };
+		61F10DF819CA4C2095FE419D /* LineMarker.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LineMarker.cxx; path = scintilla/src/LineMarker.cxx; sourceTree = SOURCE_ROOT; };
+		635153C1325E447A9A80EF7D /* Style.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Style.cxx; path = scintilla/src/Style.cxx; sourceTree = SOURCE_ROOT; };
+		6532E42CD8F54C89A5C5E4C5 /* LexRust.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexRust.cxx; path = scintilla/lexers/LexRust.cxx; sourceTree = SOURCE_ROOT; };
+		65B3ABA20AE14E1F8DB883F2 /* duktape.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = duktape.h; path = src/duktape.h; sourceTree = SOURCE_ROOT; };
+		65EE1F2617864C969E4C7DB3 /* harness.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = harness.h; path = src/harness.h; sourceTree = SOURCE_ROOT; };
+		672FFC9A72694BDABE9952EE /* LexSpice.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSpice.cxx; path = scintilla/lexers/LexSpice.cxx; sourceTree = SOURCE_ROOT; };
+		67B277735037401D9E66DF2B /* XPM.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = XPM.h; path = scintilla/src/XPM.h; sourceTree = SOURCE_ROOT; };
+		68CA8F74CD70477BBC7D00F4 /* ExternalLexer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ExternalLexer.h; path = scintilla/src/ExternalLexer.h; sourceTree = SOURCE_ROOT; };
+		6944DB7759194F7AB15316A8 /* LexTeX.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTeX.cxx; path = scintilla/lexers/LexTeX.cxx; sourceTree = SOURCE_ROOT; };
+		6959864A99E04C5095C66BFF /* CharacterSet.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CharacterSet.h; path = scintilla/lexlib/CharacterSet.h; sourceTree = SOURCE_ROOT; };
+		69A38BCB260C4C9CA97E822D /* LexGui4Cli.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexGui4Cli.cxx; path = scintilla/lexers/LexGui4Cli.cxx; sourceTree = SOURCE_ROOT; };
+		6B17721341C245528F179686 /* CaseFolder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CaseFolder.h; path = scintilla/src/CaseFolder.h; sourceTree = SOURCE_ROOT; };
+		6BD975E857CF4F308A783906 /* Decoration.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Decoration.cxx; path = scintilla/src/Decoration.cxx; sourceTree = SOURCE_ROOT; };
+		6C1AE8AFE994484E91024C0D /* Selection.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Selection.cxx; path = scintilla/src/Selection.cxx; sourceTree = SOURCE_ROOT; };
+		6CAC78DB7579483990E0D883 /* LexYAML.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexYAML.cxx; path = scintilla/lexers/LexYAML.cxx; sourceTree = SOURCE_ROOT; };
+		6CD6ADAB37C14F49A2523C93 /* LexLaTeX.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexLaTeX.cxx; path = scintilla/lexers/LexLaTeX.cxx; sourceTree = SOURCE_ROOT; };
+		6CFB8BDF19CA4E9EB35622FD /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		6D584F5291F3491DA6A20895 /* CellBuffer.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CellBuffer.cxx; path = scintilla/src/CellBuffer.cxx; sourceTree = SOURCE_ROOT; };
+		6D58C64332E74845A98B1876 /* Document.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Document.cxx; path = scintilla/src/Document.cxx; sourceTree = SOURCE_ROOT; };
+		6D6F6528D4604D76949FC3F5 /* LexMMIXAL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMMIXAL.cxx; path = scintilla/lexers/LexMMIXAL.cxx; sourceTree = SOURCE_ROOT; };
+		6E1B853A69634A2986A25DE1 /* LexAVE.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAVE.cxx; path = scintilla/lexers/LexAVE.cxx; sourceTree = SOURCE_ROOT; };
+		7166F1A42992462C86C2030E /* StyleContext.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = StyleContext.cxx; path = scintilla/lexlib/StyleContext.cxx; sourceTree = SOURCE_ROOT; };
+		71BD7E1E5E1A4A3DA781D4F3 /* LexBatch.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexBatch.cxx; path = scintilla/lexers/LexBatch.cxx; sourceTree = SOURCE_ROOT; };
+		7533704D5E164EB79387F035 /* SparseState.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = SparseState.h; path = scintilla/lexlib/SparseState.h; sourceTree = SOURCE_ROOT; };
+		78F49877B96D4BFCAC1E169B /* LexHTML.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexHTML.cxx; path = scintilla/lexers/LexHTML.cxx; sourceTree = SOURCE_ROOT; };
+		7AE44C480DAD48E5B460804C /* LexVerilog.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexVerilog.cxx; path = scintilla/lexers/LexVerilog.cxx; sourceTree = SOURCE_ROOT; };
+		7B63C5A02CE841CDA4DFA5CB /* PlatWX.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = PlatWX.cpp; path = scintilla/src/PlatWX.cpp; sourceTree = SOURCE_ROOT; };
+		7EBAB117C7FB4B7C9995D697 /* LexSTTXT.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSTTXT.cxx; path = scintilla/lexers/LexSTTXT.cxx; sourceTree = SOURCE_ROOT; };
+		7F59E536D7F44FA3860D173E /* LexBasic.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexBasic.cxx; path = scintilla/lexers/LexBasic.cxx; sourceTree = SOURCE_ROOT; };
+		813342B8EA154AB9927694A4 /* ContractionState.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ContractionState.h; path = scintilla/src/ContractionState.h; sourceTree = SOURCE_ROOT; };
+		817BEF3432234F2CADC995F3 /* PerLine.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = PerLine.h; path = scintilla/src/PerLine.h; sourceTree = SOURCE_ROOT; };
+		83B78C7326E941229C83989C /* LexAccessor.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = LexAccessor.h; path = scintilla/lexlib/LexAccessor.h; sourceTree = SOURCE_ROOT; };
+		8793E4941B064CBD8B7C819F /* LexCOBOL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCOBOL.cxx; path = scintilla/lexers/LexCOBOL.cxx; sourceTree = SOURCE_ROOT; };
+		889336B9DE364FB5BF66C227 /* PerLine.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = PerLine.cxx; path = scintilla/src/PerLine.cxx; sourceTree = SOURCE_ROOT; };
+		8893B9B17E434DFA8CA8D569 /* WordList.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = WordList.h; path = scintilla/lexlib/WordList.h; sourceTree = SOURCE_ROOT; };
+		88DF6CD9AD8D40909F6C55B1 /* LexPOV.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPOV.cxx; path = scintilla/lexers/LexPOV.cxx; sourceTree = SOURCE_ROOT; };
+		8B37585CA8374E44BCA32F8A /* LexSpecman.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSpecman.cxx; path = scintilla/lexers/LexSpecman.cxx; sourceTree = SOURCE_ROOT; };
+		8CEEA4CE2EA04AAD8E01F473 /* ScintillaBase.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ScintillaBase.cxx; path = scintilla/src/ScintillaBase.cxx; sourceTree = SOURCE_ROOT; };
+		8DB04A369C9A405DB6B7AC5D /* Accessor.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Accessor.h; path = scintilla/lexlib/Accessor.h; sourceTree = SOURCE_ROOT; };
+		8DD0589A881249B7B8345C67 /* LexerSimple.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexerSimple.cxx; path = scintilla/lexlib/LexerSimple.cxx; sourceTree = SOURCE_ROOT; };
+		925CBEB3D2284C958647886B /* LexEiffel.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexEiffel.cxx; path = scintilla/lexers/LexEiffel.cxx; sourceTree = SOURCE_ROOT; };
+		9369E8689FA64419A3AD82CC /* SciTE.properties */ = {isa = PBXFileReference; explicitFileType = sourcecode; fileEncoding = 4; name = SciTE.properties; path = scintilla/src/SciTE.properties; sourceTree = SOURCE_ROOT; };
+		937974C7680B43469BA55933 /* LineMarker.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = LineMarker.h; path = scintilla/src/LineMarker.h; sourceTree = SOURCE_ROOT; };
+		93B49A753F384C458A917645 /* RunStyles.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = RunStyles.cxx; path = scintilla/src/RunStyles.cxx; sourceTree = SOURCE_ROOT; };
+		964E11CCCF3A455DA0A10DC7 /* LexECL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexECL.cxx; path = scintilla/lexers/LexECL.cxx; sourceTree = SOURCE_ROOT; };
+		970F9ACDE0774DB4B4354D05 /* JSExtensions.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JSExtensions.cpp; path = src/JSExtensions.cpp; sourceTree = SOURCE_ROOT; };
+		98ECC8825B63452F845A72F3 /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		991A110B7D444077A43694E8 /* CharacterCategory.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CharacterCategory.cxx; path = scintilla/lexlib/CharacterCategory.cxx; sourceTree = SOURCE_ROOT; };
+		99D1D93423EC4ABCB801C367 /* LexDMAP.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexDMAP.cxx; path = scintilla/lexers/LexDMAP.cxx; sourceTree = SOURCE_ROOT; };
+		9B275EDC88C944D9844A75DE /* LexTCMD.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTCMD.cxx; path = scintilla/lexers/LexTCMD.cxx; sourceTree = SOURCE_ROOT; };
+		9B7EA88F0B2E4FF3A05BE69F /* version.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = version.h; path = src/version.h; sourceTree = SOURCE_ROOT; };
+		9C3AF9C7FD9E4B8EB85721C7 /* LexCaml.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCaml.cxx; path = scintilla/lexers/LexCaml.cxx; sourceTree = SOURCE_ROOT; };
+		9CBCF2EFDF1147AEA6B508AD /* SparseVector.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = SparseVector.h; path = scintilla/src/SparseVector.h; sourceTree = SOURCE_ROOT; };
+		9CFB8317CCA84068A088EC5F /* LexMagik.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMagik.cxx; path = scintilla/lexers/LexMagik.cxx; sourceTree = SOURCE_ROOT; };
+		9ECCE8663AC5414F8696D996 /* LexMake.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMake.cxx; path = scintilla/lexers/LexMake.cxx; sourceTree = SOURCE_ROOT; };
+		9F4CBA87F1CE414AA783E76F /* LexKVIrc.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexKVIrc.cxx; path = scintilla/lexers/LexKVIrc.cxx; sourceTree = SOURCE_ROOT; };
+		A0E680A30705412C9A65C0FD /* LexPerl.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPerl.cxx; path = scintilla/lexers/LexPerl.cxx; sourceTree = SOURCE_ROOT; };
+		A192DD7BCDD04111B7B01A0F /* LexPO.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPO.cxx; path = scintilla/lexers/LexPO.cxx; sourceTree = SOURCE_ROOT; };
+		A20CD77B05644E99976A5252 /* LexBibTeX.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexBibTeX.cxx; path = scintilla/lexers/LexBibTeX.cxx; sourceTree = SOURCE_ROOT; };
+		A28D4A35D447416E94E4BCC8 /* LexRebol.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexRebol.cxx; path = scintilla/lexers/LexRebol.cxx; sourceTree = SOURCE_ROOT; };
+		A2EAE4BBBDB446CB902B131C /* LexSML.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSML.cxx; path = scintilla/lexers/LexSML.cxx; sourceTree = SOURCE_ROOT; };
+		A30CA939F614448FB2EF2AB7 /* KeyMap.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = KeyMap.h; path = scintilla/src/KeyMap.h; sourceTree = SOURCE_ROOT; };
+		A360A8B9B1C446C180EAA233 /* Accessor.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Accessor.cxx; path = scintilla/lexlib/Accessor.cxx; sourceTree = SOURCE_ROOT; };
+		A3E25929B86B420780476B88 /* stc.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = stc.cpp; path = scintilla/stc.cpp; sourceTree = SOURCE_ROOT; };
+		A69D1790731249C9B9EB7C04 /* LexLua.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexLua.cxx; path = scintilla/lexers/LexLua.cxx; sourceTree = SOURCE_ROOT; };
+		A7D069B23CC04ABBB7D68BE9 /* LexCmake.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCmake.cxx; path = scintilla/lexers/LexCmake.cxx; sourceTree = SOURCE_ROOT; };
+		A9F772C7D1F641AE9A4A52FD /* LexConf.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexConf.cxx; path = scintilla/lexers/LexConf.cxx; sourceTree = SOURCE_ROOT; };
+		AC2F56499C8548508643891A /* StyleContext.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = StyleContext.h; path = scintilla/lexlib/StyleContext.h; sourceTree = SOURCE_ROOT; };
+		AE4B5767AB6F4F87A8610558 /* LexAVS.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAVS.cxx; path = scintilla/lexers/LexAVS.cxx; sourceTree = SOURCE_ROOT; };
+		AEC44998E048404EABE16ADA /* JavaScript_pi.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = JavaScript_pi.h; path = src/JavaScript_pi.h; sourceTree = SOURCE_ROOT; };
+		AED5FBE857A74985933EBFEE /* LexPython.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPython.cxx; path = scintilla/lexers/LexPython.cxx; sourceTree = SOURCE_ROOT; };
+		AF0F2A269E614A56BD45F6D5 /* LexPascal.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPascal.cxx; path = scintilla/lexers/LexPascal.cxx; sourceTree = SOURCE_ROOT; };
+		B12E60DB3A31483B8A6104EC /* ContractionState.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ContractionState.cxx; path = scintilla/src/ContractionState.cxx; sourceTree = SOURCE_ROOT; };
+		B1EE2DA0C23E422CAD29EFE0 /* LexD.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexD.cxx; path = scintilla/lexers/LexD.cxx; sourceTree = SOURCE_ROOT; };
+		B1EFCCC03D324BB59FDB392C /* LexCoffeeScript.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCoffeeScript.cxx; path = scintilla/lexers/LexCoffeeScript.cxx; sourceTree = SOURCE_ROOT; };
+		B2272EBA5A0F4109AF560E45 /* icons.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = icons.cpp; path = src/icons.cpp; sourceTree = SOURCE_ROOT; };
+		B4DD68BF54654BAD9EF1E7D3 /* LexTxt2tags.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTxt2tags.cxx; path = scintilla/lexers/LexTxt2tags.cxx; sourceTree = SOURCE_ROOT; };
+		B7514A0974BF47859C272A04 /* LexErlang.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexErlang.cxx; path = scintilla/lexers/LexErlang.cxx; sourceTree = SOURCE_ROOT; };
+		B799C85F13394A8DAB21CDCF /* LexMetapost.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMetapost.cxx; path = scintilla/lexers/LexMetapost.cxx; sourceTree = SOURCE_ROOT; };
+		BAC9A790E33845EAA285E068 /* ViewStyle.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ViewStyle.cxx; path = scintilla/src/ViewStyle.cxx; sourceTree = SOURCE_ROOT; };
+		BF0C4945231D4ACD92EA9E6A /* LexerNoExceptions.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexerNoExceptions.cxx; path = scintilla/lexlib/LexerNoExceptions.cxx; sourceTree = SOURCE_ROOT; };
+		BF4B0BB3D32540729C1A398C /* LexOScript.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexOScript.cxx; path = scintilla/lexers/LexOScript.cxx; sourceTree = SOURCE_ROOT; };
+		C06E8C472D57429B8F2F80A7 /* EditView.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = EditView.h; path = scintilla/src/EditView.h; sourceTree = SOURCE_ROOT; };
+		C2219EF802E947019C74B9BA /* Scintilla.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Scintilla.h; path = scintilla/include/Scintilla.h; sourceTree = SOURCE_ROOT; };
+		C2A83D01B4E548668C53A667 /* LexPLM.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPLM.cxx; path = scintilla/lexers/LexPLM.cxx; sourceTree = SOURCE_ROOT; };
+		C36723D5E32749308A4DEBD5 /* ILexer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ILexer.h; path = scintilla/lexers/ILexer.h; sourceTree = SOURCE_ROOT; };
+		C3A33E7B23B64C1F8006E776 /* LexPowerPro.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPowerPro.cxx; path = scintilla/lexers/LexPowerPro.cxx; sourceTree = SOURCE_ROOT; };
+		C77542815A474EFAAE21E20D /* LexProgress.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexProgress.cxx; path = scintilla/lexers/LexProgress.cxx; sourceTree = SOURCE_ROOT; };
+		C8D39457041D45B8BBA60102 /* LexAbaqus.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAbaqus.cxx; path = scintilla/lexers/LexAbaqus.cxx; sourceTree = SOURCE_ROOT; };
+		C92F0494FB5E40FC805DE275 /* UniConversion.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = UniConversion.h; path = scintilla/src/UniConversion.h; sourceTree = SOURCE_ROOT; };
+		CA50B824A24047A1941A17CF /* EditView.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = EditView.cxx; path = scintilla/src/EditView.cxx; sourceTree = SOURCE_ROOT; };
+		CAB84A930882468D8543D5B6 /* AutoComplete.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = AutoComplete.h; path = scintilla/src/AutoComplete.h; sourceTree = SOURCE_ROOT; };
+		CD5561917C1B4EE084ED2F07 /* LexCSS.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCSS.cxx; path = scintilla/lexers/LexCSS.cxx; sourceTree = SOURCE_ROOT; };
+		CD74D44EAA4E411E97139462 /* LexMPT.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMPT.cxx; path = scintilla/lexers/LexMPT.cxx; sourceTree = SOURCE_ROOT; };
+		D2594C1E15134EC688772DFB /* XPM.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = XPM.cxx; path = scintilla/src/XPM.cxx; sourceTree = SOURCE_ROOT; };
+		D5F3DBF9B59E4BC290BE5090 /* CaseConvert.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CaseConvert.h; path = scintilla/src/CaseConvert.h; sourceTree = SOURCE_ROOT; };
+		D65E6851D2D54B2F8D3497E8 /* ViewStyle.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ViewStyle.h; path = scintilla/src/ViewStyle.h; sourceTree = SOURCE_ROOT; };
+		D75E014C5CF549F692057F67 /* LexCLW.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCLW.cxx; path = scintilla/lexers/LexCLW.cxx; sourceTree = SOURCE_ROOT; };
+		D8E41C0E3C7C463BBCB08A43 /* SubStyles.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = SubStyles.h; path = scintilla/lexlib/SubStyles.h; sourceTree = SOURCE_ROOT; };
+		DA3A3A8D1D31404A848DF2F4 /* icons.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = icons.h; path = src/icons.h; sourceTree = SOURCE_ROOT; };
+		DAD21D25D51B4097AD7E9359 /* LexLisp.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexLisp.cxx; path = scintilla/lexers/LexLisp.cxx; sourceTree = SOURCE_ROOT; };
+		DB6C9556B14047C990816B60 /* LexCsound.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexCsound.cxx; path = scintilla/lexers/LexCsound.cxx; sourceTree = SOURCE_ROOT; };
+		DBA993811B0C4611826453D2 /* JavaScriptgui_impl.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JavaScriptgui_impl.cpp; path = src/JavaScriptgui_impl.cpp; sourceTree = SOURCE_ROOT; };
+		DC2E1CF941F74DDAB3F18155 /* CharacterCategory.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CharacterCategory.h; path = scintilla/lexlib/CharacterCategory.h; sourceTree = SOURCE_ROOT; };
+		DC358B952CCB4D9CB4767283 /* LexA68k.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexA68k.cxx; path = scintilla/lexers/LexA68k.cxx; sourceTree = SOURCE_ROOT; };
+		DCB1FE3D695443B99A441FE9 /* LexRuby.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexRuby.cxx; path = scintilla/lexers/LexRuby.cxx; sourceTree = SOURCE_ROOT; };
+		DEF2312F2FB44B578FCC48CD /* LexPowerShell.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexPowerShell.cxx; path = scintilla/lexers/LexPowerShell.cxx; sourceTree = SOURCE_ROOT; };
+		DFB714EF4E3C4CF2AA239311 /* LexAsn1.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexAsn1.cxx; path = scintilla/lexers/LexAsn1.cxx; sourceTree = SOURCE_ROOT; };
+		E0F9C4C629BC4480A4FDCB5E /* duk_config.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = duk_config.h; path = src/duk_config.h; sourceTree = SOURCE_ROOT; };
+		E28E6AD428E74E84A1DFF889 /* LexMarkdown.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexMarkdown.cxx; path = scintilla/lexers/LexMarkdown.cxx; sourceTree = SOURCE_ROOT; };
+		E3A64F753E544CC485B624E6 /* ScintillaWidget.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ScintillaWidget.h; path = scintilla/include/ScintillaWidget.h; sourceTree = SOURCE_ROOT; };
+		E7763AE97BCF46649DC2C268 /* JavaScriptgui.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = JavaScriptgui.h; path = src/JavaScriptgui.h; sourceTree = SOURCE_ROOT; };
+		E8DFE69C20844BB98DA83F74 /* PlatWX.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = PlatWX.h; path = scintilla/src/PlatWX.h; sourceTree = SOURCE_ROOT; };
+		EA58E8108FCF45DAB8869DF7 /* PositionCache.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = PositionCache.cxx; path = scintilla/src/PositionCache.cxx; sourceTree = SOURCE_ROOT; };
+		EA66772B16AC4E5086823339 /* runJS.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = runJS.cpp; path = src/runJS.cpp; sourceTree = SOURCE_ROOT; };
+		EBBF0DE9E00A484593D0D78A /* Editor.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Editor.h; path = scintilla/src/Editor.h; sourceTree = SOURCE_ROOT; };
+		ECCF491ACAC34E02B2F265CF /* ExternalLexer.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ExternalLexer.cxx; path = scintilla/src/ExternalLexer.cxx; sourceTree = SOURCE_ROOT; };
+		F106677DA4E24983B8F44CDF /* LexR.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexR.cxx; path = scintilla/lexers/LexR.cxx; sourceTree = SOURCE_ROOT; };
+		F14872AE116149CA8F522F6E /* OPCNapis.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = OPCNapis.cpp; path = src/OPCNapis.cpp; sourceTree = SOURCE_ROOT; };
+		F1668DFB0F98465F93567A57 /* LexGAP.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexGAP.cxx; path = scintilla/lexers/LexGAP.cxx; sourceTree = SOURCE_ROOT; };
+		F1D3148CF2D747ECB31A6C3F /* LexRegistry.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexRegistry.cxx; path = scintilla/lexers/LexRegistry.cxx; sourceTree = SOURCE_ROOT; };
+		F2966BAADF6049C481C0AD5D /* ScintillaBase.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ScintillaBase.h; path = scintilla/src/ScintillaBase.h; sourceTree = SOURCE_ROOT; };
+		F329895D2D824B19AF62C905 /* LexFortran.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexFortran.cxx; path = scintilla/lexers/LexFortran.cxx; sourceTree = SOURCE_ROOT; };
+		F456BDC1F7A94B1880BE23CC /* CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		F4839DF4D4514BFF8A8EAC41 /* LexSQL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexSQL.cxx; path = scintilla/lexers/LexSQL.cxx; sourceTree = SOURCE_ROOT; };
+		F5187CB862F645309FCF71C6 /* CellBuffer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = CellBuffer.h; path = scintilla/src/CellBuffer.h; sourceTree = SOURCE_ROOT; };
+		F671ACE310234159BAE64953 /* LexTADS3.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTADS3.cxx; path = scintilla/lexers/LexTADS3.cxx; sourceTree = SOURCE_ROOT; };
+		F7343662333F4FF692DFF3DA /* LexNimrod.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexNimrod.cxx; path = scintilla/lexers/LexNimrod.cxx; sourceTree = SOURCE_ROOT; };
+		F78EB206195C4835A53B6F3A /* LexEScript.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexEScript.cxx; path = scintilla/lexers/LexEScript.cxx; sourceTree = SOURCE_ROOT; };
+		F946D1F300674F378AE2DF3F /* CaseConvert.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CaseConvert.cxx; path = scintilla/src/CaseConvert.cxx; sourceTree = SOURCE_ROOT; };
+		FA9B7988835A45A687CD43A9 /* LexTAL.cxx */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = LexTAL.cxx; path = scintilla/lexers/LexTAL.cxx; sourceTree = SOURCE_ROOT; };
+		FB4965328538430D90BA6C5F /* MarginView.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = MarginView.h; path = scintilla/src/MarginView.h; sourceTree = SOURCE_ROOT; };
+		FB5218036BB24F458402E1A5 /* libJavaScript_pi.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = libJavaScript_pi.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDB6950B58E549A2B94E15E7 /* OptionSet.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = OptionSet.h; path = scintilla/lexlib/OptionSet.h; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1A061AB12E23461BB89C3B1F /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		20ED64CACEA74BFD8B887ED0 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				37F0D2DBFE054211B00EB2D1 /* ScintillaWX.cpp */,
+				DC358B952CCB4D9CB4767283 /* LexA68k.cxx */,
+				061C5604EA074B17B2DEA50A /* LexAPDL.cxx */,
+				055639487C4E4916A58A2D72 /* LexASY.cxx */,
+				540E45452CE14B4FB51EF332 /* LexAU3.cxx */,
+				6E1B853A69634A2986A25DE1 /* LexAVE.cxx */,
+				AE4B5767AB6F4F87A8610558 /* LexAVS.cxx */,
+				C8D39457041D45B8BBA60102 /* LexAbaqus.cxx */,
+				296D92785222428DA9B8BCDF /* LexAda.cxx */,
+				5FD9BAEE07D24E5BA120EE32 /* LexAsm.cxx */,
+				DFB714EF4E3C4CF2AA239311 /* LexAsn1.cxx */,
+				571E20B9011040F2B75357FA /* LexBaan.cxx */,
+				0606B0DA607B4E0290A0478E /* LexBash.cxx */,
+				7F59E536D7F44FA3860D173E /* LexBasic.cxx */,
+				71BD7E1E5E1A4A3DA781D4F3 /* LexBatch.cxx */,
+				A20CD77B05644E99976A5252 /* LexBibTeX.cxx */,
+				51191651BF7E40B09CEF599B /* LexBullant.cxx */,
+				D75E014C5CF549F692057F67 /* LexCLW.cxx */,
+				8793E4941B064CBD8B7C819F /* LexCOBOL.cxx */,
+				35F7DBEC879142E884572BFA /* LexCPP.cxx */,
+				CD5561917C1B4EE084ED2F07 /* LexCSS.cxx */,
+				9C3AF9C7FD9E4B8EB85721C7 /* LexCaml.cxx */,
+				A7D069B23CC04ABBB7D68BE9 /* LexCmake.cxx */,
+				B1EFCCC03D324BB59FDB392C /* LexCoffeeScript.cxx */,
+				A9F772C7D1F641AE9A4A52FD /* LexConf.cxx */,
+				4DCC2A5672384E69B6102A5E /* LexCrontab.cxx */,
+				DB6C9556B14047C990816B60 /* LexCsound.cxx */,
+				B1EE2DA0C23E422CAD29EFE0 /* LexD.cxx */,
+				99D1D93423EC4ABCB801C367 /* LexDMAP.cxx */,
+				06BEE7F04104470E8990EE89 /* LexDMIS.cxx */,
+				0E2927ACC4014BC08B1643CA /* LexDiff.cxx */,
+				964E11CCCF3A455DA0A10DC7 /* LexECL.cxx */,
+				27ACA594ABB74B789FD663CB /* LexEDIFACT.cxx */,
+				F78EB206195C4835A53B6F3A /* LexEScript.cxx */,
+				925CBEB3D2284C958647886B /* LexEiffel.cxx */,
+				B7514A0974BF47859C272A04 /* LexErlang.cxx */,
+				2F23F626C61348C9B42753F4 /* LexErrorList.cxx */,
+				281D12C912094641AB9A53F7 /* LexFlagship.cxx */,
+				37AB599BC00F40AFBBB17C66 /* LexForth.cxx */,
+				F329895D2D824B19AF62C905 /* LexFortran.cxx */,
+				F1668DFB0F98465F93567A57 /* LexGAP.cxx */,
+				69A38BCB260C4C9CA97E822D /* LexGui4Cli.cxx */,
+				78F49877B96D4BFCAC1E169B /* LexHTML.cxx */,
+				41C01717A5D64F2DA14972F4 /* LexHaskell.cxx */,
+				3D506743EF2C46E484588120 /* LexHex.cxx */,
+				1572E83873354AF78D64FECA /* LexInno.cxx */,
+				44D79E2030924CFA93511585 /* LexJSON.cxx */,
+				9F4CBA87F1CE414AA783E76F /* LexKVIrc.cxx */,
+				18FD5591778F4760925CE4B6 /* LexKix.cxx */,
+				6CD6ADAB37C14F49A2523C93 /* LexLaTeX.cxx */,
+				DAD21D25D51B4097AD7E9359 /* LexLisp.cxx */,
+				53B62C1BBA6A465AA6820ADF /* LexLout.cxx */,
+				A69D1790731249C9B9EB7C04 /* LexLua.cxx */,
+				6D6F6528D4604D76949FC3F5 /* LexMMIXAL.cxx */,
+				CD74D44EAA4E411E97139462 /* LexMPT.cxx */,
+				3ED044E274F04BF39E0A135A /* LexMSSQL.cxx */,
+				9CFB8317CCA84068A088EC5F /* LexMagik.cxx */,
+				9ECCE8663AC5414F8696D996 /* LexMake.cxx */,
+				E28E6AD428E74E84A1DFF889 /* LexMarkdown.cxx */,
+				06F1834B829F40C5BF9BD600 /* LexMatlab.cxx */,
+				B799C85F13394A8DAB21CDCF /* LexMetapost.cxx */,
+				3597607C817E4CB4935CD27E /* LexModula.cxx */,
+				1963E386D6E54C0D9A83C518 /* LexMySQL.cxx */,
+				F7343662333F4FF692DFF3DA /* LexNimrod.cxx */,
+				51F654F8A4F14454B23597A9 /* LexNsis.cxx */,
+				4E4D7D6CF6A340E8954E44D8 /* LexNull.cxx */,
+				BF4B0BB3D32540729C1A398C /* LexOScript.cxx */,
+				3845CD2D33394267BCA99E3A /* LexOpal.cxx */,
+				124CAFA96434427BBDB839E2 /* LexPB.cxx */,
+				C2A83D01B4E548668C53A667 /* LexPLM.cxx */,
+				A192DD7BCDD04111B7B01A0F /* LexPO.cxx */,
+				88DF6CD9AD8D40909F6C55B1 /* LexPOV.cxx */,
+				358EF9BECC744FFEB4BC7DD0 /* LexPS.cxx */,
+				AF0F2A269E614A56BD45F6D5 /* LexPascal.cxx */,
+				A0E680A30705412C9A65C0FD /* LexPerl.cxx */,
+				C3A33E7B23B64C1F8006E776 /* LexPowerPro.cxx */,
+				DEF2312F2FB44B578FCC48CD /* LexPowerShell.cxx */,
+				C77542815A474EFAAE21E20D /* LexProgress.cxx */,
+				3318EB494D504B80B46F2AC1 /* LexProps.cxx */,
+				AED5FBE857A74985933EBFEE /* LexPython.cxx */,
+				F106677DA4E24983B8F44CDF /* LexR.cxx */,
+				A28D4A35D447416E94E4BCC8 /* LexRebol.cxx */,
+				F1D3148CF2D747ECB31A6C3F /* LexRegistry.cxx */,
+				DCB1FE3D695443B99A441FE9 /* LexRuby.cxx */,
+				6532E42CD8F54C89A5C5E4C5 /* LexRust.cxx */,
+				A2EAE4BBBDB446CB902B131C /* LexSML.cxx */,
+				F4839DF4D4514BFF8A8EAC41 /* LexSQL.cxx */,
+				7EBAB117C7FB4B7C9995D697 /* LexSTTXT.cxx */,
+				422D01F89AF84722B1E215F8 /* LexScriptol.cxx */,
+				225FAB13E55C4F9E99CA2C02 /* LexSmalltalk.cxx */,
+				374636FB777D445D82A12B72 /* LexSorcus.cxx */,
+				8B37585CA8374E44BCA32F8A /* LexSpecman.cxx */,
+				672FFC9A72694BDABE9952EE /* LexSpice.cxx */,
+				59D1F1442AEC4F328BD3D1FC /* LexTACL.cxx */,
+				F671ACE310234159BAE64953 /* LexTADS3.cxx */,
+				FA9B7988835A45A687CD43A9 /* LexTAL.cxx */,
+				3082BC6C9B514747A39CC1F2 /* LexTCL.cxx */,
+				9B275EDC88C944D9844A75DE /* LexTCMD.cxx */,
+				6944DB7759194F7AB15316A8 /* LexTeX.cxx */,
+				B4DD68BF54654BAD9EF1E7D3 /* LexTxt2tags.cxx */,
+				1FB1A0CD1A6345B3982223CA /* LexVB.cxx */,
+				1E8516D84BED4C5D8770BEFC /* LexVHDL.cxx */,
+				7AE44C480DAD48E5B460804C /* LexVerilog.cxx */,
+				15EF1FB86EF8463EB7AE8AD7 /* LexVisualProlog.cxx */,
+				6CAC78DB7579483990E0D883 /* LexYAML.cxx */,
+				A360A8B9B1C446C180EAA233 /* Accessor.cxx */,
+				991A110B7D444077A43694E8 /* CharacterCategory.cxx */,
+				06F4869C47DA4854A0040127 /* CharacterSet.cxx */,
+				365E025089684C608BF25452 /* LexerBase.cxx */,
+				0416B17455E94B75BEBC472A /* LexerModule.cxx */,
+				BF0C4945231D4ACD92EA9E6A /* LexerNoExceptions.cxx */,
+				8DD0589A881249B7B8345C67 /* LexerSimple.cxx */,
+				44CB40DF4F684FE491AA056F /* PropSetSimple.cxx */,
+				7166F1A42992462C86C2030E /* StyleContext.cxx */,
+				61949FDC586F40939B4CD563 /* WordList.cxx */,
+				2BBDD3461EAF42BCAB1C68A4 /* AutoComplete.cxx */,
+				2793E4E14BC942C7A6AF5DF3 /* CallTip.cxx */,
+				F946D1F300674F378AE2DF3F /* CaseConvert.cxx */,
+				4720087121B047CFB0DD5081 /* CaseFolder.cxx */,
+				102396A660C343018AFFEC81 /* Catalogue.cxx */,
+				6D584F5291F3491DA6A20895 /* CellBuffer.cxx */,
+				5982335E608F452693975AF3 /* CharClassify.cxx */,
+				B12E60DB3A31483B8A6104EC /* ContractionState.cxx */,
+				6BD975E857CF4F308A783906 /* Decoration.cxx */,
+				6D58C64332E74845A98B1876 /* Document.cxx */,
+				0C2CE5641CC74D7FB128E844 /* EditModel.cxx */,
+				CA50B824A24047A1941A17CF /* EditView.cxx */,
+				2BF83D96856D4F43893E4B28 /* Editor.cxx */,
+				ECCF491ACAC34E02B2F265CF /* ExternalLexer.cxx */,
+				07FB64E1C10B4F99B7E8FD1E /* Indicator.cxx */,
+				3A9E277192AE4C2794A7DA23 /* KeyMap.cxx */,
+				61F10DF819CA4C2095FE419D /* LineMarker.cxx */,
+				40AAF7B1F56C4B77A2D70633 /* MarginView.cxx */,
+				889336B9DE364FB5BF66C227 /* PerLine.cxx */,
+				7B63C5A02CE841CDA4DFA5CB /* PlatWX.cpp */,
+				EA58E8108FCF45DAB8869DF7 /* PositionCache.cxx */,
+				59D1C95C12084E879B82A834 /* RESearch.cxx */,
+				93B49A753F384C458A917645 /* RunStyles.cxx */,
+				8CEEA4CE2EA04AAD8E01F473 /* ScintillaBase.cxx */,
+				6C1AE8AFE994484E91024C0D /* Selection.cxx */,
+				635153C1325E447A9A80EF7D /* Style.cxx */,
+				1362420EB54A4194BD62F507 /* UniConversion.cxx */,
+				BAC9A790E33845EAA285E068 /* ViewStyle.cxx */,
+				D2594C1E15134EC688772DFB /* XPM.cxx */,
+				A3E25929B86B420780476B88 /* stc.cpp */,
+				970F9ACDE0774DB4B4354D05 /* JSExtensions.cpp */,
+				34231F206E8C40278E0FFC9E /* JavaScript_pi.cpp */,
+				1ECB09AD08F744B9A42D916B /* JavaScriptgui.cpp */,
+				DBA993811B0C4611826453D2 /* JavaScriptgui_impl.cpp */,
+				F14872AE116149CA8F522F6E /* OPCNapis.cpp */,
+				5D71F67F7FF04C73A13B7FAA /* duktape.cpp */,
+				B2272EBA5A0F4109AF560E45 /* icons.cpp */,
+				EA66772B16AC4E5086823339 /* runJS.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		450A13B0142744E2BDBA1348 /* JavaScript-pot-update */ = {
+			isa = PBXGroup;
+			children = (
+				1A061AB12E23461BB89C3B1F /* CMake Rules */,
+				44E789C34FC14540B769CF36 /* CMakeLists.txt */,
+			);
+			name = "JavaScript-pot-update";
+			sourceTree = "<group>";
+		};
+		45F918B2FA5C4C14A9B87CA6 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		554F8622129C4BEBAB34E7AB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FB5218036BB24F458402E1A5 /* libJavaScript_pi.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		573FC6B612214344824C1D43 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				FA81F66E3FDC4274B1788C75 /* CMake Rules */,
+				4F8E5733661D4AEA9703945E /* CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		6C3FF9836A5349BCB27B4EC5 /* JavaScript-i18n */ = {
+			isa = PBXGroup;
+			children = (
+				EA81E5DFD1BE4054B3EBB2BF /* CMake Rules */,
+				98ECC8825B63452F845A72F3 /* CMakeLists.txt */,
+			);
+			name = "JavaScript-i18n";
+			sourceTree = "<group>";
+		};
+		94E370E154AD40BB8F79FF16 /* JavaScript-po-update */ = {
+			isa = PBXGroup;
+			children = (
+				C3BD7155A42745A8911D1BF3 /* CMake Rules */,
+				59EF8CB7CBE6460DAB29F66F /* CMakeLists.txt */,
+			);
+			name = "JavaScript-po-update";
+			sourceTree = "<group>";
+		};
+		94F004AC0E624D5EB1515A7D /* create-pkg */ = {
+			isa = PBXGroup;
+			children = (
+				45F918B2FA5C4C14A9B87CA6 /* CMake Rules */,
+				F456BDC1F7A94B1880BE23CC /* CMakeLists.txt */,
+			);
+			name = "create-pkg";
+			sourceTree = "<group>";
+		};
+		B9DF63E1DF22401389E33B34 /* JavaScript_pi */ = {
+			isa = PBXGroup;
+			children = (
+				DD57341CDECD4B699E91250D /* Header Files */,
+				20ED64CACEA74BFD8B887ED0 /* Source Files */,
+				6CFB8BDF19CA4E9EB35622FD /* CMakeLists.txt */,
+				4476A747E92E40C181C7A6C9 /* Scintilla.iface */,
+				9369E8689FA64419A3AD82CC /* SciTE.properties */,
+			);
+			name = JavaScript_pi;
+			sourceTree = "<group>";
+		};
+		C3BD7155A42745A8911D1BF3 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		C9D4C37BE1C04C2292B39F55 = {
+			isa = PBXGroup;
+			children = (
+				94F004AC0E624D5EB1515A7D /* create-pkg */,
+				B9DF63E1DF22401389E33B34 /* JavaScript_pi */,
+				450A13B0142744E2BDBA1348 /* JavaScript-pot-update */,
+				6C3FF9836A5349BCB27B4EC5 /* JavaScript-i18n */,
+				94E370E154AD40BB8F79FF16 /* JavaScript-po-update */,
+				573FC6B612214344824C1D43 /* ALL_BUILD */,
+				554F8622129C4BEBAB34E7AB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DD57341CDECD4B699E91250D /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				49D13B75CCA0493FB8120C6F /* ScintillaWX.h */,
+				4832AE25E6014C608A584BC7 /* ILexer.h */,
+				14BFD74B5B184C7D920F67DB /* Platform.h */,
+				3FD9C80BDA2E45B6B4312AA8 /* SciLexer.h */,
+				35EA016268DA43FF9B896190 /* Sci_Position.h */,
+				C2219EF802E947019C74B9BA /* Scintilla.h */,
+				E3A64F753E544CC485B624E6 /* ScintillaWidget.h */,
+				C36723D5E32749308A4DEBD5 /* ILexer.h */,
+				8DB04A369C9A405DB6B7AC5D /* Accessor.h */,
+				DC2E1CF941F74DDAB3F18155 /* CharacterCategory.h */,
+				6959864A99E04C5095C66BFF /* CharacterSet.h */,
+				83B78C7326E941229C83989C /* LexAccessor.h */,
+				408094142E174B658E27C7A5 /* LexerBase.h */,
+				2981DAE947C84610B851BE8D /* LexerModule.h */,
+				032C2CC69F9E4F4891C176FD /* LexerNoExceptions.h */,
+				1DE89C49B1D34905AD2955C6 /* LexerSimple.h */,
+				FDB6950B58E549A2B94E15E7 /* OptionSet.h */,
+				231D9A8FF08346AF9E9C9CC1 /* PropSetSimple.h */,
+				7533704D5E164EB79387F035 /* SparseState.h */,
+				4F3A2AD6CB0E450DAFA18AB2 /* StringCopy.h */,
+				AC2F56499C8548508643891A /* StyleContext.h */,
+				D8E41C0E3C7C463BBCB08A43 /* SubStyles.h */,
+				8893B9B17E434DFA8CA8D569 /* WordList.h */,
+				CAB84A930882468D8543D5B6 /* AutoComplete.h */,
+				0A37E854FE6C4E2887A0DC10 /* CallTip.h */,
+				D5F3DBF9B59E4BC290BE5090 /* CaseConvert.h */,
+				6B17721341C245528F179686 /* CaseFolder.h */,
+				36DB58E2DD5348CFB0740FCB /* Catalogue.h */,
+				F5187CB862F645309FCF71C6 /* CellBuffer.h */,
+				23E5AF970AA44131ACFC0FCD /* CharClassify.h */,
+				813342B8EA154AB9927694A4 /* ContractionState.h */,
+				07349EB856624DC8AD12FE7F /* Decoration.h */,
+				3A1463062D7B4D63A86B7527 /* Document.h */,
+				37194D05CC1B4EC7952FF4B6 /* EditModel.h */,
+				C06E8C472D57429B8F2F80A7 /* EditView.h */,
+				EBBF0DE9E00A484593D0D78A /* Editor.h */,
+				68CA8F74CD70477BBC7D00F4 /* ExternalLexer.h */,
+				15E7076AE6164526AAF0F503 /* FontQuality.h */,
+				5605EF542E2D4821837A0F14 /* Indicator.h */,
+				A30CA939F614448FB2EF2AB7 /* KeyMap.h */,
+				937974C7680B43469BA55933 /* LineMarker.h */,
+				FB4965328538430D90BA6C5F /* MarginView.h */,
+				51EA2BAF585B49A88D205E89 /* Partitioning.h */,
+				817BEF3432234F2CADC995F3 /* PerLine.h */,
+				E8DFE69C20844BB98DA83F74 /* PlatWX.h */,
+				55CE813FCA804CE5A617B64E /* Position.h */,
+				21C2EBE398E4468B99101EA7 /* PositionCache.h */,
+				52D3D5F1215B4A5DAD86DA6E /* RESearch.h */,
+				5FF19E6E31FE41B2AE9DA954 /* RunStyles.h */,
+				F2966BAADF6049C481C0AD5D /* ScintillaBase.h */,
+				4E1D1C374BC14208B3E79434 /* Selection.h */,
+				9CBCF2EFDF1147AEA6B508AD /* SparseVector.h */,
+				58D8C0A443F749669C1C0733 /* SplitVector.h */,
+				4F7469433D2A494883A2BF6F /* Style.h */,
+				C92F0494FB5E40FC805DE275 /* UniConversion.h */,
+				1219A63B90604BD4BE3A9B34 /* UnicodeFromUTF8.h */,
+				D65E6851D2D54B2F8D3497E8 /* ViewStyle.h */,
+				67B277735037401D9E66DF2B /* XPM.h */,
+				AEC44998E048404EABE16ADA /* JavaScript_pi.h */,
+				E7763AE97BCF46649DC2C268 /* JavaScriptgui.h */,
+				25A7E762DF6845C2B6AE58C4 /* JavaScriptgui_impl.h */,
+				E0F9C4C629BC4480A4FDCB5E /* duk_config.h */,
+				65B3ABA20AE14E1F8DB883F2 /* duktape.h */,
+				65EE1F2617864C969E4C7DB3 /* harness.h */,
+				DA3A3A8D1D31404A848DF2F4 /* icons.h */,
+				5CCF31181D2A43B2B6BF6A35 /* ocpn_duk.h */,
+				468681F6F56F445C9B82028F /* ocpn_plugin.h */,
+				9B7EA88F0B2E4FF3A05BE69F /* version.h */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		EA81E5DFD1BE4054B3EBB2BF /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		FA81F66E3FDC4274B1788C75 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		182C3A790BD24C4DAF54DB90 /* JavaScript_pi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A8E92D24FFA54786B6BAF6ED /* Build configuration list for PBXNativeTarget "JavaScript_pi" */;
+			buildPhases = (
+				EC03904F754D4ACEA2F18A19 /* Sources */,
+				585066B362E247558ED06E16 /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8929D678F2C441B4916FAADD /* PBXTargetDependency */,
+				969AAC8A845643B294474C48 /* PBXTargetDependency */,
+			);
+			name = JavaScript_pi;
+			productName = JavaScript_pi;
+			productReference = FB5218036BB24F458402E1A5 /* libJavaScript_pi.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8D97981B2E924C25A2501ABA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1160;
+			};
+			buildConfigurationList = 89FA72A59FD14499B50E5C06 /* Build configuration list for PBXProject "JavaScript_pi" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C9D4C37BE1C04C2292B39F55;
+			projectDirPath = ../;
+			projectRoot = "";
+			targets = (
+				29FC6326AA614DF89439173A /* ALL_BUILD */,
+				639C333E736244D48FC484BC /* JavaScript-i18n */,
+				46E203F3721245CC9D31442A /* JavaScript-po-update */,
+				67B09607D2AA465FADC332AB /* JavaScript-pot-update */,
+				182C3A790BD24C4DAF54DB90 /* JavaScript_pi */,
+				26ABEF415236490EAE97D854 /* ZERO_CHECK */,
+				79718B10A5574747B0DCCBEC /* create-pkg */,
+				A47EB0A331A4488097553A92 /* install */,
+				FEA2C16C719F4450A8EFE586 /* package */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		18BE10908FE14735ADA7F4B6 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		585066B362E247558ED06E16 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/JavaScript_pi_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all\ncd build-Xcode\ncp Debug/libJavaScript_pi.dylib libJavaScript_pi.dylib\nmake -C . -f CMakeScripts/create-pkg_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all\n";
+			showEnvVarsInLog = 0;
+		};
+		618026FCF3CD42B3B1EF0A34 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/create-pkg_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		97E02169AF8A4A61A0BA747C /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/package_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		AB93F48FA89F413FAC6644F2 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/install_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		B4B1DFE10B54447CB5DE0AE6 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/JavaScript-pot-update_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		C728A0DAB790470F8CCFA006 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		DF4A3821B7584D9A86F5981E /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/JavaScript-po-update_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		E559369FBCB14106A3BCCD64 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode -f /Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/CMakeScripts/JavaScript-i18n_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		EC03904F754D4ACEA2F18A19 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49767206B88442AC9105ED7A /* ScintillaWX.cpp in Sources */,
+				43347765FFA3415796A9F306 /* LexA68k.cxx in Sources */,
+				EAEBBD90549A4C7697C5E126 /* LexAPDL.cxx in Sources */,
+				C80F618EBB914D74AEFF9DD5 /* LexASY.cxx in Sources */,
+				5F95A3FECE4C4E1684932592 /* LexAU3.cxx in Sources */,
+				CA01713366BC409DB70D4923 /* LexAVE.cxx in Sources */,
+				5E1F6BFCFFAD4C129DF76158 /* LexAVS.cxx in Sources */,
+				0110C561D34F4914AA633556 /* LexAbaqus.cxx in Sources */,
+				42B01886DDA64CBD82A99B5B /* LexAda.cxx in Sources */,
+				3F29838727E8463AB4473BBA /* LexAsm.cxx in Sources */,
+				D2815E382792470AA50D81A8 /* LexAsn1.cxx in Sources */,
+				16EBB98756DA49EEB1C10A07 /* LexBaan.cxx in Sources */,
+				53F79791FEF74D7896CE1AA1 /* LexBash.cxx in Sources */,
+				291277B4A54D4C8298C3137F /* LexBasic.cxx in Sources */,
+				CDE1F0BC27A046F29CA28F8B /* LexBatch.cxx in Sources */,
+				3DFF4905E51C4452A4A75489 /* LexBibTeX.cxx in Sources */,
+				6F1A19DD5BAF4CEDBD892B35 /* LexBullant.cxx in Sources */,
+				5499478D8105442691886FEC /* LexCLW.cxx in Sources */,
+				B30077FB78294C8FA70153EF /* LexCOBOL.cxx in Sources */,
+				5F9160D39A6D4D748A4A947D /* LexCPP.cxx in Sources */,
+				C9D9BEF789C0449AB0AE1E9E /* LexCSS.cxx in Sources */,
+				02B1F9527CE24D00AFD01E47 /* LexCaml.cxx in Sources */,
+				A8E688485ADC4258ABEABB23 /* LexCmake.cxx in Sources */,
+				F0F9FFC067364475A8DED336 /* LexCoffeeScript.cxx in Sources */,
+				69A317BFF6194FB98F1FC4C1 /* LexConf.cxx in Sources */,
+				B757174C695149F8A4010671 /* LexCrontab.cxx in Sources */,
+				D59B4D0926D24236B561B626 /* LexCsound.cxx in Sources */,
+				297B3A01198C4F8186256E3F /* LexD.cxx in Sources */,
+				F8D3EF435A7447B0927DB594 /* LexDMAP.cxx in Sources */,
+				0B3D2362CE6942F1B468EE8E /* LexDMIS.cxx in Sources */,
+				DD3FC1F5F11348B88B687D9C /* LexDiff.cxx in Sources */,
+				D385053D3A6B4337858163E9 /* LexECL.cxx in Sources */,
+				475034FB64DE44A486E4AAD0 /* LexEDIFACT.cxx in Sources */,
+				DF72B238115F422BAA7A8678 /* LexEScript.cxx in Sources */,
+				15839CDA827F4A9A9BA462EE /* LexEiffel.cxx in Sources */,
+				E7DF196FE5D14757A90977A9 /* LexErlang.cxx in Sources */,
+				7D9945085B3B4E9EAF86B81B /* LexErrorList.cxx in Sources */,
+				9F72B3F7BB8F4C6BA77B175C /* LexFlagship.cxx in Sources */,
+				2C8E105F6ACA4246B3E5EC83 /* LexForth.cxx in Sources */,
+				5D84928E084D46BF9624FC86 /* LexFortran.cxx in Sources */,
+				B873DA9B993E41E48EB1FB15 /* LexGAP.cxx in Sources */,
+				149AA2E10FDA445B9BBBEFCA /* LexGui4Cli.cxx in Sources */,
+				05F47563926F4C8F9305065D /* LexHTML.cxx in Sources */,
+				7238912B04574B028F6BED5C /* LexHaskell.cxx in Sources */,
+				5008E04798DA4EE3A39F7ECF /* LexHex.cxx in Sources */,
+				272AB5AC91B34700BCD81F12 /* LexInno.cxx in Sources */,
+				1F98574109814344836E5522 /* LexJSON.cxx in Sources */,
+				86770BE25CF34DC1ACF1E008 /* LexKVIrc.cxx in Sources */,
+				0DF8AAAF73CD43C99BFE1BAA /* LexKix.cxx in Sources */,
+				D89D7CE5A83040BA9A51D4E1 /* LexLaTeX.cxx in Sources */,
+				22A702CBE112441BB2DC6F9A /* LexLisp.cxx in Sources */,
+				26A3C7F6A98542F0BBDF5837 /* LexLout.cxx in Sources */,
+				6492115EFAA840FBB9E2CCDB /* LexLua.cxx in Sources */,
+				CAB18A7F64AA49B18444A85B /* LexMMIXAL.cxx in Sources */,
+				C4FB37056ED142CFABCFB8A6 /* LexMPT.cxx in Sources */,
+				EBB306E6457E40A7AC64AA44 /* LexMSSQL.cxx in Sources */,
+				8F08181AD57B412886C9F1B4 /* LexMagik.cxx in Sources */,
+				49B854C1BB6F4B3DB111BAC5 /* LexMake.cxx in Sources */,
+				D1D8855C9D7244EDA41583CE /* LexMarkdown.cxx in Sources */,
+				43D595DD7B944FB3AD5AF838 /* LexMatlab.cxx in Sources */,
+				9264A40D442E49CFAC647236 /* LexMetapost.cxx in Sources */,
+				2A4ABDE48AA542869251D37F /* LexModula.cxx in Sources */,
+				9F4F3E95022843C0A366170E /* LexMySQL.cxx in Sources */,
+				35BE70A7709945E1B6AC88ED /* LexNimrod.cxx in Sources */,
+				D39D082BCF234836BA870216 /* LexNsis.cxx in Sources */,
+				5D884234D61F4E688A956262 /* LexNull.cxx in Sources */,
+				669CB5CD1300484983FD7974 /* LexOScript.cxx in Sources */,
+				1631A56EF6584D309F7AA9CA /* LexOpal.cxx in Sources */,
+				9F04664697E04AF798E862FD /* LexPB.cxx in Sources */,
+				5016DAFF86F54BD5B7F27932 /* LexPLM.cxx in Sources */,
+				FBB35ED65922418B9ABF7533 /* LexPO.cxx in Sources */,
+				58A05E3E138E422DAB95D88F /* LexPOV.cxx in Sources */,
+				AAD3DDBF1F9C4117B586DB0D /* LexPS.cxx in Sources */,
+				D57AC165BA114683B1C3EE0B /* LexPascal.cxx in Sources */,
+				0FE0D917D2F046F2BE2BB6AE /* LexPerl.cxx in Sources */,
+				5BAF0EFDADFD4CBF988C38AD /* LexPowerPro.cxx in Sources */,
+				154FED2AB9DE4CEDB9A1D117 /* LexPowerShell.cxx in Sources */,
+				FC061C1917304631BD02219F /* LexProgress.cxx in Sources */,
+				0C069775DB534F7C829DEABA /* LexProps.cxx in Sources */,
+				4FC69BD6E9B04E6098C331E7 /* LexPython.cxx in Sources */,
+				3FDD882541964863AC4C23F0 /* LexR.cxx in Sources */,
+				DA597AA4FCFC46DFA5BEA28B /* LexRebol.cxx in Sources */,
+				1127531D751545278939A626 /* LexRegistry.cxx in Sources */,
+				CCD165239DA84ED18EFDD04C /* LexRuby.cxx in Sources */,
+				08C867ECB97B4EE1B05B2B24 /* LexRust.cxx in Sources */,
+				713C26F656DB4D88A7B78BB9 /* LexSML.cxx in Sources */,
+				8F8BE12881104549BEF80AC6 /* LexSQL.cxx in Sources */,
+				89ADA4A61F4D4A7BAD39522C /* LexSTTXT.cxx in Sources */,
+				CC3DB38F5628471CB4798D81 /* LexScriptol.cxx in Sources */,
+				D6F7367470134EFAB24C63E4 /* LexSmalltalk.cxx in Sources */,
+				409046F4F3264007B9141DC2 /* LexSorcus.cxx in Sources */,
+				B185694EAAD54B64BDCB2AC0 /* LexSpecman.cxx in Sources */,
+				7FA08CAB600B417F8658DF1B /* LexSpice.cxx in Sources */,
+				67112C06516943218860BE0F /* LexTACL.cxx in Sources */,
+				934B3A665CB2444CA14731F3 /* LexTADS3.cxx in Sources */,
+				9AFC3D0535CA47078745721B /* LexTAL.cxx in Sources */,
+				439404F9C6364929843D04DA /* LexTCL.cxx in Sources */,
+				08D5E865307C4317AC3948D5 /* LexTCMD.cxx in Sources */,
+				FE985827269B47B59C6621DA /* LexTeX.cxx in Sources */,
+				05A81B39A322457E9D233A48 /* LexTxt2tags.cxx in Sources */,
+				72E988B30784480BBE63F761 /* LexVB.cxx in Sources */,
+				F1D01AB391B14E8F9F324B0D /* LexVHDL.cxx in Sources */,
+				1799266A55EC485484B1E63F /* LexVerilog.cxx in Sources */,
+				CF71D31A0495455EAF3210E6 /* LexVisualProlog.cxx in Sources */,
+				AB55A8ED444E4809B8159032 /* LexYAML.cxx in Sources */,
+				C8E1E186DFB24DBAAB0AD878 /* Accessor.cxx in Sources */,
+				90E22A303CC6469EA4CB7A32 /* CharacterCategory.cxx in Sources */,
+				69D33D5B024B4EC18716EFA0 /* CharacterSet.cxx in Sources */,
+				EDB8AF9E94C74DCB850E9BED /* LexerBase.cxx in Sources */,
+				72161C602F924C6EB8CD9955 /* LexerModule.cxx in Sources */,
+				407CA886F0114E748C40DA85 /* LexerNoExceptions.cxx in Sources */,
+				6E85ECE0039545A89A5D82B4 /* LexerSimple.cxx in Sources */,
+				050C5AEC8EF947CDBE9A0589 /* PropSetSimple.cxx in Sources */,
+				0670D166A1D2476EB6A92E49 /* StyleContext.cxx in Sources */,
+				A7F0960375A34DA7A58CCDCE /* WordList.cxx in Sources */,
+				EBBC52331D3D4C03BA9F88ED /* AutoComplete.cxx in Sources */,
+				C810E86C33FE40DDB45A2258 /* CallTip.cxx in Sources */,
+				E875B7E991FF47DC86DB46A8 /* CaseConvert.cxx in Sources */,
+				AFEE1AF50CF647EC822A31F8 /* CaseFolder.cxx in Sources */,
+				044C8AC86BD34A5A97B065AD /* Catalogue.cxx in Sources */,
+				4766D9F703134015880BC883 /* CellBuffer.cxx in Sources */,
+				5EF6BA276A134881B3AB4804 /* CharClassify.cxx in Sources */,
+				69F2527B91DA413DBC504125 /* ContractionState.cxx in Sources */,
+				29F88EF1D4444DDD9AEFCDAC /* Decoration.cxx in Sources */,
+				AF24732767CA4C6794C13378 /* Document.cxx in Sources */,
+				B9804E4F926A4C16BD980C3A /* EditModel.cxx in Sources */,
+				D1DC34C76B3B4C3492E50C20 /* EditView.cxx in Sources */,
+				6150BF0E6FB44FB4AAC40DA5 /* Editor.cxx in Sources */,
+				0EBACF13C00E4B0290C4F55B /* ExternalLexer.cxx in Sources */,
+				B4600D8CEB2C4BF38500AF1C /* Indicator.cxx in Sources */,
+				67B1EA67FCDB4E3C9C3A2CF1 /* KeyMap.cxx in Sources */,
+				213C742A89DD4B79B618683B /* LineMarker.cxx in Sources */,
+				F47D11058F464A0EAEA4B1B6 /* MarginView.cxx in Sources */,
+				6DA0946CCEEB498AB47D80CF /* PerLine.cxx in Sources */,
+				4B2B600D4A2B44808999FAEA /* PlatWX.cpp in Sources */,
+				F636EE6198624FB9A5430BC4 /* PositionCache.cxx in Sources */,
+				091D61E32AFC42A18AC2FBC5 /* RESearch.cxx in Sources */,
+				7CE63EA9FC4B413BA6213F65 /* RunStyles.cxx in Sources */,
+				939C09B508204DBAB1F85842 /* ScintillaBase.cxx in Sources */,
+				B8D21156BD514AFB8E2C32D8 /* Selection.cxx in Sources */,
+				083852EEAFD544328E59836A /* Style.cxx in Sources */,
+				6DE081C5B1964343AEBDF701 /* UniConversion.cxx in Sources */,
+				1BD5F9A33F4A42F1BCC4060E /* ViewStyle.cxx in Sources */,
+				CED33342FF5A43299B45BCCE /* XPM.cxx in Sources */,
+				5154D7005D684D29BFC10C04 /* stc.cpp in Sources */,
+				A860FBFEBF714CE4B2543F1B /* JSExtensions.cpp in Sources */,
+				870688EE05E046B696A9A723 /* JavaScript_pi.cpp in Sources */,
+				5A85288D34A843B68900073B /* JavaScriptgui.cpp in Sources */,
+				FB04120CCB434CEA92DFF3DC /* JavaScriptgui_impl.cpp in Sources */,
+				E4C1E5CFD09149359C198363 /* OPCNapis.cpp in Sources */,
+				23B4278C37754D0AA0C7D18C /* duktape.cpp in Sources */,
+				2E74DC4DF401417CBB8E0BCE /* icons.cpp in Sources */,
+				5A5927049E5E43F096724212 /* runJS.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		033FC50E25464E3EBC2C9E51 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ABEF415236490EAE97D854 /* ZERO_CHECK */;
+			targetProxy = C21920CC28734AB1A740E942 /* PBXContainerItemProxy */;
+		};
+		3437239FF73E418581E7CB97 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 29FC6326AA614DF89439173A /* ALL_BUILD */;
+			targetProxy = D38FA0EF23AF42728DB1B63D /* PBXContainerItemProxy */;
+		};
+		5BD760205F894F30A5A21901 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ABEF415236490EAE97D854 /* ZERO_CHECK */;
+			targetProxy = CB84067C0E684BFA80EFDD4F /* PBXContainerItemProxy */;
+		};
+		8929D678F2C441B4916FAADD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 639C333E736244D48FC484BC /* JavaScript-i18n */;
+			targetProxy = 486476F30AF047C7928BEC9B /* PBXContainerItemProxy */;
+		};
+		969AAC8A845643B294474C48 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ABEF415236490EAE97D854 /* ZERO_CHECK */;
+			targetProxy = 61F38CFB70B440A9B3243ECE /* PBXContainerItemProxy */;
+		};
+		9EF50E40804741269DFA3578 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 182C3A790BD24C4DAF54DB90 /* JavaScript_pi */;
+			targetProxy = 86D4E6B17FB440F3B1369796 /* PBXContainerItemProxy */;
+		};
+		AF2D6A3E3C0D43F7B4F51F21 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ABEF415236490EAE97D854 /* ZERO_CHECK */;
+			targetProxy = B343D6A6D07F4D368D660CB3 /* PBXContainerItemProxy */;
+		};
+		B72C344D1D2C4DF881EBB644 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ABEF415236490EAE97D854 /* ZERO_CHECK */;
+			targetProxy = 9B4FC69A582B48849838ACC0 /* PBXContainerItemProxy */;
+		};
+		C36677AE1B9A4F1DAAD30781 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 182C3A790BD24C4DAF54DB90 /* JavaScript_pi */;
+			targetProxy = BADC6C34B26A4205BCAEBC4C /* PBXContainerItemProxy */;
+		};
+		D85AEB912C90447493DBAF67 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 29FC6326AA614DF89439173A /* ALL_BUILD */;
+			targetProxy = 27EDD430B0E543C6A016AB6A /* PBXContainerItemProxy */;
+		};
+		E590AF9DD23D4A758381EF57 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ABEF415236490EAE97D854 /* ZERO_CHECK */;
+			targetProxy = 69FA0A3B632A4FD4B83E785F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		012A4A4E0B8948EF9395E0B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-po-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		019084068FCA463195089772 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-pot-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		1776BEA19C1F40B6BBBDEE54 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		22001D3C884A4E098D84D67F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		2E04E4A4E40949508589B7E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = package;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		346355BF93C14B748CBE7CEB /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		346A0AE891444479A2A56862 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		3700A76CFE3C49768BE54CC0 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					JavaScript_pi_EXPORTS,
+					"'_FILE_OFFSET_BITS=64'",
+					"'wxDEBUG_LEVEL=0'",
+					WXUSINGDLL,
+					__WXMAC__,
+					__WXOSX__,
+					__WXOSX_COCOA__,
+					ocpnUSE_GL,
+					JavaScript_USE_SVG,
+					SCI_LEXER,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/Users/Tony/OpenCPN_project/JavaScript_pi/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexers,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexlib,
+				);
+				INSTALL_PATH = "@rpath";
+				LD_RUNPATH_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"/usr/local/lib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/usr/local/lib,
+				);
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu++11'",
+					"-Wall",
+					"-Wno-unused-result",
+					"-g",
+					"-O2",
+					"-fexceptions",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl",
+					"-undefined",
+					dynamic_lookup,
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+					/usr/lib/libz.dylib,
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = JavaScript_pi;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				SYSTEM_HEADER_SEARCH_PATHS = "/usr/local/lib/wx/include/osx_cocoa-unicode-3.1 /usr/local/include/wx-3.1";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		480757F1C6E343268B17F211 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-po-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		491627A8FDF143CFA66A4019 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-po-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		4ACC97C329864A4990E5CC1D /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-i18n";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		4EF6F06BA4AC47C482481FB7 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-pot-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		615CA6D70C1946B8A86CD367 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-pot-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		7A1B521AD80F490DA5F2BE56 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		838CFF18DE654C5C9929B036 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = package;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		84951C6A74154479A34351EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-i18n";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		8B6F89E62D8D4E4F87FDDDD7 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/build";
+			};
+			name = RelWithDebInfo;
+		};
+		8C66180D2E4444AFAAFB11E5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					JavaScript_pi_EXPORTS,
+					"'_FILE_OFFSET_BITS=64'",
+					"'wxDEBUG_LEVEL=0'",
+					WXUSINGDLL,
+					__WXMAC__,
+					__WXOSX__,
+					__WXOSX_COCOA__,
+					ocpnUSE_GL,
+					JavaScript_USE_SVG,
+					SCI_LEXER,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/Users/Tony/OpenCPN_project/JavaScript_pi/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexers,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexlib,
+				);
+				INSTALL_PATH = "@rpath";
+				LD_RUNPATH_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"/usr/local/lib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/usr/local/lib,
+				);
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu++11'",
+					"-Wall",
+					"-Wno-unused-result",
+					"-g",
+					"-O2",
+					"-fexceptions",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl",
+					"-undefined",
+					dynamic_lookup,
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+					/usr/lib/libz.dylib,
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = JavaScript_pi;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				SYSTEM_HEADER_SEARCH_PATHS = "/usr/local/lib/wx/include/osx_cocoa-unicode-3.1 /usr/local/include/wx-3.1";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		92810D0B7E6D420D941FF4B5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		96DD2F83B508465AB5D2C132 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-i18n";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		9912F06591F442688E3354BE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-pot-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		9BA1C90E33FC4637862D550E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-po-update";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		A3898EF41A3D4157AA95972B /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		A3C51CC4844547F694ECDD5C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "create-pkg";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		AA56958198C445FCBC88A5C5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					JavaScript_pi_EXPORTS,
+					"'_FILE_OFFSET_BITS=64'",
+					"'wxDEBUG_LEVEL=0'",
+					WXUSINGDLL,
+					__WXMAC__,
+					__WXOSX__,
+					__WXOSX_COCOA__,
+					ocpnUSE_GL,
+					JavaScript_USE_SVG,
+					SCI_LEXER,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/Users/Tony/OpenCPN_project/JavaScript_pi/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexers,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexlib,
+				);
+				INSTALL_PATH = "@rpath";
+				LD_RUNPATH_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"/usr/local/lib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/usr/local/lib,
+				);
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu++11'",
+					"-Wall",
+					"-Wno-unused-result",
+					"-g",
+					"-O2",
+					"-fexceptions",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl",
+					"-undefined",
+					dynamic_lookup,
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+					/usr/lib/libz.dylib,
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = JavaScript_pi;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				SYSTEM_HEADER_SEARCH_PATHS = "/usr/local/lib/wx/include/osx_cocoa-unicode-3.1 /usr/local/include/wx-3.1";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		AB38A855093E4098B45D4741 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/build";
+			};
+			name = MinSizeRel;
+		};
+		AD13A4F98C3949DD9690B8FC /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "JavaScript-i18n";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		AE7E26A9D17D4EEAAEC557A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		B756A968C9C54EBA8691A567 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "create-pkg";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		B7BA7EA6C216427F9B255C1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		BAE682E305974C96BC9421E5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "create-pkg";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		BF3A4D4232AC4E948C7857F1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = package;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+		BFFB412554C24A23AB988B3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/build";
+			};
+			name = Release;
+		};
+		C380990213C84F6D9864B498 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "create-pkg";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		C3C31C49D5F4441AA391759C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode/build";
+			};
+			name = Debug;
+		};
+		D1D48867332A4D5BAF011076 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		DC34070CF43F4725A89AC237 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					JavaScript_pi_EXPORTS,
+					"'_FILE_OFFSET_BITS=64'",
+					"'wxDEBUG_LEVEL=0'",
+					WXUSINGDLL,
+					__WXMAC__,
+					__WXOSX__,
+					__WXOSX_COCOA__,
+					ocpnUSE_GL,
+					JavaScript_USE_SVG,
+					SCI_LEXER,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/Users/Tony/OpenCPN_project/JavaScript_pi/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/include,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/src,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexers,
+					/Users/Tony/OpenCPN_project/JavaScript_pi/scintilla/lexlib,
+				);
+				INSTALL_PATH = "@rpath";
+				LD_RUNPATH_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"/usr/local/lib/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
+					/usr/local/lib,
+				);
+				LIBRARY_STYLE = DYNAMIC;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fPIC",
+					"'-std=gnu++11'",
+					"-Wall",
+					"-Wno-unused-result",
+					"-g",
+					"-O2",
+					"-fexceptions",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl",
+					"-undefined",
+					dynamic_lookup,
+					"-dynamiclib",
+					"-Wl,-headerpad_max_install_names",
+					/usr/lib/libz.dylib,
+				);
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = JavaScript_pi;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				SYSTEM_HEADER_SEARCH_PATHS = "/usr/local/lib/wx/include/osx_cocoa-unicode-3.1 /usr/local/include/wx-3.1";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Debug;
+		};
+		E9108048FF7641779A550054 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = package;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = MinSizeRel;
+		};
+		ECB20A9490FE4D3DB814D06F /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = RelWithDebInfo;
+		};
+		F04F7472B49946E4B5928E5E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/Tony/OpenCPN_project/JavaScript_pi/build-Xcode";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		302E24EC8B4A4A63A2D6BD9C /* Build configuration list for PBXAggregateTarget "JavaScript-po-update" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				012A4A4E0B8948EF9395E0B2 /* Debug */,
+				9BA1C90E33FC4637862D550E /* Release */,
+				491627A8FDF143CFA66A4019 /* MinSizeRel */,
+				480757F1C6E343268B17F211 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		43A2DFD10ED34E299E7BDC02 /* Build configuration list for PBXAggregateTarget "JavaScript-pot-update" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				615CA6D70C1946B8A86CD367 /* Debug */,
+				9912F06591F442688E3354BE /* Release */,
+				019084068FCA463195089772 /* MinSizeRel */,
+				4EF6F06BA4AC47C482481FB7 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		89FA72A59FD14499B50E5C06 /* Build configuration list for PBXProject "JavaScript_pi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3C31C49D5F4441AA391759C /* Debug */,
+				BFFB412554C24A23AB988B3F /* Release */,
+				AB38A855093E4098B45D4741 /* MinSizeRel */,
+				8B6F89E62D8D4E4F87FDDDD7 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8F9C4E2255C54B649C3B79ED /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE7E26A9D17D4EEAAEC557A9 /* Debug */,
+				7A1B521AD80F490DA5F2BE56 /* Release */,
+				1776BEA19C1F40B6BBBDEE54 /* MinSizeRel */,
+				A3898EF41A3D4157AA95972B /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		996C7783E0D64A098A437B86 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B7BA7EA6C216427F9B255C1B /* Debug */,
+				92810D0B7E6D420D941FF4B5 /* Release */,
+				D1D48867332A4D5BAF011076 /* MinSizeRel */,
+				346A0AE891444479A2A56862 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		997D2338C1B64BCD9930938F /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22001D3C884A4E098D84D67F /* Debug */,
+				F04F7472B49946E4B5928E5E /* Release */,
+				346355BF93C14B748CBE7CEB /* MinSizeRel */,
+				ECB20A9490FE4D3DB814D06F /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A8E92D24FFA54786B6BAF6ED /* Build configuration list for PBXNativeTarget "JavaScript_pi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC34070CF43F4725A89AC237 /* Debug */,
+				8C66180D2E4444AFAAFB11E5 /* Release */,
+				3700A76CFE3C49768BE54CC0 /* MinSizeRel */,
+				AA56958198C445FCBC88A5C5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C18F7DE11B504E8FB76EBDB4 /* Build configuration list for PBXAggregateTarget "package" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2E04E4A4E40949508589B7E5 /* Debug */,
+				BF3A4D4232AC4E948C7857F1 /* Release */,
+				E9108048FF7641779A550054 /* MinSizeRel */,
+				838CFF18DE654C5C9929B036 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C94919F409114E81A0F81540 /* Build configuration list for PBXAggregateTarget "create-pkg" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3C51CC4844547F694ECDD5C /* Debug */,
+				B756A968C9C54EBA8691A567 /* Release */,
+				C380990213C84F6D9864B498 /* MinSizeRel */,
+				BAE682E305974C96BC9421E5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DF39631AC26E46A88D584036 /* Build configuration list for PBXAggregateTarget "JavaScript-i18n" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96DD2F83B508465AB5D2C132 /* Debug */,
+				84951C6A74154479A34351EF /* Release */,
+				4ACC97C329864A4990E5CC1D /* MinSizeRel */,
+				AD13A4F98C3949DD9690B8FC /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8D97981B2E924C25A2501ABA /* Project object */;
+}

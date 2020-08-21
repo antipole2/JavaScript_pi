@@ -19,17 +19,26 @@
 #include "wx/tokenzr.h"
 #include "ocpn_plugin.h"
 
-#define DUK_DUMP false
+#define DUK_DUMP true
 #if DUK_DUMP
 #define MAYBE_DUK_DUMP duk_push_context_dump(ctx);cout << "Duk context dump:" << duk_to_string(ctx, -1) <<"\n";duk_pop(ctx);
 #else
 #define MAYBE_DUK_DUMP
 #endif
 
+// declare wxStyledText styles
+enum {
+    STYLE_BLACK,
+    STYLE_RED,
+    STYLE_BLUE
+    };
+
+void jsMessage(duk_context *ctx, int style, wxString messageAttribute, wxString message);
+
 typedef wxString jsFunctionNameString_t;
 typedef wxString messageNameString_t;
 
-void jsMessage(duk_context *ctx, wxTextAttr textColour, wxString messageAttribute, wxString message);
+void jsMessage(duk_context *ctx, wxTextAttr p_textColour, wxString messageAttribute, wxString message);
 
 #define NUMBER_OF_MESSAGE_TYPES 1
 
@@ -67,7 +76,7 @@ public:
     bool                    m_runCompleted; // true when run script completed
     bool                    m_timerBusy;  // true while handling timer event to stop them piling up
     duk_context             *m_pctx;      // Pointer to the Duktape context
-    Console                 *m_pJSconsole;  // our own pointer to the consoleue
+    Console                 *m_pJSconsole;  // our own pointer to the console
     MessagesArray           m_messages;   // The messages call back table
     TimesArray              m_times;       // Timers call-back table
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""

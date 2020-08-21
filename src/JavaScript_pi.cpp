@@ -27,6 +27,9 @@
 #include <string>
 #include "wx/string.h"
 
+#define PLUGIN_VERSION_COMMENT ""
+
+
 int messageIndex(MessagesArray&, messageNameString_t);
 
 /* **** Warning *****
@@ -63,6 +66,82 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 //
 //---------------------------------------------------------------------------------------------------------
 
+void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
+        // markers
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDER, wxSTC_MARK_BOXPLUS);
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDER, wxColour (wxT("BLACK")));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDER, wxColour (wxT("WHITE")));
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDEROPEN, wxSTC_MARK_BOXMINUS);
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEROPEN, wxColour (wxT("BLACK")));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEROPEN, wxColour (wxT("WHITE")));
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDERSUB, wxSTC_MARK_EMPTY);
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDEREND, wxSTC_MARK_BOXPLUS);
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEREND, wxColour (wxT("BLACK")));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEREND, wxColour (wxT("WHITE")));
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDEROPENMID, wxSTC_MARK_BOXMINUS);
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEROPENMID, wxColour (wxT("BLACK")));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEROPENMID, wxColour (wxT("WHITE")));
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDERMIDTAIL, wxSTC_MARK_EMPTY);
+        pane->MarkerDefine (wxSTC_MARKNUM_FOLDERTAIL, wxSTC_MARK_EMPTY);
+        pane->SetMarginType (1, wxSTC_MARGIN_SYMBOL);
+        pane->SetMarginMask (1, wxSTC_MASK_FOLDERS);
+        pane->SetMarginWidth (1, 16);
+        pane->SetMarginSensitive (1, true);
+        pane->SetProperty( wxT("fold"), wxT("1") );
+        pane->SetFoldFlags( wxSTC_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSTC_FOLDFLAG_LINEAFTER_CONTRACTED );
+        pane->SetMarginWidth( 1, 0 );
+        pane->SetMarginWidth( 2, 0 );
+        pane->SetLexer(wxSTC_LEX_CPP);
+        // supported keywords
+        wxString keywordsSupported = "arguments\
+            boolean break\
+            case catch const continue\
+            default delete do\
+            else eval\
+            false finally for function\
+            if in\
+            new null\
+            package private protected public\
+            return\
+            switch\
+            this throw true try typeof\
+            var void\
+            while";
+        wxString keywordsUnsupported = "abstract\
+            byte\
+            char class\
+            debugger double\
+            enum\
+            export extends\
+            final float\
+            goto\
+            implements import instanceof int interface\
+            of\
+            let long\
+            native\
+            short static super synchronized\
+            throws transient\
+            volatile \
+            with\
+            yield";
+    pane->SetKeyWords(0, keywordsSupported + keywordsUnsupported);
+
+ //     wxFont font(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+        pane->StyleClearAll();
+        pane->StyleSetBold(wxSTC_C_WORD, true);
+        pane->StyleSetForeground(wxSTC_C_WORD, *wxBLUE);
+        pane->StyleSetForeground(wxSTC_C_STRING, *wxRED);
+        pane->StyleSetForeground(wxSTC_C_STRINGEOL, *wxRED);
+ //     pane->StyleSetForeground(wxSTC_C_PREPROCESSOR, wxColour(49, 106, 197));
+        pane->StyleSetForeground(wxSTC_C_COMMENT, wxColour(0, 128, 0));
+        pane->StyleSetForeground(wxSTC_C_COMMENTLINE, wxColour(0, 128, 0));
+ //     pane->StyleSetForeground(wxSTC_C_COMMENTDOC, wxColour(0, 128, 0));
+        pane->StyleSetForeground(wxSTC_C_COMMENTLINEDOC, wxColour(0, 128, 0));
+        pane->StyleSetForeground(wxSTC_C_NUMBER, *wxBLUE );
+        pane->SetSelBackground(true, wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
+        pane->SetSelForeground(true, wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+        pane->SetCaretWidth(2);
+    }
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
 :opencpn_plugin_116 (ppimgr)  // was 18
@@ -111,8 +190,9 @@ int JavaScript_pi::Init(void)
     LoadConfig();
     
     //    This PlugIn needs a toolbar icon, so request its insertion
-    if(m_bJavaScriptShowIcon)
-        
+    if(m_bJavaScriptShowIcon){
+
+#ifndef IN_HARNESS
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
                                                   wxITEM_CHECK, _("JavaScript"), _T(""), NULL, CALCULATOR_TOOL_POSITION, 0, this);
@@ -120,12 +200,13 @@ int JavaScript_pi::Init(void)
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
                                            _("JavaScript"), _T(""), NULL,
                                            CALCULATOR_TOOL_POSITION, 0, this);
-#endif
-    
+#endif JavaScript_USE_SVG
+#endif IN_HARNESS
+    }
     m_pConsole = NULL;
     
     
-#ifdef I_HARNESS
+#ifdef IN_HARNESS
     cout << "finished plugin init\n";
 #endif
     
@@ -224,7 +305,13 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     {
         m_pConsole = new Console(m_parent_window, this);
         m_pConsole->Move(wxPoint(m_route_console_x, m_route_console_y));
-        m_pConsole->m_Script->AddText(_("print(\"Hello from the JavaScript plugin!\\n\");\n\"All OK\";")); // some initial script
+        // script pane set up
+        wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  PLUGIN_VERSION_COMMENT << _(" !\\n\");\n\"All OK\";");
+        m_pConsole->m_Script->AddText(welcome); // some initial script
+        JSlexit(m_pConsole->m_Script);
+        // output pane set up
+        m_pConsole->m_Output->StyleSetSpec(STYLE_RED, _("fore:red"));
+        m_pConsole->m_Output->StyleSetSpec(STYLE_BLUE, _("fore:blue"));
     }
     
     m_pConsole->Fit();
@@ -313,7 +400,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     size_t starPos;
     bool OK;
     duk_context *ctx;
-    wxTextCtrl* output;
+    wxStyledTextCtrl* output;
     auto ComputeChecksum{       // Using Lambda function here to keep it private to this function
         [](wxString sentence) {
             unsigned char calculated_checksum = 0;
@@ -337,12 +424,12 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     if (checksum == correctChecksum) OK = true;
     sentence = sentence.BeforeFirst('*');   // drop * onwards
     output = JS_control.m_pJSconsole->m_Output;  // the output window
-    wxStreamToTextRedirector redirectJS_control(JS_control.m_pJSconsole->m_Output);  // redirect sdout to window pane
+ //   wxStreamToTextRedirector redirectJS_control(JS_control.m_pJSconsole->m_Output);  // redirect sdout to window pane
     ctx = JS_control.m_pctx;
     if (ctx != nullptr) {  // Only try this if we have an active context
         // cout << "NMEA function to call %" << thisFunction.c_str() << "%\n";
         if (!duk_get_global_string(ctx, thisFunction.c_str())){
-            jsMessage(ctx, *wxRED, _("JavaScript NMEA function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+            jsMessage(ctx, STYLE_RED, _("JavaScript NMEA function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
         }
         else {
             duk_push_object(ctx);
@@ -350,9 +437,8 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             duk_put_prop_literal(ctx, -2, "value");
             duk_push_boolean(ctx, OK);
             duk_put_prop_literal(ctx, -2, "OK");
-            //           MAYBE_DUK_DUMP
             if (duk_pcall(ctx, 1)){  // NB returns zero on success
-                jsMessage(ctx, *wxRED, _("JavaScript error on call to function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+                jsMessage(ctx, STYLE_RED, _("JavaScript error on call to function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
             }
         }
         duk_pop(ctx);
@@ -377,14 +463,13 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     jsFunctionNameString_t thisFunction;
     wxString argument;
     duk_context *ctx;
-    wxTextCtrl* output;
+    wxStyledTextCtrl* output;
     
     // message received - first we will check the timers
     if (!JS_control.m_timerBusy){
         if (!JS_control.m_times.IsEmpty()){
             JS_control.m_timerBusy = true;  // There is at least one timer running - stop being called again until we are done
             output = JS_control.m_pJSconsole->m_Output;  // the output window
-            wxStreamToTextRedirector redirectJS_control(output);  // redirect sdout to our window pane
             ctx = JS_control.m_pctx;
             count = (int)JS_control.m_times.GetCount();
             for (int i = count-1; i >= 0; i--){  // we work backwards down array so we can remove item and continue down
@@ -396,24 +481,23 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
                         ctx = JS_control.m_pctx;
                         if (ctx != nullptr) {  // Only try this if we have an active context
                             duk_bool_t ret = duk_get_global_string(ctx, thisFunction.c_str());
-                            MAYBE_DUK_DUMP
-                            if (!ret) jsMessage(ctx, *wxRED, _T("function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+                            if (!ret) jsMessage(ctx, STYLE_RED, _T("function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
                             else {
                                 duk_push_string(ctx, argument.c_str());
-                                MAYBE_DUK_DUMP
                                 if (duk_pcall(ctx, 1)){  // NB returns zero on success
-                                    jsMessage(ctx, *wxRED, _T("error on call to function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+                                    jsMessage(ctx, STYLE_RED, _T("error on call to function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+                                    }
                                 }
                             };
-                            duk_pop(ctx);
+                        duk_pop(ctx);
                         }
-                        else   wxMessageBox("Had a function to run on timer but no context!", "JavaScript plugin logic error");
-                    }
+                    else   wxMessageBox("Had a function to run on timer but no context!", "JavaScript plugin logic error");
                     JS_control.m_times.RemoveAt(i);
+                    }
                 }
             }
             if ((int)JS_control.m_times.GetCount()) JS_control.m_timerBusy = false;  // no more timers
-        }
+            }
         
         //now to deal with the message
         index = JS_control.messageIndex(message_id);  // look up and remember if new
@@ -423,11 +507,11 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
         JS_control.m_messages[index].functionName = wxEmptyString;  // only one time
         if (thisFunction != wxEmptyString){
             // have function to be invoked
-            wxStreamToTextRedirector redirectJS_control(JS_control.m_pJSconsole->m_Output);  // redirect sdout to our window pane
+ //           wxStreamToTextRedirector redirectJS_control(JS_control.m_pJSconsole->m_Output);  // redirect sdout to our window pane
             ctx = JS_control.m_pctx;
             if (ctx != nullptr) {  // Only try this if we have an active context
                 if (!duk_get_global_string(ctx, thisFunction.c_str())){
-                    jsMessage(ctx, *wxRED, _("function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+                    jsMessage(ctx, STYLE_RED, _("function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
                 }
                 else {
                     // fix problematic characters
@@ -436,7 +520,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
                     // message_body.Replace(wxString("’"),wxString("'"), true);  // fix prime
                     duk_push_string(ctx, message_body.c_str());
                     if (duk_pcall(ctx, 1)){  // NB returns zero on success
-                        jsMessage(ctx, *wxRED, _("error on call to function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
+                        jsMessage(ctx, STYLE_RED, _("error on call to function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
                     }
                 };
                 duk_pop(ctx);
@@ -448,7 +532,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
         }
         return;
     }
-}
+
 
 
 

@@ -3,6 +3,8 @@
 ## Copyright:   2014
 ## License:     GPLv3+
 ##---------------------------------------------------------------------------
+##
+## Tony Voss	14 Aug 2020	Expanded include directories to include sintilla and its subdirectories
 
 SET(PLUGIN_SOURCE_DIR .)
 
@@ -22,7 +24,7 @@ SET(PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}" )
 #SET(CMAKE_BUILD_TYPE Release)
 #SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/scintilla/include ${PROJECT_SOURCE_DIR}/scintilla/src ${PROJECT_SOURCE_DIR}/scintilla/lexers ${PROJECT_SOURCE_DIR}/scintilla/lexlib)
 
 # SET(PROFILING 1)
 
@@ -49,10 +51,10 @@ IF(MSVC)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE)
 ENDIF(MSVC)
 
-SET(wxWidgets_USE_LIBS base core net xml html adv)
+SET(wxWidgets_USE_LIBS base core net xml html adv stc)
 SET(BUILD_SHARED_LIBS TRUE)
 
-FIND_PACKAGE(wxWidgets REQUIRED)
+FIND_PACKAGE(wxWidgets REQUIRED base core net xml html adv stc)
 
 IF(MSYS)
 # this is just a hack. I think the bug is in FindwxWidgets.cmake

@@ -67,8 +67,9 @@ void Console::OnLoad( wxCommandEvent& event )
     wxArrayString file_array;
     wxString filename;
     wxTextFile ourFile;
-    wxString lineOfData;
+    wxString lineOfData, script;
     wxDialog query;
+    wxString JScleanString(wxString line);
     
     wxFileDialog openConsole( this, _( "File to load" ), wxT ( "" ), wxT ( "" ),
                              wxT ( "*.js" ),
@@ -84,18 +85,13 @@ void Console::OnLoad( wxCommandEvent& event )
             wxFileName currentFile(filePath);
             currentFile.AssignDir(folderPath);
         }
-        cout << filePath << "\n";
-        /*
-         if (m_Script->GetNumberOfLines() > 0)
-         { // already have text in the script window
-         if (wxYES == wxMessageBox(_T("Delete existing content?"), _T("Loading JavaScript"), wxYES_NO))
-         {
-         m_Script->Cut();
-         }
-         }
-         */
         ourFile.Open(filePath);
-        m_Script->LoadFile(filePath, wxTEXT_TYPE_ANY);
+        m_Script->ClearAll();   // clear old content
+        for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
+            script += lineOfData + "\n";
+            }
+        script = JScleanString(script);
+        m_Script->AppendText(script);
         m_fileString->SetValue(wxString(filePath));
         return;
     }
@@ -153,13 +149,23 @@ void Console::OnSave( wxCommandEvent& event )
     return;
 }
 
+void Console::OnCopyAll(wxCommandEvent& event) {
+    int currentPosition = this->m_Script->GetCurrentPos();
+//    this->m_Script->SetSelection((long) 0, (long) 100000000);   // select all
+    this->m_Script->SelectAll();
+    this->m_Script->Copy();
+    this->m_Script->GotoPos(currentPosition);
+    cout << "Have done Test B\n";
+}
+
 void Console::OnClearScript( wxCommandEvent& event ){
     this->m_Script->ClearAll();
     this->m_Script->SetFocus();
+    this->m_fileString->Clear();    // clear the saved file string too
 }
 
 void Console::OnClearOutput( wxCommandEvent& event ){
-    this->m_Output->Clear();
+    this->m_Output->ClearAll();
 }
 
 
@@ -169,8 +175,8 @@ void Console::OnRun( wxCommandEvent& event )
     bool        more;    // true if more work by call-backs to functions
     void fatal_error_handler(void *udata, const char *msg);
     
-    JS_control.m_pJSconsole = this;  // make a note of our consoleue - used elsewhere
-    wxStreamToTextRedirector redirect(m_Output);  // redirect sdout to our window pane
+    JS_control.m_pJSconsole = this;  // make a note of our console - used elsewhere
+//    wxStreamToTextRedirector redirect(m_Output);  // redirect sdout to our window pane
     
     if (this->run_button->GetLabel() == runLabel){
         // OK to run JavaScript
@@ -198,9 +204,52 @@ void Console::OnClose(wxCloseEvent& event)
     pPlugIn->OnJavaScriptConsoleClose();
 }
 
+void Console::OnTestA( wxCommandEvent& event){
+    wxString    script;
+    bool        more;
+    wxString::const_iterator i;
+    void fatal_error_handler(void *udata, const char *msg);
+    
+#ifndef IN_HARNESS
+    script = this->m_Script->GetValue();    // get the script
+    if (script == wxEmptyString) {
+        cout << "Empty script\n";
+        return;  // ignore
+        }
+    cout << script << "\n";
+    for (i = script.begin(); i != script.end(); ++i)
+        {
+        wxUniChar uni_ch = *i;
+        cout << (int)uni_ch << " ";
+        }
+    cout << "\n";
+    script.mb_str(wxConvUTF8);
+    cout << "Converted\n";
+    for (i = script.begin(); i != script.end(); ++i)
+        {
+        wxUniChar uni_ch = *i;
+        cout << (int)uni_ch << " ";
+        }
+    cout << "\n";
+    JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
+    if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
+    this->run_button->SetLabel(stopLabel);
+    more = compileJS( script, this);         // compile and run the script
+    if (!JS_control.m_JSactive){
+        // not waiting for anything, so wrap up
+        JS_control.m_runCompleted = true;
+        JS_control.clear();
+        }
+#else IN_HARNESS
+    script = _("Messages ID");
+    wxString message_body {_("message text")};
+    this->pPlugIn->SetPluginMessage(script, message_body);
+#endif IN_HARNESS
+    }
 // testing functions modified as needed
 
-const unsigned int GPXbufferLengthA {1000};
+/*
+ const unsigned int GPXbufferLengthA {1000};
 char GPXbufferA[GPXbufferLengthA];
 void Console::OnTestA( wxCommandEvent& event)
 {
@@ -211,6 +260,7 @@ void Console::OnTestA( wxCommandEvent& event)
     //  wxString sentence = "$GPGSV,3,1,12,38,31,177,37,15,19,167,44,24,75,103,53,1,07,319,29*7A";  // incorrect
     //  JS_control.m_pJSconsole->pPlugIn->SetNMEASentence(sentence);
 }
+
 
 void Console::OnTestB( wxCommandEvent& event )  // for debugging fix API
 {
@@ -226,4 +276,4 @@ void Console::OnTestB( wxCommandEvent& event )  // for debugging fix API
     JS_control.m_positionFix.nSats = 11;
     return;
 }
-
+*/

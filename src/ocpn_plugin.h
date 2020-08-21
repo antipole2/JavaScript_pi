@@ -1,16 +1,27 @@
-/**************************************************************************
-* Project:  OpenCPN
-* Purpose:  JavaScript Plugin
-* Author:   Tony Voss 16/05/2020
-*
-* Copyright Ⓒ 2020 by Tony Voss
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License, under which
-* you must including a copy of these terms in all copies
-* https://www.gnu.org/licenses/gpl-3.0.en.html
-***************************************************************************
-*/
+/***************************************************************************
+ *
+ * Project:  OpenCPN
+ * Purpose:  PlugIn Object Definition/API
+ * Author:   David Register
+ *
+ ***************************************************************************
+ *   Copyright (C) 2010 by David S. Register                               *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,  USA.         *
+ **************************************************************************/
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
@@ -29,9 +40,9 @@
 
 #if defined(__WXMSW__) && defined(MAKING_PLUGIN)
 #  define DECL_IMP     __declspec(dllimport)
-#else
+#else 
 #  define DECL_IMP
-#endif
+#endif    
 
 #include <wx/xml/xml.h>
 #include <wx/dcmemory.h>
@@ -612,7 +623,7 @@ public:
     wxString          m_MarkName;
     wxString          m_MarkDescription;
     wxDateTime        m_CreateTime;
-    bool              m_IsVisible;
+	bool			  m_IsVisible;
 
     wxString          m_IconName;
 
@@ -1064,11 +1075,14 @@ int DECL_EXP PI_PLIBRenderObjectToGL( const wxGLContext &glcc, PI_S57Obj *pObj,
                                     PlugIn_ViewPort *vp, wxRect &render_rect );
 
 /* API 1.11 OpenGL Display List and vertex buffer object routines
+
    Effectively these two routines cancel each other so all
    of the translation, scaling and rotation can be done by opengl.
+
    Display lists need only be built infrequently, but used in each frame
    greatly accelerates the speed of rendering.  This avoids costly calculations,
    and also allows the vertexes to be stored in graphics memory.
+
    static int dl = 0;
    glPushMatrix();
    PlugInMultMatrixViewport(current_viewport);
@@ -1081,7 +1095,7 @@ int DECL_EXP PI_PLIBRenderObjectToGL( const wxGLContext &glcc, PI_S57Obj *pObj,
       glNewList(dl, GL_COMPILE_AND_EXECUTE);
       ... // use norm_viewport with GetCanvasLLPix here
       glEndList();
-   }
+   }      
    glPopMatrix();
    ... // use current_viewport with GetCanvasLLPix again
 */
@@ -1199,7 +1213,7 @@ enum OCPN_DLDialogStyle
 /*   Synchronous (Blocking) download of a single file  */
 
 extern DECL_EXP _OCPN_DLStatus OCPN_downloadFile( const wxString& url, const wxString &outputFile,
-                                       const wxString &title, const wxString &message,
+                                       const wxString &title, const wxString &message, 
                                        const wxBitmap& bitmap,
                                        wxWindow *parent, long style, int timeout_secs);
 
@@ -1222,14 +1236,14 @@ extern DECL_EXP bool OCPN_isOnline();
 /*  Supporting  Event for Background downloading          */
 /*  OCPN_downloadEvent Definition  */
 
-/*  PlugIn should be ready/able to handle this event after initiating a background file transfer
- *
+/*  PlugIn should be ready/able to handle this event after initiating a background file transfer  
+ * 
  * The event as received should be parsed primarily by the getDLEventCondition() method.
  * This will allow identification of download start, progress, and end states.
- *
+ * 
  * Other accessor methods contain status, byte counts, etc.
- *
- * A PlugIn may safely destroy its EvtHandler after receipt of an OCPN_downloadEvent with
+ * 
+ * A PlugIn may safely destroy its EvtHandler after receipt of an OCPN_downloadEvent with 
  *     getDLEventCondition == OCPN_DL_EVENT_TYPE_END
  */
 
@@ -1292,7 +1306,7 @@ extern DECL_EXP bool PlugInSetFontColor(const wxString TextElement, const wxColo
 // API 1.15
 extern DECL_EXP double PlugInGetDisplaySizeMM();
 
-//
+// 
 extern DECL_EXP wxFont* FindOrCreateFont_PlugIn( int point_size, wxFontFamily family,
                     wxFontStyle style, wxFontWeight weight, bool underline = false,
                     const wxString &facename = wxEmptyString,

@@ -34,6 +34,8 @@
 #define     MY_API_VERSION_MAJOR    1
 #define     MY_API_VERSION_MINOR    16  // was 7
 
+
+
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
@@ -97,9 +99,6 @@ private:
       int               m_route_console_x, m_route_console_y,m_route_console_width,m_route_console_height;
       int               m_display_width, m_display_height;      
       int               m_leftclick_tool_id;
-//      bool              m_ShowHelp,m_bCaptureCursor,m_bCaptureShip;
-//      double m_ship_lon,m_ship_lat,m_cursor_lon,m_cursor_lat;
-
 	  bool             m_bJavaScriptShowIcon;
 	  bool             m_bShowJavaScript;
 	  wxBitmap			m_panelBitmap;

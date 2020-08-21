@@ -1,10 +1,3 @@
-/******************************************************************************
- *
- * Project:  OpenCPN
- * Purpose:  DR Plugin
- * Author:   Mike Rossiter
- *
- ***************************************************************************
 /**************************************************************************
 * Project:  OpenCPN
 * Purpose:  JavaScript Plugin
@@ -48,19 +41,20 @@ public:
     wxFileName currentFile;
     	
     void OnClearScript( wxCommandEvent& event );
+    void OnCopyAll( wxCommandEvent& event );
     void OnLoad( wxCommandEvent& event );
-        void OnSave (wxCommandEvent& event);
-        void OnSaveAs ( wxCommandEvent& event );
-	    void OnRun( wxCommandEvent& event );
+    void OnSave (wxCommandEvent& event);
+    void OnSaveAs ( wxCommandEvent& event );
+    void OnRun( wxCommandEvent& event );
     void OnClearOutput( wxCommandEvent& event );
-        void OnTestA( wxCommandEvent& event );
-        void OnTestB( wxCommandEvent& event );
+    void OnTestA( wxCommandEvent& event );
+    void OnTestB( wxCommandEvent& event );
     
 
 private:
-	    void OnClose( wxCloseEvent& event );
-        bool error_found;
-        bool dbg;
+    void OnClose( wxCloseEvent& event );
+    bool error_found;
+    bool dbg;
     
 public:
     void setRunButton(wxString label){
