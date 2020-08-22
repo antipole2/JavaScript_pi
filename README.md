@@ -4,12 +4,6 @@ This plugin allows you to run JavaScript and to interact with OpenCPN.  You can 
 
 The functionality in OpenCPN that can be scripted depends on the APIs built into the plugin.  These will be expanded as the need arises.  [A user guide is available here.](https://github.com/antipole2/JavaScript_pi/blob/master/JavaScript%20plugin%20user%20guide.pdf)
 
-At this stage the plugin is an alpha release which has been built for MacOS only using Xcode.  It awaits a volunteer familiar with Xcode and Windows to update the Cmake files so it can be built for a non-Xcode environment.  A technical guide is included in the project.
-
-To install on MacOS download the zip file [JavaScript package MacOS/JavaScript package.zip](https://github.com/antipole2/JavaScript_pi/blob/master/JavaScript%20package%20MacOS/JavaScript%20package.zip "Download")
-When unzipped, you will find:
-1. The MacOS intstaller
-2. README instructions for installing
-3. A user guide for using the plugin, including doumentation of the APIs and sample scripts.
+At this stage the plugin is an alpha release which has been built for MacOS only using Xcode.  It awaits a volunteer familiar with Xcode and Windows to update the Cmake files so it can be built for a non-Xcode environment.  User and t technical guides are included in the project.
 
 ***NB This alpha release has no protection against an indefinite JavaScript loop, which would require OpenCPN to be killed off.  You should be confident of your scripts before running them during real navigation!***
