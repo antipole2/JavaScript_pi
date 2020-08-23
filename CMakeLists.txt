@@ -267,10 +267,24 @@ SET(SCINTILLA
     scintilla/src/XPM.cxx
     scintilla/src/XPM.h
 	)
-ADD_library(${PACKAGE_NAME}
+	
+IF(NOT APPLE)
+
+  ADD_library(${PACKAGE_NAME}
 	${JAVASCRIPT}
-    ${SCINTILLA}
-    )
+	)
+  
+ELSE(NOT APPLE)
+ 
+     ADD_library(${PACKAGE_NAME}
+        ${JAVASCRIPT}
+        ${SCINTILLA}
+        )
+        
+    INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/buildosx/wx_includes)
+    INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/wx)
+  
+ENDIF(NOT APPLE)
 
 ADD_DEFINITIONS(-DSCI_LEXER)
 
