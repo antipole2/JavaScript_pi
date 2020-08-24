@@ -53,19 +53,22 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
     const wxString rightSquote  {_("\u2019")};    // right single quote
 //  const wxString apostrophe   {_("\u0027")};
     const wxString apostrophe   {_("\'")};
+    const wxString ordinal      {_("\u00ba")};  // masculine ordinal indicator - like degree
+    const wxString degree       {_("\u00b0")};
     given.Replace(leftQuote, quote, true);
     given.Replace(rightQuote, quote, true);
     given.Replace(accute, apostrophe, true);
     given.Replace(prime, apostrophe, true);
     given.Replace(rightSquote, apostrophe, true);
+    given.Replace(ordinal, degree, true);
     return (given);
     }
 
 wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
-    // As far as we know this only occurs with Windows
-    const wxString A_string{ _("\u00C2") };
-    const wxString null{ _("") };
-    given.Replace(A_string, null, true);
+    // As far as we know this only occurs with º symbol on Windows
+    const wxString A_stringDeg{ _("\u00C2\u00b0")};    // Âº
+    const wxString A_stringOrd{ _("\u00C2\u00ba")};    // Â ordinal
+    given.Replace(A_stringDeg, _("\u00b0"), true);
     return (given);
     }
 
@@ -80,7 +83,6 @@ void jsMessage(duk_context *ctx, int style, wxString messageAttribute, wxString 
     int long afterLength = output_window->GetTextLength(); // where we are after adding text
     output_window->StartStyling(beforeLength);
     output_window->SetStyling(afterLength-beforeLength-1, style);
- //   cout << "wordcounts:" << beforeLength << " " << afterLength << "\n";
     }
 
 bool compileJS(wxString script, Console* console){
