@@ -18,10 +18,12 @@
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/toolbar.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
 #include <wx/stc/stc.h>
+#include <wx/statline.h>
+#include <wx/panel.h>
+#include <wx/splitter.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -35,7 +37,8 @@ class m_Console : public wxDialog
 	private:
 
 	protected:
-		wxToolBar* m_toolBar1;
+		wxSplitterWindow* m_splitter1;
+		wxPanel* m_panel1;
 		wxButton* m_clearScript;
 		wxButton* copy_button;
 		wxButton* load_button;
@@ -43,6 +46,9 @@ class m_Console : public wxDialog
 		wxButton* save_as_button;
 		wxButton* run_button;
 		wxButton* testA_button;
+		wxStaticLine* m_staticline1;
+		wxPanel* m_panel2;
+		wxStaticLine* m_staticline2;
 		wxButton* m_clearOutput;
 
 		// Virtual event handlers, overide them in your derived class
@@ -62,8 +68,14 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 670,741 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
 		~m_Console();
+
+		void m_splitter1OnIdle( wxIdleEvent& )
+		{
+			m_splitter1->SetSashPosition( 600 );
+			m_splitter1->Disconnect( wxEVT_IDLE, wxIdleEventHandler( m_Console::m_splitter1OnIdle ), NULL, this );
+		}
 
 };
 
