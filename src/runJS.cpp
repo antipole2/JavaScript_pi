@@ -50,12 +50,22 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
     const wxString quote        {_("\"")};
     const wxString accute       {_("\u00b4")};
     const wxString prime        {_("\u2032")};
+    const wxString rightSquote  {_("\u2019")};    // right single quote
 //  const wxString apostrophe   {_("\u0027")};
     const wxString apostrophe   {_("\'")};
     given.Replace(leftQuote, quote, true);
     given.Replace(rightQuote, quote, true);
     given.Replace(accute, apostrophe, true);
     given.Replace(prime, apostrophe, true);
+    given.Replace(rightSquote, apostrophe, true);
+    return (given);
+    }
+
+wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
+    // As far as we know this only occurs with Windows
+    const wxString A_string{ _("\u00C2") };
+    const wxString null{ _("") };
+    given.Replace(A_string, null, true);
     return (given);
     }
 
@@ -89,7 +99,6 @@ bool compileJS(wxString script, Console* console){
 
     duk_context *ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
     JS_control.m_pctx = ctx;  // remember it
-//    wxStreamToTextRedirector redirect(output_window);  // redirect sdout to our window pane
     duk_extensions_init(ctx);  // register our own extensions
     ocpn_apis_init(ctx);       // register our API extensions
     more = false;      // start with no call-backs - will be set true in 'on' callback APIs
@@ -101,7 +110,11 @@ bool compileJS(wxString script, Console* console){
         jsMessage(ctx, STYLE_RED, _(""), duk_safe_to_string(ctx, -1));
         return false;
         }
-    jsMessage(ctx, STYLE_BLUE, _("result: "), duk_safe_to_string(ctx, -1));
+    result = duk_safe_to_string(ctx, -1);
+#ifdef __WXMSW__
+    result = JScleanOutput(result); // clean up if Windows
+#endif
+    jsMessage(ctx, STYLE_BLUE, _("result: "), result);
      duk_pop(ctx);  /* pop result/error */
 
     // check if script has set up call backs with nominated functions

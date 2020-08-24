@@ -47,6 +47,7 @@ void JS_dk_error(duk_context *ctx, wxString message){
 }
     
 wxString js_formOutput(duk_context *ctx){
+    wxString JScleanOutput(wxString given);
     duk_idx_t nargs;  // number of args in call
     wxString output = "";
     
@@ -55,7 +56,7 @@ wxString js_formOutput(duk_context *ctx){
         switch (duk_int_t type = duk_get_type(ctx, i)){
             case DUK_TYPE_STRING:
             case DUK_TYPE_NUMBER:
-                output = output + duk_to_string(ctx,i);  // mangles º chatcater !
+                output = output + duk_to_string(ctx,i);  // mangles º chatcater on Windows!
                 break;
             case DUK_TYPE_BOOLEAN:
                 output = output + ((duk_to_boolean(ctx,i) == 1) ? "true":"false");
@@ -66,6 +67,9 @@ wxString js_formOutput(duk_context *ctx){
                 JS_dk_error(ctx, "print - arg " + to_string(i) + " of unexpected type " + to_string(type));
         }
     }
+#ifdef __WXMSW__
+    output = JScleanOutput(output); // clean for Windows only
+#endif
     return(output);
 }
 

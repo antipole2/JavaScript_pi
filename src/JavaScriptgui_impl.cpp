@@ -209,28 +209,30 @@ void Console::OnTestA( wxCommandEvent& event){
     bool        more;
     wxString::const_iterator i;
     void fatal_error_handler(void *udata, const char *msg);
+    wxString JScleanString(wxString given);
     
-#ifndef IN_HARNESS
+// #ifndef IN_HARNESS
     script = this->m_Script->GetValue();    // get the script
     if (script == wxEmptyString) {
-        cout << "Empty script\n";
+        this->m_Output->AppendText(_("Empty script\n"));
         return;  // ignore
         }
-    cout << script << "\n";
+    this->m_Output->AppendText(script + _("\n"));
+    this->m_Output->AppendText(("Raw\n"));
     for (i = script.begin(); i != script.end(); ++i)
         {
         wxUniChar uni_ch = *i;
-        cout << (int)uni_ch << " ";
+        this->m_Output->AppendText(wxString::Format(wxT("%d "), (int)uni_ch));
         }
-    cout << "\n";
-    script.mb_str(wxConvUTF8);
-    cout << "Converted\n";
+    this->m_Output->AppendText(_("\n"));
+    script = JScleanString(script);
+    this->m_Output->AppendText(("Converted\n"));
     for (i = script.begin(); i != script.end(); ++i)
         {
         wxUniChar uni_ch = *i;
-        cout << (int)uni_ch << " ";
+        this->m_Output->AppendText(wxString::Format(wxT("%d "), (int)uni_ch));
         }
-    cout << "\n";
+    this->m_Output->AppendText(_("\n"));
     JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
     if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
     this->run_button->SetLabel(stopLabel);
@@ -240,11 +242,11 @@ void Console::OnTestA( wxCommandEvent& event){
         JS_control.m_runCompleted = true;
         JS_control.clear();
         }
-#else IN_HARNESS
+// #else IN_HARNESS
     script = _("Messages ID");
     wxString message_body {_("message text")};
     this->pPlugIn->SetPluginMessage(script, message_body);
-#endif IN_HARNESS
+//#endif IN_HARNESS
     }
 // testing functions modified as needed
 
