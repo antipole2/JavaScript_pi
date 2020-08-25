@@ -49,16 +49,18 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
 //  const wxString quote        {_("\u0022")};
     const wxString quote        {_("\"")};
     const wxString accute       {_("\u00b4")};
-    const wxString prime        {_("\u2032")};
     const wxString rightSquote  {_("\u2019")};    // right single quote
 //  const wxString apostrophe   {_("\u0027")};
     const wxString apostrophe   {_("\'")};
     const wxString ordinal      {_("\u00ba")};  // masculine ordinal indicator - like degree
     const wxString degree       {_("\u00b0")};
+#ifndef __WXMSW__   // Don't try this one on Windows
+    const wxString prime        {_("\u2032")};
+    given.Replace(prime, apostrophe, true);
+#endif  // __WXMSW__
     given.Replace(leftQuote, quote, true);
     given.Replace(rightQuote, quote, true);
     given.Replace(accute, apostrophe, true);
-    given.Replace(prime, apostrophe, true);
     given.Replace(rightSquote, apostrophe, true);
     given.Replace(ordinal, degree, true);
     return (given);
