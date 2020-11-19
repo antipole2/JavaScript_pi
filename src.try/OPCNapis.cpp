@@ -21,6 +21,7 @@
 #include <stdarg.h>
 
 extern JS_control_class JS_control;
+void JS_dk_error(duk_context *ctx, wxString message);
 WX_DEFINE_LIST(Plugin_HyperlinkList);
 WX_DEFINE_LIST(Plugin_WaypointList);
 
@@ -49,10 +50,10 @@ PlugIn_Waypoint * js_duk_to_opcn_waypoint(duk_context *ctx){
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint();
     // indenting here represents stack hight - do not reformat
     duk_get_prop_string(ctx, -1, "position");
-        if (!duk_get_prop_string(ctx, -1, "latitude")) JS_control.throw_error(ctx, "addSingleWaypoint error: no latitude");
+        if (!duk_get_prop_string(ctx, -1, "latitude")) JS_dk_error(ctx, "addSingleWaypoint error: no latitude");
             p_waypoint->m_lat = duk_to_number(ctx, -1);
             duk_pop(ctx);
-        if (!duk_get_prop_string(ctx, -1, "longitude")) JS_control.throw_error(ctx, "addSingleWaypoint error: no longitude");
+        if (!duk_get_prop_string(ctx, -1, "longitude")) JS_dk_error(ctx, "addSingleWaypoint error: no longitude");
             p_waypoint->m_lon = duk_to_number(ctx, -1);
             duk_pop(ctx);
         duk_pop(ctx);   // done with position
@@ -74,7 +75,7 @@ PlugIn_Waypoint * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);
     duk_get_prop_string(ctx, -1, "creationDateTime");
         p_waypoint->m_CreateTime = wxDateTime(duk_to_number(ctx, -1));
-        if (!p_waypoint->m_CreateTime.IsValid()) JS_control.throw_error(ctx, "Waypoint has invalid time");
+        if (!p_waypoint->m_CreateTime.IsValid()) JS_dk_error(ctx, "Waypoint has invalid time");
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "hyperlinkList")){
         // we have a hyperlinkList - this is hard work!
@@ -124,7 +125,7 @@ PlugIn_Route * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
         p_route->m_GUID = duk_to_string(ctx, -1);
         if (wxIsEmpty(p_route->m_GUID)) {
             if (createGUID) p_route->m_GUID = GetNewGUID();  // if no GUID, provide one if allowed
-            else JS_control.throw_error(ctx, "OCPNupdateRoute error: called without GUID");
+            else JS_dk_error(ctx, "OCPNupdateRoute error: called without GUID");
             }
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "waypoints")){
@@ -195,18 +196,6 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
     }
 
 static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - save function to call
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    
-    if (nargs == 0) { // empty call - cancel any waiting callback
-        size_t messageCount = JS_control.m_messages.GetCount();
-        if (messageCount > 0){
-            for(unsigned int index = 0; index < messageCount; index++){
-                JS_control.m_messages[index].functionName = wxEmptyString;
-                }
-            }
-        if (JS_control.m_runCompleted && !JS_control.waiting()) JS_control.clearAndDestroy();
-        return(0);
-        }
     duk_require_function(ctx, 0);
     int index = JS_control.messageIndex(wxString(duk_to_string(ctx, 1)));
     JS_control.m_messages[index].functionName = JS_control.getFunctionName();
@@ -215,19 +204,12 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
 }
 
 static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    
-    if (nargs == 0) { // empty call - cancel any waiting callback
-        JS_control.m_NMEAmessageFunction = wxEmptyString;
-        return(0);
-        }
-
+    duk_require_function(ctx, 0);
     if (JS_control.m_NMEAmessageFunction != wxEmptyString){
         // request already outstanding
         cout << "JavaScript onNMEAsentence called with call outstanding - this ignored\n";
         }
     else{
-        duk_require_function(ctx, 0);
         JS_control.m_NMEAmessageFunction = JS_control.getFunctionName();
         JS_control.m_JSactive = true;
         }
@@ -357,7 +339,7 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
         return(result);
     }
     else {
-        JS_control.throw_error(ctx, "OCPNpushNMEA called without single string argument");
+        JS_dk_error(ctx, "OCPNpushNMEA called without single string argument");
     }
     return(result);
 }
@@ -369,7 +351,7 @@ static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
     
     nargs = duk_get_top(ctx);
     if (nargs < 1){
-        JS_control.throw_error(ctx, "OCPNsendMessage error: called without at least one argument");
+        JS_dk_error(ctx, "OCPNsendMessage error: called without at least one argument");
         }
     if ((nargs >= 1) &&  (duk_get_type(ctx, 1) == DUK_TYPE_STRING)){
         // we have a message body
@@ -381,12 +363,41 @@ static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
     return(result);
 }
 
+static duk_ret_t OCPNonSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
+    duk_ret_t result = 0;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    TimeActions ourTimeAction;
+    wxString argument = wxEmptyString;
+    
+    duk_require_function(ctx, 0);
+    if ((int)JS_control.m_times.GetCount() > 10){
+        JS_dk_error(ctx, "OCPNonSeconds error: already have 10 calls outstanding");
+        }
+    if ((nargs < 2) || (nargs > 3)){
+        JS_dk_error(ctx, "OCPNonSeconds error: requires two or three arguments");
+
+        }
+    wxTimeSpan delay(0, 0, duk_to_number(ctx,1), 0);
+    ourTimeAction.timeToCall = wxDateTime::Now() + delay;
+    ourTimeAction.functionName = JS_control.getFunctionName();
+    if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
+    ourTimeAction.argument = argument;
+    JS_control.m_times.Add(ourTimeAction);  // add this action to array
+    return(result);
+    }
+
 const unsigned int GPXbufferLength {1500};
 char GPXbuffer[GPXbufferLength];
 static duk_ret_t getARPgpx(duk_context *ctx) {  // get Active Route Point as GPX
     bool result = GetActiveRoutepointGPX( GPXbuffer, GPXbufferLength);
     duk_push_string(ctx, result ? GPXbuffer : "");
     return 1;  // returns one arg
+    }
+
+static duk_ret_t cancelAll(duk_context *ctx) {  // cancel all call-backs
+    duk_ret_t result = 0;
+    JS_control.clear();
+    return(result);
     }
 
 static duk_ret_t OCPNrefreshCanvas(duk_context *ctx) {  // refresh main window
@@ -434,7 +445,7 @@ static duk_ret_t getGUID(duk_context *ctx) {  // get GUID as per option
             if (result == wxEmptyString) duk_push_string(ctx, result);
             else duk_push_boolean(ctx, false);
             break;
-        default: JS_control.throw_error(ctx, "OCPNgetGUID error: called with invalid argument");
+        default: JS_dk_error(ctx, "OCPNgetGUID error: called with invalid argument");
             }
     return(1);
     }
@@ -484,7 +495,7 @@ static duk_ret_t getSingleWaypoint(duk_context *ctx) {
     result = GetSingleWaypoint(GUID, p_waypoint);
     if (!result){  // waypoint does not exist
         delete p_waypoint;
-        JS_control.throw_error(ctx, "OCPNGetSingleWaypoint called with non-existant GUID " + GUID);
+        JS_dk_error(ctx, "OCPNGetSingleWaypoint called with non-existant GUID " + GUID);
         return(1);
         }
     ocpn_waypoint_to_js_duk(ctx, p_waypoint);   // construct the waypoint
@@ -506,7 +517,7 @@ static duk_ret_t addSingleWaypoint(duk_context *ctx) {
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the opcn waypoint
     result = AddSingleWaypoint(p_waypoint, permanent);
     if (!result){ // waypoint already exists?
-               JS_control.throw_error(ctx, "OCPNaddSingleWaypoint called with existing GUID " + p_waypoint->m_GUID);
+               JS_dk_error(ctx, "OCPNaddSingleWaypoint called with existing GUID " + p_waypoint->m_GUID);
                }
     duk_push_string(ctx, p_waypoint->m_GUID);  // else return the GUID
     // now waypoint safely stored in OpenCPN, clean up - list data not otherwise released
@@ -522,7 +533,7 @@ static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the ocpn waypoint
     result = UpdateSingleWaypoint(p_waypoint);
     if (!result){ // waypoint does not exists?
-        JS_control.throw_error(ctx, "OCPNupdateSingleWaypoint called with non-existant GUID " + p_waypoint->m_GUID);
+        JS_dk_error(ctx, "OCPNupdateSingleWaypoint called with non-existant GUID " + p_waypoint->m_GUID);
         }
     // now waypoint safely stored in OpenCPN, clean up - list data not otherwise released
     p_waypoint->m_HyperlinkList->DeleteContents(true);
@@ -537,7 +548,7 @@ static duk_ret_t deleteSingleWaypoint(duk_context *ctx) {  // given a GUID, dele
     GUID = wxString(duk_to_string(ctx,0));
     result = DeleteSingleWaypoint(GUID);
     if (!result){  // waypoint does not exist
-        JS_control.throw_error(ctx, "OCPNDeleteSingleWaypoint called with non-existant GUID " + GUID);
+        JS_dk_error(ctx, "OCPNDeleteSingleWaypoint called with non-existant GUID " + GUID);
            }
     duk_pop(ctx);
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
@@ -555,7 +566,7 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     duk_pop(ctx);
     p_route = GetRoute_Plugin(GUID);
     if (p_route == nullptr){ // no such route
-        JS_control.throw_error(ctx, "OCPNgetRoute called with non-existant GUID " + GUID);
+        JS_dk_error(ctx, "OCPNgetRoute called with non-existant GUID " + GUID);
         }
     // extra indentation here shows stack depth - do not reformat!
     duk_push_object(ctx); // construct the route object
@@ -594,7 +605,7 @@ static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
     p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
     result = AddPlugInRoute(p_route, permanent);
     if (!result){
-        JS_control.throw_error(ctx, "OCPNaddRoute called with existant GUID " + p_route->m_GUID);
+        JS_dk_error(ctx, "OCPNaddRoute called with existant GUID " + p_route->m_GUID);
         }
     duk_push_string(ctx, p_route->m_GUID);  // return the GUID
     // now route safely stored in OpenCPN, clean up - lists data not otherwise released
@@ -606,7 +617,7 @@ static duk_ret_t updateRoute(duk_context *ctx) { // update the route in OpenCPN
     PlugIn_Route *p_route;
 
     p_route = js_duk_to_opcn_route(ctx, false);    // construct the opcn route - must have given GUID
-    if(!UpdatePlugInRoute(p_route)) JS_control.throw_error(ctx, "OCPNupdateRoute called with non-existant GUID " + p_route->m_GUID);
+    if(!UpdatePlugInRoute(p_route)) JS_dk_error(ctx, "OCPNupdateRoute called with non-existant GUID " + p_route->m_GUID);
     clearWaypointsOutofRoute(p_route);
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);
@@ -617,7 +628,7 @@ static duk_ret_t deleteRoute(duk_context *ctx) {  // given a GUID, deletes route
     GUID = wxString(duk_to_string(ctx,0));
     duk_pop(ctx);
     if (!DeletePlugInRoute(GUID)) {
-        JS_control.throw_error(ctx, "OCPNdeleteRoute called with non-existant GUID " + GUID);
+        JS_dk_error(ctx, "OCPNdeleteRoute called with non-existant GUID " + GUID);
         }
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);
@@ -702,7 +713,7 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     bool outcome;
 
     GUID = wxString(duk_to_string(ctx,0));
- //   outcome = DeletePlugInTrack(GUID);  // temp fix!!!!!!  API missing
+//    outcome = DeletePlugInTrack(GUID);  // temp fix!!!!!!
     outcome = false;
     duk_push_boolean(ctx, outcome);
     return(1);  // returns boolean result
@@ -814,19 +825,19 @@ static duk_ret_t getVectorPP(duk_context *ctx) {
         duk_idx_t from_idx {0};
         duk_idx_t to_idx {1};
         duk_get_prop_literal(ctx, from_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetVectorPP from latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetVectorPP from latitude is missing or invalid"));
         fromLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, from_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetVectorPP from longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetVectorPP from longitude is missing or invalid"));
         fromLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetVectorPP to latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetVectorPP to latitude is missing or invalid"));
         toLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetVectorPP to longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetVectorPP to longitude is missing or invalid"));
         toLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_pop_2(ctx); // pop off both args
@@ -847,19 +858,19 @@ static duk_ret_t getPositionPV(duk_context *ctx) {
         duk_idx_t vector_idx {1};
 
         duk_get_prop_literal(ctx, pos_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OCPNgetPositionPV latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OCPNgetPositionPV latitude is missing or invalid"));
         fromLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, pos_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OCPNgetPositionPV  longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OCPNgetPositionPV  longitude is missing or invalid"));
         fromLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, vector_idx, "bearing");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OCPNgetPositionPV bearing is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OCPNgetPositionPV bearing is missing or invalid"));
         bearing = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, vector_idx, "distance");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OCPNgetPositionPV distance is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OCPNgetPositionPV distance is missing or invalid"));
         distance = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_pop_2(ctx); // pop off both arguments
@@ -875,22 +886,23 @@ static duk_ret_t getPositionPV(duk_context *ctx) {
 static duk_ret_t getGCdistance(duk_context *ctx) {
         // retuns Great Circle distance between two positions
         double firstLat, firstLon, secondLat, secondLon, distance;
+        duk_idx_t obj_idx;
         duk_idx_t from_idx {0};
         duk_idx_t to_idx {1};
         duk_get_prop_literal(ctx, from_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetGCdistance first latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetGCdistance first latitude is missing or invalid"));
         firstLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, from_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetGCdistance first longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetGCdistance first longitude is missing or invalid"));
         firstLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetGCdistance second latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetGCdistance second latitude is missing or invalid"));
         secondLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_control.throw_error(ctx, _("OPNgetGCdistance second longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) JS_dk_error(ctx, _("OPNgetGCdistance second longitude is missing or invalid"));
         secondLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_pop_2(ctx); // pop off both args
@@ -903,7 +915,8 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
 
 void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_idx_t duk_push_c_function(duk_context *ctx, duk_c_function func, duk_idx_t nargs);
-     
+    extern duk_ret_t duk_dialog(duk_context *ctx);
+    
     duk_push_global_object(ctx);
     
     /* create the getNames objects */
@@ -928,13 +941,17 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNonMessageName");
-    duk_push_c_function(ctx, onMessageName, DUK_VARARGS /* args */);
+    duk_push_c_function(ctx, onMessageName, 2 /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNonNMEAsentence");
-    duk_push_c_function(ctx, onNMEAsentence, DUK_VARARGS /* args */);
+    duk_push_c_function(ctx, onNMEAsentence, 1 /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-        
+    
+    duk_push_string(ctx, "OCPNonSeconds");
+    duk_push_c_function(ctx, OCPNonSeconds, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "OCPNgetARPgpx");
     duk_push_c_function(ctx, getARPgpx, 0 /* no args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -943,10 +960,15 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, getNavigation, 0 /* no args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+
     duk_push_string(ctx, "OCPNgetNavigationK");
     duk_push_c_function(ctx, getNavigationK, 0 /* no args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-        
+    
+    duk_push_string(ctx, "OCPNcancelAll");
+    duk_push_c_function(ctx, cancelAll, 0 /* no args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "OCPNgetNewGUID");
     duk_push_c_function(ctx, getNewGUID, 0 /* 1 arg */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -1037,5 +1059,9 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
      duk_push_c_function(ctx, getAISTargetsArray, 0);
      duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "OCPNonDialogue");
+    duk_push_c_function(ctx, duk_dialog, 2 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     duk_pop(ctx);
 }

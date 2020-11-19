@@ -84,7 +84,7 @@ wxBEGIN_EVENT_TABLE(TestFrame, wxFrame)
     EVT_MENU(wxID_EXIT,  TestFrame::OnExit)
     EVT_MENU(wxID_ABOUT, TestFrame::OnAbout)
 wxEND_EVENT_TABLE()
-wxIMPLEMENT_APP(TestHarness);
+ wxIMPLEMENT_APP(TestHarness);
 bool TestHarness::OnInit()
 {
     bool immediate = true;  // true to skip the main frame and open panel directly
@@ -317,6 +317,27 @@ bool DeleteSingleWaypoint( wxString &GUID )
     return (true);
 }
 
+ArrayOfPlugIn_AIS_Targets AIStargetArray;
+ArrayOfPlugIn_AIS_Targets *GetAISTargetArray(void){
+    PlugIn_AIS_Target target;
+    wxString::iterator i;
+    wxString name;
+    
+ //   if (AIStargetArray.GetCount() > 0) WX_CLEAR_ARRAY(AIStargetArray);
+    
+    target.MMSI = 123456789;
+    target.Lon = 60;
+    target.Lat = 1;
+    AIStargetArray.Add(&target);
+    
+    target.MMSI = 987654321;
+    target.Lon = 50;
+    target.Lat = -1;
+    AIStargetArray.Add(&target);
+    
+    return(&AIStargetArray);
+    }
+
 bool AddPlugInRoute( PlugIn_Route *proute, bool b_permanent) {return(true);}
 
 bool UpdatePlugInRoute( PlugIn_Route *proute) {return(true);}
@@ -369,6 +390,17 @@ void opencpn_plugin::SetColorScheme(PI_ColorScheme cs)
 void opencpn_plugin::UpdateAuiStatus(void)
 {}
 
+void DistanceBearingMercator_Plugin(double lat, double lon, double lat0, double lon0, double *bearing, double *distance){
+    *bearing = 270; *distance = 20;
+    return;
+    }
+
+void PositionBearingDistanceMercator_Plugin(double lat, double lon, double brg, double dist, double *dlat, double *dlon){
+    *dlat = 55; *dlon = -1.5;
+    return;
+    }
+
+double DistGreatCircle_Plugin(double slat, double slon, double dlat, double dlon){ return 1234;}
 
 wxArrayString opencpn_plugin::GetDynamicChartClassNameArray()
 {

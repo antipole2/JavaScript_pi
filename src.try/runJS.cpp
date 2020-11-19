@@ -35,11 +35,13 @@ extern JS_control_class JS_control;
 void fatal_error_handler(void *udata, const char *msg) {
     // Provide for handling fatal error while running duktape
     (void) udata;  /* ignored in this case, silence warning */
+    duk_context *ctx;
+    void jsMessage(duk_context *ctx, int style, wxString type, wxString message);
     
     JS_control.m_result = wxEmptyString;    // supress result
     JS_control.m_explicitResult = true;    // supress result
-    JS_control.message(STYLE_RED, "type", msg);
-
+    jsMessage(ctx, STYLE_RED, "type", msg);
+//    JS_control.clear();
     return;
     
 #if 0
@@ -82,18 +84,31 @@ wxString JScleanOutput(wxString given){ // clean unacceptable characters in outp
     return (given);
     }
 
+void jsMessage(duk_context *ctx, int style, wxString messageAttribute, wxString message){
+    JS_control.m_pJSconsole->Show(); // make sure console is visible
+    wxStyledTextCtrl* output_window = JS_control.m_pJSconsole->m_Output;
+    int long beforeLength = output_window->GetTextLength(); // where we are before adding text
+    output_window->AppendText("JavaScript ");
+    output_window->AppendText(messageAttribute);
+    output_window->AppendText(message);
+    output_window->AppendText("\n");
+    int long afterLength = output_window->GetTextLength(); // where we are after adding text
+    output_window->StartStyling(beforeLength);
+    output_window->SetStyling(afterLength-beforeLength-1, style);
+    }
 
-bool jsCheckFunctionMissing(duk_context *ctx, wxString function){
+void jsCheckFunctionExists(duk_context *ctx, wxString function){
     // script set call back to this function - check it exists
-    // returns true if missing, else false
-    if (function == wxEmptyString) return false;
-    if (!duk_get_prop_string(ctx, -1, function.c_str())){  // Does function exist in there?
-            JS_control.display_error(ctx, "call-back function " + function + " not provided");
-            duk_pop(ctx);   // pop off function or undefined
-            return true;
+    void JS_dk_error(duk_context *ctx, wxString message);
+    
+    if (function != wxEmptyString){
+        duk_push_global_object(ctx);  // ready with our compiled script
+        if (!duk_get_prop_string(ctx, -1, function.c_str())){  // Does function exist in there?
+//            jsMessage(ctx, STYLE_RED, _("function ") + function + " ", duk_safe_to_string(ctx, -1));
+            JS_dk_error(ctx, "call-back function " + function + " not provided");
             }
-    duk_pop(ctx);   // pop off function or undefined
-    return false;
+        duk_pop(ctx);
+        }
     }
 
 bool compileJS(wxString script, Console* console){
@@ -106,9 +121,12 @@ bool compileJS(wxString script, Console* console){
     void ocpn_apis_init(duk_context *ctx);
     void JSduk_start_exec_timeout(void);
     void JSduk_clear_exec_timeout(void);
+    void JS_dk_error(duk_context *ctx, wxString message);
+    bool JS_exec(duk_context *ctx);
     
     JS_control.m_pJSconsole = console;  // remember our console
-    
+    wxStyledTextCtrl* output_window = console->m_Output;    // where we want stdout to go
+
     // clean up fatefull characters in script
     script = JScleanString(script);
 
@@ -121,11 +139,15 @@ bool compileJS(wxString script, Console* console){
     JS_control.init(ctx);
     JSduk_start_exec_timeout(); // start timer
     JSresult = duk_peval(ctx);    // run code
-    JSduk_clear_exec_timeout(); // cancel time-out
-    if (JS_control.m_exitScriptCalled) return (0);
-    if (JSresult != DUK_EXEC_SUCCESS){
-        JS_control.display_error(ctx, duk_safe_to_string(ctx, -1));
+//    MAYBE_DUK_DUMP
+    JSduk_clear_exec_timeout(); // cancel time-outJS
+    if (JSresult != 0){
+        JS_control.m_pJSconsole->Show(); // make sure console is visible
+        JS_control.m_result = wxEmptyString;    // supress result
+        JS_control.m_explicitResult = true;    // supress result
+        jsMessage(ctx, STYLE_RED, wxEmptyString, duk_safe_to_string(ctx, -1));
         duk_pop(ctx);   // pop off the error message
+        JS_control.clear();
         return false;
         }
     result = duk_safe_to_string(ctx, -1);
@@ -135,13 +157,28 @@ bool compileJS(wxString script, Console* console){
     if (!JS_control.m_explicitResult) JS_control.m_result = result; // for when not explicit result
     duk_pop(ctx);  // pop result
 
-    // if script has set up call-backs with nominated functions, check they exist
-    duk_push_global_object(ctx);  // get our compiled script
-    if (
-        jsCheckFunctionMissing(ctx, JS_control.m_NMEAmessageFunction) ||
-        jsCheckFunctionMissing(ctx, JS_control.m_dialog.functionName)
-        ) return false;
-    if(JS_control.waiting()) return true;
-    else return false;
+    // check if script has set up call backs with nominated functions
+    // check if messages awaited
+    size_t count = JS_control.m_messages.GetCount();
+    if (count > 0){
+        for (unsigned int i = 0; i < count; i++){
+            jsCheckFunctionExists(ctx, JS_control.m_messages[i].functionName);
+            }
+        }
+    // check if timers set
+    count = JS_control.m_times.GetCount();
+    if ((count > 0)){
+        more = true;
+        for (unsigned int i = 0; i < count; i++){
+            jsCheckFunctionExists(ctx, JS_control.m_times[i].functionName);
+            }
+        }
+    // check if NMEA call back set
+    jsCheckFunctionExists(ctx, JS_control.m_NMEAmessageFunction);
+    // check if dialogue created
+//    jsCheckFunctionExists(ctx, JS_control.m_dialog.functionName);
+
+    JS_control.m_JSactive |= more;  // remember for outside here
+    return(JS_control.m_JSactive);
     }
 

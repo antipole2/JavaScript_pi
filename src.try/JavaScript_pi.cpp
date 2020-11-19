@@ -87,15 +87,13 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
 
 JavaScript_pi::~JavaScript_pi(void)
 {
-/*    // destroy any open dialogue or alert windows
+    // destroy any open dialogue window
+    /*
     if (JS_control.m_dialog.pdialog != nullptr){
         JS_control.m_dialog.pdialog->Destroy();
         JS_control.m_dialog.pdialog = nullptr;
         }
-    void clearAlert();
- */
-    wxLogMessage("JavaScript_pi deconstructing");
-    JS_control.clearAndDestroy();
+     */
     delete _img_JavaScript_pi;
     delete _img_JavaScript;
     
@@ -107,8 +105,8 @@ int JavaScript_pi::Init(void)
     AddLocaleCatalog( _T("opencpn-JavaScript_pi") );
     
     // Set some default private member parameters
-    m_console_x = 0;
-    m_console_y = 0;
+    m_route_console_x = 0;
+    m_route_console_y = 0;
     ::wxDisplaySize(&m_display_width, &m_display_height);
     
     //    Get a pointer to the opencpn display canvas, to use as a parent for the POI Manager console
@@ -126,15 +124,16 @@ int JavaScript_pi::Init(void)
 #ifndef IN_HARNESS
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
-            wxITEM_CHECK, _("JavaScript"), _T(""), NULL, CONSOLE_POSITION, 0, this);
+                                                  wxITEM_CHECK, _("JavaScript"), _T(""), NULL, CALCULATOR_TOOL_POSITION, 0, this);
 #else
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
                                            _("JavaScript"), _T(""), NULL,
-                                           CONSOLE_POSITION, 0, this);
+                                           CALCULATOR_TOOL_POSITION, 0, this);
 #endif JavaScript_USE_SVG
 #endif // IN_HARNESS
     }
     m_pConsole = NULL;
+    
     
 #ifdef IN_HARNESS
     cout << "finished plugin init\n";
@@ -150,29 +149,37 @@ int JavaScript_pi::Init(void)
     
 }
 
-bool JavaScript_pi::DeInit(void) {
-    // clean up and remember stuff for net time
-    if (NULL != m_pConsole) {
-        wxLogMessage("JavaScript plugin DeInit");
-        JS_control.clearDialog(); // clear any open dialog
-        JS_control.clearAlert();   // clear any alert
-        if (JS_control.m_pctx != nullptr){
-            duk_destroy_heap(JS_control.m_pctx);
-            JS_control.m_pctx = nullptr;
+bool JavaScript_pi::DeInit(void)
+{
+    //    Record the console position
+    if (NULL != m_pConsole)
+    {
+        // destroy any open dialogue window
+        /*
+        if (JS_control.m_dialog.pdialog != nullptr){
+            wxLogMessage("JavaScript plugin closing open dialog window");
+            JS_control.m_dialog.pdialog->Close();
+            JS_control.m_dialog.pdialog->Destroy();
+            JS_control.m_dialog.pdialog = nullptr;
             }
+         */
         //Capture console position
         wxPoint p = m_pConsole->GetPosition();
-        SetConsoleX(p.x);
-        SetConsoleY(p.y);
+        SetCalculatorConsoleX(p.x);
+        SetCalculatorConsoleY(p.y);
         m_pConsole->Close();
         delete m_pConsole;
         m_pConsole = NULL;
+        
         m_bShowJavaScript = false;
         SetToolbarItemState( m_leftclick_tool_id, m_bShowJavaScript );
-        }
+        
+    }
     
     SaveConfig();
+    
     RequestRefresh(m_parent_window); // refresh mainn window
+    
     return true;
 }
 
@@ -238,9 +245,9 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     if(NULL == m_pConsole)
     {
         m_pConsole = new Console(m_parent_window, this);
-        m_pConsole->Move(wxPoint(m_console_x, m_console_y));
+        m_pConsole->Move(wxPoint(m_route_console_x, m_route_console_y));
         // script pane set up
-        wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
+        wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  " " << PLUGIN_VERSION_COMMENT << _(" !\\n\");\n\"All OK\";");
         m_pConsole->m_Script->AddText(welcome); // some initial script
 
         // output pane set up        
@@ -257,7 +264,7 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     m_pConsole->filePath = "";   // note we do not have a current file at this stage
     //Toggle
     m_bShowJavaScript = !m_bShowJavaScript;
-    JS_control.m_timerActionBusy = false;
+    JS_control.m_timerBusy = false;
     
     //    Toggle console?
     if(m_bShowJavaScript) {
@@ -282,17 +289,13 @@ bool JavaScript_pi::LoadConfig(void)
         pConf->SetPath ( _T( "/Settings/JavaScript_pi" ) );
         pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         
-        m_console_x =  pConf->Read ( _T ( "ConsolePosX" ), 20L );
-        m_console_y =  pConf->Read ( _T ( "ConsolePosY" ), 20L );
-        if((m_console_x < 0) || (m_console_x > m_display_width))
-            m_console_x = 5;
-        if((m_console_y < 0) || (m_console_y > m_display_height))
-            m_console_y = 5;
+        m_route_console_x =  pConf->Read ( _T ( "ConsolePosX" ), 20L );
+        m_route_console_y =  pConf->Read ( _T ( "ConsolePosY" ), 20L );
         
-        JS_control.m_dialog.position.x = pConf->Read ( _T ( "DialogPosX" ), 20L );
-        JS_control.m_dialog.position.y = pConf->Read ( _T ( "DialogPosY" ), 20L );
-        JS_control.m_alert.position.x = pConf->Read ( _T ( "AlertPosX" ), 20L );
-        JS_control.m_alert.position.y = pConf->Read ( _T ( "AlertPosY" ), 20L );
+        if((m_route_console_x < 0) || (m_route_console_x > m_display_width))
+            m_route_console_x = 5;
+        if((m_route_console_y < 0) || (m_route_console_y > m_display_height))
+            m_route_console_y = 5;
         return true;
     }
     else
@@ -308,13 +311,8 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         
-        pConf->Write ( _T ( "ConsolePosX" ),   m_console_x );
-        pConf->Write ( _T ( "ConsolePosY" ),   m_console_y );
-        pConf->Write ( _T ( "DialogPosX" ),   JS_control.m_dialog.position.x );
-        pConf->Write ( _T ( "DialogPosY" ),   JS_control.m_dialog.position.y);
-        pConf->Write ( _T ( "AlertPosX" ),   JS_control.m_alert.position.x );
-        pConf->Write ( _T ( "AlertPosY" ),   JS_control.m_alert.position.y);
- 
+        pConf->Write ( _T ( "ConsolePosX" ),   m_route_console_x );
+        pConf->Write ( _T ( "ConsolePosY" ),   m_route_console_y );
         
         return true;
     }
@@ -352,6 +350,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     void JSduk_start_exec_timeout(void);
     void  JSduk_clear_exec_timeout(void);
     duk_bool_t JS_exec(duk_context *ctx);
+    wxStyledTextCtrl* output;
     auto ComputeChecksum{       // Using Lambda function here to keep it private to this function
         [](wxString sentence) {
             unsigned char calculated_checksum = 0;
@@ -361,27 +360,25 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             }
         };
     
-    if (!JS_control.m_JSactive) return;
     OK = false;
-    thisFunction = JS_control.m_NMEAmessageFunction;  // function to be called - if any
+    if (!JS_control.m_JSactive) return;     // Don't hang around if not looking for action
+    thisFunction = JS_control.m_NMEAmessageFunction;  // function to be called
     if (thisFunction == wxEmptyString) return;  // not waiting for NMEA
     JS_control.m_NMEAmessageFunction = wxEmptyString; // call only once
     sentence.Trim();
- 
-    // check the checksum
     starPos = sentence.find("*"); // position of *
     checksum = sentence.substr(starPos + 1, starPos + 3);
     if (starPos != wxNOT_FOUND){ // yes there is one
         sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
-        }
+    }
     correctChecksum = ComputeChecksum(sentence);
     if (checksum == correctChecksum) OK = true;
     sentence = sentence.BeforeFirst('*');   // drop * onwards
-    
+    output = JS_control.m_pJSconsole->m_Output;  // the output window
     ctx = JS_control.m_pctx;
     if (ctx != nullptr) {  // Only try this if we have an active context
         if (!duk_get_global_string(ctx, thisFunction.c_str())){
-            JS_control.display_error(ctx, _("JavaScript NMEA function ") + thisFunction + " " +duk_safe_to_string(ctx, -1));
+            jsMessage(ctx, STYLE_RED, _("JavaScript NMEA function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
         }
         else {
             duk_push_object(ctx);
@@ -389,17 +386,13 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             duk_put_prop_literal(ctx, -2, "value");
             duk_push_boolean(ctx, OK);
             duk_put_prop_literal(ctx, -2, "OK");
-            ret = JS_exec(ctx);
-            if (!ret || JS_control.m_exitScriptCalled){
-                JS_control.m_runCompleted = true;
-                JS_control.clearAndDestroy();;
-                }
+            JS_exec(ctx);
             }
         duk_pop(ctx);
     }
     else   wxMessageBox("Had a function to run but no context!", "JavaScript plugin logic error");
     if (!JS_control.waiting()) {
-        JS_control.clearAndDestroy();
+        JS_control.clear();
     }
     return;
 }
@@ -416,22 +409,22 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     int count;
     jsFunctionNameString_t thisFunction;
     wxString argument;
-    duk_context *ctx = JS_control.m_pctx;;
+    duk_context *ctx;
     wxStyledTextCtrl* output;
     duk_bool_t ret = false;
     void JSduk_start_exec_timeout(void);
     void  JSduk_clear_exec_timeout(void);
+//    void JS_dk_error(duk_context *ctx, wxString message);
     duk_bool_t JS_exec(duk_context *ctx);
-
-    // message received
-    index = JS_control.messageIndex(message_id);  // look up and remember if new
-    if (!JS_control.m_JSactive) return; // ignore if  not switched on
-    if (!JS_control.waiting()) return;  // ignore if we are not waiting on something
-    
-    if (!JS_control.m_timerActionBusy){  // only look at timers if not already working on a timer - to stop recursion
+        
+    // message received - first we will check the timers
+    ctx = JS_control.m_pctx;
+//    jsMessage(ctx, STYLE_GREEN, _("Trace A"), message_id + _(" ") + message_body);
+    if (!JS_control.m_timerBusy){
         if (!JS_control.m_times.IsEmpty()){
-            JS_control.m_timerActionBusy = true;  // There is at least one timer running - stop being called again until we are done
+            JS_control.m_timerBusy = true;  // There is at least one timer running - stop being called again until we are done
             output = JS_control.m_pJSconsole->m_Output;  // the output window
+            ctx = JS_control.m_pctx;
             count = (int)JS_control.m_times.GetCount();
             for (int i = count-1; i >= 0; i--){  // we work backwards down array so we can remove item and continue down
                 if (JS_control.m_times[i].timeToCall <= wxDateTime::Now()){
@@ -442,53 +435,54 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
                         ctx = JS_control.m_pctx;
                         if (ctx != nullptr) {  // Only try this if we have an active context
                             ret = duk_get_global_string(ctx, thisFunction.c_str());
-                            if (!ret) JS_control.message(STYLE_RED, wxEmptyString, _T("function ") + thisFunction + " " + duk_safe_to_string(ctx, -1));
+                            if (!ret) jsMessage(ctx, STYLE_RED, _T("function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
                             else {
                                 duk_push_string(ctx, argument.c_str());
                                 ret = JS_exec(ctx);
                                 JS_control.m_times.RemoveAt(i);
-                                if (!ret || JS_control.m_exitScriptCalled){
-                                    JS_control.m_runCompleted = true;
-                                    JS_control.clearAndDestroy();
-                                    return;
-                                    }
                                 }
                             duk_pop(ctx);
                             }
                         else {
-                             JS_control.message(STYLE_RED, "Had a function to run on timer but no context!", "JavaScript plugin logic error");
+                              wxMessageBox("Had a function to run on timer but no context!", "JavaScript plugin logic error");
                             }
                         }
                     }
                 }
             }
-            if ((int)JS_control.m_times.GetCount()) JS_control.m_timerActionBusy = false;  // no more timers
+            if ((int)JS_control.m_times.GetCount()) JS_control.m_timerBusy = false;  // no more timers
             }
         
         //now to deal with the message
+        index = JS_control.messageIndex(message_id);  // look up and remember if new
+        if (!JS_control.m_JSactive) return;     // Don't hang around if not looking for action
+        output = JS_control.m_pJSconsole->m_Output;  // the output window
         thisFunction = JS_control.m_messages[index].functionName;
 
         if (thisFunction != wxEmptyString){
             // have function to be invoked
             JS_control.m_messages[index].functionName = wxEmptyString;  // only one time
+            ctx = JS_control.m_pctx;
             if (ctx != nullptr) {  // Only try this if we have an active context
                 if (!duk_get_global_string(ctx, thisFunction.c_str())){
-                    JS_control.message(STYLE_RED, wxEmptyString, _("function ") + thisFunction + " " + duk_safe_to_string(ctx, -1));
+                    jsMessage(ctx, STYLE_RED, _("function ") + thisFunction + " ", duk_safe_to_string(ctx, -1));
                     }
                 else {
                     duk_push_string(ctx, message_body.c_str());
                     ret = JS_exec(ctx);
-                    if (!ret  || JS_control.m_exitScriptCalled){
+                    if (!ret){
                         JS_control.m_runCompleted = true;
-                        JS_control.clearAndDestroy();
+                        JS_control.clear();
                         return;
                         }
                     }
                 duk_pop(ctx);
                 }
-            else   JS_control.message(STYLE_RED, "Had a function to run but no context!", "JavaScript plugin logic error");
-            }
-    if (!JS_control.waiting()) JS_control.clearAndDestroy();
+            else   wxMessageBox("Had a function to run but no context!", "JavaScript plugin logic error");
+        }
+        if (!JS_control.waiting()) {
+            JS_control.clear();
+        }
         return;
     }
 

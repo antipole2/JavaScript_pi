@@ -153,10 +153,11 @@ void Console::OnSave( wxCommandEvent& event )
 
 void Console::OnCopyAll(wxCommandEvent& event) {
     int currentPosition = this->m_Script->GetCurrentPos();
+//    this->m_Script->SetSelection((long) 0, (long) 100000000);   // select all
     this->m_Script->SelectAll();
     this->m_Script->Copy();
     this->m_Script->GotoPos(currentPosition);
-
+    cout << "Have done Test B\n";
 }
 
 void Console::OnClearScript( wxCommandEvent& event ){
@@ -186,17 +187,16 @@ void Console::OnRun( wxCommandEvent& event )
         if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
         this->run_button->SetLabel(stopLabel);
         more = compileJS( script, this);         // compile and run the script
-        if (!more){
+        if (!more /* !JS_control.m_JSactive */){
             // not waiting for anything, so wrap up
-            if (JS_control.m_pctx != nullptr){ // only clear down if not already done so
-                JS_control.clearAndDestroy();
-                }
+ //           JS_control.m_runCompleted = true;
+            JS_control.clear();
             }
         }
     else { // Stop button clicked - we have a script running - kill it off
-		JS_control.m_explicitResult = true;
-        JS_control.m_result = _("script was stopped");
-        JS_control.clearAndDestroy();
+//        JS_control.m_runCompleted = true;
+        JS_control.m_result = _("Script was stopped");
+        JS_control.clear();
     }
 }
 
@@ -260,7 +260,6 @@ void Console::OnTestA( wxCommandEvent& event){
         }
     this->m_Output->AppendText(_("\n"));
     JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
-/*
     if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
     this->run_button->SetLabel(stopLabel);
     more = compileJS( script, this);         // compile and run the script
@@ -269,13 +268,11 @@ void Console::OnTestA( wxCommandEvent& event){
         JS_control.m_runCompleted = true;
         JS_control.clear();
         }
-*/
 #else // IN_HARNESS
-    this->m_Output->AppendText( _("\nIN_HARNESS\n"));
+    this->m_Output->AppendText( _("IN_HARNESS\n"));
     script = _("Message ID");
     wxString message_body {_("message text")};
     this->pPlugIn->SetPluginMessage(script, message_body);
-    this->pPlugIn->SetNMEASentence(message_body);
     
 #endif // IN_HARNESS
 }
