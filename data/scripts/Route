@@ -44,7 +44,6 @@ function Route(){
 		}
 	this.purgeWaypoints = function(){
 		for (i = 0; i <this.waypoints.length; i++){
-			delete this.waypoints[i].position;
 			delete this.waypoints[i];
 			}
 		this.waypoints.length = 0;	// clears the array
