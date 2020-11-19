@@ -60,6 +60,7 @@ SET(JAVASCRIPT
     src/duktape.cpp
     src/JSlexer.cpp
     src/duktape_timeout.cpp
+    src/JSdialog.cpp
     )
     
 SET(SCINTILLA
