@@ -28,11 +28,13 @@
 #include "duktape.h"
 #include "ocpn_duk.h"
 
+
 #define FAIL(X) do { error = X; goto failed; } while(0)
 
 bool compileJS(wxString script, Console* console);
 WX_DEFINE_OBJARRAY(MessagesArray);
 WX_DEFINE_OBJARRAY(TimesArray);
+// WX_DEFINE_OBJARRAY(DialogActionsArray);
 extern JS_control_class JS_control;
 
 wxString stopLabel="Stop";
@@ -151,11 +153,10 @@ void Console::OnSave( wxCommandEvent& event )
 
 void Console::OnCopyAll(wxCommandEvent& event) {
     int currentPosition = this->m_Script->GetCurrentPos();
-//    this->m_Script->SetSelection((long) 0, (long) 100000000);   // select all
     this->m_Script->SelectAll();
     this->m_Script->Copy();
     this->m_Script->GotoPos(currentPosition);
-    cout << "Have done Test B\n";
+
 }
 
 void Console::OnClearScript( wxCommandEvent& event ){
@@ -176,7 +177,6 @@ void Console::OnRun( wxCommandEvent& event )
     void fatal_error_handler(void *udata, const char *msg);
     
     JS_control.m_pJSconsole = this;  // make a note of our console - used elsewhere
-//    wxStreamToTextRedirector redirect(m_Output);  // redirect sdout to our window pane
     
     if (this->run_button->GetLabel() == runLabel){
         // OK to run JavaScript
@@ -186,15 +186,17 @@ void Console::OnRun( wxCommandEvent& event )
         if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
         this->run_button->SetLabel(stopLabel);
         more = compileJS( script, this);         // compile and run the script
-        if (!JS_control.m_JSactive){
+        if (!more){
             // not waiting for anything, so wrap up
-            JS_control.m_runCompleted = true;
-            JS_control.clear();
+            if (JS_control.m_pctx != nullptr){ // only clear down if not already done so
+                JS_control.clearAndDestroy();
+                }
+            }
         }
-    }
     else { // Stop button clicked - we have a script running - kill it off
-        JS_control.m_runCompleted = true;
-        JS_control.clear();
+		JS_control.m_explicitResult = true;
+        JS_control.m_result = _("script was stopped");
+        JS_control.clearAndDestroy();
     }
 }
 
@@ -204,14 +206,38 @@ void Console::OnClose(wxCloseEvent& event)
     pPlugIn->OnJavaScriptConsoleClose();
 }
 
+static wxString dummyMessage, message_id;
+wxDialog* dialog;
+
 void Console::OnTestA( wxCommandEvent& event){
+    void createDialog();
+    
+
+    this->m_Output->AppendText( _("Test A\n"));
+#if 0
+    wxDialog* dialog = new wxDialog(NULL, DialogueID,
+        wxT("JavaScript dialogue"), wxDefaultPosition,
+        wxDefaultSize);
+    wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticLine* line = new wxStaticLine ( dialog, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    boxSizer->Add(line, 0, wxGROW|wxALL, 5);
+    wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);
+    boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+    wxButton* cancel = new wxButton ( dialog, wxID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    okCancelBox->Add(cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    wxButton* OK = new wxButton(dialog, wxID_OK, wxT("OK"), wxPoint(10,10), wxDefaultSize);
+    okCancelBox->Add(OK, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    dialog->Show(true);
+    
+#endif  // 0
     wxString    script;
     bool        more;
     wxString::const_iterator i;
     void fatal_error_handler(void *udata, const char *msg);
     wxString JScleanString(wxString given);
+
     
-// #ifndef IN_HARNESS
+#ifndef IN_HARNESS
     script = this->m_Script->GetValue();    // get the script
     if (script == wxEmptyString) {
         this->m_Output->AppendText(_("Empty script\n"));
@@ -234,6 +260,7 @@ void Console::OnTestA( wxCommandEvent& event){
         }
     this->m_Output->AppendText(_("\n"));
     JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
+/*
     if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
     this->run_button->SetLabel(stopLabel);
     more = compileJS( script, this);         // compile and run the script
@@ -242,12 +269,18 @@ void Console::OnTestA( wxCommandEvent& event){
         JS_control.m_runCompleted = true;
         JS_control.clear();
         }
-// #else IN_HARNESS
-    script = _("Messages ID");
+*/
+#else // IN_HARNESS
+    this->m_Output->AppendText( _("\nIN_HARNESS\n"));
+    script = _("Message ID");
     wxString message_body {_("message text")};
     this->pPlugIn->SetPluginMessage(script, message_body);
-//#endif IN_HARNESS
-    }
+    this->pPlugIn->SetNMEASentence(message_body);
+    
+#endif // IN_HARNESS
+}
+
+
 // testing functions modified as needed
 
 /*

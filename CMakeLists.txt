@@ -17,7 +17,7 @@ SET(TITLE_NAME JS)
 SET(CPACK_PACKAGE_CONTACT "Tony Voss")
 
 SET(VERSION_MAJOR "0")
-SET(VERSION_MINOR "2.0")
+SET(VERSION_MINOR "3.0")
 
 SET(NAME_SUFFIX "ov50")
 
@@ -58,6 +58,8 @@ SET(JAVASCRIPT
     src/duk_config.h
     src/duktape.h
     src/duktape.cpp
+    src/JSlexer.cpp
+    src/duktape_timeout.cpp
     )
     
 SET(SCINTILLA

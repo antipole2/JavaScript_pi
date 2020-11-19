@@ -2962,7 +2962,7 @@ typedef struct duk_hthread duk_context;
 #undef DUK_USE_EXEC_INDIRECT_BOUND_CHECK
 #undef DUK_USE_EXEC_PREFER_SIZE
 #define DUK_USE_EXEC_REGCONST_OPTIMIZE
-#define DUK_USE_EXEC_TIMEOUT_CHECK              // Chnaged to define by Tony 28/6/2020
+#undef DUK_USE_EXEC_TIMEOUT_CHECK
 #undef DUK_USE_EXPLICIT_NULL_INIT
 #undef DUK_USE_EXTSTR_FREE
 #undef DUK_USE_EXTSTR_INTERN_CHECK

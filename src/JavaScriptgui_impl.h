@@ -39,7 +39,7 @@ public:
     wxString filePath;  // of active file
     wxString folderPath; //  of current folder
     wxFileName currentFile;
-    	
+     	
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
     void OnLoad( wxCommandEvent& event );

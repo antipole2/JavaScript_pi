@@ -279,7 +279,7 @@ public:
     // contains backwards compatibility hacks, but we don't need it here).
     static wxFontWeight GetWeightClosestToNumericValue(int numWeight)
     {
-        wxASSERT(numWeight > 0);
+        wxFontInfo(numWeight > 0);
         wxASSERT(numWeight <= 1000);
 
         // round to nearest hundredth = wxFONTWEIGHT_ constant

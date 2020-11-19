@@ -1,6 +1,13 @@
+// updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1 
 function position(lat, lon){
-	this.latitude= lat;
-	this.longitude = lon;
+	if (arguments.length == 1){
+		this.latitude = arguments[0].latitude;
+		this.longitude =arguments[0].longitude;
+		}
+	else {
+		this.latitude= lat;
+		this.longitude = lon;
+		}
         
     Object.defineProperty(this, "formatted",{  // format for human eye
 	enumerable: false,
@@ -9,11 +16,11 @@ function position(lat, lon){
         latAbs = Math.abs(this.latitude);
         lonAbs = Math.abs(this.longitude);
         return (
-            parseInt(latAbs) + String.fromCharCode(176) + " " +
-            (latAbs % parseInt(latAbs) * 60).toFixed(3) + "'" +
+            ("00" + parseInt(latAbs)).slice(-2) + String.fromCharCode(176) + " " +
+            ("00" + (latAbs % 1 * 60).toFixed(3)).slice(-6) + "'" +
             ((this.latitude < 0) ? "S " : "N ") +
             ("00" + parseInt(lonAbs)).slice(-3) + String.fromCharCode(176) + " " +
-            (lonAbs % parseInt(lonAbs) * 60).toFixed(3) + "'" +
+            (lonAbs % 1 * 60).toFixed(3) + "'" +
             ((this.longitude < 0) ? "W " : "E ")
 	        )}
 	    });

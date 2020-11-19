@@ -34,13 +34,15 @@
 #define     MY_API_VERSION_MAJOR    1
 #define     MY_API_VERSION_MINOR    16  // was 7
 
+#define PLUGIN_VERSION_COMMENT ""
+
 
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
 
- #define CALCULATOR_TOOL_POSITION    -1          // Request default positioning of toolbar tool
+ #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
 
 class Console;
 
@@ -76,32 +78,33 @@ public:
 
 //    Other public methods
     //void SetCursorLatLon              (double lat, double lon);
-      void SetPluginMessage             (wxString &message_id, wxString &message_body);
-     void SetNMEASentence               (wxString &sentence);
+    void SetPluginMessage             (wxString &message_id, wxString &message_body);
+    void SetNMEASentence               (wxString &sentence);
     void SetPositionFixEx              (PlugIn_Position_Fix_Ex &pfix);
-      void SetCalculatorConsoleX         (int x){ m_route_console_x = x;};
-      void SetCalculatorConsoleY         (int x){ m_route_console_y = x;};
-     void SetCalculatorConsoleWidth     (int x){ m_route_console_width = x;};
-      void SetCalculatorConsoleHeight    (int x){ m_route_console_height = x;};
-	  void OnJavaScriptConsoleClose();
+    void SetConsoleX         (int x){ m_console_x = x;};
+    void SetConsoleY         (int x){ m_console_y = x;};
+    void SetConsoleWidth     (int x){ m_console_width = x;};
+    void SetConsoleHeight    (int x){ m_console_height = x;};
+    void OnJavaScriptConsoleClose();
     
-	  wxWindow         *m_parent_window;
+    wxWindow         *m_parent_window;
    
 	  
 private:
       
-	  Console               *m_pConsole;
-	  wxFileConfig      *m_pconfig;
-     
-      bool              LoadConfig(void);
-      bool              SaveConfig(void);
-      
-      int               m_route_console_x, m_route_console_y,m_route_console_width,m_route_console_height;
-      int               m_display_width, m_display_height;      
-      int               m_leftclick_tool_id;
-	  bool             m_bJavaScriptShowIcon;
-	  bool             m_bShowJavaScript;
-	  wxBitmap			m_panelBitmap;
+    Console         *m_pConsole;
+    wxFileConfig    *m_pconfig;
+
+    bool            LoadConfig(void);
+    bool            SaveConfig(void);
+
+    int             m_console_x, m_console_y,m_console_width,m_console_height;
+    int             m_display_width, m_display_height;
+    int             m_leftclick_tool_id;
+    bool            m_bJavaScriptShowIcon;
+    bool            m_bShowJavaScript;
+    wxBitmap		m_panelBitmap;
+    
 };
 
 #endif
