@@ -1,4 +1,4 @@
-// updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1
+// updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1 
 function position(lat, lon){
 	if (arguments.length == 1){
 		this.latitude = arguments[0].latitude;
