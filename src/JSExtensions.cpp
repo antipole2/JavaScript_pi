@@ -97,7 +97,7 @@ duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on
     int beforeLength = JS_control.m_pJSconsole->m_Output->GetTextLength(); // where we are before adding text
     JS_control.m_pJSconsole->m_Output->AppendText(js_formOutput(ctx));
     int afterLength = JS_control.m_pJSconsole->m_Output->GetTextLength(); // where we are before adding text
-    JS_control.m_pJSconsole->m_Output->StartStyling(beforeLength);
+    JS_control.m_pJSconsole->m_Output->StartStyling(beforeLength, 0); // 2nd parameter included as Linux still using wxWidgets v3.0.2
     JS_control.m_pJSconsole->m_Output->SetStyling(afterLength-beforeLength-1, colour);
     return (0);
 }
