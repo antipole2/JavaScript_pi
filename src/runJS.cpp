@@ -74,12 +74,26 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
     return (given);
     }
 
+
+// This function only needed with Windose
+#ifdef __WXMSW__
 wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
     // As far as we know this only occurs with º symbol on Windows
     const wxString A_stringDeg{ _("\u00C2\u00b0")};    // Âº
     const wxString A_stringOrd{ _("\u00C2\u00ba")};    // Â ordinal
     given.Replace(A_stringDeg, _("\u00b0"), true);
     return (given);
+    }
+#endif
+
+wxString getStringFromDuk(duk_context *ctx){
+    // gets a string safely from top of duk stack and fixes º-symbol for Windose
+    wxString string = duk_to_string(ctx, -1);
+#ifdef __WXMSW__
+    const wxString A_stringDeg{ _("\u00C2\u00b0")};    // Âº
+    string.Replace(A_stringDeg, _("\u00b0"), true);
+#endif
+    return string;
     }
 
 
@@ -128,10 +142,7 @@ bool compileJS(wxString script, Console* console){
         duk_pop(ctx);   // pop off the error message
         return false;
         }
-    result = duk_safe_to_string(ctx, -1);
-#ifdef __WXMSW__
-    result = JScleanOutput(result); // clean up if Windows
-#endif
+    result = getStringFromDuk(ctx);
     if (!JS_control.m_explicitResult) JS_control.m_result = result; // for when not explicit result
     duk_pop(ctx);  // pop result
 

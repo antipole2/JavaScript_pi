@@ -157,7 +157,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     dialogElement anElement;
     bool hadButton {false};
     wxArrayString strings;
-    wxString JScleanOutput(wxString given);
+    wxString getStringFromDuk(duk_context *ctx);
     std::vector<dialogElement> dialogElementArray;  // will be array of the elements for this call
 
     if (duk_get_top(ctx) != 2) JS_control.throw_error(ctx, "onDialog error: requires two arguments");
@@ -216,20 +216,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             } duk_pop(ctx);   // pop off the style
         if (elementType == _("caption")){
             duk_get_prop_literal(ctx, -1, "value");
-            value = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-            value = JScleanOutput(value); // clean for Windows only
-#endif
+            value = getStringFromDuk(ctx);
             duk_pop_2(ctx);     // pop off the value string and the element
             dialog->SetTitle(value);
             anElement.stringValue = value;
             }
         else if (elementType == _("text")){
             duk_get_prop_literal(ctx, -1, "value");
-            value = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-            value = JScleanOutput(value); // clean for Windows only
-#endif
+            value = getStringFromDuk(ctx);
             duk_pop_2(ctx);     // pop off the value string and the element
             anElement.stringValue = value;
             wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, value, wxDefaultPosition, wxDefaultSize, 5 );
@@ -240,18 +234,12 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             wxString textValue, label, suffix;
             wxTextCtrl* textCtrl;
             if (duk_get_prop_literal(ctx, -1, "label")){
-                label = duk_get_string(ctx, -1) + _(" ");
-#ifdef __WXMSW__
-                label = JScleanOutput(label); // clean for Windows only
-#endif
+                label = getStringFromDuk(ctx) + _(" ");
                 }
             else label = wxEmptyString;
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "value")){
-                textValue = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                ttextValue = JScleanOutput(textValue); // clean for Windows only
-#endif
+                textValue = getStringFromDuk(ctx);
                 }
             else textValue = wxEmptyString;
             duk_pop(ctx);
@@ -268,10 +256,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "suffix")){
-                suffix = _(" ") + duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                suffix = JScleanOutput(suffix); // clean for Windows only
-#endif
+                suffix = _(" ") + getStringFromDuk(ctx);
                 }
             else suffix = wxEmptyString;
             duk_pop(ctx);
@@ -318,10 +303,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             else {
                 bool ticked = false;
-                value = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                value = JScleanOutput(value); // clean for Windows only
-#endif
+                value = getStringFromDuk(ctx);
                 if (value.GetChar(0) == '*'){   // if first char is *, remove and pre-tick this
                     value.Remove(0, 1);
                     ticked = true;
@@ -347,10 +329,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     int listLength = (int) duk_get_length(ctx, -1);
                     for (int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
-                        value = duk_get_string(ctx,-1);
-#ifdef __WXMSW__
-                        value = JScleanOutput(value); // clean for Windows only
-#endif
+                        value = getStringFromDuk(ctx);
                         duk_pop(ctx);
                         strings.Add(value);
                         if (value.Length() > maxChars) maxChars = (int) value.Length();
@@ -362,10 +341,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
 
                     // add label if we have one
                     if (duk_get_prop_literal(ctx, -1, "label")){
-                        anElement.label = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                        anElement.label = JScleanOutput(anElement.label); // clean for Windows only
-#endif
+                        anElement.label = getStringFromDuk(ctx);
                         wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, 0 );
                         checkListBoxBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                         }
@@ -414,10 +390,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
 
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
-                anElement.label = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                anElement.label = JScleanOutput(anElement.label); // clean for Windows only
-#endif
+                anElement.label = getStringFromDuk(ctx);
                 wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, 0 );
                 label->SetFont(font);
                 sliderBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
@@ -462,10 +435,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
 
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
-                anElement.label = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                anElement.label = JScleanOutput(anElement.label); // clean for Windows only
-#endif
+                anElement.label = getStringFromDuk(ctx);
                 wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, 0 );
                 label->SetFont(font);
                 spinnerBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
@@ -482,10 +452,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             int numberOfButtons = (int) duk_get_length(ctx, -1);
             strings.Clear();
             if (duk_get_prop_literal(ctx, -1, "label")){
-                label = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                label = JScleanOutput(label); // clean for Windows only
-#endif
+                label = getStringFromDuk(ctx);
                 }
             else label = wxEmptyString;
             duk_pop(ctx);
@@ -498,10 +465,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     int maxChars = 0;
                     for (int j = 0; j < numberOfButtons; j++) {
                         duk_get_prop_index(ctx, -1, j);
-                        value = duk_get_string(ctx,-1);
-#ifdef __WXMSW__
-                        value = JScleanOutput(value); // clean for Windows only
-#endif
+                        value = getStringFromDuk(ctx);
                         duk_pop(ctx);
                         strings.Add(value);
                         if (value.Length() > maxChars) maxChars = (int) value.Length();
@@ -535,10 +499,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 for (int j = 0; j < numberOfButtons; j++) {
                     defaultButton = false;
                     duk_get_prop_index(ctx, -1, j);
-                    label = duk_get_string(ctx,-1);
-#ifdef __WXMSW__
-                    label = JScleanOutput(label); // clean for Windows only
-#endif
+                    label = getStringFromDuk(ctx);
                     duk_pop(ctx);
                     if (label.GetChar(0) == '*'){   // if first char is *, remove and make this default button
                         label.Remove(0, 1);
@@ -553,10 +514,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 duk_pop_2(ctx);
                 }
             else {
-                label = duk_get_string(ctx, -1);
-#ifdef __WXMSW__
-                label = JScleanOutput(label); // clean for Windows only
-#endif
+                label = getStringFromDuk(ctx);
                 if (label.GetChar(0) == '*'){   // if first char is *, remove and make this default button
                     label.Remove(0, 1);
                     defaultButton = true;

@@ -64,7 +64,6 @@ duk_bool_t JS_exec(duk_context *ctx){
     }
     
 wxString js_formOutput(duk_context *ctx){
-    wxString JScleanOutput(wxString given);
     duk_idx_t nargs;  // number of args in call
     wxString output = "";
     
@@ -87,7 +86,7 @@ wxString js_formOutput(duk_context *ctx){
         }
     }
 #ifdef __WXMSW__
-    output = JScleanOutput(output); // clean for Windows only
+    output = wxString JScleanOutput(output); // clean for Windows only
 #endif
     return(output);
 }
