@@ -33,8 +33,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
     duk_context *ctx;
     wxWindow *window;
     wxButton *button;
-    wxString elementType;
-    wxString theData, functionName;
+    wxString elementType, theData, functionName;
     std::vector<dialogElement>::const_iterator it;
     int i;
     duk_bool_t JS_exec(duk_context *ctx);
@@ -43,7 +42,10 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
     cout << "In onButton\n";
 #endif  // IN_HARNESS
     ctx = JS_control.m_pctx;
-    if (ctx == nullptr) JS_control.m_pJSconsole->m_Output->AppendText("onButton invoked with no ctx context\n");
+    if (ctx == nullptr){
+        JS_control.message(STYLE_RED, _("Plugin logic error: "), _("onButton invoked with no ctx context\n"));
+        return;
+    }
     functionName = JS_control.m_dialog.functionName;
     if (!duk_get_global_string(ctx, functionName.c_str())){
         JS_control.display_error(ctx, _("JavaScript onDialogue function ") + functionName + " " + duk_safe_to_string(ctx, -1));
@@ -143,7 +145,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
 			return;
 			}
         }
-    else JS_control.m_pJSconsole->m_Output->AppendText("JavaScript onDialogue data validation failed\n");
+    else JS_control.throw_error(ctx, _("JavaScript onDialogue data validation failed"));
     duk_pop(ctx);
     if (!JS_control.waiting()) {
         JS_control.clearAndDestroy();
