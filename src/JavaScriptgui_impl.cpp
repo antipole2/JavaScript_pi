@@ -175,7 +175,6 @@ void Console::OnRun( wxCommandEvent& event )
     wxString    script;
     bool        more;    // true if more work by call-backs to functions
     void fatal_error_handler(void *udata, const char *msg);
-    
     JS_control.m_pJSconsole = this;  // make a note of our console - used elsewhere
     
     if (this->run_button->GetLabel() == runLabel){
@@ -183,7 +182,10 @@ void Console::OnRun( wxCommandEvent& event )
         script = this->m_Script->GetValue();    // get the script to run
         if (script == wxEmptyString) return;  // ignore
         JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
-        if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
+        if (!JS_control.m_pctx) {
+            JS_control.message(STYLE_RED, _("Plugin logic error: "), _("Duktape failed to create heap"));
+            return;
+            }
         this->run_button->SetLabel(stopLabel);
         more = compileJS( script, this);         // compile and run the script
         if (!more){
