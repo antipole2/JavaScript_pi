@@ -71,6 +71,9 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
     given.Replace(accute, apostrophe, true);
     given.Replace(rightSquote, apostrophe, true);
     given.Replace(ordinal, degree, true);
+#ifdef __WXMSW__
+    given = given.mb_str(wxConvUTF8);   // Windows seems to need this
+#endif //__WXMSW__
     return (given);
     }
 
