@@ -86,18 +86,14 @@ wxString js_formOutput(duk_context *ctx){
         }
     }
 #ifdef __WXMSW__
-    output = wxString JScleanOutput(output); // clean for Windows only
+    wxString JScleanOutput(wxString given);
+    output = JScleanOutput(output); // clean for Windows only
 #endif
     return(output);
 }
 
 duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on stack in colour
-    JS_control.m_pJSconsole->Show(); // make sure console is visible
-    int beforeLength = JS_control.m_pJSconsole->m_Output->GetTextLength(); // where we are before adding text
-    JS_control.m_pJSconsole->m_Output->AppendText(js_formOutput(ctx));
-    int afterLength = JS_control.m_pJSconsole->m_Output->GetTextLength(); // where we are before adding text
-    JS_control.m_pJSconsole->m_Output->StartStyling(beforeLength, 0); // 2nd parameter included as Linux still using wxWidgets v3.0.2
-    JS_control.m_pJSconsole->m_Output->SetStyling(afterLength-beforeLength-1, colour);
+    JS_control.message(colour,wxEmptyString, js_formOutput(ctx));
     return (0);
 }
 
