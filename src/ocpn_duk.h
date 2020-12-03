@@ -192,10 +192,8 @@ public:
             }
         m_times.Clear();  // clear out the timers - does not seem to work
         m_timerActionBusy = false;
-            
         clearDialog();
         clearAlert();
-
         return;
     }
     
@@ -263,7 +261,7 @@ public:
         output_window->AppendText(message);
         output_window->AppendText("\n");
         int long afterLength = output_window->GetTextLength(); // where we are after adding text
-        output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included as Linux still using wxWidgets v3.0.2
+        output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
         output_window->SetStyling((int)(afterLength-beforeLength-1), style);
         }
     
