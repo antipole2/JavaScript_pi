@@ -87,15 +87,7 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
 
 JavaScript_pi::~JavaScript_pi(void)
 {
-/*    // destroy any open dialogue or alert windows
-    if (JS_control.m_dialog.pdialog != nullptr){
-        JS_control.m_dialog.pdialog->Destroy();
-        JS_control.m_dialog.pdialog = nullptr;
-        }
-    void clearAlert();
- */
-    wxLogMessage("JavaScript_pi deconstructing");
-    JS_control.clearAndDestroy();
+    // wxLogMessage("JavaScript_pi deconstructing");
     delete _img_JavaScript_pi;
     delete _img_JavaScript;
     
@@ -154,12 +146,7 @@ bool JavaScript_pi::DeInit(void) {
     // clean up and remember stuff for net time
     if (NULL != m_pConsole) {
         wxLogMessage("JavaScript plugin DeInit");
-        JS_control.clearDialog(); // clear any open dialog
-        JS_control.clearAlert();   // clear any alert
-        if (JS_control.m_pctx != nullptr){
-            duk_destroy_heap(JS_control.m_pctx);
-            JS_control.m_pctx = nullptr;
-            }
+        JS_control.clearAndDestroy();
         //Capture console position
         wxPoint p = m_pConsole->GetPosition();
         SetConsoleX(p.x);
