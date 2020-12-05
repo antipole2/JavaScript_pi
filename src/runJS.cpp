@@ -52,16 +52,17 @@ void fatal_error_handler(void *udata, const char *msg) {
 #endif
 }
 wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
-    const wxString leftQuote    { _("\u201c")};
-    const wxString rightQuote   {_("\u201d")};
+    const wxString leftQuote    { _("\u201C")};
+    const wxString rightQuote   {_("\u201D")};
 //  const wxString quote        {_("\u0022")};
     const wxString quote        {_("\"")};
-    const wxString accute       {_("\u00b4")};
+    const wxString accute       {_("\u00B4")};
     const wxString rightSquote  {_("\u2019")};    // right single quote
+    const wxString leftSquote  {_("\u2018")};    // right single quote
 //  const wxString apostrophe   {_("\u0027")};
     const wxString apostrophe   {_("\'")};
-    const wxString ordinal      {_("\u00ba")};  // masculine ordinal indicator - like degree
-    const wxString degree       {_("\u00b0")};
+    const wxString ordinal      {_("\u00BA")};  // masculine ordinal indicator - like degree
+    const wxString degree       {_("\u00B0")};
 #ifndef __WXMSW__   // Don't try this one on Windows
     const wxString prime        {_("\u2032")};
     given.Replace(prime, apostrophe, true);
@@ -70,6 +71,7 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
     given.Replace(rightQuote, quote, true);
     given.Replace(accute, apostrophe, true);
     given.Replace(rightSquote, apostrophe, true);
+    given.Replace(leftSquote, apostrophe, true);
     given.Replace(ordinal, degree, true);
 #ifdef __WXMSW__
     given = given.mb_str(wxConvUTF8);   // Windows seems to need this
