@@ -372,8 +372,14 @@ static duk_ret_t duk_consoleHide(duk_context *ctx) {    // hide console if arg t
         duk_require_boolean(ctx, 0);
         arg = duk_get_boolean(ctx, 0);
         duk_pop(ctx);
-        if (arg) JS_control.m_pJSconsole->Hide();
-        else JS_control.m_pJSconsole->Show();
+        if (arg){
+            JS_control.m_pJSconsole->Hide();
+            JS_control.m_pJSconsole->pPlugIn->m_bShowJavaScript = false;
+            }
+        else {
+            JS_control.m_pJSconsole->Show();
+            JS_control.m_pJSconsole->pPlugIn->m_bShowJavaScript = true;
+            }
         }
     duk_push_boolean(ctx,!JS_control.m_pJSconsole->IsShown());  // return true if hidden, even with no args
     return 1;
