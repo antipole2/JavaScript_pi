@@ -12,6 +12,7 @@
 ***************************************************************************
 */
 
+#include <iostream>
 #include "JavaScript_pi.h"
 #include "JavaScriptgui.h"
 #include "JavaScriptgui_impl.h"
@@ -235,30 +236,39 @@ void Console::OnTestA( wxCommandEvent& event){
     wxString    script;
     bool        more;
     wxString::const_iterator i;
+    int j;
     void fatal_error_handler(void *udata, const char *msg);
     wxString JScleanString(wxString given);
 
     
-#ifndef IN_HARNESS
+// #ifndef IN_HARNESS
     script = this->m_Script->GetValue();    // get the script
     if (script == wxEmptyString) {
         this->m_Output->AppendText(_("Empty script\n"));
         return;  // ignore
         }
     this->m_Output->AppendText(script + _("\n"));
-    this->m_Output->AppendText(("Raw\n"));
-    for (i = script.begin(); i != script.end(); ++i)
+    for (j = 0, i = script.begin(); i != script.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
-        this->m_Output->AppendText(wxString::Format(wxT("%d "), (int)uni_ch));
+        this->m_Output->AppendText(wxString::Format(wxT("[%02d]%c "), j, uni_ch));
+        if ((j > 0) && ((j+1)%10 == 0)) this->m_Output->AppendText(_("\n"));
+        }
+    this->m_Output->AppendText(("\nRaw\n"));
+    for (j = 0, i = script.begin(); i != script.end(); ++i, j++)
+        {
+        wxUniChar uni_ch = *i;
+        this->m_Output->AppendText(wxString::Format(wxT("[%02d]%02X "), j, uni_ch));
+        if ((j > 0) && ((j+1)%10 == 0)) this->m_Output->AppendText(_("\n"));
         }
     this->m_Output->AppendText(_("\n"));
     script = JScleanString(script);
     this->m_Output->AppendText(("Converted\n"));
-    for (i = script.begin(); i != script.end(); ++i)
+    for (j = 0, i = script.begin(); i != script.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
-        this->m_Output->AppendText(wxString::Format(wxT("%d "), (int)uni_ch));
+        this->m_Output->AppendText(wxString::Format(wxT("[%02d]%02X "), j, uni_ch));
+        if ((j > 0) && ((j+1)%10 == 0)) this->m_Output->AppendText(_("\n"));
         }
     this->m_Output->AppendText(_("\n"));
     JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
@@ -272,14 +282,14 @@ void Console::OnTestA( wxCommandEvent& event){
         JS_control.clear();
         }
 */
-#else // IN_HARNESS
+// #else // IN_HARNESS
     this->m_Output->AppendText( _("\nIN_HARNESS\n"));
     script = _("Message ID");
     wxString message_body {_("message text")};
     this->pPlugIn->SetPluginMessage(script, message_body);
     this->pPlugIn->SetNMEASentence(message_body);
     
-#endif // IN_HARNESS
+// #endif // IN_HARNESS
 }
 
 
