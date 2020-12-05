@@ -219,6 +219,7 @@ public:
     void clearDialog(){ // clear away any open dialogue
         if (m_dialog.pdialog != nullptr){
             m_dialog.position = m_dialog.pdialog->GetPosition();   // remember where it is
+            m_dialog.dialogElementsArray.clear();
             m_dialog.pdialog->Close();
             m_dialog.pdialog->Destroy();
             m_dialog.pdialog = nullptr;
@@ -375,6 +376,8 @@ public:
         else {
             for (i = 0; i < count; i++) dump += _("\t") + this->m_times[i].functionName +_("\t") + this->m_times[i].argument + _("\n");
             }
+        dump += "m_dialog:\t" + ((this->m_dialog.pdialog == nullptr)?_("None"):wxString::Format(wxT("Active with %d elements"),  this->m_dialog.dialogElementsArray.size()) ) + "\n";
+        dump += "m_alert:\t" + ((this->m_alert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t" + this->m_NMEAmessageFunction + "\n";
         dump += "m_explicitResult:\t" + (this->m_explicitResult?_("true"):_("false")) + "\n";
         dump += "m_result:\t" + this->m_result + "\n";
