@@ -161,6 +161,21 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     wxArrayString strings;
     wxString getStringFromDuk(duk_context *ctx);
     std::vector<dialogElement> dialogElementArray;  // will be array of the elements for this call
+    
+#if 0   // holding off on this for now.  May be better way to organise this.
+    // if called with single argument of false, is attempt to cancel any open dialogue
+    // cancel any existing dialogue and return true if there was one
+    if (duk_get_top(ctx) == 1 && duk_is_boolean(ctx, -1) && duk_get_boolean(ctx, -1)){
+        duk_pop(ctx);   // the argument
+        if (JS_control.m_dialog.pdialog != nullptr){
+            // there is a dialogue displayed
+            JS_control.clearDialog();
+            duk_push_boolean(ctx, true);
+            }
+        else duk_push_boolean(ctx, false);
+        return 1;
+        }
+#endif
 
     if (duk_get_top(ctx) != 2) JS_control.throw_error(ctx, "onDialog error: requires two arguments");
     duk_require_function(ctx, -2);  // first arugment must be function
