@@ -86,7 +86,7 @@ public:
     void SetConsoleWidth     (int x){ m_console_width = x;};
     void SetConsoleHeight    (int x){ m_console_height = x;};
     void OnJavaScriptConsoleClose();
-    
+    bool            m_bShowJavaScript;
     wxWindow         *m_parent_window;
    
 	  
@@ -102,7 +102,6 @@ private:
     int             m_display_width, m_display_height;
     int             m_leftclick_tool_id;
     bool            m_bJavaScriptShowIcon;
-    bool            m_bShowJavaScript;
     wxBitmap		m_panelBitmap;
     
 };
