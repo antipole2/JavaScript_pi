@@ -73,9 +73,6 @@ wxString JScleanString(wxString given){ // cleans script string of unacceptable 
     given.Replace(rightSquote, apostrophe, true);
     given.Replace(leftSquote, apostrophe, true);
     given.Replace(ordinal, degree, true);
-#ifdef __WXMSW__
-    given = given.mb_str(wxConvUTF8);   // Windows seems to need this
-#endif //__WXMSW__
     return (given);
     }
 
@@ -130,6 +127,7 @@ bool compileJS(wxString script, Console* console){
     
     // clean up fatefull characters in script
     script = JScleanString(script);
+    script = script.mb_str(wxConvUTF8);
 
     duk_context *ctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
     duk_extensions_init(ctx);  // register our own extensions
