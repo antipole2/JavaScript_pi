@@ -1034,8 +1034,8 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetAISTargets");
-     duk_push_c_function(ctx, getAISTargetsArray, 0);
-     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    duk_push_c_function(ctx, getAISTargetsArray, 0);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_pop(ctx);
 }
