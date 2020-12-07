@@ -109,7 +109,7 @@ public:
     Console                 *m_pJSconsole;  // our own pointer to the console
     bool                    m_JSactive = false;  // safety switch - when false, stops plugin attempting to run call-backs
     bool                    m_runCompleted; // true when main run script has completed
-    bool                    m_exitScriptCalled = false; // true if existScript() has been executed
+    bool                    m_stopScriptCalled = false; // true if stopScript() has been executed
 
     // callback management
     bool                    m_timerActionBusy;  // true while handling timer event to stop them piling up
@@ -146,7 +146,7 @@ public:
         m_runCompleted = false;
         m_time_to_allocate = 1000;   //default time allocation (msecs)
         m_backingOut = false;
-        m_exitScriptCalled = false;
+        m_stopScriptCalled = false;
         m_dialog.functionName = wxEmptyString;
         m_dialog.pdialog = nullptr;
         m_alert.palert = nullptr;
@@ -218,6 +218,7 @@ public:
     
     void clearDialog(){ // clear away any open dialogue
         if (m_dialog.pdialog != nullptr){
+//          wxLogMessage("JavaScript plugin in if in ClearDialog");
             m_dialog.position = m_dialog.pdialog->GetPosition();   // remember where it is
             m_dialog.dialogElementsArray.clear();
             m_dialog.pdialog->Close();
@@ -360,7 +361,7 @@ public:
         wxString dump = _("JS_control dump\n");
         dump += "m_runCompleted:\t" + (this->m_runCompleted?_("true"):_("false")) + "\n";
         dump += "m_backingOut:\t" + (this->m_backingOut?_("true"):_("false")) + "\n";
-        dump += "m_exitScriptCalled:\t" + (this->m_exitScriptCalled?_("true"):_("false")) + "\n";
+        dump += "m_stopScriptCalled:\t" + (this->m_stopScriptCalled?_("true"):_("false")) + "\n";
         dump += "m_JSactive:\t" + (this->m_JSactive?_("true"):_("false")) + "\n";
         dump += _("Messages callback table\n");
         count =(int)this->m_messages.GetCount();

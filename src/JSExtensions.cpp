@@ -55,7 +55,7 @@ duk_bool_t JS_exec(duk_context *ctx){
     JSduk_start_exec_timeout(); // start timer
     result = duk_pcall(ctx, 1);    // run code
     JSduk_clear_exec_timeout(); // cancel time-out
-    if (JS_control.m_exitScriptCalled) return (false);
+    if (JS_control.m_stopScriptCalled) return (false);
     if (result != DUK_EXEC_SUCCESS){
         JS_control.display_error(ctx, duk_safe_to_string(ctx, -1));
         return false;
@@ -108,15 +108,28 @@ void onDismissAlert(wxCommandEvent & event){
         }
     }
 
-static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  box with dismiss buttonx
+static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  box with dismiss button
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     wxDialog *alert = JS_control.m_alert.palert;    // any existing alert
     
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs == 0){    // just return present state
         duk_push_boolean(ctx, (alert != nullptr) ? true : false);
         return 1;
         }
-
+    
+    // if called with single argument of false, is attempt to cancel any open alert
+    // cancel any existing alert and return true if there was one
+    if (nargs == 1 && duk_is_boolean(ctx, -1) && !duk_get_boolean(ctx, -1)){
+        duk_pop(ctx);   // the argument
+        if (alert != nullptr){
+            // there is an alert displayed
+            JS_control.clearAlert();
+            duk_push_boolean(ctx, true);
+            }
+        else duk_push_boolean(ctx, false);
+        return 1;
+        }
+    
     // we have alert text to display
     JS_control.m_alert.alertText += js_formOutput(ctx); // add text to any existing
     if (alert != nullptr){  // clear any existing alert being displayed
@@ -349,7 +362,7 @@ static duk_ret_t duk_timeAlloc(duk_context *ctx) {   // time allocation
     return (1);
 }
 
-static duk_ret_t duk_exitScript(duk_context *ctx) {
+static duk_ret_t duk_stopScript(duk_context *ctx) {
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     
     if (nargs > 0){
@@ -357,8 +370,8 @@ static duk_ret_t duk_exitScript(duk_context *ctx) {
         JS_control.m_explicitResult = true;
         duk_pop(ctx);
         }
-    JS_control.m_exitScriptCalled = true;
-    duk_push_error_object(ctx, DUK_ERR_ERROR, _("exitScript called"));
+    JS_control.m_stopScriptCalled = true;
+    duk_push_error_object(ctx, DUK_ERR_ERROR, _("stopScript called"));
     duk_throw(ctx);
     return 1;  //never executed but keeps compiler happy
     }
@@ -463,7 +476,7 @@ void duk_extensions_init(duk_context *ctx) {
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "onDialogue");
-    duk_push_c_function(ctx, duk_dialog, 2 /* arguments*/);
+    duk_push_c_function(ctx, duk_dialog, DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
 #if 0
@@ -488,8 +501,8 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_c_function(ctx, duk_consoleHide, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
-    duk_push_string(ctx, "exitScript");
-    duk_push_c_function(ctx, duk_exitScript , DUK_VARARGS /* arguments*/);
+    duk_push_string(ctx, "stopScript");
+    duk_push_c_function(ctx, duk_stopScript , DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     

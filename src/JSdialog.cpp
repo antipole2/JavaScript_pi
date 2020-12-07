@@ -139,7 +139,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         window->Destroy();
         JS_control.m_dialog.pdialog = nullptr;
 		duk_bool_t ret = JS_exec(ctx);  // calls the user's function
-		if (!ret || JS_control.m_exitScriptCalled){
+		if (!ret || JS_control.m_stopScriptCalled){
 			JS_control.m_runCompleted = true;
 			JS_control.clearAndDestroy();
 			return;
@@ -161,13 +161,19 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     wxArrayString strings;
     wxString getStringFromDuk(duk_context *ctx);
     std::vector<dialogElement> dialogElementArray;  // will be array of the elements for this call
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    wxDialog *dialog = JS_control.m_dialog.pdialog; // any existing dialogue
     
-#if 0   // holding off on this for now.  May be better way to organise this.
+    if (nargs == 0){    // just return present state
+        duk_push_boolean(ctx, (dialog != nullptr) ? true : false);
+        return 1;
+        }
+    
     // if called with single argument of false, is attempt to cancel any open dialogue
     // cancel any existing dialogue and return true if there was one
-    if (duk_get_top(ctx) == 1 && duk_is_boolean(ctx, -1) && duk_get_boolean(ctx, -1)){
+    if (duk_get_top(ctx) == 1 && duk_is_boolean(ctx, -1) && !duk_get_boolean(ctx, -1)){
         duk_pop(ctx);   // the argument
-        if (JS_control.m_dialog.pdialog != nullptr){
+        if (dialog != nullptr){
             // there is a dialogue displayed
             JS_control.clearDialog();
             duk_push_boolean(ctx, true);
@@ -175,13 +181,13 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         else duk_push_boolean(ctx, false);
         return 1;
         }
-#endif
-
-    if (duk_get_top(ctx) != 2) JS_control.throw_error(ctx, "onDialog error: requires two arguments");
-    duk_require_function(ctx, -2);  // first arugment must be function
-    if ( JS_control.m_dialog.functionName != wxEmptyString) JS_control.throw_error(ctx, "onDialog error: called with another dialogue active");
     
-    wxDialog *dialog = new wxDialog(NULL,  wxID_ANY, _("JavaScript dialogue"), JS_control.m_dialog.position, wxDefaultSize,
+    if ( dialog != nullptr) JS_control.throw_error(ctx, "onDialog error: called with another dialogue active");
+    if (nargs != 2) JS_control.throw_error(ctx, "onDialog error: creating dialogue requires two arguments");
+    duk_require_function(ctx, -2);  // first arugment must be function
+    
+    // ready to create new dialogue
+    dialog = new wxDialog(NULL,  wxID_ANY, _("JavaScript dialogue"), JS_control.m_dialog.position, wxDefaultSize,
             wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     JS_control.m_dialog.pdialog = dialog;    // save pointer to dialog
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer

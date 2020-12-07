@@ -141,7 +141,7 @@ bool compileJS(wxString script, Console* console){
     JSduk_start_exec_timeout(); // start timer
     JSresult = duk_peval(ctx);    // run code
     JSduk_clear_exec_timeout(); // cancel time-out
-    if (JS_control.m_exitScriptCalled) return (0);
+    if (JS_control.m_stopScriptCalled) return (0);
     if (JSresult != DUK_EXEC_SUCCESS){
         JS_control.display_error(ctx, duk_safe_to_string(ctx, -1));
         duk_pop(ctx);   // pop off the error message
