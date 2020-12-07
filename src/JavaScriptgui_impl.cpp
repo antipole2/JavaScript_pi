@@ -203,6 +203,21 @@ void Console::OnRun( wxCommandEvent& event )
     }
 }
 
+wxString JS_dumpString(wxString identifier, wxString string){
+    // dumps string to output window
+    wxString::const_iterator i;
+    int j;
+    wxString dump = _("\n") + identifier + _("\n");
+    for (j = 0, i = string.begin(); i != string.end(); ++i, j++)
+        {
+        wxUniChar uni_ch = *i;
+        dump += wxString::Format(wxT("[%02d]%02X "), j, uni_ch);
+        if ((j > 0) && ((j+1)%10 == 0)) dump += _("\n");
+        }
+    dump += _("\n");
+    return dump;
+}
+
 void Console::OnClose(wxCloseEvent& event)
 {
     cout << "Closing console\n";
@@ -234,45 +249,30 @@ void Console::OnTestA( wxCommandEvent& event){
     
 #endif  // 0
     wxString    script;
-    bool        more;
     wxString::const_iterator i;
+
+#ifndef IN_HARNESS
     int j;
     void fatal_error_handler(void *udata, const char *msg);
     wxString JScleanString(wxString given);
-
-    
-// #ifndef IN_HARNESS
     script = this->m_Script->GetValue();    // get the script
     if (script == wxEmptyString) {
         this->m_Output->AppendText(_("Empty script\n"));
         return;  // ignore
         }
-    this->m_Output->AppendText(script + _("\n"));
+    this->m_Output->AppendText(script + _("\n\n"));
     for (j = 0, i = script.begin(); i != script.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
         this->m_Output->AppendText(wxString::Format(wxT("[%02d]%c "), j, uni_ch));
         if ((j > 0) && ((j+1)%10 == 0)) this->m_Output->AppendText(_("\n"));
         }
-    this->m_Output->AppendText(("\nRaw\n"));
-    for (j = 0, i = script.begin(); i != script.end(); ++i, j++)
-        {
-        wxUniChar uni_ch = *i;
-        this->m_Output->AppendText(wxString::Format(wxT("[%02d]%02X "), j, uni_ch));
-        if ((j > 0) && ((j+1)%10 == 0)) this->m_Output->AppendText(_("\n"));
-        }
-    this->m_Output->AppendText(_("\n"));
+    this->m_Output->AppendText(JS_dumpString(_("Raw"), script));
     script = JScleanString(script);
-    this->m_Output->AppendText(("Converted\n"));
-    for (j = 0, i = script.begin(); i != script.end(); ++i, j++)
-        {
-        wxUniChar uni_ch = *i;
-        this->m_Output->AppendText(wxString::Format(wxT("[%02d]%02X "), j, uni_ch));
-        if ((j > 0) && ((j+1)%10 == 0)) this->m_Output->AppendText(_("\n"));
-        }
-    this->m_Output->AppendText(_("\n"));
-    JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
+    this->m_Output->AppendText(JS_dumpString(_("Converted"), script));
+
 /*
+    JS_control.m_pctx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the context
     if (!JS_control.m_pctx) {m_Output->AppendText("Duktape failed to create heap\n"); exit(1);}
     this->run_button->SetLabel(stopLabel);
     more = compileJS( script, this);         // compile and run the script
@@ -282,14 +282,14 @@ void Console::OnTestA( wxCommandEvent& event){
         JS_control.clear();
         }
 */
-// #else // IN_HARNESS
+#else // IN_HARNESS
     this->m_Output->AppendText( _("\nIN_HARNESS\n"));
     script = _("Message ID");
     wxString message_body {_("message text")};
     this->pPlugIn->SetPluginMessage(script, message_body);
     this->pPlugIn->SetNMEASentence(message_body);
     
-// #endif // IN_HARNESS
+#endif // IN_HARNESS
 }
 
 
