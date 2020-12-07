@@ -377,7 +377,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             duk_push_boolean(ctx, OK);
             duk_put_prop_literal(ctx, -2, "OK");
             ret = JS_exec(ctx);
-            if (!ret || JS_control.m_exitScriptCalled){
+            if (!ret || JS_control.m_stopScriptCalled){
                 JS_control.m_runCompleted = true;
                 JS_control.clearAndDestroy();;
                 }
@@ -434,7 +434,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
                                 duk_push_string(ctx, argument.c_str());
                                 ret = JS_exec(ctx);
                                 JS_control.m_times.RemoveAt(i);
-                                if (!ret || JS_control.m_exitScriptCalled){
+                                if (!ret || JS_control.m_stopScriptCalled){
                                     JS_control.m_runCompleted = true;
                                     JS_control.clearAndDestroy();
                                     return;
@@ -465,7 +465,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
                 else {
                     duk_push_string(ctx, message_body.c_str());
                     ret = JS_exec(ctx);
-                    if (!ret  || JS_control.m_exitScriptCalled){
+                    if (!ret  || JS_control.m_stopScriptCalled){
                         JS_control.m_runCompleted = true;
                         JS_control.clearAndDestroy();
                         return;
