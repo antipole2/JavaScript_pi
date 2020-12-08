@@ -123,10 +123,10 @@ int JavaScript_pi::Init(void)
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
                                            _("JavaScript"), _T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
-#endif JavaScript_USE_SVG
+#endif // JavaScript_USE_SVG
 #endif // IN_HARNESS
     }
-    m_pConsole = NULL;
+    m_pConsole = nullptr;
     
 #ifdef IN_HARNESS
     cout << "finished plugin init\n";
@@ -144,7 +144,8 @@ int JavaScript_pi::Init(void)
 
 bool JavaScript_pi::DeInit(void) {
     // clean up and remember stuff for net time
-    if (NULL != m_pConsole) {
+//    if (nullptr != m_pConsole) {
+    if (JS_control.m_pJSconsole != nullptr){
         wxLogMessage("JavaScript plugin DeInit");
         JS_control.clearAndDestroy();
         //Capture console position
@@ -222,8 +223,7 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
 {
     void JSlexit(wxStyledTextCtrl* pane);
     
-    if(NULL == m_pConsole)
-    {
+    if(m_pConsole == nullptr) {
         m_pConsole = new Console(m_parent_window, this);
         m_pConsole->Move(wxPoint(m_console_x, m_console_y));
         // script pane set up
