@@ -144,21 +144,19 @@ int JavaScript_pi::Init(void)
 
 bool JavaScript_pi::DeInit(void) {
     // clean up and remember stuff for net time
-//    if (nullptr != m_pConsole) {
     if (JS_control.m_pJSconsole != nullptr){
-        wxLogMessage("JavaScript plugin DeInit");
+        wxLogMessage("JavaScript plugin DeInit destroying contexts");
         JS_control.clearAndDestroy();
-        //Capture console position
-        wxPoint p = m_pConsole->GetPosition();
-        SetConsoleX(p.x);
-        SetConsoleY(p.y);
-        m_pConsole->Close();
-        delete m_pConsole;
-        m_pConsole = NULL;
-        m_bShowJavaScript = false;
-        SetToolbarItemState( m_leftclick_tool_id, m_bShowJavaScript );
         }
-    
+    //Capture console position
+    wxPoint p = m_pConsole->GetPosition();
+    SetConsoleX(p.x);
+    SetConsoleY(p.y);
+    m_pConsole->Close();
+    delete m_pConsole;
+    m_pConsole = NULL;
+    m_bShowJavaScript = false;
+    SetToolbarItemState( m_leftclick_tool_id, m_bShowJavaScript );
     SaveConfig();
     RequestRefresh(m_parent_window); // refresh mainn window
     return true;
