@@ -177,7 +177,7 @@ public:
         m_JSactive = false;
         wxString runLabel="Run";
         m_pJSconsole->Show();
-        if (!this->m_backingOut){   // display result unless we are backing ot after time-out
+        if (!this->m_backingOut){   // display result unless we are backing out after time-out
             if (!this->m_explicitResult && this->m_result == wxEmptyString)this->m_result = "undefined";
             if (!this->m_explicitResult || this->m_result != wxEmptyString)
                 this->message(STYLE_BLUE, _("result: "),this->m_result);
@@ -268,8 +268,8 @@ public:
         }
     
 
-    int messageIndex(messageNameString_t thisMessage)
-    {   // Returns index number for given sentence
+    int messageIndex(messageNameString_t thisMessage){
+        // Returns index number for given sentence
         // If unknown sentence, adds it to array, sorts it into place and returns its index
         MessagePair newPair;
         
@@ -342,19 +342,19 @@ public:
         }
 
     void setTimedCallback(jsFunctionNameString_t functionName, wxString argument, wxDateTime timeToCall){
-    // create a callback entry to call fuction with argument at timeToCall
-    size_t timersCount = this->m_times.GetCount();
-    if (timersCount >= MAX_TIMERS){
-        // should not get here unless something wrong
-        wxMessageBox(_("Number of timers exceeding safety limit"), _("JavaScript plugin - setTimedCallback"));
-        return;
+        // create a callback entry to call fuction with argument at timeToCall
+        size_t timersCount = this->m_times.GetCount();
+        if (timersCount >= MAX_TIMERS){
+            // should not get here unless something wrong
+            wxMessageBox(_("Number of timers exceeding safety limit"), _("JavaScript plugin - setTimedCallback"));
+            return;
+            }
+        TimeActions newAction;
+        newAction.functionName = functionName;
+        newAction.argument = argument;
+        newAction.timeToCall = timeToCall;
+        m_times.Add(newAction);
         }
-    TimeActions newAction;
-    newAction.functionName = functionName;
-    newAction.argument = argument;
-    newAction.timeToCall = timeToCall;
-    m_times.Add(newAction);
-    }
     
     wxString dump(){    // returns string being dump of selected information from JS_control structure
         int i, count;
@@ -385,7 +385,6 @@ public:
         return dump;
     }
 };
-
 
 #endif /* OCPN_DUK_H */
 
