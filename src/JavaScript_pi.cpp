@@ -337,6 +337,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     void JSduk_start_exec_timeout(void);
     void  JSduk_clear_exec_timeout(void);
     duk_bool_t JS_exec(duk_context *ctx);
+    wxUniChar star = '*';
     auto ComputeChecksum{       // Using Lambda function here to keep it private to this function
         [](wxString sentence) {
             unsigned char calculated_checksum = 0;
@@ -354,9 +355,9 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     sentence.Trim();
  
     // check the checksum
-    starPos = sentence.find("*"); // position of *
-    checksum = sentence.substr(starPos + 1, starPos + 3);
+    starPos = sentence.find(star); // position of *
     if (starPos != wxNOT_FOUND){ // yes there is one
+        checksum = sentence.Mid(starPos + 1, 2);
         sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
         }
     correctChecksum = ComputeChecksum(sentence);
@@ -377,7 +378,8 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             ret = JS_exec(ctx);
             if (!ret || JS_control.m_stopScriptCalled){
                 JS_control.m_runCompleted = true;
-                JS_control.clearAndDestroy();;
+                JS_control.clearAndDestroy();
+                return;
                 }
             }
         duk_pop(ctx);
