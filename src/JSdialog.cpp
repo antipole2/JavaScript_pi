@@ -249,7 +249,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             value = getStringFromDuk(ctx);
             duk_pop_2(ctx);     // pop off the value string and the element
             anElement.stringValue = value;
-            wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, value, wxDefaultPosition, wxDefaultSize, 5 );
+            wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             boxSizer->Add(staticText, 0, wxALIGN_LEFT|wxALL, 5);
             }
@@ -289,13 +289,13 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             anElement.itemID = wxNewId();
             wxBoxSizer* fieldBox = new wxBoxSizer(wxHORIZONTAL);
             boxSizer->Add(fieldBox, 0, wxGROW|wxALL, 5);
-            wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, label, wxDefaultPosition, wxDefaultSize, 0 );
+            wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
             textCtrl = new wxTextCtrl ( dialog, anElement.itemID, wxT(""), wxDefaultPosition, wxSize(anElement.width,  anElement.height /* 6+fontSize */), anElement.multiLine);
             fieldBox->Add(textCtrl, 0, wxGROW|wxALL, 0);
             textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &JS_control.m_dialog.dialogElementsArray[i].textValue));
-            staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, 0 );
+            staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
             
@@ -365,7 +365,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     // add label if we have one
                     if (duk_get_prop_literal(ctx, -1, "label")){
                         anElement.label = getStringFromDuk(ctx);
-                        wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, 0 );
+                        wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
                         checkListBoxBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                         }
                     duk_pop(ctx);
@@ -414,7 +414,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
                 anElement.label = getStringFromDuk(ctx);
-                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, 0 );
+                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
                 label->SetFont(font);
                 sliderBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                 }
@@ -459,7 +459,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
                 anElement.label = getStringFromDuk(ctx);
-                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, 0 );
+                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
                 label->SetFont(font);
                 spinnerBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                 }

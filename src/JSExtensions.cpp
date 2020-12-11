@@ -141,7 +141,7 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
     alert->SetBackgroundColour(*wxYELLOW);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     alert->SetSizer(boxSizer);
-    wxStaticText* staticText = new wxStaticText( alert, wxID_STATIC, JS_control.m_alert.alertText, wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* staticText = new wxStaticText( alert, wxID_STATIC, JS_control.m_alert.alertText, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
     boxSizer->Add(staticText, 0, wxALIGN_LEFT|wxALL, 5);
     wxBoxSizer* buttonBox = new wxBoxSizer(wxHORIZONTAL);
     boxSizer->Add(buttonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
