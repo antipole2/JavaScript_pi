@@ -149,12 +149,14 @@ bool JavaScript_pi::DeInit(void) {
         JS_control.clearAndDestroy();
         }
     //Capture console position
-    wxPoint p = m_pConsole->GetPosition();
-    SetConsoleX(p.x);
-    SetConsoleY(p.y);
-    m_pConsole->Close();
-    delete m_pConsole;
-    m_pConsole = NULL;
+    if (m_pConsole != nullptr){
+        wxPoint p = m_pConsole->GetPosition();
+        SetConsoleX(p.x);
+        SetConsoleY(p.y);
+        m_pConsole->Close();
+        delete m_pConsole;
+        m_pConsole = NULL;
+        }
     m_bShowJavaScript = false;
     SetToolbarItemState( m_leftclick_tool_id, m_bShowJavaScript );
     SaveConfig();
