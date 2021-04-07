@@ -21,44 +21,38 @@
 #include "wx/statline.h"
 #include "wx/textctrl.h"
 #include "JavaScriptgui.h"
-#include "duktape.h"
-#include "ocpn_duk.h"
-// #include "wx/valtext.h"
+#include "JavaScriptgui_impl.h"
 #include "wx/radiobox.h"
 #include "wx/listbox.h"
-
-extern JS_control_class JS_control;
+#include "wx/choice.h"
 
 void onButton(wxCommandEvent & event){  // here when any dialogue button clicked ****************************
     duk_context *ctx;
     wxWindow *window;
-    wxButton *button;
+    jsButton *button;
+    Console *pConsole;
     wxString elementType, theData, functionName;
     std::vector<dialogElement>::const_iterator it;
     int i;
-    duk_bool_t JS_exec(duk_context *ctx);
+    Completions result;
     
-#ifdef IN_HARNESS
-    cout << "In onButton\n";
-#endif  // IN_HARNESS
-    ctx = JS_control.m_pctx;
-    if (ctx == nullptr){
-        JS_control.message(STYLE_RED, _("Plugin logic error: "), _("onButton invoked with no ctx context\n"));
-        return;
-    }
-    functionName = JS_control.m_dialog.functionName;
-    if (!duk_get_global_string(ctx, functionName.c_str())){
-        JS_control.display_error(ctx, _("JavaScript onDialogue function ") + functionName + " " + duk_safe_to_string(ctx, -1));
-        }
-    JS_control.m_dialog.functionName = wxEmptyString;   // clear out so we do not use again
-    button = wxDynamicCast(event.GetEventObject(), wxButton);
+    button = wxDynamicCast(event.GetEventObject(), jsButton);
+    pConsole = button->pConsole;
+    TRACE(3,pConsole->mConsoleName + " Dialogue button processing");
     window = button->GetParent();
-    JS_control.m_dialog.position = window->GetPosition();   // remember where it is
+    ctx = pConsole->mpCtx;
+    if (ctx == nullptr){
+        pConsole->message(STYLE_RED, _("Plugin logic error: onButton invoked with no ctx context\n"));
+        return;
+        }
+    functionName = pConsole->mDialog.functionName;
+    pConsole->mDialog.functionName = wxEmptyString;   // clear out so we do not use again
+    pConsole->mDialog.position = window->GetPosition();   // remember where it is
     if ( window->Validate() && window->TransferDataFromWindow() ){
         window->Show(false);
         // now to build the returned object
         duk_push_array(ctx);
-        for (i = 0, it = JS_control.m_dialog.dialogElementsArray.cbegin(); it !=  JS_control.m_dialog.dialogElementsArray.cend(); i++, it++){
+        for (i = 0, it = pConsole->mDialog.dialogElementsArray.cbegin(); it !=  pConsole->mDialog.dialogElementsArray.cend(); i++, it++){
             elementType = it->type;
             duk_push_object(ctx);
             duk_push_string(ctx, elementType);
@@ -103,6 +97,13 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 duk_push_string(ctx, theData);
                 duk_put_prop_string(ctx, -2, "value");
                 }
+            else if (elementType == "choice"){
+                wxChoice* choice;
+                choice = wxDynamicCast(window->FindWindowById(it->itemID), wxChoice);
+                theData = choice->GetString(choice->GetSelection());
+                duk_push_string(ctx, theData);
+                duk_put_prop_string(ctx, -2, "value");
+                }
             else if (elementType == "slider"){
                 wxSlider* slider;
                 duk_push_string(ctx, it->label);
@@ -123,7 +124,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 duk_push_string(ctx, button->GetLabel());
                 duk_put_prop_string(ctx, -2, "label");
                 }
-            else JS_control.throw_error(ctx, "onDialog error: onButton found unexpected type " + elementType);
+            else pConsole->throw_error(ctx, "onDialog error: onButton found unexpected type " + elementType);
             duk_put_prop_index(ctx, -2, i);
             }
         // now to add extra element for clicked-on button
@@ -132,72 +133,65 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         duk_put_prop_string(ctx, -2, "label");
         duk_put_prop_index(ctx, -2, i); // i will have been left one greater than length of array so this extends it
         
-        JS_control.m_dialog.dialogElementsArray.clear();
-#ifdef IN_HARNESS
-        cout << "Done onButton\n";
-#endif  // IN_HARNESS
+        pConsole->mDialog.dialogElementsArray.clear();
         window->Destroy();
-        JS_control.m_dialog.pdialog = nullptr;
-		duk_bool_t ret = JS_exec(ctx);  // calls the user's function
-		if (!ret || JS_control.m_stopScriptCalled){
-			JS_control.m_runCompleted = true;
-			JS_control.clearAndDestroy();
-			return;
-			}
+        pConsole->mDialog.pdialog = nullptr;
+        TRACE(4,pConsole->mConsoleName + " Done on button processing - to call function " + functionName);
+        result = pConsole->executeFunction(functionName);
+        TRACE(4,pConsole->mConsoleName + " Button processing - back from function");
+        if (result != MORE) pConsole->wrapUp(result);
         }
-    else JS_control.throw_error(ctx, _("JavaScript onDialogue data validation failed"));
-    duk_pop(ctx);
-    if (!JS_control.waiting()) {
-        JS_control.clearAndDestroy();
-        }
+    else pConsole->throw_error(ctx, _("JavaScript onDialogue data validation failed"));
     }
 
 // create the dialog  *********************************
 duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
+    extern JavaScript_pi* pJavaScript_pi;
     int i;
     wxString elementType, value;
     dialogElement anElement;
     bool hadButton {false};
     wxArrayString strings;
     wxString getStringFromDuk(duk_context *ctx);
+    Console *findConsoleByCtx(duk_context *ctx);
+    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    
+    Console *pConsole = findConsoleByCtx(ctx);
     std::vector<dialogElement> dialogElementArray;  // will be array of the elements for this call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    wxDialog *dialog = JS_control.m_dialog.pdialog; // any existing dialogue
-    
+    wxDialog *dialog = pConsole->mDialog.pdialog; // any existing dialogue
     if (nargs == 0){    // just return present state
         duk_push_boolean(ctx, (dialog != nullptr) ? true : false);
         return 1;
         }
-    
     // if called with single argument of false, is attempt to cancel any open dialogue
     // cancel any existing dialogue and return true if there was one
     if (duk_get_top(ctx) == 1 && duk_is_boolean(ctx, -1) && !duk_get_boolean(ctx, -1)){
         duk_pop(ctx);   // the argument
         if (dialog != nullptr){
             // there is a dialogue displayed
-            JS_control.clearDialog();
+            pConsole->clearDialog();
             duk_push_boolean(ctx, true);
             }
         else duk_push_boolean(ctx, false);
         return 1;
         }
     
-    if ( dialog != nullptr) JS_control.throw_error(ctx, "onDialog error: called with another dialogue active");
-    if (nargs != 2) JS_control.throw_error(ctx, "onDialog error: creating dialogue requires two arguments");
+    if ( dialog != nullptr) pConsole->throw_error(ctx, "onDialog error: called with another dialogue active");
+    if (nargs != 2) pConsole->throw_error(ctx, "onDialog error: creating dialogue requires two arguments");
     duk_require_function(ctx, -2);  // first arugment must be function
     
     // ready to create new dialogue
-    dialog = new wxDialog(NULL,  wxID_ANY, _("JavaScript dialogue"), JS_control.m_dialog.position, wxDefaultSize,
+    dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript dialogue"), pConsole->mDialog.position, wxDefaultSize,
             wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
-    JS_control.m_dialog.pdialog = dialog;    // save pointer to dialog
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls
     topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
     // work through the supplied structure
     int elements = (int) duk_get_length(ctx, -1);   // number of elements supplied for this dialog
-    JS_control.m_dialog.dialogElementsArray.clear();    // clear out any previous incomplete stuff
-    JS_control.m_dialog.dialogElementsArray.reserve(elements);    // reserve our space
+    pConsole->mDialog.dialogElementsArray.clear();    // clear out any previous incomplete stuff
+    pConsole->mDialog.dialogElementsArray.reserve(elements);    // reserve our space
     for (i = 0; i < elements; i++){
         anElement.label = wxEmptyString;
         anElement.stringValue = wxEmptyString;
@@ -212,7 +206,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         wxFont font = wxFontInfo(fontSize);
         duk_get_prop_index(ctx, -1, i);
         if (duk_get_prop_literal(ctx, -1, "type") == 0)
-            JS_control.throw_error(ctx, wxString::Format(_("onDialog error: array index %i does not have type property"), i));
+            pConsole->throw_error(ctx, wxString::Format(_("onDialog error: array index %i does not have type property"), i));
 
         elementType = duk_get_string(ctx, -1);
         anElement.type = elementType;
@@ -294,7 +288,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
             textCtrl = new wxTextCtrl ( dialog, anElement.itemID, wxT(""), wxDefaultPosition, wxSize(anElement.width,  anElement.height /* 6+fontSize */), anElement.multiLine);
             fieldBox->Add(textCtrl, 0, wxGROW|wxALL, 0);
-            textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &JS_control.m_dialog.dialogElementsArray[i].textValue));
+            textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &pConsole->mDialog.dialogElementsArray[i].textValue));
             staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
@@ -322,7 +316,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else if (elementType == _("tick")){
             if (!duk_get_prop_literal(ctx, -1, "value")){
-                JS_control.throw_error(ctx, "onDialog error: tick requires value");
+                pConsole->throw_error(ctx, "onDialog error: tick requires value");
                 }
             else {
                 bool ticked = false;
@@ -342,10 +336,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else if (elementType == _("tickList")){
             if (!duk_get_prop_literal(ctx, -1, "value")){
-                JS_control.throw_error(ctx, "onDialog error: tickList requires value");
+                pConsole->throw_error(ctx, "onDialog error: tickList requires value");
                 }
             else {
-                if (!duk_is_array(ctx, -1)) JS_control.throw_error(ctx, "onDialog error: tickLit requires value array");
+                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: tickLit requires value array");
                 else {
                     int maxChars = 0;
                     strings.Clear();
@@ -384,8 +378,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             
             // range attribute
             if (!duk_get_prop_literal(ctx, -1, "range"))
-                JS_control.throw_error(ctx, "onDialog error: slider requires range");
-            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)) JS_control.throw_error(ctx, "onDialog error: slider requires range with 2 values");
+                pConsole->throw_error(ctx, "onDialog error: slider requires range");
+            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)) pConsole->throw_error(ctx, "onDialog error: slider requires range with 2 values");
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -429,8 +423,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             
             // range attribute
             if (!duk_get_prop_literal(ctx, -1, "range"))
-                JS_control.throw_error(ctx, "onDialog error: spinner requires range");
-            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)) JS_control.throw_error(ctx, "onDialog error: spinner requires range with 2 values");
+                pConsole->throw_error(ctx, "onDialog error: spinner requires range");
+            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)) pConsole->throw_error(ctx, "onDialog error: spinner requires range with 2 values");
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -469,6 +463,33 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             boxSizer->Add(spinnerBox,  0, wxGROW|wxALL, 5);
             duk_pop(ctx);
             }
+        else if (elementType == _("choice")){
+            if (!duk_get_prop_literal(ctx, -1, "value")){
+                pConsole->throw_error(ctx, "onDialog error: choice requires value");
+                }
+            else {
+                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: choice requires value array");
+                else {
+                    int maxChars = 0;
+                    strings.Clear();
+                    int listLength = (int) duk_get_length(ctx, -1);
+                    for (int j = 0; j < listLength; j++) {
+                        duk_get_prop_index(ctx, -1, j);
+                        value = getStringFromDuk(ctx);
+                        duk_pop(ctx);
+                        strings.Add(value);
+                        if (value.Length() > maxChars) maxChars = (int) value.Length();
+                        }
+                    duk_pop(ctx);
+                    anElement.itemID = wxNewId();
+                    wxBoxSizer* choiceBox = new wxBoxSizer(wxVERTICAL);
+                    boxSizer->Add(choiceBox);
+                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, wxSize(maxChars*9+45, listLength*22), strings, wxCB_DROPDOWN);
+                    choiceBox->Add(choice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+                    duk_pop(ctx);
+                    }
+                }
+            }
         else if (elementType == _("radio")){
             wxString label;
             wxRadioBox *radioBox;
@@ -479,9 +500,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             else label = wxEmptyString;
             duk_pop(ctx);
-            if (!duk_get_prop_literal(ctx, -1, "value")) JS_control.throw_error(ctx, "onDialog error: radio requires value");
+            if (!duk_get_prop_literal(ctx, -1, "value")) pConsole->throw_error(ctx, "onDialog error: radio requires value");
             else {
-                if (!duk_is_array(ctx, -1)) JS_control.throw_error(ctx, "onDialog error: radio requires value array");
+                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: radio requires value array");
                 else {
                     numberOfButtons = (int) duk_get_length(ctx, -1);
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
@@ -510,7 +531,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         else if (elementType == _("button")){
             bool defaultButton;
             wxString label;
-            wxButton *button;
+            jsButton *button;
             wxBoxSizer* buttonBox;
             hadButton = true;
             buttonBox = new wxBoxSizer(wxHORIZONTAL);
@@ -529,7 +550,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                         defaultButton = true;
                         }
                     anElement.itemID = wxNewId();
-                    button = new wxButton ( dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
+                    button = new jsButton ( pConsole, dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
                     button->SetFont(font);
                     if (defaultButton) button->SetDefault();
                     buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
@@ -544,7 +565,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     }
                 else defaultButton = false;
                 anElement.itemID = wxNewId();
-                button = new wxButton ( dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
+                button = new jsButton ( pConsole, dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
                 buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
                 if (defaultButton) button->SetDefault();
                 duk_pop_2(ctx);     // pop off the text string and the element
@@ -552,20 +573,21 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             anElement.label = label;
             }
         else {
-            JS_control.throw_error(ctx, "onDialogue - unsupported element type: " + elementType);
+            pConsole->throw_error(ctx, "onDialogue - unsupported element type: " + elementType);
             }
-        JS_control.m_dialog.dialogElementsArray.push_back(anElement);
+        pConsole->mDialog.dialogElementsArray.push_back(anElement);
         }
     if (!hadButton) {
         // caller has not upplied a button - create a default one
         wxBoxSizer* buttonBox = new wxBoxSizer(wxHORIZONTAL);
         boxSizer->Add(buttonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-        wxButton* button = new wxButton ( dialog, wxNewId(), _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+        jsButton* button = new jsButton ( pConsole, dialog, wxNewId(), _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
         buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
         }
     dialog->Bind(wxEVT_BUTTON, &onButton, wxID_ANY);
-    JS_control.m_dialog.functionName = JS_control.getFunctionName();
-    JS_control.m_JSactive = true;
+    pConsole->mDialog.functionName = extractFunctionName(ctx, 0);
+    pConsole->mDialog.pdialog = dialog;
+    pConsole->mWaitingCached = pConsole->mWaiting = true;
     duk_pop_2(ctx); // pop off both call arguments
     duk_push_boolean(ctx, true);
     dialog->Fit();
@@ -575,9 +597,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
 // for debug - dumps element array
  std::vector<dialogElement>::const_iterator it;
     int k;
-    k = JS_control.m_dialog.dialogElementsArray.size();
-    for (k = 0, it = JS_control.m_dialog.dialogElementsArray.begin(); it != JS_control.m_dialog.dialogElementsArray.end(); k++, it++ ){
-        cout << k << " " << JS_control.m_dialog.dialogElementsArray.at(k).type << " " << JS_control.m_dialog.dialogElementsArray.at(k).itemID << "\n";
+    k = pConsole->mDialog.dialogElementsArray.size();
+    for (k = 0, it = pConsole->mDialog.dialogElementsArray.begin(); it != pConsole->mDialog.dialogElementsArray.end(); k++, it++ ){
+        cout << k << " " << pConsole->mDialog.dialogElementsArray.at(k).type << " " << pConsole->mDialog.dialogElementsArray.at(k).itemID << "\n";
         }
  */
 

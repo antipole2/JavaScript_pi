@@ -1,9 +1,9 @@
 /**************************************************************************
 * Project:  OpenCPN
 * Purpose:  JavaScript Plugin
-* Author:   Tony Voss
+* Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2020 by Tony Voss
+* Copyright Ⓒ 2021 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -73,16 +73,18 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             with\
             yield\
             JS_duk_dump\
-            JS_control_dump\
+            consoleDump\
             JS_throw_test\
             JS_mainThread";
-    wxString extensionNames = "print printRed printOrange printGreen printBlue\
+    wxString extensionNames = "print printRed printOrange printGreen printBlue printLog\
             alert\
             readTextFile\
+            writeTextFile\
             require\
             timeAlloc\
             scriptResult\
             consoleHide\
+            consoleShow\
             onSeconds\
             onDialogue\
             stopScript\
@@ -109,6 +111,15 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetVectorPP\
             OCPNgetPositionPV\
             OCPNgetGCdistance\
+            consoleExists\
+            consoleBusy\
+            consoleClearOutput\
+            consoleGetOutput\
+            consoleAdd\
+            consoleClose\
+            consoleLoad\
+            consoleRun\
+            onConsoleResult\
             ";
 
         pane->SetKeyWords(0, keywordsSupported);

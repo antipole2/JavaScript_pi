@@ -37,17 +37,26 @@ Instructions for running under Xcode
 */
 
 // For compilers that support precompilation, includes "wx/wx.h".
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
-//#include "ocpn_plugin.h"
-#include "JavaScript_pi.h"
-//#include "JavaScriptgui_impl.h"
-//#include "JavaScriptgui.h"
-#include <wx/listimpl.cpp>
 
-// WX_DEFINE_LIST(Plugin_WaypointList);
+#include <wx/wxprec.h>
+#include <wx/wx.h>
+#include "ocpn_plugin.h"
+#include "JavaScriptgui_impl.h"
+#include "JavaScript_pi.h"
+#include "JavaScriptgui.h"
+#include <wx/listimpl.cpp>
+#include "wx/config.h"
+
+// #include "trace.h"
+// Configuration        ************
+bool activeImmediately {true};
+bool loadFromFile = false;
+wxString configFileName = _("OpenCPN_project/JavaScript-project/testConfig.txt");    // set to existing file.  Can be OCPN config file
+
+// Manual configuration if loadFromFile == false
+ wxString consoleNames[] {_("One"), _("Two"), _("Three"), _("Four")};
+
+// end of configuration ************
 
 class TestHarness: public wxApp
 {
@@ -60,50 +69,25 @@ public:
     TestFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
 private:
     void OnTest(wxCommandEvent& event);
-    void OnExit(wxCommandEvent& event);
+    void OnActivate(wxCommandEvent& event);
+    void OnDeactivate(wxCommandEvent& event);
+    void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     wxDECLARE_EVENT_TABLE();
 };
 
+extern JavaScript_pi *pJavaScript_pi;
+
 
 enum
 {
-    ID_Test = 1
+    ID_Test = 1,
+    ID_Activate,
+    ID_Deactivate
 };
 
-
-wxString runJS(void);   // test
-
 TestFrame *frame{};
-
-JavaScript_pi *p_plugin;
-int * ppimgr;
-
-wxBEGIN_EVENT_TABLE(TestFrame, wxFrame)
-    EVT_MENU(ID_Test,   TestFrame::OnTest)
-    EVT_MENU(wxID_EXIT,  TestFrame::OnExit)
-    EVT_MENU(wxID_ABOUT, TestFrame::OnAbout)
-wxEND_EVENT_TABLE()
- wxIMPLEMENT_APP(TestHarness);
-bool TestHarness::OnInit()
-{
-    bool immediate = true;  // true to skip the main frame and open panel directly
-    cout << "Harness says Started OnInit\n";
-
-    frame = new TestFrame( "Test frame", wxPoint(50, 50), wxSize(450, 340) );
-    cout << "Harness says Created TestFrame \n";
-    frame->Show( true );
-    p_plugin = new JavaScript_pi(ppimgr);
-    p_plugin->m_parent_window = frame;
-    p_plugin->Init();
-    cout << "Harness says Initialized plugin\n";
-    if (immediate){  // open panel without waiting
-           // Invoke the plugin callback as if the toolbar button had been clicked
-           p_plugin->OnToolbarToolCallback(1);
-        
-    }
-    return true;
-}
+wxString runJS(void);   // test
 
 TestFrame::TestFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
         : wxFrame(NULL, wxID_ANY, title, pos, size)
@@ -111,6 +95,10 @@ TestFrame::TestFrame(const wxString& title, const wxPoint& pos, const wxSize& si
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(ID_Test, "&Test...\tCtrl-H",
                      "Harness says Help string shown in status bar for this menu item");
+    menuFile->Append(ID_Activate, "&Activate\tCtrl-A",
+                     "Simulates Activating plaugin");
+    menuFile->Append(ID_Deactivate, "&Dactivate\tCtrl-D",
+                     "Simulates Deactivating plaugin");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
     wxMenu *menuHelp = new wxMenu;
@@ -122,8 +110,12 @@ TestFrame::TestFrame(const wxString& title, const wxPoint& pos, const wxSize& si
     CreateStatusBar();
     SetStatusText( "Harness says Getting JavaScript into OpenCPN" );
 }
-void TestFrame::OnExit(wxCommandEvent& event)
+
+void TestFrame::OnQuit(wxCommandEvent& event)
 {
+    extern JavaScript_pi *pJavaScript_pi;
+    OnDeactivate(event);
+    delete pJavaScript_pi;
     Close( true );
 }
 void TestFrame::OnAbout(wxCommandEvent& event)
@@ -133,21 +125,86 @@ void TestFrame::OnAbout(wxCommandEvent& event)
 }
 void TestFrame::OnTest(wxCommandEvent& event)
 {
-    cout << "Harness says Starting test\n";
+    extern JavaScript_pi *pJavaScript_pi;
+    cout << "Entered Harness OnTest\n";
     // plugin has not been initialised, so we need to fix it up here:
-    p_plugin->m_parent_window = frame;
+    pJavaScript_pi->m_parent_window = frame;
+     
     // Invoke the plugin callback as if the toolbar button had been clicked
-    p_plugin->OnToolbarToolCallback(1);
+    pJavaScript_pi->OnToolbarToolCallback(1);
 }
 
-// Replace neccessary OPCN functions with make-do's
+int * ppimgr;
+
+wxBEGIN_EVENT_TABLE(TestFrame, wxFrame)
+    EVT_MENU(ID_Test,   TestFrame::OnTest)
+    EVT_MENU(ID_Activate,   TestFrame::OnActivate)
+    EVT_MENU(ID_Deactivate,   TestFrame::OnDeactivate)
+    EVT_MENU(wxID_EXIT,  TestFrame::OnQuit)
+    EVT_MENU(wxID_ABOUT, TestFrame::OnAbout)
+wxEND_EVENT_TABLE()
+wxIMPLEMENT_APP(TestHarness);
+
+wxFileConfig *settingsFile = new wxFileConfig(_("JavaScript_pi"), wxEmptyString, wxEmptyString, loadFromFile?configFileName:_(""), wxCONFIG_USE_GLOBAL_FILE);
+
+void activate(){
+    extern JavaScript_pi *pJavaScript_pi;
+    Console *pConsole;
+    int numberOfConsoles {2};
+    if (pJavaScript_pi->mpFirstConsole){
+        cout << "Entered Harness activate - already active\n";
+        return;
+        }
+    cout << "Entered Harness activate - activating\n";
+    wxPoint consolePosition = wxPoint(80, 50);
+    for (int i = 0; i < numberOfConsoles; i++){
+        pConsole = new Console(pJavaScript_pi->m_parent_window, consoleNames[i], consolePosition);
+        consolePosition.x += 200; consolePosition.y += 100;
+        pConsole->Show();
+        }
+    pJavaScript_pi->mCurrentDirectory = _("/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Tests_scripts");
+
+    // Invoke the plugin callback as if the toolbar button had been clicked
+    pJavaScript_pi->mShowingConsoles = false;   // next will toggle to show
+    pJavaScript_pi->OnToolbarToolCallback(1);
+    }
+
+void TestFrame::OnActivate(wxCommandEvent& event)
+{
+    activate();
+    }
+
+bool TestHarness::OnInit()
+{
+    extern JavaScript_pi *pJavaScript_pi;
+//    void JSlexit(wxStyledTextCtrl* pane);
+    cout << "Entered harness On_Init\n";
+ 
+    frame = new TestFrame( "Test frame", wxPoint(50, 50), wxSize(450, 340) );
+    frame->Show( true );
+    // create the plugin
+    pJavaScript_pi = new JavaScript_pi(ppimgr);
+    pJavaScript_pi->m_parent_window = frame;
+    pJavaScript_pi->Init();
+    if (activeImmediately) activate();
+    return true;
+    }
+
+void TestFrame::OnDeactivate(wxCommandEvent& event)
+{
+    extern JavaScript_pi *pJavaScript_pi;
+    pJavaScript_pi->DeInit();
+    }
+
+
+
+// Replace neccessary OPCN functions with make-do's —————————————————————————————————————————————————
 wxWindow *GetOCPNCanvasWindow(){
     return(frame);    // point to test frame instead of OPCN canvas
 }
 // void initialize_images(){return;}       // not bothering with images
 bool AddLocaleCatalog( wxString catalog ){return(false);};  // not doing locales
-wxFileConfig *p_configA;  // Not doing configuration but need to keep compiler happy
-wxFileConfig *GetOCPNConfigObject(){return((wxFileConfig *) p_configA);}
+wxFileConfig *GetOCPNConfigObject(){return(settingsFile);}
 void loadconfig(){return;}      // don't load config
 
 // a GPX sentence to return

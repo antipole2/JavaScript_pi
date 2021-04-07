@@ -1,0 +1,1 @@
+chainScript("testGetBrief.js", "This is the brief");

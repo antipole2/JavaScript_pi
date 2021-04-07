@@ -5,7 +5,7 @@
 ##---------------------------------------------------------------------------
 
 # define minimum cmake version
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 
 PROJECT(JavaScript_pi)
 
@@ -17,7 +17,7 @@ SET(TITLE_NAME JS)
 SET(CPACK_PACKAGE_CONTACT "Tony Voss")
 
 SET(VERSION_MAJOR "0")
-SET(VERSION_MINOR "3.1")
+SET(VERSION_MINOR "4")
 
 SET(NAME_SUFFIX "ov50")
 
@@ -41,6 +41,7 @@ ENDIF(JavaScript_USE_SVG)
 
 SET(JAVASCRIPT
     src/version.h
+    src/trace.h
     src/JavaScript_pi.h
     src/JavaScript_pi.cpp
     src/icons.h
@@ -52,8 +53,6 @@ SET(JAVASCRIPT
     src/JSExtensions.cpp
     src/ocpn_duk.h
     src/OPCNapis.cpp
-    src/runJS.cpp
-    src/harness.h
     src/ocpn_plugin.h
     src/duk_config.h
     src/duktape.h
@@ -61,6 +60,12 @@ SET(JAVASCRIPT
     src/JSlexer.cpp
     src/duktape_timeout.cpp
     src/JSdialog.cpp
+    src/functions.cpp
+    src/optional.cpp
+    src/toolsDialogGui.h
+    src/toolsDialogGui.cpp
+    src/toolsDialogImp.h
+    src/toolsDialogImp.cpp
     )
     
 SET(SCINTILLA
@@ -292,5 +297,4 @@ ENDIF(NOT APPLE)
 ADD_DEFINITIONS(-DSCI_LEXER)
 
 INCLUDE("cmake/PluginInstall.cmake")
-INCLUDE("cmake/PluginLocalization.cmake")
 INCLUDE("cmake/PluginPackage.cmake")

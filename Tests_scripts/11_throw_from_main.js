@@ -1,0 +1,2 @@
+throw("Thrown from main");
+

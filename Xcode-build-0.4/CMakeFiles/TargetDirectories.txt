@@ -1,0 +1,9 @@
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/install.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/package.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/create-pkg.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/JavaScript_pi.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/JavaScript-pot-update.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/JavaScript-i18n.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/JavaScript-po-update.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/ALL_BUILD.dir
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/CMakeFiles/ZERO_CHECK.dir
