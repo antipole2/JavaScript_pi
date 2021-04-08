@@ -21,7 +21,7 @@ function position(lat, lon){
             ((this.latitude < 0) ? "S " : "N ") +
             ("00" + parseInt(lonAbs)).slice(-3) + String.fromCharCode(176) + " " +
             (lonAbs % 1 * 60).toFixed(3) + "'" +
-            ((this.longitude < 0) ? "W " : "E ")
+            ((this.longitude < 0) ? "W" : "E")
 	        )}
 	    });
 		
