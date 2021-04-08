@@ -1,11 +1,24 @@
 function Route(){
 	var i;	// local scope only
 	if (typeof Waypoint == "undefined") Waypoint = require("Waypoint");
-	this.name = "";
-	this.from = "";
-	this.to = "";
-	this.GUID = "";
-	this.waypoints = [];
+	switch (arguments.length){
+		case 0:
+			this.name = "";
+			this.from = "";
+			this.to = "";
+			this.GUID = "";
+			this.waypoints = [];
+			break;
+		case 1:	// argument should be route
+			rt = arguments[0];
+			this.name = rt.name;
+			this.from = rt.from;
+			this.to = rt.to;
+			this.GUID = rt.GUID;
+			this.waypoints = rt.waypoints;
+			break;
+		default:	throw("Route constructor invalid call");
+		}	
 	this.get = function(GUID){
 		if (typeof GUID == "undefined") GUID = this.GUID;
 		if (typeof GUID == "undefined") throw("Attempting to get waypoint without GUID");
