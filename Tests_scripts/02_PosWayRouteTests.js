@@ -153,6 +153,11 @@ if (outcome) report("Read back of updated waypoint does not match original of up
 try {updatedWaypoint.delete();}
 catch(error){ throw("Deleting the updated waypoint failed"); }
 delete testWaypoint; delete readWaypoint; delete updatedWaypoint;
+rawWaypoint = {position: {latitude:51,longitude:11}, markName:"Test mark"};
+fullWaypoint = new Waypoint(rawWaypoint);
+printGreen(fullWaypoint.summary(), "\n");
+if (fullWaypoint.summary() != "Mark Test mark is at 51° 00.000'N 011° 0.000'E")
+	report("Constructing fullwaypoint failed");
 if (OK) printGreen("Waypoint tests completed OK\n");
 else printRed("Waypoint tests completed with error(s)\n");
 

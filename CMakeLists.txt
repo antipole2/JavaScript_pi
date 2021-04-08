@@ -58,7 +58,6 @@ SET(JAVASCRIPT
     src/duktape.h
     src/duktape.cpp
     src/JSlexer.cpp
-    src/duktape_timeout.cpp
     src/JSdialog.cpp
     src/functions.cpp
     src/optional.cpp

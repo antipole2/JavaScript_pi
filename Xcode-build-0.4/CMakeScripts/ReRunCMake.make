@@ -13,7 +13,6 @@ TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/buildosx/InstallOSX/pkg_background.jpg))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/cmake/PluginConfigure.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/cmake/PluginInstall.cmake))
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/cmake/PluginLocalization.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/cmake/PluginPackage.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/cmake/gpl.txt))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/cmake/version.h.in))
