@@ -332,8 +332,6 @@ public:
         m_time_to_allocate = 1000;   //default time allocation (msecs)
         mTimerActionBusy = false;
         m_backingOut = false;
-//        mBrief.fresh = false;   // brief will be removed on next wrapUp()
- //     mBrief.callback = false;
         mDialog.pdialog = nullptr;
         mDialog.functionName = wxEmptyString;
         mAlert.palert = nullptr;
@@ -342,7 +340,6 @@ public:
         if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
             mAlert.position.y = 150;
             }
-        
         // ready to go
         mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
         if (!mpCtx) {
@@ -366,7 +363,19 @@ public:
        if (mStatus.test(STOPPED)) return STOPPED;
        if (mStatus.test(TOCHAIN)) return TOCHAIN;
        if (dukOutcome != DUK_EXEC_SUCCESS){
-            m_result = duk_safe_to_string(mpCtx, -1);
+           if (duk_is_error(mpCtx, -1)){
+               // we have an error object - extract line number to suppliment message
+               wxString stack, trace;
+               duk_get_prop_string(mpCtx, -1, "stack");
+               stack = wxString(duk_safe_to_string(mpCtx, -1));
+               trace = stack.AfterLast('\n');
+               TRACE(4, "Last line: " + trace);
+               trace = trace.AfterFirst('(').BeforeLast(')').AfterLast(':');
+               TRACE(4, "Trace " + trace);
+               duk_pop(mpCtx);
+               m_result = _("Line ") + trace + _(" ") + duk_safe_to_string(mpCtx, 0);
+                }
+            else m_result = duk_safe_to_string(mpCtx, -1);
             duk_pop(mpCtx);
             return ERROR;
             }
@@ -443,7 +452,30 @@ public:
             return TOCHAIN;
             }
         if (outcome != DUK_EXEC_SUCCESS){
-            m_result = duk_safe_to_string(ctx, 0);
+            TRACE(4, "Threw error " + dukDump());
+            if (duk_is_error(ctx, -1)){
+                // we have an error object - extract line number to suppliment message
+                wxString stack, trace;
+                duk_get_prop_string(ctx, -1, "stack");
+                stack = wxString(duk_safe_to_string(ctx, -1));
+                trace = stack.AfterLast('\n');
+                TRACE(4, "Last line: " + trace);
+                trace = trace.AfterFirst('(').BeforeLast(')').AfterLast(':');
+                TRACE(4, "Trace " + trace);
+                duk_pop(ctx);
+/*  Not working or in use yet
+                for(duk_int_t level = -1; ; level--){
+                    duk_inspect_callstack_entry(ctx, level);
+                    if (duk_get_type(ctx, -1) == DUK_TYPE_UNDEFINED) break; // gone past beginning of stack
+                    duk_get_prop_string(ctx, -1, "lineNumber");
+                    int lineNumber = (int) duk_to_int(ctx, -1);
+                    duk_pop_2(ctx);
+                    TRACE(4, wxString::Format("Inspecting level %d line number %d", level, lineNumber));
+                    }
+ */
+                m_result = _("Line ") + trace + _(" ") + duk_safe_to_string(ctx, 0);
+                }
+            else m_result = duk_safe_to_string(ctx, 0); // error message only
             duk_pop(ctx);  // result
             mStatus.reset(MORE);
             return ERROR;

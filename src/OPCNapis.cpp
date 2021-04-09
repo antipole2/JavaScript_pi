@@ -204,7 +204,7 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
 static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
-    
+    if (nargs > 2) throwErrorByCtx(ctx, "OCPNonMessageName bad call");
     if (nargs == 0) { // empty call - cancel any waiting callback
         size_t messageCount = pConsole->mMessages.GetCount();
         if (messageCount > 0){
@@ -219,6 +219,7 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
         return(0);
         }
     duk_require_function(ctx, 0);
+    duk_require_string(ctx, 1);
     TRACE(5, pConsole->dukDump());
     TRACE(5, "About to register waiting for message");
     TRACE (5, findConsoleByCtx(ctx)->dukDump());
@@ -390,8 +391,10 @@ static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
     if (nargs < 1){
         throwErrorByCtx(ctx, "OCPNsendMessage error: called without at least one argument");
         }
-    if ((nargs >= 1) &&  (duk_get_type(ctx, 1) == DUK_TYPE_STRING)){
+    duk_require_string(ctx, 0);
+    if (nargs > 1){
         // we have a message body
+        duk_require_string(ctx, 1);
         message_body = wxString(duk_to_string(ctx,1));
         duk_pop(ctx);
         }
@@ -501,7 +504,7 @@ static duk_ret_t getSingleWaypoint(duk_context *ctx) {
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint();;
     bool result;
     wxString GUID;
-    
+    duk_require_string(ctx, 0);
     GUID = duk_get_string(ctx, 0);
     duk_pop(ctx);
     result = GetSingleWaypoint(GUID, p_waypoint);
@@ -520,10 +523,11 @@ static duk_ret_t addSingleWaypoint(duk_context *ctx) {
     bool permanent = true;  // permanent waypoint by default
     bool result;
     duk_idx_t nargs;
-
+    duk_require_object(ctx,0);
     nargs = duk_get_top(ctx);   // number of arguments in call
     if (nargs == 2) {
-        permanent = duk_get_boolean(ctx, -1);   // decide on permanency
+        duk_require_boolean(ctx,1);
+        permanent = duk_get_boolean(ctx, 1);   // decide on permanency
         duk_pop(ctx);
         }
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the opcn waypoint
@@ -541,7 +545,7 @@ static duk_ret_t addSingleWaypoint(duk_context *ctx) {
 static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     PlugIn_Waypoint *p_waypoint;
     bool result;
- 
+    duk_require_object(ctx,0);
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the ocpn waypoint
     result = UpdateSingleWaypoint(p_waypoint);
     if (!result){ // waypoint does not exists?
@@ -557,6 +561,7 @@ static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
 static duk_ret_t deleteSingleWaypoint(duk_context *ctx) {  // given a GUID, deletes waypoint
     wxString GUID;
     bool result;
+    duk_require_string(ctx,0);
     GUID = wxString(duk_to_string(ctx,0));
     result = DeleteSingleWaypoint(GUID);
     if (!result){  // waypoint does not exist
@@ -574,6 +579,7 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     std::unique_ptr<PlugIn_Route> p_route;
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint();
 
+    duk_require_object(ctx,0);
     GUID = duk_get_string(ctx, 0);
     duk_pop(ctx);
     p_route = GetRoute_Plugin(GUID);
@@ -609,9 +615,11 @@ static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
     bool permanent = true;  // permanent by default
     bool result;
     duk_idx_t nargs;
+    duk_require_object(ctx,0);
     nargs = duk_get_top(ctx);   // number of arguments in call
     if (nargs == 2) {
-        permanent = duk_get_boolean(ctx, -1);   // decide on permanency
+        duk_require_boolean(ctx,1);
+        permanent = duk_get_boolean(ctx, 1);   // decide on permanency
         duk_pop(ctx);
         }
     p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
@@ -627,7 +635,7 @@ static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
 
 static duk_ret_t updateRoute(duk_context *ctx) { // update the route in OpenCPN
     PlugIn_Route *p_route;
-
+    duk_require_object(ctx,0);
     p_route = js_duk_to_opcn_route(ctx, false);    // construct the opcn route - must have given GUID
     if(!UpdatePlugInRoute(p_route)) throwErrorByCtx(ctx, "OCPNupdateRoute called with non-existant GUID " + p_route->m_GUID);
     clearWaypointsOutofRoute(p_route);
@@ -637,6 +645,7 @@ static duk_ret_t updateRoute(duk_context *ctx) { // update the route in OpenCPN
 
 static duk_ret_t deleteRoute(duk_context *ctx) {  // given a GUID, deletes route
     wxString GUID;
+    duk_require_string(ctx,0);
     GUID = wxString(duk_to_string(ctx,0));
     duk_pop(ctx);
     if (!DeletePlugInRoute(GUID)) {
