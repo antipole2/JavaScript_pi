@@ -27,6 +27,7 @@ tests = [ // test table format
 	{name:"Compile error", functionToUse:load, script:"10_error_compile.js", time:1, result:"SyntaxError: unterminated string"},
 	{name:"Throw from main", functionToUse:load, script:"11_throw_from_main.js", time:1, result:"Thrown from main"},
 	{name:"Runtime error main", functionToUse:load, script:"12_runtime_error_main.js", time:3, result:"onSeconds first argument must be function"},
+	{name:"Error trace", functionToUse:load, script:"16a_error_message_checks.js", time:3, result:"All OK"},
 	{name:"Throw from callback", functionToUse:load, script:"14_error_from_callback.js", time:3, result:"onSeconds first argument must be function"},
 	{name:"Printing", functionToUse:load, script:"20_print_tests.js", time:1, result:"Print tests completed OK"},
 	{name:"Position/Waypoint/Route", functionToUse:load, script:"02_PosWayRouteTests.js", time:2, result:"Tests ran to completion"},

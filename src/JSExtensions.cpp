@@ -489,6 +489,16 @@ static duk_ret_t duk_getBrief(duk_context *ctx) {
     return 1;
     }
 
+static duk_ret_t duk_onExit(duk_context *ctx){
+    // set an onExit function
+    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    extern JavaScript_pi *pJavaScript_pi;
+    Console *pConsole = findConsoleByCtx(ctx);
+    pConsole->m_exitFunction = extractFunctionName(ctx, -1);
+    duk_pop(ctx);
+    return 0;
+    }
+
 #ifdef DUK_DUMP
 
 static duk_ret_t duk_mainThread(duk_context *ctx){ // check if in main thread
@@ -606,6 +616,10 @@ void duk_extensions_init(duk_context *ctx) {
     
     duk_push_string(ctx, "getBrief");
     duk_push_c_function(ctx, duk_getBrief , 0 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "onExit");
+    duk_push_c_function(ctx, duk_onExit , 1 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
 

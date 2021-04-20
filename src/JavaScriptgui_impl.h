@@ -163,6 +163,7 @@ public:
     bool        mRunningMain {false}; // true while main is running
     bool        mChainedScriptToRun {false};   // true if script to be run because it was chained
     status_t    mStatus;     // the status of this process
+    
 
     // callback management
     bool        mTimerActionBusy;  // true while handling timer event to stop them piling up
@@ -171,6 +172,7 @@ public:
     DialogAction    mDialog;      // Dialogue call-back table
     AlertDetails    mAlert;        // details of alert dialog
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
+    jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
     int         mConsoleCallbacksAwaited {0};   // number of console callbacks awaited
 
     // duktape timeout handling
@@ -337,6 +339,7 @@ public:
         mAlert.palert = nullptr;
         mAlert.alertText = wxEmptyString;
         mConsoleCallbacksAwaited = 0;
+        m_exitFunction = wxEmptyString;
         if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
             mAlert.position.y = 150;
             }
@@ -363,19 +366,8 @@ public:
        if (mStatus.test(STOPPED)) return STOPPED;
        if (mStatus.test(TOCHAIN)) return TOCHAIN;
        if (dukOutcome != DUK_EXEC_SUCCESS){
-           if (duk_is_error(mpCtx, -1)){
-               // we have an error object - extract line number to suppliment message
-               wxString stack, trace;
-               duk_get_prop_string(mpCtx, -1, "stack");
-               stack = wxString(duk_safe_to_string(mpCtx, -1));
-               trace = stack.AfterLast('\n');
-               TRACE(4, "Last line: " + trace);
-               trace = trace.AfterFirst('(').BeforeLast(')').AfterLast(':');
-               TRACE(4, "Trace " + trace);
-               duk_pop(mpCtx);
-               m_result = _("Line ") + trace + _(" ") + duk_safe_to_string(mpCtx, 0);
-                }
-            else m_result = duk_safe_to_string(mpCtx, -1);
+            wxString formErrorMessage(duk_context *ctx);
+            m_result = formErrorMessage(mpCtx);
             duk_pop(mpCtx);
             return ERROR;
             }
@@ -452,33 +444,10 @@ public:
             return TOCHAIN;
             }
         if (outcome != DUK_EXEC_SUCCESS){
-            TRACE(4, "Threw error " + dukDump());
-            if (duk_is_error(ctx, -1)){
-                // we have an error object - extract line number to suppliment message
-                wxString stack, trace;
-                duk_get_prop_string(ctx, -1, "stack");
-                stack = wxString(duk_safe_to_string(ctx, -1));
-                trace = stack.AfterLast('\n');
-                TRACE(4, "Last line: " + trace);
-                trace = trace.AfterFirst('(').BeforeLast(')').AfterLast(':');
-                TRACE(4, "Trace " + trace);
-                duk_pop(ctx);
-/*  Not working or in use yet
-                for(duk_int_t level = -1; ; level--){
-                    duk_inspect_callstack_entry(ctx, level);
-                    if (duk_get_type(ctx, -1) == DUK_TYPE_UNDEFINED) break; // gone past beginning of stack
-                    duk_get_prop_string(ctx, -1, "lineNumber");
-                    int lineNumber = (int) duk_to_int(ctx, -1);
-                    duk_pop_2(ctx);
-                    TRACE(4, wxString::Format("Inspecting level %d line number %d", level, lineNumber));
-                    }
- */
-                m_result = _("Line ") + trace + _(" ") + duk_safe_to_string(ctx, 0);
-                }
-            else m_result = duk_safe_to_string(ctx, 0); // error message only
-            duk_pop(ctx);  // result
-            mStatus.reset(MORE);
-            return ERROR;
+             wxString formErrorMessage(duk_context *ctx);
+             m_result = formErrorMessage(mpCtx);
+             duk_pop(mpCtx);
+             return ERROR;
             }
         duk_pop(ctx);  // result
         mWaitingCached = false; // function may have changed something
@@ -649,7 +618,24 @@ public:
                 pConsole->CallAfter(&Console::doExecuteFunction , this, resultStruct);
                 }
             }
-        else  TRACE(4, wxString::Format("%s->wrapUp() Neither chaining nor calling back",mConsoleName));
+        else {
+            TRACE(4, wxString::Format("%s->wrapUp() Neither chaining nor calling back",mConsoleName));
+            if (m_exitFunction != wxEmptyString){
+                duk_int_t outcome;
+                // we have an onExit function to run
+                duk_push_string(mpCtx, ""); // next bit expects an argument - put anything there
+                outcome = executeFunction(m_exitFunction);
+                m_exitFunction = wxEmptyString; // only once
+                if (outcome == ERROR){
+                    // error during exit function
+                    this->message(STYLE_RED,  this->m_result);
+                    }
+                // Just in case the script tried to set up call-backs, clear them down again
+                mTimes.Clear();
+                clearDialog();
+                clearAlert();
+                }
+            }
         if (mpCtx != nullptr) { // for safety - nasty consequences if no context
             duk_destroy_heap(mpCtx);
             mpCtx = nullptr;
@@ -851,7 +837,8 @@ public:
             }
         dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format(wxT("Active with %d elements"),  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
-        dump += "m_NMEAmessageFunction:\t" + m_NMEAmessageFunction + "\n";
+        dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
+        dump += "m_exitFunction:\t" + m_exitFunction + "\n";
         dump += "m_explicitResult:\t\t" + (m_explicitResult?_("true"):_("false")) + "\n";
         dump += "m_result:\t\t\t\t" + m_result + "\n";
         dump += "mChainedScriptToRun:\t" + (this->mChainedScriptToRun?_("true"):_("false")) + "\n";

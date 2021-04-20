@@ -89,6 +89,7 @@ public:
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
     wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of plugin
+    wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
 
 private:
     wxBitmap        m_panelBitmap;

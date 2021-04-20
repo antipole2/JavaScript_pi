@@ -230,6 +230,74 @@ wxString statusesToString(status_t mStatus){
     (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
     (mStatus.test(TOCHAIN)?_("TOCHAIN "):_(""));
     }
+
+#include "wx/regex.h"
+// The following could be Duktape release dependent
+wxRegEx parse(" *at ([^ ]*).*:([0-9]*)"); // parses function and line number
+wxString formErrorMessage(duk_context *ctx){
+    // form error message from error object
+    wxString message, part;
+    duk_dup_top(ctx);
+    wxString error = duk_safe_to_string(ctx, 1);    // the error itself
+    duk_pop(ctx);
+    if (duk_is_error(ctx, -1)){  // can only do more if error object
+        wxString line, func, lineNumber;
+        message = error;    // just for now
+        duk_get_prop_string(ctx, -1, "stack");
+        wxString stack = wxString(duk_safe_to_string(ctx, -1));
+        TRACE(4, "Call stack: " + stack);
+        wxStringTokenizer tokenizer(stack, "\n");
+        line = tokenizer.GetNextToken();   //skip line 1
+        line = tokenizer.GetNextToken();   //skip line 2
+        line = tokenizer.GetNextToken();   //skip line 3
+        line = tokenizer.GetNextToken();   //the line throwing error
+        if (parse.Matches(line)){   // identfy the place
+            TRACE(4, "wholeLine:" + parse.GetMatch(line, 0));
+            func = parse.GetMatch(line, 1);
+            lineNumber = parse.GetMatch(line, 2);
+            func = (func == _("eval"))?"":(func+" "); // drop eval as function name
+            message = func + "line " + lineNumber + " " + error;
+            }
+        while ( tokenizer.HasMoreTokens()){ // prepare tracebck if any
+            line = tokenizer.GetNextToken();
+            if (parse.Matches(line)){
+                func = parse.GetMatch(line, 1);
+                lineNumber = parse.GetMatch(line, 2);
+                func = (func == _("eval"))?"":(" " + func); // drop eval as function name
+                message += "\ncalled from" + func + " line " + lineNumber;
+                }
+            }
+        }
+    else message = error;   // only the error itself available
+    return message;
+}
+
+#if 0
+wxRegEx trace("at ([^ \[]*).*:([0-9]*)\).*");   // picks out error trace
+wxString errorTrace(wxString stack){
+//    int count = trace.GetMatchCount();
+//    size_t start, len;
+ //   trace.GetMatch(&start, &len, count);
+    wxString result = wxEmptyString;
+    wxString processed = stack;
+    while(trace.Matches(processed)){
+        trace.GetMatch(&start, &len, 0);
+        TRACE(4, "X: " + processed.Mid(start + len));
+        TRACE(4, "Whole match: " + trace.GetMatch(processed, 0));
+        TRACE(4, "Match 1: " + trace.GetMatch(processed, 1));
+        TRACE(4, "Match 2: " + trace.GetMatch(processed, 2));
+        TRACE(4, "Match 3: " + trace.GetMatch(processed, 3));
+        TRACE(4, "Match 4: " + trace.GetMatch(processed, 4));
+ /*
+        for (int i = 0; i < count; i++){
+            result = trace.GetMatch(processed, i);
+            TRACE(4, "errorTrace: " + result);
+            }
+  */
+        }
+    return result;
+    }
+#endif
     
 //#if DUKDUMP
 wxString dukdump_to_string(duk_context* ctx){

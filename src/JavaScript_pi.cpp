@@ -151,13 +151,21 @@ bool JavaScript_pi::DeInit(void) {
     while (mpFirstConsole) {    // close all remaining consoles
         TRACE(3,"JavaScript plugin DeInit closing console " + mpFirstConsole->mConsoleName);
         pConsole = mpFirstConsole;
-        mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
+        if (pConsole->m_exitFunction != wxEmptyString){
+            // there is an onExit function to run
+            duk_int_t outcome;
+            TRACE(4, "Deinit running onExit function for console ", pConsole->mConsoleName);
+            outcome = duk_get_global_string(pConsole->mpCtx, pConsole->m_exitFunction.c_str()); // make sure function exists
+            if (outcome) duk_pcall(pConsole->mpCtx, 0); // only call it if it exists and no arguments
+            // don't bother checking for errors - we will not be around to do anything with them
+            }
         // purge stuff out of this one - we do not use wrapUp() because that might do all sorts of other things
         if (pConsole->mpCtx != nullptr) duk_destroy_heap(pConsole->mpCtx);
         pConsole->mMessages.Clear();
         pConsole->mTimes.Clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
+        mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
         }
 
@@ -471,6 +479,12 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
     TRACE(6,"Entered SetPluginMessage");
+    if (message_id == _("OpenCPN Config")){
+//    if (message_id.Cmp(_("OpenCPN Config"))){
+        // capture this while we can
+        TRACE(4, "Captured openCPNConfig");
+        openCPNConfig = message_body;
+        };
     // work through all consoles
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         jsFunctionNameString_t thisFunction;

@@ -776,6 +776,14 @@ static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configurati
     return 1;  // returns one arg
 }
 
+static duk_ret_t getOCPNconfig(duk_context *ctx) {  // gets OCPN configuration as JSON
+    // json = OCPNgetOCPNconfig()
+    extern JavaScript_pi* pJavaScript_pi;
+    if (pJavaScript_pi->openCPNConfig == wxEmptyString) throwErrorByCtx(ctx, "OCPNgetOCPNconfig  no config available");
+    duk_push_string(ctx, pJavaScript_pi->openCPNConfig);
+    return 1;
+    }
+
 static duk_ret_t getAISTargetsArray(duk_context *ctx) {
     ArrayOfPlugIn_AIS_Targets *AIStargets;
     ArrayOfPlugIn_AIS_Targets::iterator it;
@@ -1063,6 +1071,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNgetPluginConfig");
     duk_push_c_function(ctx, getPluginConfig, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNgetOCPNconfig");
+    duk_push_c_function(ctx, getOCPNconfig, 0);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     
     duk_push_string(ctx, "OCPNgetAISTargets");
     duk_push_c_function(ctx, getAISTargetsArray, 0);
