@@ -579,7 +579,7 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     std::unique_ptr<PlugIn_Route> p_route;
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint();
 
-    duk_require_object(ctx,0);
+    duk_require_string(ctx,0);
     GUID = duk_get_string(ctx, 0);
     duk_pop(ctx);
     p_route = GetRoute_Plugin(GUID);
