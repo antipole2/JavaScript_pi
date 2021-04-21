@@ -19,7 +19,7 @@
 // output will go to log or, if in harness, to stdout
 #define TRACE_LEVEL 0   // set to zero to omit all tracing code
 #ifdef IN_HARNESS
-#define TRACE_LEVEL 4   // trace level override for harness
+#define TRACE_LEVEL 5   // trace level override for harness
 #endif
 #define TRACE_TO_WINDOW false    // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout

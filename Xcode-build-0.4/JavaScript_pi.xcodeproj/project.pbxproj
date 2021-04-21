@@ -320,6 +320,7 @@
 		EADD871A25D0622800ACEFE6 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EADD871225D0622800ACEFE6 /* libwx_baseu_net-3.1.dylib */; };
 		EAFD5FED26304D9B00D1C9C4 /* functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EAFD5FEC26304D9B00D1C9C4 /* functions.cpp */; };
 		EAFD600C2630902B00D1C9C4 /* LexSML.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 34663BA6AA4C4EFCADC77656 /* LexSML.cxx */; };
+		EAFD6017263092B900D1C9C4 /* functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EAFD5FEC26304D9B00D1C9C4 /* functions.cpp */; };
 		EC0DD17F31BD4F47B96F40F0 /* LexCPP.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A95F6724A87848F9A8E4D636 /* LexCPP.cxx */; };
 		ED90F8A9ECC0412EB5604C23 /* KeyMap.cxx in Sources */ = {isa = PBXBuildFile; fileRef = A1F36D5E95BF43F3A0B72C10 /* KeyMap.cxx */; };
 		F3AF36E17A084AF6A8709BA9 /* LexECL.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 3EF85C0B158E4BAAAEE5C76A /* LexECL.cxx */; };
@@ -2368,6 +2369,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EAFD6017263092B900D1C9C4 /* functions.cpp in Sources */,
 				EA96BF2125E4580D003A9F66 /* toolsDialogImp.cpp in Sources */,
 				EADD86FC25D0618000ACEFE6 /* Test_harness.cpp in Sources */,
 				EADD86E725D0617300ACEFE6 /* JSExtensions.cpp in Sources */,

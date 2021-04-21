@@ -154,7 +154,7 @@ bool JavaScript_pi::DeInit(void) {
         if (pConsole->m_exitFunction != wxEmptyString){
             // there is an onExit function to run
             duk_int_t outcome;
-            TRACE(4, "Deinit running onExit function for console ", pConsole->mConsoleName);
+            TRACE(4, "Deinit running onExit function for console " + pConsole->mConsoleName);
             outcome = duk_get_global_string(pConsole->mpCtx, pConsole->m_exitFunction.c_str()); // make sure function exists
             if (outcome) duk_pcall(pConsole->mpCtx, 0); // only call it if it exists and no arguments
             // don't bother checking for errors - we will not be around to do anything with them
@@ -409,6 +409,9 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
         if (outcome == ERROR) {
             m_pConsole->wrapUp(ERROR);
             }
+        else if (outcome == DONE) {
+            m_pConsole->wrapUp(DONE);
+            }
         }   // end for this console
     }
 
@@ -507,6 +510,9 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + _(" ") + m_pConsole->consoleDump());
             if (outcome == ERROR){
                 m_pConsole->wrapUp(ERROR);
+                }
+            else if (outcome == DONE) {
+                m_pConsole->wrapUp(DONE);
                 }
             }
         }
