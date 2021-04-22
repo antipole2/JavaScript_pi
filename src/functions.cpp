@@ -225,7 +225,7 @@ wxString statusesToString(status_t mStatus){
     return
     (mStatus.test(CLOSE)?_("CLOSE "):_("")) +
     (mStatus.test(DONE)?_("DONE "):_("")) +
-    (mStatus.test(ERROR)?_("ERROR "):_("")) +
+    (mStatus.test(HAD_ERROR)?_("HAD_ERROR "):_("")) +
     (mStatus.test(MORE)?_("MORE "):_("")) +
     (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
     (mStatus.test(TOCHAIN)?_("TOCHAIN "):_(""));

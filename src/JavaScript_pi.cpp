@@ -310,7 +310,7 @@ bool JavaScript_pi::LoadConfig(void)
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
                     alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
-                    autoRun = pConf->Read ( name + _T ( ":AutoRun" ), false );
+                    autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     new Console(m_parent_window, name, consolePosition, dialogPosition, alertPosition, fileString, autoRun);
                     }
                 }
@@ -350,7 +350,7 @@ bool JavaScript_pi::SaveConfig(void)
             pConf->Write (nameColon + _T ( "DialogPosY" ),   pConsole->mDialog.position.y);
             pConf->Write (nameColon + _T ( "AlertPosX" ),   pConsole->mAlert.position.x );
             pConf->Write (nameColon + _T ( "AlertPosY" ),   pConsole->mAlert.position.y);
-            pConf->Write (nameColon + _T ( "AutoRun" ),   pConsole->auto_run->GetValue());
+            pConf->Write (nameColon + _T ( "AutoRun" ),   (pConsole->auto_run->GetValue())?"1":"0");
             pConf->Write (nameColon + _T ("LoadFile"),  pConsole->m_fileStringBox->GetValue());
             }
         pConf->Write (_T ("Consoles"),  consoleNames);
@@ -406,8 +406,8 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
         duk_push_boolean(ctx, OK);
         duk_put_prop_literal(ctx, -2, "OK");
         outcome = m_pConsole->executeFunction(thisFunction);
-        if (outcome == ERROR) {
-            m_pConsole->wrapUp(ERROR);
+        if (outcome == HAD_ERROR) {
+            m_pConsole->wrapUp(HAD_ERROR);
             }
         else if (outcome == DONE) {
             m_pConsole->wrapUp(DONE);
@@ -454,7 +454,6 @@ void JavaScript_pi::OnTimer(wxTimerEvent& tick){
                             duk_push_string(ctx, argument.c_str());
                             outcome = pConsole->executeFunction(thisFunction);
                             if (outcome == MORE) continue;
-//                            if (pConsole->mStatus.test(MORE)) continue;
                             else {
                                 i = 99999;  // this will stop us looking for further timers on this console
                                 pConsole->wrapUp(outcome);
@@ -508,8 +507,8 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             TRACE(3, "Will execute function " + m_pConsole->dukDump());
             outcome = m_pConsole->executeFunction(thisFunction);
             TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + _(" ") + m_pConsole->consoleDump());
-            if (outcome == ERROR){
-                m_pConsole->wrapUp(ERROR);
+            if (outcome == HAD_ERROR){
+                m_pConsole->wrapUp(HAD_ERROR);
                 }
             else if (outcome == DONE) {
                 m_pConsole->wrapUp(DONE);

@@ -71,7 +71,7 @@ enum {
 
 // declare completion states
 enum Completions {
-    ERROR,
+    HAD_ERROR,  // avoid 'ERROR' - conflicts with "ERROR" defined in "wingdi.h", a Windows file
     DONE,
     STOPPED,
     MORE,
@@ -322,7 +322,7 @@ public:
         wxString getStringFromDuk(duk_context *ctx);
         
         TRACE(3, this->mConsoleName + "->run() entered");
-        if (script == wxEmptyString) return ERROR;  // ignore
+        if (script == wxEmptyString) return HAD_ERROR;  // ignore
         
         // initialise
         mStatus = 0;
@@ -347,7 +347,7 @@ public:
         mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
         if (!mpCtx) {
         	message(STYLE_RED, _("Plugin logic error: Duktape failed to create heap"));
-            return ERROR;
+            return HAD_ERROR;
             }
         duk_extensions_init(mpCtx);  // register our own extensions
         ocpn_apis_init(mpCtx);       // register our API extensions
@@ -369,7 +369,7 @@ public:
             wxString formErrorMessage(duk_context *ctx);
             m_result = formErrorMessage(mpCtx);
             duk_pop(mpCtx);
-            return ERROR;
+            return HAD_ERROR;
             }
        mWaitingCached = false;   // now we are past those cases, get a re-check
         result = getStringFromDuk(mpCtx);
@@ -384,12 +384,12 @@ public:
             if (
                 functionMissing(m_NMEAmessageFunction) ||
                 functionMissing(mDialog.functionName))
-                outcome = ERROR;;
+                outcome = HAD_ERROR;;
             if (!mTimes.IsEmpty()){
                 // has set up one or more timers - check them out
                 int count = (int)mTimes.GetCount();
                 for (int i = 0; i < count; i++)
-                    if (functionMissing(mTimes[i].functionName)) outcome = ERROR;
+                    if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
                 }
             duk_pop(mpCtx);   // the global object
             }
@@ -424,7 +424,7 @@ public:
         if (!outcome){ // failed to find the function
             m_result = _("Logic error: ") + mConsoleName + _("->executeFunction - no function ") + function;
             duk_pop(ctx);
-            return ERROR;
+            return HAD_ERROR;
             }
         duk_swap_top(ctx, -2); // the argument needs to be above the function
         Console *findConsoleByCtx(duk_context *ctx); // ******
@@ -447,7 +447,7 @@ public:
              wxString formErrorMessage(duk_context *ctx);
              m_result = formErrorMessage(mpCtx);
              duk_pop(mpCtx);
-             return ERROR;
+             return HAD_ERROR;
             }
         duk_pop(ctx);  // result
         mWaitingCached = false; // function may have changed something
@@ -458,20 +458,20 @@ public:
         // this is implemented as a method so we can lazy-call a fuction with CallAfter
         wxString functionName;
         ConsoleCallbackAwaited thisConsoleCallback;
-        TRACE(4, mConsoleName + "->doExecuteFunction " + result.functionName + " with " + result.result + " reason " + ((result.resultType == ERROR)?"ERROR":((result.resultType == MORE)?"MORE":((result.resultType == STOPPED)?"STOPPED":((result.resultType == DONE)?"DONE":"unknown")))));
+        TRACE(4, mConsoleName + "->doExecuteFunction " + result.functionName + " with " + result.result + " reason " + ((result.resultType == HAD_ERROR)?"HAD_ERROR":((result.resultType == MORE)?"MORE":((result.resultType == STOPPED)?"STOPPED":((result.resultType == DONE)?"DONE":"unknown")))));
 #if 0   // Not implementing automatic throw of calling console
-        if (result.resultType == ERROR){
+        if (result.resultType == HAD_ERROR){
             // the other script threw an error - so we will simulate this for the invoking script
             m_result = _("onConsoleResult -") +_(" other script threw error ") + result.result;
-            wrapUp(ERROR);
+            wrapUp(HAD_ERROR);
             return;
             }
 #endif
         mConsoleCallbacksAwaited--;
 #if 0   // Passing error through to function, so not here
-        if (result.resultType == ERROR){
+        if (result.resultType == HAD_ERROR){
             message(STYLE_RED, _("onConsoleResult - Console ") + thisConsoleCallback.consoleName + _("threw error ") + result.result);
-            wrapUp(ERROR);
+            wrapUp(HAD_ERROR);
             }
 #endif
         // ready to invoke function and give it an object we will construct here
@@ -570,7 +570,7 @@ public:
         wxString runLabel="Run";
         this->Show();
         if (m_backingOut) message(STYLE_RED, "Script timed out");
-        else if (mStatus.test(ERROR)) this->message(STYLE_RED,  this->m_result);
+        else if (mStatus.test(HAD_ERROR)) this->message(STYLE_RED,  this->m_result);
         else {
             if (!this->m_explicitResult && this->m_result == wxEmptyString)this->m_result = "undefined";
             if (!this->m_explicitResult || this->m_result != wxEmptyString)
@@ -626,7 +626,7 @@ public:
                 duk_push_string(mpCtx, ""); // next bit expects an argument - put anything there
                 outcome = executeFunction(m_exitFunction);
                 m_exitFunction = wxEmptyString; // only once
-                if (outcome == ERROR){
+                if (outcome == HAD_ERROR){
                     // error during exit function
                     this->message(STYLE_RED,  this->m_result);
                     }
