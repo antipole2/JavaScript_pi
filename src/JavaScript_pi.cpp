@@ -409,7 +409,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
         if (outcome == HAD_ERROR) {
             m_pConsole->wrapUp(HAD_ERROR);
             }
-        else if (outcome == DONE) {
+        else if ((outcome == DONE)||(outcome == STOPPED)) {
             m_pConsole->wrapUp(DONE);
             }
         }   // end for this console
@@ -480,7 +480,8 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     int outcome;
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
-    TRACE(6,"Entered SetPluginMessage");
+    wxString statusesToString(status_t mStatus);
+    TRACE(15,"Entered SetPluginMessage");
     if (message_id == _("OpenCPN Config")){
 //    if (message_id.Cmp(_("OpenCPN Config"))){
         // capture this while we can
@@ -504,13 +505,13 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             m_pConsole->mMessages[index].functionName = wxEmptyString;  // only use once
             if (!ctx) continue; // just in case
             duk_push_string(ctx, message_body.c_str());
-            TRACE(3, "Will execute function " + m_pConsole->dukDump());
+            TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
-            TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + _(" ") + m_pConsole->consoleDump());
+            TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + _(" and result was ") +  statusesToString(m_pConsole->mStatus.set(outcome)));
             if (outcome == HAD_ERROR){
                 m_pConsole->wrapUp(HAD_ERROR);
                 }
-            else if (outcome == DONE) {
+            else if ((outcome == DONE)||(outcome == STOPPED)) {
                 m_pConsole->wrapUp(DONE);
                 }
             }

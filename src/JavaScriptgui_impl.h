@@ -422,6 +422,7 @@ public:
         duk_context *ctx = mpCtx;
         outcome = duk_get_global_string(ctx, function.c_str());
         if (!outcome){ // failed to find the function
+            TRACE(14, "executeFunction failed to find function");
             m_result = _("Logic error: ") + mConsoleName + _("->executeFunction - no function ") + function;
             duk_pop(ctx);
             return HAD_ERROR;
@@ -515,10 +516,10 @@ public:
     {
         // for efficiencey, we may have a cached result in mWaiting
         if (mWaitingCached) {
-            TRACE(10,mConsoleName + "->isWaiting() returning cached result " + (mWaiting?"true":"false"));
+            TRACE(15,mConsoleName + "->isWaiting() returning cached result " + (mWaiting?"true":"false"));
             return mWaiting;
             }
-        TRACE(10,mConsoleName + "->isWaiting() doing full check");
+        TRACE(15,mConsoleName + "->isWaiting() doing full check");
         bool result = false;
         int count;
         if (
@@ -814,7 +815,6 @@ public:
         dump += "mRunningMain:\t\t" + (this->mRunningMain?_("true"):_("false")) + "\n";
         dump += "m_backingOut:\t\t" + (this->m_backingOut?_("true"):_("false")) + "\n";
         dump += "mWaitingCached:\t\t" + (this->mWaitingCached?_("true"):_("false")) + "\n";
-        dump += "mWaiting:\t\t\t" + (this->mWaiting?_("true"):_("false")) + "\n";
         dump += "mWaiting:\t\t\t" + (this->mWaiting?_("true"):_("false")) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
