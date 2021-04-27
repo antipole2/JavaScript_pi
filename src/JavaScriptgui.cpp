@@ -51,9 +51,11 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	bSizer10->Add( auto_run, 0, wxALL, 5 );
 
 
-	bSizer10->Add( 0, 0, 1, wxEXPAND, 5 );
+	bSizer10->Add( 0, 0, 1, 0, 0 );
 
-	tools_button = new wxButton( m_panel1, wxID_ANY, wxT("🛠"), wxDefaultPosition, wxSize( 25,-1 ), wxBORDER_NONE );
+	tools_button = new wxButton( m_panel1, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxSize( 38,-1 ), wxBORDER_NONE );
+	tools_button->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
 	bSizer10->Add( tools_button, 0, wxALL, 5 );
 
 
