@@ -100,7 +100,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	DirectorySizer->Add( 130, 0, 1, wxEXPAND, 5 );
 
-	mDirectoryChangeButton = new wxButton( DirectorySizer->GetStaticBox(), wxID_ANY, wxT("Change…"), wxDefaultPosition, wxDefaultSize, 0 );
+	mDirectoryChangeButton = new wxButton( DirectorySizer->GetStaticBox(), wxID_ANY, wxT("Change..."), wxDefaultPosition, wxDefaultSize, 0 );
 	mDirectoryChangeButton->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNTEXT ) );
 
 	DirectorySizer->Add( mDirectoryChangeButton, 0, wxALL, 5 );

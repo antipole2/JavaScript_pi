@@ -19,7 +19,7 @@ control.push({type:"caption", value:"Test control"});
 control.push({type:"text", value:"Run the tests from here"});
 control.push({type:"button", label:["Run all", "Quit"]});	// the Run all button
 control.push({type:"hLine"});
-control.push({type:"text", value:"or run indivually…"});
+control.push({type:"text", value:"or run indivually..."});
 
 tests = [ // test table format
 	// (0) Test name	(1) function to run	(2) script name (3) max seconds to wait (4) expected last line of output
