@@ -17,25 +17,25 @@
 void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
         // markers
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDER, wxSTC_MARK_BOXPLUS);
-        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDER, wxColour (wxT("BLACK")));
-        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDER, wxColour (wxT("WHITE")));
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDER, wxColour ("BLACK"));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDER, wxColour ("WHITE"));
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDEROPEN, wxSTC_MARK_BOXMINUS);
-        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEROPEN, wxColour (wxT("BLACK")));
-        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEROPEN, wxColour (wxT("WHITE")));
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEROPEN, wxColour ("BLACK"));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEROPEN, wxColour ("WHITE"));
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDERSUB, wxSTC_MARK_EMPTY);
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDEREND, wxSTC_MARK_BOXPLUS);
-        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEREND, wxColour (wxT("BLACK")));
-        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEREND, wxColour (wxT("WHITE")));
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEREND, wxColour ("BLACK"));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEREND, wxColour ("WHITE"));
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDEROPENMID, wxSTC_MARK_BOXMINUS);
-        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEROPENMID, wxColour (wxT("BLACK")));
-        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEROPENMID, wxColour (wxT("WHITE")));
+        pane->MarkerSetBackground (wxSTC_MARKNUM_FOLDEROPENMID, wxColour ("BLACK"));
+        pane->MarkerSetForeground (wxSTC_MARKNUM_FOLDEROPENMID, wxColour ("WHITE"));
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDERMIDTAIL, wxSTC_MARK_EMPTY);
         pane->MarkerDefine (wxSTC_MARKNUM_FOLDERTAIL, wxSTC_MARK_EMPTY);
         pane->SetMarginType (1, wxSTC_MARGIN_SYMBOL);
         pane->SetMarginMask (1, wxSTC_MASK_FOLDERS);
         pane->SetMarginWidth (1, 16);
         pane->SetMarginSensitive (1, true);
-        pane->SetProperty( wxT("fold"), wxT("1") );
+        pane->SetProperty( "fold", "1" );
         pane->SetFoldFlags( wxSTC_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSTC_FOLDFLAG_LINEAFTER_CONTRACTED );
         pane->SetMarginWidth( 1, 0 );
         pane->SetMarginWidth( 2, 0 );

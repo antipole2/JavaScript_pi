@@ -712,7 +712,7 @@ public:
         int messageComp(MessagePair** arg1, MessagePair** arg2);
         
         size_t messageCount = mMessages.GetCount();
-        int index = 0;
+        unsigned int index = 0;
         if (messageCount == 0){
             // it's empty
             newPair.messageName = thisMessage;
@@ -835,7 +835,7 @@ public:
                 dump += _("\t") + mTimes[i].timeToCall.FormatTime() + "\t" + this->mTimes[i].functionName +_("\t") + this->mTimes[i].argument + _("\n");
                 }
             }
-        dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format(wxT("Active with %d elements"),  this->mDialog.dialogElementsArray.size()) ) + "\n";
+        dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format("Active with %d elements",  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
         dump += "m_exitFunction:\t" + m_exitFunction + "\n";

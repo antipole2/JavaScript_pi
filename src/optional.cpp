@@ -219,7 +219,7 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     duk_pop_2(ctx); // first and second args
     pConsole = findConsoleByName(consoleName);
     if (pConsole->mRunningMain || pConsole->isWaiting())
-        pCallingConsole->throw_error(ctx, _("onConsoleResult target console " + pConsole->mConsoleName + " is busy"));
+        pCallingConsole->throw_error(ctx, "onConsoleResult target console " + pConsole->mConsoleName + " is busy");
     if (pCallingConsole->mConsoleCallbacksAwaited > MAX_TIMERS){
         pCallingConsole->throw_error(ctx, "onConsoleResult error: already have maximum callbacks outstanding");
         }

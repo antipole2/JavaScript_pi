@@ -33,10 +33,10 @@ WX_DEFINE_LIST(Plugin_WaypointList);
     
 };
 wxString getNames[] = {
-    _("NEW"),
-    _("WAYPOINTS_ARRAY"),
-    _("WAYPOINT_SELECTED"),
-    _("ROUTE_SELECTED"),
+    "NEW",
+    "WAYPOINTS_ARRAY",
+    "WAYPOINT_SELECTED",
+    "ROUTE_SELECTED",
 };
  */
 /* end of OPCNgetGUID options */
@@ -355,7 +355,7 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
              for(wxString::const_iterator i = sentence.begin()+1; i != sentence.end() && *i != '*'; ++i)
                  calculated_checksum ^= static_cast<unsigned char> (*i);
 
-            return( wxString::Format(_("%02X"), calculated_checksum) );
+            return( wxString::Format("%02X", calculated_checksum) );
         }
     };
     
@@ -370,9 +370,9 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
         wxString Checksum = ComputeChecksum(sentence);
-        sentence = sentence.Append(wxT("*"));
+        sentence = sentence.Append("*");
         sentence = sentence.Append(Checksum);
-        sentence = sentence.Append(wxT("\r\n"));
+        sentence = sentence.Append("\r\n");
         PushNMEABuffer(sentence);
         return(result);
     }
@@ -854,19 +854,19 @@ static duk_ret_t getVectorPP(duk_context *ctx) {
         duk_idx_t from_idx {0};
         duk_idx_t to_idx {1};
         duk_get_prop_literal(ctx, from_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetVectorPP from latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetVectorPP from latitude is missing or invalid");
         fromLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, from_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetVectorPP from longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetVectorPP from longitude is missing or invalid");
         fromLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetVectorPP to latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetVectorPP to latitude is missing or invalid");
         toLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetVectorPP to longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetVectorPP to longitude is missing or invalid");
         toLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_pop_2(ctx); // pop off both args
@@ -887,19 +887,19 @@ static duk_ret_t getPositionPV(duk_context *ctx) {
         duk_idx_t vector_idx {1};
 
         duk_get_prop_literal(ctx, pos_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OCPNgetPositionPV latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNgetPositionPV latitude is missing or invalid");
         fromLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, pos_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OCPNgetPositionPV  longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNgetPositionPV  longitude is missing or invalid");
         fromLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, vector_idx, "bearing");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OCPNgetPositionPV bearing is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNgetPositionPV bearing is missing or invalid");
         bearing = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, vector_idx, "distance");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OCPNgetPositionPV distance is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNgetPositionPV distance is missing or invalid");
         distance = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_pop_2(ctx); // pop off both arguments
@@ -918,19 +918,19 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
         duk_idx_t from_idx {0};
         duk_idx_t to_idx {1};
         duk_get_prop_literal(ctx, from_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetGCdistance first latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetGCdistance first latitude is missing or invalid");
         firstLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, from_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetGCdistance first longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetGCdistance first longitude is missing or invalid");
         firstLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "latitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetGCdistance second latitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetGCdistance second latitude is missing or invalid");
         secondLat = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_get_prop_literal(ctx, to_idx, "longitude");
-        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, _("OPNgetGCdistance second longitude is missing or invalid"));
+        if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OPNgetGCdistance second longitude is missing or invalid");
         secondLon = duk_get_number(ctx, -1);
         duk_pop(ctx);
         duk_pop_2(ctx); // pop off both args

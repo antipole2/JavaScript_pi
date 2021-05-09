@@ -24,7 +24,7 @@
 
 #define     MY_API_VERSION_MAJOR    1
 #define     MY_API_VERSION_MINOR    16  // was 7
-#define     PLUGIN_VERSION_DATE "2021:04:28"
+#define     PLUGIN_VERSION_DATE "2021:05:09"
 #define     PLUGIN_VERSION_COMMENT ""
 
 enum Options{

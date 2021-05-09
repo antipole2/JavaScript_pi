@@ -32,23 +32,23 @@ void fatal_error_handler(void *udata, const char *msg) {
  }
 
  wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
-     const wxString reverseQuote { "\u201B"};
-     const wxString leftQuote    { "\u201C"};
-     const wxString rightQuote   {"\u201D"};
-     const wxString leftDQuote   {"\u201F"}; // left double quote seen but not in UNICODE table
+     const wxString reverseQuote { _("\u201B")};
+     const wxString leftQuote    { _("\u201C")};
+     const wxString rightQuote   {_("\u201D")};
+     const wxString leftDQuote   {_("\u201F")}; // left double quote seen but not in UNICODE table
      
- //  const wxString quote        {"\u0022"};
-     const wxString quote        {"\""};
-     const wxString accute       {"\u00B4"};
-     const wxString rightSquote  {"\u2019"};    // right single quote
-     const wxString leftSquote  {"\u2018"};    // right single quote
- //  const wxString apostrophe   {"\u0027"};
-     const wxString apostrophe   {"\'"};
-     const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
-     const wxString degree       {"\u00B0"};
-     const wxString backprime    {"\u0060"}; // not in UNICODE but showing up on Mac
+ //  const wxString quote        {_("\u0022")};
+     const wxString quote        {_("\"")};
+     const wxString accute       {_("\u00B4")};
+     const wxString rightSquote  {_("\u2019")};    // right single quote
+     const wxString leftSquote  {_("\u2018")};    // right single quote
+ //  const wxString apostrophe   {_("\u0027")};
+     const wxString apostrophe   {_("\'")};
+     const wxString ordinal      {_("\u00BA")};  // masculine ordinal indicator - like degree
+     const wxString degree       {_("\u00B0")};
+     const wxString backprime    {_("\u0060")}; // not in UNICODE but showing up on Mac
  #ifndef __WXMSW__   // Don't try this one on Windows
-     const wxString prime        {"\u2032"};
+     const wxString prime        {_("\u2032")};
      given.Replace(prime, apostrophe, true);
  #endif  // __WXMSW__
      given.Replace(leftQuote, quote, true);
@@ -67,9 +67,9 @@ void fatal_error_handler(void *udata, const char *msg) {
  #ifdef __WXMSW__
  wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
      // As far as we know this only occurs with º symbol on Windows
-     const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
-     const wxString A_stringOrd{ "\u00C2\u00ba"};    // Â ordinal
-     given.Replace(A_stringDeg, "\u00b0", true);
+     const wxString A_stringDeg{ _("\u00C2\u00b0")};    // Âº
+     const wxString A_stringOrd{ _("\u00C2\u00ba")};    // Â ordinal
+     given.Replace(A_stringDeg, _("\u00b0"), true);
      return (given);
      }
  #endif
@@ -78,16 +78,16 @@ void fatal_error_handler(void *udata, const char *msg) {
      // gets a string safely from top of duk stack and fixes º-symbol for Windose
      wxString string = wxString(duk_to_string(ctx, -1));
  #ifdef __WXMSW__
-     const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
-     string.Replace(A_stringDeg, "\u00b0", true);
+     const wxString A_stringDeg{ _("\u00C2\u00b0")};    // Âº
+     string.Replace(A_stringDeg, _("\u00b0"), true);
  #endif
      return string;
      }
 
 wxString ptrToString(Console* address){
     // format pointer to string
-    if (address == nullptr) return "nullptr";
-    return wxString::Format("%#012x", address);
+    if (address == nullptr) return _("nullptr");
+    return wxString::Format(_("%#012x"), address);
 }
 
 Console* pConsoleBeingTimed {nullptr};  // no other way of finding which console - only one at a time?
@@ -140,7 +140,7 @@ Console *findConsoleByCtx(duk_context *ctx){
         if (m_pConsole->mpCtx == ctx) return m_pConsole;
         }
     // failed to match - emit an error message to first console
-    throwErrorByCtx(ctx, "findConsoleByCtx logic error - failed to match ctx");
+    throwErrorByCtx(ctx, _("findConsoleByCtx logic error - failed to match ctx"));
     return m_pConsole;  // This to keep compiler happy
 }
 
@@ -154,14 +154,14 @@ wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
     // extract function name from call on stack
     // This does not work if in method in class not substantiated, so is here
     
-    wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), " (");
+    wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), _(" ("));
     if (tokens.GetNextToken() != "function") {
         throwErrorByCtx(ctx, "on.. error: must supply function name");
         }
     return (tokens.GetNextToken());
     }
 
-#if TRACE_TO_WINDOW 
+#if TRACE_TO_WINDOW
 wxWindow *traceWindow;
 wxTextCtrl *traceTextCtrl {nullptr};
 void windowTrace(int level, wxString text){
@@ -172,7 +172,7 @@ void windowTrace(int level, wxString text){
         wxPoint position;
         position.y = 100;
         position.x = pJavaScript_pi->m_display_width-traceWindowWidth;
-        traceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, wxSize(traceWindowWidth, 600), wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
+        traceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,_("JavaScript plugin trace"), position, wxSize(traceWindowWidth, 600), wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
         traceTextCtrl = new wxTextCtrl(traceWindow, wxID_NEW,
                               wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                               wxTE_MULTILINE);
@@ -230,12 +230,12 @@ Console* findConsoleByName(wxString name){
 wxString statusesToString(status_t mStatus){
     // returns the statuses in status as string
     return
-       (mStatus.test(CLOSE)?_("CLOSE "):_("")) +
-           (mStatus.test(DONE)?_("DONE "):_("")) +
-           (mStatus.test(HAD_ERROR)?_("HAD_ERROR "):_("")) +
-           (mStatus.test(MORE)?_("MORE "):_("")) +
-           (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
-           (mStatus.test(TOCHAIN)?_("TOCHAIN "):_(""));
+    (mStatus.test(CLOSE)?_("CLOSE "):_("")) +
+    (mStatus.test(DONE)?_("DONE "):_("")) +
+    (mStatus.test(HAD_ERROR)?_("HAD_ERROR "):_("")) +
+    (mStatus.test(MORE)?_("MORE "):_("")) +
+    (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
+    (mStatus.test(TOCHAIN)?_("TOCHAIN "):_(""));
     }
 
 #include "wx/regex.h"
@@ -262,7 +262,7 @@ wxString formErrorMessage(duk_context *ctx){
             TRACE(4, "wholeLine:" + parse.GetMatch(line, 0));
             func = parse.GetMatch(line, 1);
             lineNumber = parse.GetMatch(line, 2);
-            func = (func == "eval")?"":(func+" "); // drop eval as function name
+            func = (func == _("eval"))?"":(func+" "); // drop eval as function name
             message = func + "line " + lineNumber + " " + error;
             }
         while ( tokenizer.HasMoreTokens()){ // prepare tracebck if any
@@ -270,7 +270,7 @@ wxString formErrorMessage(duk_context *ctx){
             if (parse.Matches(line)){
                 func = parse.GetMatch(line, 1);
                 lineNumber = parse.GetMatch(line, 2);
-                func = (func == "eval")?"":(" " + func); // drop eval as function name
+                func = (func == _("eval"))?"":(" " + func); // drop eval as function name
                 message += "\ncalled from" + func + " line " + lineNumber;
                 }
             }
@@ -309,7 +309,7 @@ wxString errorTrace(wxString stack){
 //#if DUKDUMP
 wxString dukdump_to_string(duk_context* ctx){
     duk_push_context_dump(ctx);
-    wxString result = "Duktape context dump:\n"+wxString(duk_to_string(ctx, -1))+"\n";
+    wxString result = _("Duktape context dump:\n")+wxString(duk_to_string(ctx, -1))+_("\n");
     duk_pop(ctx);
     return result;
     }

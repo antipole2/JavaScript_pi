@@ -16,7 +16,6 @@
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
 #include "ocpn_duk.h"
-#include "version.h"
 #include <string>
 
 /*  On hold for now - cannot find a way of handling the variable arguments

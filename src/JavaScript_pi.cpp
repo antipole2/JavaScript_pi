@@ -107,10 +107,10 @@ int JavaScript_pi::Init(void)
 #ifndef IN_HARNESS
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
-            wxITEM_CHECK, _("JavaScript"), _T(""), NULL, CONSOLE_POSITION, 0, this);
+            wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);
 #else
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
-                                           _("JavaScript"), _T(""), NULL,
+                                           "JavaScript", _T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
 #endif // JavaScript_USE_SVG
 #endif // IN_HARNESS
@@ -140,14 +140,14 @@ bool JavaScript_pi::DeInit(void) {
      mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
     
     SaveConfig();
-/*
+
     if (pTools) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
         pTools->Hide();
         pTools->Close();
         pTools = nullptr;
         }
- */
+
     while (mpFirstConsole) {    // close all remaining consoles
         TRACE(3,"JavaScript plugin DeInit closing console " + mpFirstConsole->mConsoleName);
         pConsole = mpFirstConsole;
@@ -210,19 +210,19 @@ wxBitmap *JavaScript_pi::GetPlugInBitmap()
 
 wxString JavaScript_pi::GetCommonName()
 {
-    return _("JavaScript");
+    return "JavaScript";
 }
 
 
 wxString JavaScript_pi::GetShortDescription()
 {
-    return _("Providing JavaScript support");
+    return "Providing JavaScript support";
 }
 
 wxString JavaScript_pi::GetLongDescription()
 {
-    return _("Allows running of JavaScript\n\
-             provided in a file");
+    return "Allows running of JavaScript\n\
+             provided in a file";
 }
 
 int JavaScript_pi::GetToolbarToolCount(void)
@@ -282,7 +282,7 @@ bool JavaScript_pi::LoadConfig(void)
             pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
-            mpFirstConsole = new Console(m_parent_window, _("JavaScript"));
+            mpFirstConsole = new Console(m_parent_window, "JavaScript");
             mpFirstConsole->Show();
             }
         else {
@@ -292,10 +292,10 @@ bool JavaScript_pi::LoadConfig(void)
             // create consoles as in config file
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configued
-                new Console(m_parent_window, _("JavaScript"));
+                new Console(m_parent_window, "JavaScript");
                 }
             else {
-                wxStringTokenizer tkz(consoles, _(":"));
+                wxStringTokenizer tkz(consoles, ":");
                 mpFirstConsole = nullptr;
                 while ( tkz.HasMoreTokens() ){
                     wxPoint consolePosition, dialogPosition, alertPosition;
@@ -341,8 +341,8 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
             name = pConsole->mConsoleName;
-            nameColon = name + _(":");
-            consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? _(""):_(":")) + name;
+            nameColon = name + ":";
+            consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
             wxPoint p = pConsole->GetPosition();
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   p.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   p.y );
@@ -376,7 +376,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             unsigned char calculated_checksum = 0;
             for(wxString::const_iterator i = sentence.begin()+1; i != sentence.end() && *i != '*'; ++i)
                 calculated_checksum ^= static_cast<unsigned char> (*i);
-            return( wxString::Format(_("%02X"), calculated_checksum) );
+            return( wxString::Format("%02X", calculated_checksum) );
             }
         };
     bool haveDoneChecksum = false;
@@ -482,8 +482,8 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     extern JavaScript_pi *pJavaScript_pi;
     wxString statusesToString(status_t mStatus);
     TRACE(15,"Entered SetPluginMessage");
-    if (message_id == _("OpenCPN Config")){
-//    if (message_id.Cmp(_("OpenCPN Config"))){
+    if (message_id == "OpenCPN Config"){
+//    if (message_id.Cmp("OpenCPN Config")){
         // capture this while we can
         TRACE(4, "Captured openCPNConfig");
         openCPNConfig = message_body;
@@ -501,13 +501,13 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
         if (thisFunction != wxEmptyString){
             // have function to be invoked
             m_pConsole->mMessages[index].functionName = wxEmptyString;  // do not call again
-            TRACE(3, "About to process message for console " + m_pConsole->mConsoleName + _(" ") + m_pConsole->consoleDump());
+            TRACE(3, "About to process message for console " + m_pConsole->mConsoleName + " " + m_pConsole->consoleDump());
             m_pConsole->mMessages[index].functionName = wxEmptyString;  // only use once
             if (!ctx) continue; // just in case
             duk_push_string(ctx, message_body.c_str());
             TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
-            TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + _(" and result was ") +  statusesToString(m_pConsole->mStatus.set(outcome)));
+            TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));
             if (outcome == HAD_ERROR){
                 m_pConsole->wrapUp(HAD_ERROR);
                 }
@@ -522,7 +522,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
 //void JavaScript_pi::ShowToolsDialog(wxWindow *m_parent_window ){
 void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
     if (pTools != nullptr) return;    // ignore if already open
-    pTools = new ToolsClass(m_parent_window, wxID_ANY, _("JavaScript Tools"));
+    pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
     // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
     // tools distructor, so will store its address in the preference for later access.
     pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!

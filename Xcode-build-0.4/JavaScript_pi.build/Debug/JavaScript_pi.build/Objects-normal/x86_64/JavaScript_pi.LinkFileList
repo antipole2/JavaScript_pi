@@ -1,5 +1,3 @@
-/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexSML.o
-/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/functions.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/ScintillaWX.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexA68k.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexAPDL.o
@@ -76,7 +74,6 @@
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexPascal.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexPerl.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexPowerPro.o
-/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/optional.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexPowerShell.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexProgress.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexProps.o
@@ -86,6 +83,7 @@
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexRegistry.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexRuby.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexRust.o
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexSML.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexSQL.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexSTTXT.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/LexScriptol.o
@@ -152,7 +150,9 @@
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/JavaScriptgui.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/JavaScriptgui_impl.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/OPCNapis.o
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/duktape.o
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/functions.o
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/icons.o
+/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/optional.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/toolsDialogGui.o
 /Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/toolsDialogImp.o
-/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/duktape.o
-/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/Xcode-build-0.4/JavaScript_pi.build/Debug/JavaScript_pi.build/Objects-normal/x86_64/icons.o

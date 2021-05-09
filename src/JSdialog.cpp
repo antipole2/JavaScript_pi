@@ -42,7 +42,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
     window = button->GetParent();
     ctx = pConsole->mpCtx;
     if (ctx == nullptr){
-        pConsole->message(STYLE_RED, _("Plugin logic error: onButton invoked with no ctx context\n"));
+        pConsole->message(STYLE_RED, "Plugin logic error: onButton invoked with no ctx context\n");
         return;
         }
     functionName = pConsole->mDialog.functionName;
@@ -141,7 +141,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         TRACE(4,pConsole->mConsoleName + " Button processing - back from function");
         if (result != MORE) pConsole->wrapUp(result);
         }
-    else pConsole->throw_error(ctx, _("JavaScript onDialogue data validation failed"));
+    else pConsole->throw_error(ctx, "JavaScript onDialogue data validation failed");
     }
 
 // create the dialog  *********************************
@@ -182,7 +182,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     duk_require_function(ctx, -2);  // first arugment must be function
     
     // ready to create new dialogue
-    dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript dialogue"), pConsole->mDialog.position, wxDefaultSize,
+    dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue", pConsole->mDialog.position, wxDefaultSize,
             wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
@@ -206,7 +206,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         wxFont font = wxFontInfo(fontSize);
         duk_get_prop_index(ctx, -1, i);
         if (duk_get_prop_literal(ctx, -1, "type") == 0)
-            pConsole->throw_error(ctx, wxString::Format(_("onDialog error: array index %i does not have type property"), i));
+            pConsole->throw_error(ctx, wxString::Format("onDialog error: array index %i does not have type property", i));
 
         elementType = duk_get_string(ctx, -1);
         anElement.type = elementType;
@@ -231,14 +231,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 if (duk_get_boolean(ctx, -1)) font.MakeBold();
             duk_pop(ctx);
             } duk_pop(ctx);   // pop off the style
-        if (elementType == _("caption")){
+        if (elementType == "caption"){
             duk_get_prop_literal(ctx, -1, "value");
             value = getStringFromDuk(ctx);
             duk_pop_2(ctx);     // pop off the value string and the element
             dialog->SetTitle(value);
             anElement.stringValue = value;
             }
-        else if (elementType == _("text")){
+        else if (elementType == "text"){
             duk_get_prop_literal(ctx, -1, "value");
             value = getStringFromDuk(ctx);
             duk_pop_2(ctx);     // pop off the value string and the element
@@ -247,11 +247,11 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             staticText->SetFont(font);
             boxSizer->Add(staticText, 0, wxALIGN_LEFT|wxALL, 5);
             }
-        else if (elementType == _("field")){
+        else if (elementType == "field"){
             wxString textValue, label, suffix;
             wxTextCtrl* textCtrl;
             if (duk_get_prop_literal(ctx, -1, "label")){
-                label = getStringFromDuk(ctx) + _(" ");
+                label = getStringFromDuk(ctx) + " ";
                 }
             else label = wxEmptyString;
             duk_pop(ctx);
@@ -273,7 +273,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "suffix")){
-                suffix = _(" ") + getStringFromDuk(ctx);
+                suffix = " " + getStringFromDuk(ctx);
                 }
             else suffix = wxEmptyString;
             duk_pop(ctx);
@@ -286,7 +286,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
-            textCtrl = new wxTextCtrl ( dialog, anElement.itemID, wxT(""), wxDefaultPosition, wxSize(anElement.width,  anElement.height /* 6+fontSize */), anElement.multiLine);
+            textCtrl = new wxTextCtrl ( dialog, anElement.itemID, "", wxDefaultPosition, wxSize(anElement.width,  anElement.height /* 6+fontSize */), anElement.multiLine);
             fieldBox->Add(textCtrl, 0, wxGROW|wxALL, 0);
             textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &pConsole->mDialog.dialogElementsArray[i].textValue));
             staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
@@ -314,7 +314,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             textCtrl->SetFont(font);    // overrid for the field
             duk_pop(ctx);
             }
-        else if (elementType == _("tick")){
+        else if (elementType == "tick"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
                 pConsole->throw_error(ctx, "onDialog error: tick requires value");
                 }
@@ -334,7 +334,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             duk_pop_2(ctx);    // pop off the value string and the element
             }
-        else if (elementType == _("tickList")){
+        else if (elementType == "tickList"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
                 pConsole->throw_error(ctx, "onDialog error: tickList requires value");
                 }
@@ -373,7 +373,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     }
                 }
             }
-        else if (elementType == _("slider")){
+        else if (elementType == "slider"){
             int start, end;
             
             // range attribute
@@ -418,7 +418,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             boxSizer->Add(sliderBox,  0, wxGROW|wxALL, 5);
             duk_pop(ctx);
             }
-        else if (elementType == _("spinner")){
+        else if (elementType == "spinner"){
             int start, end;
             
             // range attribute
@@ -463,7 +463,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             boxSizer->Add(spinnerBox,  0, wxGROW|wxALL, 5);
             duk_pop(ctx);
             }
-        else if (elementType == _("choice")){
+        else if (elementType == "choice"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
                 pConsole->throw_error(ctx, "onDialog error: choice requires value");
                 }
@@ -490,7 +490,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     }
                 }
             }
-        else if (elementType == _("radio")){
+        else if (elementType == "radio"){
             wxString label;
             wxRadioBox *radioBox;
             int numberOfButtons = (int) duk_get_length(ctx, -1);
@@ -522,13 +522,13 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     }
                 }
             }
-        else if (elementType == _("hLine")){
+        else if (elementType == "hLine"){
             anElement.type = elementType;
             wxStaticLine* line = new wxStaticLine ( dialog, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
             boxSizer->Add(line, 0, wxGROW|wxALL, 5);
             duk_pop(ctx);
             }
-        else if (elementType == _("button")){
+        else if (elementType == "button"){
             bool defaultButton;
             wxString label;
             jsButton *button;
@@ -581,7 +581,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         // caller has not upplied a button - create a default one
         wxBoxSizer* buttonBox = new wxBoxSizer(wxHORIZONTAL);
         boxSizer->Add(buttonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-        jsButton* button = new jsButton ( pConsole, dialog, wxNewId(), _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+        jsButton* button = new jsButton ( pConsole, dialog, wxNewId(), "OK", wxDefaultPosition, wxDefaultSize, 0 );
         buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
         }
     dialog->Bind(wxEVT_BUTTON, &onButton, wxID_ANY);

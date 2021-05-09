@@ -24,7 +24,6 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/panel.h>
-#include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
 
@@ -59,10 +58,9 @@ class ToolsClassBase : public wxDialog
 		wxStaticText* m_diagnosticAdvice;
 		wxStaticText* m_dumpPrompt;
 		wxButton* m_dumpButton;
-		wxStaticLine* m_staticline2;
+		wxTextCtrl* m_charsToClean;
 		wxStaticText* m_cleanPrompt;
 		wxButton* m_cleanButton;
-		wxTextCtrl* m_charsToClean;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void onClose( wxCloseEvent& event ) { event.Skip(); }

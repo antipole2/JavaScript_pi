@@ -74,7 +74,7 @@ void Console::OnLoad( wxCommandEvent& event )
         return;
     }
     else if(response == wxID_CANCEL){
-        TRACE(3, _("Load cancelled"));
+        TRACE(3, "Load cancelled");
         return;
     }
 }
@@ -95,13 +95,13 @@ void Console::OnSaveAs( wxCommandEvent& event )
     if( response == wxID_OK ) {
         filePath = SaveAsConsole.GetPath();
 /*
-        if (!filePath.EndsWith(_(".js"))){
-            filePath += _(".js");
+        if (!filePath.EndsWith(".js")){
+            filePath += ".js";
             message(STYLE_ORANGE, "OnSaveAs - file name must end with .js - not saved");
             return;
         }
  */
-        if (!filePath.EndsWith(_(".js"))) filePath += _(".js");
+        if (!filePath.EndsWith(".js")) filePath += ".js";
         m_Script->SaveFile(filePath, wxTEXT_TYPE_ANY);
         m_fileStringBox->SetValue(wxString(filePath));
         auto_run->Show();
@@ -125,7 +125,7 @@ void Console::OnSave( wxCommandEvent& event )
     if ((   mFileString != "") & wxFileExists(   mFileString))
     {  // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
-        TRACE(3, wxString::Format(_("Saved to  %s"),mFileString));
+        TRACE(3, wxString::Format("Saved to  %s",mFileString));
         auto_run->Show();
         return;
     }
@@ -187,18 +187,18 @@ void Console::OnAutoRun(wxMouseEvent& event){   // Auto run tick box
 void Console::OnClose(wxCloseEvent& event)
 {
     extern JavaScript_pi *pJavaScript_pi;
-    TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?_("true"):_("false")));
+    TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
 
     if (event.CanVeto()){
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
             // This is only console - decline
-            this->message(STYLE_RED, _("Console close: You cannot close the only console"));
+            this->message(STYLE_RED, "Console close: You cannot close the only console");
             event.Veto(true);
             return;
             }
         if (!this->m_Script->IsEmpty()) {
             // We will not delete a console with a script
-            this->message(STYLE_RED, _("Console close: clear the script first"));
+            this->message(STYLE_RED, "Console close: clear the script first");
             event.Veto(true);
             return;
             }

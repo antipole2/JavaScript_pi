@@ -34,7 +34,6 @@ tests = [ // test table format
 	{name:"Timer", functionToUse:load, script:"30_timer_tests.js", time:21, result:"Timer tests ended OK"},
 	{name:"Stop main", functionToUse:load, script:"50_stop_main.js", time:1, result:"undefined"},
 	{name:"Stop result", functionToUse:load, script:"52_stop_result_main.js", time:1, result:"Stop result"},
-	{name:"Stop main", functionToUse:load, script:"50_stop_main.js", time:1, result:"undefined"},
 	{name:"Stop callback", functionToUse:load, script:"54_stop_explicit_callback.js", time:3, result:"Explicit stop callback"},
 	{name:"Explicit main explicit stop callback", functionToUse:load, script:"56_result_explicit_callback_stop_explicit.js", time:3, result:"Explicit stop callback"},
 	{name:"Explicit main", functionToUse:load, script:"60_explicit_result_main.js", time:1, result:"Explicit result"},

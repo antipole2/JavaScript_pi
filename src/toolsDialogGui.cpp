@@ -16,7 +16,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* TopSizer;
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
-	TopSizer->SetMinSize( wxSize( 600,600 ) );
+	TopSizer->SetMinSize( wxSize( 620,600 ) );
 	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,190 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
@@ -160,7 +160,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	bNMEAbuttonBoxSizer = new wxBoxSizer( wxHORIZONTAL );
 
 
-	bNMEAbuttonBoxSizer->Add( 0, 0, 1, wxEXPAND, 5 );
+	bNMEAbuttonBoxSizer->Add( 0, 0, 1, 0, 5 );
 
 	m_NMEAReceiveMessageButton = new wxButton( NMEA, wxID_ANY, wxT("Receive"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_NMEAReceiveMessageButton->SetLabelMarkup( wxT("Receive") );
@@ -198,7 +198,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	MessageIDSizer->Add( m_MessageID, 0, wxALL, 5 );
 
 
-	MessageIDSizer->Add( 0, 0, 1, wxEXPAND, 5 );
+	MessageIDSizer->Add( 0, 0, 1, 0, 5 );
 
 	m_receiveMessageButton = new wxButton( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("Receive"), wxDefaultPosition, wxDefaultSize, 0 );
 	MessageIDSizer->Add( m_receiveMessageButton, 1, wxALL, 5 );
@@ -209,6 +209,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* MessageBodySizer1;
 	MessageBodySizer1 = new wxStaticBoxSizer( new wxStaticBox( Message, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
+	MessageBodySizer1->SetMinSize( wxSize( -1,250 ) );
 	m_MessageText11 = new wxStaticText( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("Message"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_MessageText11->Wrap( -1 );
 	m_MessageText11->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
@@ -216,24 +217,27 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	MessageBodySizer1->Add( m_MessageText11, 0, wxALL, 5 );
 
 	m_MessageBody = new wxTextCtrl( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("“Latitude” : 61.234,\n“Longitude\" : -1.234"), wxDefaultPosition, wxSize( 580,250 ), wxTE_MULTILINE|wxTE_WORDWRAP|wxVSCROLL );
+	m_MessageBody->SetMinSize( wxSize( 580,200 ) );
+
 	MessageBodySizer1->Add( m_MessageBody, 0, wxALL, 5 );
 
 
-	MessageSizer->Add( MessageBodySizer1, 0, 0, 5 );
+	MessageSizer->Add( MessageBodySizer1, 0, wxFIXED_MINSIZE, 5 );
 
 
 	Message->SetSizer( MessageSizer );
 	Message->Layout();
 	m_notebook->AddPage( Message, wxT("Message"), false );
-	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,295 ), wxTAB_TRAVERSAL );
+	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
 	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* DiagnosticsTpSizer;
 	DiagnosticsTpSizer = new wxBoxSizer( wxVERTICAL );
 
+	DiagnosticsTpSizer->SetMinSize( wxSize( -1,250 ) );
 	wxStaticBoxSizer* diagnosticAdviceSizer;
-	diagnosticAdviceSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxT("label") ), wxVERTICAL );
+	diagnosticAdviceSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
 	m_diagnosticAdvice = new wxStaticText( diagnosticAdviceSizer->GetStaticBox(), wxID_ANY, wxT("For help using these functions, see the section ‘Preferences panel diagnostics tab’  in the plugin technical guide."), wxDefaultPosition, wxDefaultSize, 0 );
 	m_diagnosticAdvice->Wrap( -1 );
@@ -243,7 +247,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	diagnosticAdviceSizer->Add( m_diagnosticAdvice, 0, wxALL, 0 );
 
 
-	DiagnosticsTpSizer->Add( diagnosticAdviceSizer, 0, wxEXPAND, 5 );
+	DiagnosticsTpSizer->Add( diagnosticAdviceSizer, 0, 0, 5 );
 
 	wxStaticBoxSizer* DumpTopSizer;
 	DumpTopSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -255,7 +259,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	DumpTopSizer->Add( m_dumpPrompt, 0, wxALL, 5 );
 
 
-	DumpTopSizer->Add( 30, 0, 1, wxEXPAND, 5 );
+	DumpTopSizer->Add( 28, 0, 1, wxEXPAND, 5 );
 
 	m_dumpButton = new wxButton( DumpTopSizer->GetStaticBox(), wxID_ANY, wxT("Dump"), wxDefaultPosition, wxDefaultSize, 0 );
 	DumpTopSizer->Add( m_dumpButton, 0, wxALL, 5 );
@@ -263,11 +267,14 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	DiagnosticsTpSizer->Add( DumpTopSizer, 0, wxEXPAND, 5 );
 
-	m_staticline2 = new wxStaticLine( Diagnostics, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	DiagnosticsTpSizer->Add( m_staticline2, 0, wxEXPAND | wxALL, 5 );
+	wxBoxSizer* cleanSizer;
+	cleanSizer = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* bSizer10;
-	bSizer10 = new wxBoxSizer( wxVERTICAL );
+	cleanSizer->SetMinSize( wxSize( -1,150 ) );
+	m_charsToClean = new wxTextCtrl( Diagnostics, wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 450,-1 ), 0 );
+	m_charsToClean->SetMinSize( wxSize( 500,-1 ) );
+
+	cleanSizer->Add( m_charsToClean, 0, wxALL, 5 );
 
 	wxStaticBoxSizer* CharsTopSizer;
 	CharsTopSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -279,25 +286,16 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	CharsTopSizer->Add( m_cleanPrompt, 0, wxALL, 5 );
 
 
-	CharsTopSizer->Add( 30, 0, 1, wxEXPAND, 5 );
+	CharsTopSizer->Add( 40, 0, 1, wxEXPAND, 5 );
 
 	m_cleanButton = new wxButton( CharsTopSizer->GetStaticBox(), wxID_ANY, wxT("Clean"), wxDefaultPosition, wxDefaultSize, 0 );
 	CharsTopSizer->Add( m_cleanButton, 0, wxALL, 5 );
 
 
-	bSizer10->Add( CharsTopSizer, 0, wxEXPAND, 0 );
-
-	wxStaticBoxSizer* sbSizer12;
-	sbSizer12 = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxVERTICAL );
-
-	m_charsToClean = new wxTextCtrl( sbSizer12->GetStaticBox(), wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 450,-1 ), 0 );
-	sbSizer12->Add( m_charsToClean, 0, wxALL, 5 );
+	cleanSizer->Add( CharsTopSizer, 0, wxEXPAND, 0 );
 
 
-	bSizer10->Add( sbSizer12, 1, wxEXPAND, 0 );
-
-
-	DiagnosticsTpSizer->Add( bSizer10, 0, wxEXPAND, 5 );
+	DiagnosticsTpSizer->Add( cleanSizer, 1, wxEXPAND|wxFIXED_MINSIZE, 5 );
 
 
 	Diagnostics->SetSizer( DiagnosticsTpSizer );

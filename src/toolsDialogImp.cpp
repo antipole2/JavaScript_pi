@@ -21,6 +21,7 @@ extern JavaScript_pi *pJavaScript_pi;
 
 void ToolsClass::onClose( wxCloseEvent& event ){
     *pPointerToThisInJavaScript_pi = nullptr;
+    TRACE(4, "In Tools close");
     Destroy();
     }
 
@@ -41,13 +42,13 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
     this->m_ConsolesMessage->Clear();
     newConsoleName = this->m_newConsoleName->GetValue();
     if (newConsoleName == wxEmptyString){
-        m_ConsolesMessage->AppendText(_("Must specify a name for the new console"));
+        m_ConsolesMessage->AppendText("Must specify a name for the new console");
         return;
         }
     //check for existing console with this name
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
         if (newConsoleName == pConsole->mConsoleName){
-            m_ConsolesMessage->AppendText(_("This name is already taken"));
+            m_ConsolesMessage->AppendText("This name is already taken");
             return;
             }
         }
@@ -58,7 +59,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
     pConsole->Show();
-    m_ConsolesMessage->AppendText(_(_("Console ") + newConsoleName + _(" created")));
+    m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
     }
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
@@ -81,7 +82,7 @@ void ToolsClass::onRecieveMessage(wxCommandEvent& event ){
     }
 
 void ToolsClass::onChangeDirectory( wxCommandEvent& event ){
-    wxDirDialog dirDialog(this, _("Select a current directory"), pJavaScript_pi->mCurrentDirectory, wxDD_NEW_DIR_BUTTON);
+    wxDirDialog dirDialog(this, "Select a current directory", pJavaScript_pi->mCurrentDirectory, wxDD_NEW_DIR_BUTTON);
     if (dirDialog.ShowModal() == wxID_OK){
         pJavaScript_pi->mCurrentDirectory = dirDialog.GetPath();
         mCurrentDirectoryString->SetLabel(pJavaScript_pi->mCurrentDirectory);
@@ -91,38 +92,37 @@ void ToolsClass::onChangeDirectory( wxCommandEvent& event ){
 void ToolsClass::onDump( wxCommandEvent& event ){
     cout << "Dumping\n";
     wxString ptrToString(Console* address);
-    wxWindow *dumpWindow;
     Console *pConsole;
+    wxDialog* dumpWindow;
     wxTextCtrl *dumpTextCtrl;
     extern JavaScript_pi *pJavaScript_pi;
-    duk_context *ctx;
     wxString dump {wxEmptyString};
     
-    dumpWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY, _("JavaScript plugin dump"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
+    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
     dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
 
-    dump += (wxString::Format(_("wxWidgets version %d.%d.%d.%d\n"), wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER));
-    dump += (wxString::Format(_("JavaScript plugin version %d.%d\n"), PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
-    dump += (wxString::Format(_("JavaScript API version %d.%d\n"), MY_API_VERSION_MAJOR, MY_API_VERSION_MINOR));
-    wxString svg {_("Not using svg")};
+    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER));
+    dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
+    dump += (wxString::Format("JavaScript API version %d.%d\n", MY_API_VERSION_MAJOR, MY_API_VERSION_MINOR));
+    wxString svg {"Not using svg"};
 #ifdef JavaScript_USE_SVG
-    svg = _("Using svg");
+    svg = "Using svg";
 #endif
-    dump += (svg + _("\n"));
+    dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->mpFirstConsole\t" + ptrToString(pJavaScript_pi->mpFirstConsole) + "\n";
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += (_("\n————————————") + _("Console ") + pConsole->mConsoleName + _("————————————\n"));
+        dump += ("\n————————————Console " + pConsole->mConsoleName + "————————————\n");
         dump += (pConsole->consoleDump());
         }
     dump += "\npJavaScript_pi->mpBin\t\t" + ptrToString(pJavaScript_pi->mpBin) + "\n";
     for (pConsole = pJavaScript_pi->mpBin; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += (_("\n————————————") + _("Console in bin ") + pConsole->mConsoleName + _("————————————\n"));
+        dump += ("\n————————————Console in bin " + pConsole->mConsoleName + "————————————\n");
         dump += (pConsole->consoleDump());
         }
-    dump += (_("\nEnd of dump\n"));
+    dump += ("\nEnd of dump\n");
     dumpTextCtrl->AppendText(dump);
     dumpWindow->SetSize(600, 900);
     dumpWindow->Show();
@@ -132,39 +132,39 @@ wxString JS_dumpString(wxString identifier, wxString string){
     // dumps string to output window
     wxString::const_iterator i;
     int j;
-    wxString dumpTextCtrl = _("\n") + identifier + _("\n") + string + _("\n");
+    wxString dumpTextCtrl = "\n" + identifier + "\n" + string + "\n";
     for (j = 0, i = string.begin(); i != string.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
-        dumpTextCtrl += wxString::Format(wxT("[%02d]%02X "), j, uni_ch);
-        if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl += _("\n");
+        dumpTextCtrl += wxString::Format("[%02d]%02X ", j, uni_ch);
+        if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl += "\n";
         }
     return dumpTextCtrl;
 }
 void ToolsClass::onClean( wxCommandEvent& event ){
-    wxWindow *dumpWindow;
+    wxWindow *stringWindow;
     wxTextCtrl *dumpTextCtrl;
     int j;
     wxString::const_iterator i;
     wxString JScleanString(wxString given);
     wxString text = this->m_charsToClean->GetValue();
     if (text == wxEmptyString) return;
-    
-    dumpWindow = new wxTopLevelWindow(NULL, wxID_ANY, _("JavaScript text cleaning"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
-    dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
+    stringWindow = new wxDialog(this /* pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript text cleaning", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
+
+    dumpTextCtrl = new wxTextCtrl(stringWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
     for (j = 0, i = text.begin(); i != text.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
-            dumpTextCtrl->AppendText(wxString::Format(wxT("[%02d]%c "), j, uni_ch));
-        if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl->AppendText(_("\n"));
+            dumpTextCtrl->AppendText(wxString::Format("[%02d]%c ", j, uni_ch));
+        if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl->AppendText("\n");
         }
-    dumpTextCtrl->AppendText(JS_dumpString(_("\nRaw"), text));
+    dumpTextCtrl->AppendText(JS_dumpString("\nRaw", text));
     text = JScleanString(text);
-    dumpTextCtrl->AppendText(JS_dumpString(_("\nCleaned"), text));
-    dumpWindow->SetSize(500, 500);
-    dumpWindow->Show();
+    dumpTextCtrl->AppendText(JS_dumpString("\nCleaned", text));
+    stringWindow->SetSize(500, 500);
+    stringWindow->Show();
 
     }
 
