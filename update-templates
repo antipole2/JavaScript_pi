@@ -1,0 +1,142 @@
+#!/usr/bin/bash
+#
+# Update a plugin with new shipdriver templates.
+#
+# usage: ./update-templates [-t] [treeish]
+#
+# Merge changes from upstream shipdriver repo into
+# current branch.
+#
+# See UPDATE-TEMPLATES.md for more info
+
+function usage() {
+    cat << EOT
+Usage: update-templates [-t] [-T] [-h] [treeish]
+
+Parameters:
+    treeish:
+         A shipdriver tag, branch or commit, defaults to shipdriver/master
+
+Options:
+    -t   Add a -X theirs to git-merge(1)
+    -T   Test mode, do not auto-update
+    -h   Print this message and exit
+EOT
+}
+
+# Handle options and parameters
+usage="Usage: $0 [-t] [-T] [treeish]"
+merge_opt=""
+while getopts "tTh" opt; do
+    case "${opt}" in
+        t)  merge_opt="-X theirs"
+            ;;
+        T)  test_mode=true
+            ;;
+        h)  usage; exit 0
+            ;;
+        *)  usage >&2; exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+source_treeish=${1:-"shipdriver/master"}
+
+
+# Refuse to run unless the index is clean:
+clean=$(git status --porcelain)
+if [ -n "$clean" ]; then
+    echo "Please commit or stash pending changes. Aborting."
+    exit 1
+fi
+
+
+# Set up the shipdriver remote
+if git ls-remote --exit-code shipdriver &>/dev/null; then
+    git remote remove shipdriver
+    echo "Removing existing shipdriver remote."
+fi
+git remote add shipdriver https://github.com/Rasbats/shipdriver_pi.git
+git remote update shipdriver
+git fetch --tags shipdriver
+
+
+# If we need to update this script, do it and exit
+if [ -z "$test_mode" ]; then
+    if ! git diff --quiet HEAD $source_treeish -- update-templates; then
+        git checkout $source_treeish update-templates
+        cat << EOT
+update-templates script is updated to latest version. Please commit
+changes and re-run script.
+EOT
+        exit 0
+    fi
+fi
+
+
+# Merge all changes in shipdriver remote with current branch
+git merge --no-ff --no-commit --allow-unrelated-histories $merge_opt \
+    $source_treeish
+
+
+# Restore all non-template files.
+for f in \
+    CMakeLists.txt \
+    build-deps \
+    buildosx \
+    buildwin \
+    config.h.in \
+    COPYING \
+    data \
+    flatpak \
+    libs \
+    manual \
+    mingw \
+    po \
+    README.md \
+    src
+do
+    if test -e "$f"; then
+        git checkout HEAD $f
+        # Remove all added files in local directories
+        for ff in $(git diff --diff-filter=AC --name-only --staged $f); do
+            git rm --quiet -f $ff
+        done
+    fi
+done
+
+
+# Remove miscellaneous added files
+for f in $(git diff --diff-filter=AC --name-only --staged \
+           | grep -E "\.enc$|\.pub$|\.fbp$")
+do
+    git rm -f --quiet $f
+done
+
+
+# Revert changes in blacklisted files.
+if [ -e update-ignored ]; then
+    for f in $(cat update-ignored); do
+        git checkout HEAD $f
+    done
+fi
+
+
+# Create or update version file
+echo "# Created by update-templates" > cmake/TemplateVersion
+echo "date: $(date -u +'%Y-%m-%d %H:%M UTC')" >> cmake/TemplateVersion
+commit=$(git rev-parse --short $source_treeish)
+echo "commit: $commit" >> cmake/TemplateVersion
+tags=$(git tag --contains $commit)
+echo "tags: $tags" >> cmake/TemplateVersion
+git add cmake/TemplateVersion
+
+
+cat << EOF
+Shipdriver templates have been updated. To review pending changes:
+
+    $ git status
+    $ git diff --staged
+
+See UPDATE_TEMPLATES.md for more.
+EOF

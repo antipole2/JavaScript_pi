@@ -32,10 +32,10 @@ void fatal_error_handler(void *udata, const char *msg) {
  }
 
  wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
-     const wxString reverseQuote { "\u201B"};
+     const wxString reverseQuote {L"\u201B"};
      const wxString leftQuote    { "\u201C"};
      const wxString rightQuote   {"\u201D"};
-     const wxString leftDQuote   {"\u201F"}; // left double quote seen but not in UNICODE table
+     const wxString leftDQuote   {L"\u201F"}; // left double quote seen but not in UNICODE table
      
  //  const wxString quote        {"\u0022"};
      const wxString quote        {"\""};
@@ -45,7 +45,8 @@ void fatal_error_handler(void *udata, const char *msg) {
  //  const wxString apostrophe   {"\u0027"};
      const wxString apostrophe   {"\'"};
      const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
-     const wxString degree       {"\u00B0"};
+     const wxString degree       {L"\u00B0"};
+	 const wxString degreeText   {"&#xb0"};
      const wxString backprime    {"\u0060"}; // not in UNICODE but showing up on Mac
  #ifndef __WXMSW__   // Don't try this one on Windows
      const wxString prime        {"\u2032"};
@@ -59,10 +60,10 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
      given.Replace(ordinal, degree, true);
+	 given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      return (given);
      }
-
  // This function only needed with Windose
  #ifdef __WXMSW__
  wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
