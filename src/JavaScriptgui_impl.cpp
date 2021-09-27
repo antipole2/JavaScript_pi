@@ -74,7 +74,7 @@ void Console::OnLoad( wxCommandEvent& event )
         return;
     }
     else if(response == wxID_CANCEL){
-        TRACE(3, "Load cancelled");
+        TRACE(static_cast<void>(3), "Load cancelled");
         return;
     }
 }
