@@ -31,11 +31,12 @@ void fatal_error_handler(void *udata, const char *msg) {
      abort();
  }
 
+
  wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
-     const wxString reverseQuote { "\u201B"};
+     const wxString reverseQuote {L"\u201B"};
      const wxString leftQuote    { "\u201C"};
      const wxString rightQuote   {"\u201D"};
-     const wxString leftDQuote   {"\u201F"}; // left double quote seen but not in UNICODE table
+     const wxString leftDQuote   {L"\u201F"};
      
  //  const wxString quote        {"\u0022"};
      const wxString quote        {"\""};
@@ -46,7 +47,8 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString apostrophe   {"\'"};
      const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
      const wxString degree       {"\u00B0"};
-     const wxString backprime    {"\u0060"}; // not in UNICODE but showing up on Mac
+     const wxString degreeText   {"&#xb0"};
+     const wxString backprime    {"\u0060"};
  #ifndef __WXMSW__   // Don't try this one on Windows
      const wxString prime        {"\u2032"};
      given.Replace(prime, apostrophe, true);
@@ -59,6 +61,7 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
      given.Replace(ordinal, degree, true);
+     given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      return (given);
      }
@@ -203,7 +206,7 @@ wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options){
     };
 
 wxString getTextFile(Console* pConsole, wxString fileString){
-    // return conents of a text file thatmust exist
+    // return contents of a text file that must exist
     wxFileName filePath;
     wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
     wxTextFile inputFile;
