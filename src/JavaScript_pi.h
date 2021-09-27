@@ -21,6 +21,7 @@
 #include "JavaScriptgui.h"
 #include "toolsDialogImp.h"
 #include <bitset>
+#include "config.h"
 
 #define     MY_API_VERSION_MAJOR    1
 #define     MY_API_VERSION_MINOR    16  // was 7
@@ -92,6 +93,7 @@ public:
     wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of plugin
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
+	bool			m_bShowJavaScript;
 
 private:
     wxBitmap        m_panelBitmap;

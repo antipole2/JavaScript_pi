@@ -62,7 +62,32 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
 #ifndef IN_HARNESS
     // Create the PlugIn icons
     initialize_images();
-    
+
+	wxFileName fn;
+
+    auto path = GetPluginDataDir("JavaScript_pi");
+    fn.SetPath(path);
+    fn.AppendDir("data");
+    fn.SetFullName("JavaScript_panel_icon.png");
+
+    path = fn.GetFullPath();
+
+    wxInitAllImageHandlers();
+
+    wxLogDebug(wxString("Using icon path: ") + path);
+    if (!wxImage::CanRead(path)) {
+        wxLogDebug("Initiating image handlers.");
+        wxInitAllImageHandlers();
+    }
+    wxImage panelIcon(path);
+    if (panelIcon.IsOk())
+        m_panelBitmap = wxBitmap(panelIcon);
+    else
+        wxLogWarning("JavaScript panel icon has NOT been loaded");
+    m_bShowJavaScript = false;
+
+
+ /*
     wxString shareLocn = *GetpSharedDataLocation() +
     _T("plugins") + wxFileName::GetPathSeparator() +
     _T("JavaScript_pi") + wxFileName::GetPathSeparator()
@@ -71,7 +96,7 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     if (panelIcon.IsOk())
         m_panelBitmap = wxBitmap(panelIcon);
     else
-        wxLogMessage(_T("    JavaScript_pi panel icon NOT loaded"));
+        wxLogMessage(_T("    JavaScript_pi panel icon NOT loaded"));*/
 #endif
 }
 
@@ -185,12 +210,14 @@ bool JavaScript_pi::DeInit(void) {
 
 int JavaScript_pi::GetAPIVersionMajor()
 {
-    return MY_API_VERSION_MAJOR;
+    return atoi(API_VERSION);
 }
 
 int JavaScript_pi::GetAPIVersionMinor()
 {
-    return MY_API_VERSION_MINOR;
+    std::string v(API_VERSION);
+    size_t dotpos = v.find('.');
+    return atoi(v.substr(dotpos + 1).c_str());
 }
 
 int JavaScript_pi::GetPlugInVersionMajor()
