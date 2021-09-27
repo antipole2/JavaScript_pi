@@ -32,21 +32,21 @@ void fatal_error_handler(void *udata, const char *msg) {
  }
 
  wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
-     const wxString reverseQuote { "\u201B"};
-     const wxString leftQuote    { "\u201C"};
-     const wxString rightQuote   {"\u201D"};
-     const wxString leftDQuote   {"\u201F"}; // left double quote seen but not in UNICODE table
+     const wxString reverseQuote { L"\u201B"};
+     const wxString leftQuote    { L"\u201C"};
+     const wxString rightQuote   { L"\u201D"};
+     const wxString leftDQuote   { L"\u201F"}; // left double quote seen but not in UNICODE table
      
  //  const wxString quote        {"\u0022"};
-     const wxString quote        {"\""};
-     const wxString accute       {"\u00B4"};
-     const wxString rightSquote  {"\u2019"};    // right single quote
-     const wxString leftSquote  {"\u2018"};    // right single quote
+     const wxString quote        { L"\""};
+     const wxString accute       { L"\u00B4"};
+     const wxString rightSquote  { L"\u2019"};    // right single quote
+     const wxString leftSquote  { L"\u2018"};    // right single quote
  //  const wxString apostrophe   {"\u0027"};
-     const wxString apostrophe   {"\'"};
-     const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
-     const wxString degree       {"\u00B0"};
-     const wxString backprime    {"\u0060"}; // not in UNICODE but showing up on Mac
+     const wxString apostrophe   { L"\'"};
+     const wxString ordinal      { L"\u00BA"};  // masculine ordinal indicator - like degree
+     const wxString degree       { L"\u00B0"};
+     const wxString backprime    { L"\u0060"}; // not in UNICODE but showing up on Mac
  #ifndef __WXMSW__   // Don't try this one on Windows
      const wxString prime        {"\u2032"};
      given.Replace(prime, apostrophe, true);
