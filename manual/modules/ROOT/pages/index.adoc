@@ -22,7 +22,7 @@ simplest, enter, say
 print("Hello from OpenCPN\n");
 ----
 
-When you click on the Run button, the message will be displayed.  (The \n bit adds a new line to the end of the message.)and the result 4 is displayed.
+When you click on the Run button, the message will be displayed.  (The \n bit adds a new line to the end of the message.)
 
 The plugin adds many interfaces to OpenCPN and it is here that
 the fun starts. As an example, the following statement takes the
