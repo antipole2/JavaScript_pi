@@ -6,7 +6,7 @@ image:js_icon_full_size_.png[]
 
 == Aim
 
-To provide a scriptable plugin that allows users to tailor the
+To provide a plugin that allows users to write scripts that extend the
 functioning of OpenCPN without getting into the complexity of writing a
 plugin.
 
@@ -59,3 +59,8 @@ https://github.com/antipole2/JavaScript_pi/releases[Releases (including installe
 https://github.com/antipole2/JavaScript_pi[Github Repository]
 
 https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers Forum Thread]
+
+== Script library
+
+This library shares scripts you can use as-is, or modify for your own needs.
+If you have developed a script that you would like to constribute [what?]
