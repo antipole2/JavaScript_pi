@@ -63,4 +63,5 @@ https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers
 == Script library
 
 This library shares scripts you can use as-is, or modify for your own needs.
-If you have developed a script that you would like to constribute [what?]
+
+If you have developed a script that you would like to contribute [what?]
