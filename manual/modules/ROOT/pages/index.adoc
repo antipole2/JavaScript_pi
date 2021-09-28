@@ -10,16 +10,6 @@ To provide a scriptable plugin that allows users to tailor the
 functioning of OpenCPN without getting into the complexity of writing a
 plugin.
 
-link:{attachmentsdir}/JavaScript_plugin_user_guide.pdf[Javascript plugin user guide]
-
-https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript%20plugin%20user%20guide.pdf[Complete User Guide]
-
-https://github.com/antipole2/JavaScript_pi/releases[Releases (including installers)]
-
-https://github.com/antipole2/JavaScript_pi[Github Repository]
-
-https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers Forum Thread]
-
 == How does it work?
 
 The plugin provides one or more console windows comprising a script pane, a
@@ -60,4 +50,12 @@ function handleNMEA(result){
 This listens out for the next NMEA sentence and displays it on receipt
 if the checksum is OK.
 
-There is a comprehensive User Manual
+== Resources
+
+https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript%20plugin%20user%20guide.pdf[Comprehensive User Guide]
+
+https://github.com/antipole2/JavaScript_pi/releases[Releases (including installers)]
+
+https://github.com/antipole2/JavaScript_pi[Github Repository]
+
+https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers Forum Thread]
