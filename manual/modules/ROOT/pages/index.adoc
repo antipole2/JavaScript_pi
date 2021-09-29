@@ -76,7 +76,7 @@ link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.
 |A simple way of driving the ship on a compass course or relative to a simulated wind.
 |
 
-|link:https://github.com/antipole2/JavaScripts-shared/blob/52d8f82bae4ae793ac5ffa5000e8f3f65061a44b/Tack_advisor.js
+|link:https://github.com/antipole2/JavaScripts-shared/blob/52d8f82bae4ae793ac5ffa5000e8f3f65061a44b/Tack_advisor.js[Tack_advisor.js]
 |When close-hauled or running, displays suggested tacks
 |An innovative and highly extensible testing platform.
 Empowers developers to easily create real, automated tests.
