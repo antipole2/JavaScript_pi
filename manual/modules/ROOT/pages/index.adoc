@@ -62,24 +62,20 @@ https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers
 
 This library shares scripts you can use as-is, or modify for your own needs.
 
-==== Driver
-A simple way of driving the ship on a compass course or relative to a simulated wind.
-
-link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.js]
-
 .Scripts
-[cols="1,1,2"] 
+[cols="1,1,2,1"] 
 |===
-|Name |Description |Details/instructions
+|Name |Description |Details/instructions |Author
 
 |link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[Driver.js]
 |A simple way of driving the ship on a compass course or relative to a simulated wind.
 |link:https://github.com/antipole2/JavaScripts-shared/blob/223a994776846e65c9b8c43c64fbc97711bbd066/Driver.adoc[instructions]
+|Antipole
 
-|link:https://github.com/antipole2/JavaScripts-shared/blob/52d8f82bae4ae793ac5ffa5000e8f3f65061a44b/Tack_advisor.js[Tack_advisor.js]
+|link:https://github.com/antipole2/JavaScripts-shared/blob/52d8f82bae4ae793ac5ffa5000e8f3f65061a44b/TackAdvisor.js[TackAdvisor.js]
 |When close-hauled or running, displays suggested tacks
-|An innovative and highly extensible testing platform.
-Empowers developers to easily create real, automated tests.
+|
+|Antipole
 |===
 
 TIP: Contributing to this library
