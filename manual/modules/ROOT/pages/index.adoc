@@ -70,14 +70,14 @@ link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.
 .Scripts
 [cols="1,1,2"] 
 |===
-|Name |Description |Instructions
+|Name |Description |Details/instructions
 
 |link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.js]
 |A simple way of driving the ship on a compass course or relative to a simulated wind.
 |
 
-|Arquillian
-|Testing
+|link:https://github.com/antipole2/JavaScripts-shared/blob/52d8f82bae4ae793ac5ffa5000e8f3f65061a44b/Tack_advisor.js
+|When close-hauled or running, displays suggested tacks
 |An innovative and highly extensible testing platform.
 Empowers developers to easily create real, automated tests.
 |===
