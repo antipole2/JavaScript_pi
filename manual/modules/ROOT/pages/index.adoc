@@ -2,8 +2,6 @@
 
 image:js_icon_full_size_.png[]
 
-== JavaScript
-
 == Aim
 
 To provide a plugin that allows users to write scripts that extend the
