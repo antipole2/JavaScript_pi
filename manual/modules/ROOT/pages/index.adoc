@@ -72,9 +72,9 @@ link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.
 |===
 |Name |Description |Details/instructions
 
-|link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.js]
+|link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[Driver.js]
 |A simple way of driving the ship on a compass course or relative to a simulated wind.
-|
+|link:https://github.com/antipole2/JavaScripts-shared/blob/223a994776846e65c9b8c43c64fbc97711bbd066/Driver.adoc[instructions]
 
 |link:https://github.com/antipole2/JavaScripts-shared/blob/52d8f82bae4ae793ac5ffa5000e8f3f65061a44b/Tack_advisor.js[Tack_advisor.js]
 |When close-hauled or running, displays suggested tacks
