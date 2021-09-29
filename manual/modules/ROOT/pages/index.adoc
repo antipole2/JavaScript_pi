@@ -1,4 +1,5 @@
 = Javascript Plugin
+:toc:
 
 image:js_icon_full_size_.png[]
 
