@@ -65,6 +65,6 @@ This library shares scripts you can use as-is, or modify for your own needs.
 .Driver
 A simple way of driving the ship on a compass course or relative to a simulated wind.
 
-=== Contributing to this library
+TIP: Contributing to this library
 
 If you have developed a script that you would like to contribute [what?]
