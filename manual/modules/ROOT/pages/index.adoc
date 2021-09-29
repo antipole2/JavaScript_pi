@@ -61,4 +61,9 @@ https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers
 
 This library shares scripts you can use as-is, or modify for your own needs.
 
+=== Driver
+A simple way of driving the ship on a compas course or relaive to the wind.
+
+=== Contributing to this library
+
 If you have developed a script that you would like to contribute [what?]
