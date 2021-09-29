@@ -62,7 +62,6 @@ https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers
 
 This library shares scripts you can use as-is, or modify for your own needs.
 
-.Scripts
 [cols="1,1,2,1"] 
 |===
 |Name |Description |Details/instructions |Author
@@ -78,6 +77,10 @@ This library shares scripts you can use as-is, or modify for your own needs.
 |Antipole
 |===
 
-TIP: Contributing to this library
+=== Contributing to this library +
+If you have developed a script that you would like to contribute, send me
 
-If you have developed a script that you would like to contribute [what?]
+* the link to your script
+* the description for the table entry
+* the link to the instructions file if any
+
