@@ -67,12 +67,12 @@ A simple way of driving the ship on a compass course or relative to a simulated 
 
 link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.js]
 
-.Applications
+.Scripts
 [cols="1,1,2"] 
 |===
 |Name |Category |Description
 
-|Firefox
+|link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.js]
 |Browser
 |Mozilla Firefox is an open source web browser.
 It's designed for standards compliance,
