@@ -62,7 +62,7 @@ https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers
 
 This library shares scripts you can use as-is, or modify for your own needs.
 
-.Driver
+====Driver
 A simple way of driving the ship on a compass course or relative to a simulated wind.
 
 link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[driver.js]
