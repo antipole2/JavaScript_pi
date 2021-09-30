@@ -50,9 +50,8 @@ if the checksum is OK.
 
 == Resources
 
-https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript%20plugin%20user%20guide.pdf[Comprehensive User Guide]
-
-https://github.com/antipole2/JavaScript_pi/releases[Releases (including installers)]
+https://github.com/antipole2/JavaScript_pi/releases[Releases (including installers)] +
+Included in each release is a comprehensive User Guide and also a Technical Guide to assist trouble shooting.
 
 https://github.com/antipole2/JavaScript_pi[Github Repository]
 
@@ -60,28 +59,4 @@ https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers
 
 == Script library
 
-This library shares scripts you can use as-is, or modify for your own needs.
-
-[cols="1,1,2,1"] 
-|===
-|Name |Description |Details/instructions |Author
-
-|link:https://github.com/antipole2/JavaScripts-shared/blob/main/Driver.js[Driver.js]
-|A simple way of driving the ship on a compass course or relative to a simulated wind.
-|link:https://github.com/antipole2/JavaScripts-shared/blob/223a994776846e65c9b8c43c64fbc97711bbd066/Driver.adoc[instructions]
-|Antipole
-
-|link:https://github.com/antipole2/JavaScripts-shared/blob/67d81867511adce31db4cdc0c63b8f33579dd4a4/TackAdvisor.js[TackAdvisor.js]
-|When close-hauled or running, displays suggested tacks
-|link:https://github.com/antipole2/JavaScripts-shared/blob/main/TackAdvisor.adoc[instructions]
-|Antipole
-|===
-
-=== Contributing to this library +
-If you have developed a script that you would like to contribute, send me
-
-* the link to your script
-* the description for the table entry
-* the link to the instructions file if any
-
-include:://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[]
+There is a https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[library of useful scripts] which you can use as they are or modify for your own purposes.
