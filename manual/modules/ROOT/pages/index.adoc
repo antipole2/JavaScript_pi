@@ -84,3 +84,4 @@ If you have developed a script that you would like to contribute, send me
 * the description for the table entry
 * the link to the instructions file if any
 
+include:://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[]
