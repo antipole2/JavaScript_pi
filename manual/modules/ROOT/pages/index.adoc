@@ -32,7 +32,7 @@ OCPNpushNMEA(“$OCRMB,A,0.000,L,,Yarmouth,5030.530,N,00120.030,W,
        15.386,82.924,0.000,5030.530,S,00120.030,E,V");
 ----
 
-It is also possible to arrrange for a JavaScript function to be executed on a given NMEA event. 
+It is also possible to arrrange for a JavaScript function to be executed on certain OpenCPN events. 
 For example
 ----
 OCPNonNMEAsentence(handleNMEA);
