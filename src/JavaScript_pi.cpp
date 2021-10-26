@@ -64,15 +64,10 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     initialize_images();
 
 	wxFileName fn;
-<<<<<<< Updated upstream
-
-    auto path = GetPluginDataDir("JavaScript_pi");
-=======
     auto path = GetPluginDataDir("javascript_pi");
->>>>>>> Stashed changes
     fn.SetPath(path);
     fn.AppendDir("data");
-    fn.SetFullName("JavaScript_panel_icon.png");
+    fn.SetFullName("JavaScript_pi_panel_icon.png");
 
     path = fn.GetFullPath();
     wxString forDebug = fn.GetFullPath();
@@ -89,21 +84,6 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     else
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
-<<<<<<< Updated upstream
-
-
- /*
-    wxString shareLocn = *GetpSharedDataLocation() +
-    _T("plugins") + wxFileName::GetPathSeparator() +
-    _T("JavaScript_pi") + wxFileName::GetPathSeparator()
-    + _T("data") + wxFileName::GetPathSeparator();
-    wxImage panelIcon(shareLocn + _T("JavaScript_pi_panel_icon.png"));
-    if (panelIcon.IsOk())
-        m_panelBitmap = wxBitmap(panelIcon);
-    else
-        wxLogMessage(_T("    JavaScript_pi panel icon NOT loaded"));*/
-=======
->>>>>>> Stashed changes
 #endif
 }
 
@@ -137,10 +117,7 @@ int JavaScript_pi::Init(void)
     if(m_bJavaScriptShowIcon){
 
 #ifndef IN_HARNESS
-<<<<<<< Updated upstream
-=======
                 
->>>>>>> Stashed changes
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
             wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);

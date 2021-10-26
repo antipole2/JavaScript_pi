@@ -324,13 +324,13 @@ SET(SCINTILLA
     scintilla/src/XPM.h
 	)
 	
-IF(APPLE)
+#IF(APPLE)
 
-    add_library(${CMAKE_PROJECT_NAME}        
-        ${SCINTILLA}
-        )
+#    add_library(${CMAKE_PROJECT_NAME}        
+#        ${SCINTILLA}
+#        )
         
-ENDIF(APPLE)
+#ENDIF(APPLE)
 
 ADD_DEFINITIONS(-DSCI_LEXER)
 

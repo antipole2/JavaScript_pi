@@ -24,13 +24,8 @@
 #include "config.h"
 
 #define     MY_API_VERSION_MAJOR    1
-<<<<<<< Updated upstream
-#define     MY_API_VERSION_MINOR    16  // was 7
-#define     PLUGIN_VERSION_DATE "2021:05:09"
-=======
 #define     MY_API_VERSION_MINOR    17  // was 7
 #define     PLUGIN_VERSION_DATE "2021:10:22"
->>>>>>> Stashed changes
 #define     PLUGIN_VERSION_COMMENT ""
 
 enum Options{
