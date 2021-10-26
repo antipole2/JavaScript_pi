@@ -102,7 +102,6 @@ SET(SRC
     src/JSExtensions.cpp
     src/ocpn_duk.h
     src/OPCNapis.cpp
-    src/ocpn_plugin.h
     src/duk_config.h
     src/duktape.h
     src/duktape.cpp
