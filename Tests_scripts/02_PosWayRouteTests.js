@@ -1,5 +1,7 @@
 // Position, waypoint and route confidence tester
 
+log = true;
+
 function compareWaypoints(waypoint1, waypoint2){
 	// compares two waypoints and displays any mismatches.
 	// returns true if error else false if OK
@@ -7,6 +9,10 @@ function compareWaypoints(waypoint1, waypoint2){
 		if (!displaying) printOrange("The following attributes of waypoints do not match:\n");
 		displaying = true;
 		printOrange(attribute, "\n");
+		}
+	if (log){
+		print(waypoint1, "\n");
+		print(waypoint2, "\n");
 		}
 	displaying = false;
 	if (waypoint1.position.latitude != waypoint2.position.latitude) display ("latitude");
@@ -17,6 +23,11 @@ function compareWaypoints(waypoint1, waypoint2){
 	if (waypoint1.isVisible != waypoint2.isVisible) display ("isVisible");
 	if (waypoint1.creationDateTime != waypoint2.creationDateTime) display ("creationDateTime");
 	if (waypoint1.GUID != waypoint1.GUID) return ("GUID");  // omit this - too many issues with routes
+	if (waypoint1.nRanges != waypoint2.nRanges) display ("nRanges");
+	if (waypoint1.RangeRingSpace != waypoint2.RangeRingSpace) display ("RangeRingSpace");
+	if (waypoint1.RangeRingColour != waypoint2.RangeRingColour) display ("RangeRingColour");
+	if (waypoint1.isFreeStanding != waypoint2.isFreeStanding) display ("nRanges");
+	if (waypoint1.routeMembershipCount != waypoint2.routeMembershipCount) display ("routeMembershipCount");
 	if (waypoint1.hyperlinkList.length != waypoint2.hyperlinkList.length) return ("number of hyperlinks differs");
 	numberOfLinks = waypoint1.hyperlinkList.length;
 	if (numberOfLinks > 0){  // following loop hangs if no links (why?) so avoid
@@ -57,11 +68,15 @@ function report(message){
 	OK = false;
 	}
 
+<<<<<<< Updated upstream
 function displayRoute(route){
 	print("Route: ", route.name, " from: ", route.from, " to: ", route.to, "\n");
 	for (i = 0; i < route.waypoints.length; i++) print(i, " ", route.waypoints[i], "\n");
 	print("\n");
 	}
+=======
+presentTime = new Date()/1000;
+>>>>>>> Stashed changes
 
 try {config = OCPNgetPluginConfig();}
 catch(err){thow("This test script not for JavaScript plugin versions before v0.3");}
@@ -72,7 +87,7 @@ print("JavaScript plugin v", config.versionMajor, ".", config.versionMinor, " ",
 print("\n*** Position tests ***\n");
 try { Position = require("Position"); }
 catch(err) {
-	throw("Unable to load Position contructor from plugin library");
+	throw("Unable to load Position constructor from plugin library");
 	}
 if (typeof(Position) != "function") throw("Position did not load constructor function");
 OK = true;
@@ -120,7 +135,11 @@ testWaypoint.position.latitude = 12.345;
 if (testWaypoint.position.NMEA != "1220.70000,N,12327.00000,W") throw("Waypoint NMEA attribute error");
 testWaypoint.markName = "Test waypoint";
 testWaypoint.description = "This waypoint is a temporary one for diagnostics";
+<<<<<<< Updated upstream
 testWaypoint.iconName = "Anchor";
+=======
+testWaypoint.iconName = "anchor";
+>>>>>>> Stashed changes
 testWaypoint.creationDateTime = presentTime;
 // add some hyperlinks
 var link1 = {description:"OpenCPN", link: "https://opencpn.org", type: "Type1"};
@@ -167,9 +186,15 @@ catch(error){ throw("Deleting the updated waypoint failed"); }
 delete testWaypoint; delete readWaypoint; delete updatedWaypoint;
 rawWaypoint = {position: {latitude:51,longitude:11}, markName:"Test mark"};
 fullWaypoint = new Waypoint(rawWaypoint);
+<<<<<<< Updated upstream
 print(fullWaypoint.summary(), "\n");
 if (fullWaypoint.summary() != "Mark Test mark is at 51° 00.000'N 011° 0.000'E")
 	report("Constructing fullWaypoint.summary failed");
+=======
+printGreen(fullWaypoint.summary(), "\n");
+if (fullWaypoint.summary() != "Mark Test mark is at 51&#xb0 00.000'N 011&#xb0 0.000'E")
+	report("Constructing fullwaypoint failed");
+>>>>>>> Stashed changes
 if (OK) printGreen("Waypoint tests completed OK\n");
 else printRed("Waypoint tests completed with error(s)\n");
 

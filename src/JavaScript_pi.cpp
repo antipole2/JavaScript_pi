@@ -57,21 +57,25 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
-:opencpn_plugin_116 (ppimgr)  // was 18
+:opencpn_plugin_117	 (ppimgr)  // was 16
 {
 #ifndef IN_HARNESS
     // Create the PlugIn icons
     initialize_images();
 
 	wxFileName fn;
+<<<<<<< Updated upstream
 
     auto path = GetPluginDataDir("JavaScript_pi");
+=======
+    auto path = GetPluginDataDir("javascript_pi");
+>>>>>>> Stashed changes
     fn.SetPath(path);
     fn.AppendDir("data");
     fn.SetFullName("JavaScript_panel_icon.png");
 
     path = fn.GetFullPath();
-
+    wxString forDebug = fn.GetFullPath();
     wxInitAllImageHandlers();
 
     wxLogDebug(wxString("Using icon path: ") + path);
@@ -85,6 +89,7 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     else
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
+<<<<<<< Updated upstream
 
 
  /*
@@ -97,6 +102,8 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
         m_panelBitmap = wxBitmap(panelIcon);
     else
         wxLogMessage(_T("    JavaScript_pi panel icon NOT loaded"));*/
+=======
+>>>>>>> Stashed changes
 #endif
 }
 
@@ -130,12 +137,16 @@ int JavaScript_pi::Init(void)
     if(m_bJavaScriptShowIcon){
 
 #ifndef IN_HARNESS
+<<<<<<< Updated upstream
+=======
+                
+>>>>>>> Stashed changes
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
             wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);
 #else
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
-                                           "JavaScript", _T(""), NULL,
+                                           "JavaScript",_T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
 #endif // JavaScript_USE_SVG
 #endif // IN_HARNESS
