@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 #
 # Build the  MacOS artifacts
 
@@ -32,32 +31,36 @@ else
 fi
 
 # Install the pre-built wxWidgets package
-wget -q https://download.opencpn.org/s/rwoCNGzx6G34tbC/download \
-    -O /tmp/wx312B_opencpn50_macos109.tar.xz
-tar -C /tmp -xJf /tmp/wx312B_opencpn50_macos109.tar.xz 
+#wget -q https://download.opencpn.org/s/rwoCNGzx6G34tbC/download \
+#    -O /tmp/wx312B_opencpn50_macos109.tar.xz
+#tar -C /tmp -xJf /tmp/wx312B_opencpn50_macos109.tar.xz
 
+wget -q https://download.opencpn.org/s/MCiRiq4fJcKD56r/download \
+    -O /tmp/wx315_opencpn50_macos1010.tar.xz
+tar -C /tmp -xJf /tmp/wx315_opencpn50_macos1010.tar.xz
 
 # Build and package
 rm -rf build && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DwxWidgets_CONFIG_EXECUTABLE=/tmp/wx312B_opencpn50_macos109/bin/wx-config \
-  -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx312B_opencpn50_macos109" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DwxWidgets_CONFIG_EXECUTABLE=/tmp/wx315_opencpn50_macos1010/bin/wx-config \
+  -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx315_opencpn50_macos1010" \
   -DCMAKE_INSTALL_PREFIX= \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
   ..
 
-if [[ -z "$CI" ]]; then
-    echo '$CI not found in environment, assuming local setup'
+if [ -z "$CLOUDSMITH_API_KEY" ]; then
+    echo 'No $CLOUDSMITH_API_KEY found, assuming local setup'
     echo "Complete build using 'cd build; make tarball' or so."
-    exit 0 
+    exit 0
 fi
 
-make VERBOSE=1 tarball
+make -j $(sysctl -n hw.physicalcpu) VERBOSE=1 tarball
 
-make pkg    
+#make create-pkg
 
 # Install cloudsmith needed by upload script
+python3 -m pip install --upgrade --user -q pip setuptools
 python3 -m pip install --user cloudsmith-cli
 
 # Required by git-push
