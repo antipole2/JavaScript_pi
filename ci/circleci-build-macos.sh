@@ -40,9 +40,15 @@ tar -C /tmp -xJf /tmp/wx312B_opencpn50_macos109.tar.xz
 # Build and package
 rm -rf build && mkdir build && cd build
 cmake \
+<<<<<<< Updated upstream
   -DCMAKE_BUILD_TYPE=Release \
   -DwxWidgets_CONFIG_EXECUTABLE=/tmp/wx312B_opencpn50_macos109/bin/wx-config \
   -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx312B_opencpn50_macos109" \
+=======
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DwxWidgets_CONFIG_EXECUTABLE=/tmp/wx315_opencpn50_macos1010/bin/wx-config \
+  -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx315_opencpn50_macos1010" \
+>>>>>>> Stashed changes
   -DCMAKE_INSTALL_PREFIX= \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
   ..
