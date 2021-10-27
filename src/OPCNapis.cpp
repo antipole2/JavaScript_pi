@@ -21,7 +21,8 @@
 #include <stdarg.h>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
-WX_DEFINE_LIST(Plugin_WaypointExList);
+WX_DEFINE_LIST(Plugin_WaypointList);		// used by API16 for tracks
+WX_DEFINE_LIST(Plugin_WaypointExList);		// used for API17 for waypoints and routes
 
 /* here define parameters for the OPCNgetGUID options */
 /* Not using this at present
