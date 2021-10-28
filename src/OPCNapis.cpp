@@ -678,6 +678,11 @@ static duk_ret_t getWaypointGUIDs(duk_context *ctx){ // get waypoing GUID array
         }
     return(1);
     }
+    
+static duk_ret_t getActiveWaypointGUID(duk_context *ctx){ // get GUID of active waypoint
+    duk_push_string(ctx, GetActiveWaypointGUID());
+    return(1);
+    }
 
 static duk_ret_t getSingleWaypoint(duk_context *ctx) {
 
@@ -731,7 +736,7 @@ static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the ocpn waypoint
     UpdateSingleWaypointEx(p_waypoint);
     if (!result){ // waypoint does not exists?
-        throwErrorByCtx(ctx, "OCPNupdateSingleWaypoint called with non-existant GUID " + p_waypoint->m_GUID);
+        throwErrorByCtx(ctx, "OCPNupdateSingleWaypoint error. Non-existant GUID? " + p_waypoint->m_GUID);
         }
     // now waypoint safely stored in OpenCPN, clean up - list data not otherwise released
     p_waypoint->m_HyperlinkList->DeleteContents(true);
@@ -769,6 +774,11 @@ static duk_ret_t getRouteGUIDs(duk_context *ctx){ // get routes GUID array
             duk_put_prop_index(ctx, arr_idx, i);
             }
         }
+    return(1);
+    }
+    
+static duk_ret_t getActiveRouteGUID(duk_context *ctx){ // get GUID of active route
+    duk_push_string(ctx, GetActiveRouteGUID());
     return(1);
     }
 
@@ -1198,6 +1208,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, getWaypointGUIDs, 0 /* 0 args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "OCPNgetActiveWaypointGUID");
+    duk_push_c_function(ctx, getActiveWaypointGUID, 0 /* 0 args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "OCPNgetSingleWaypoint");
     duk_push_c_function(ctx, getSingleWaypoint, 1 /* arg is GUID */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -1230,7 +1244,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, getRouteGUIDs, 0 /* 0 args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
-    
+    duk_push_string(ctx, "OCPNgetActiveRouteGUID");
+    duk_push_c_function(ctx, getActiveRouteGUID, 0 /* 0 args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     duk_push_string(ctx, "OCPNgetRoute");
     duk_push_c_function(ctx, getRouteByGUID, 1 /* arg is GUID */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
