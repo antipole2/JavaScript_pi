@@ -180,6 +180,7 @@ bool JavaScript_pi::DeInit(void) {
         pConsole->clearDialog();
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
+        pConsole = NULL;
         }
 
     while (mpBin) {    // also any in the bin
@@ -187,6 +188,7 @@ bool JavaScript_pi::DeInit(void) {
         pConsole = mpBin;
         mpBin = pConsole->mpNextConsole; // take first off chain
         delete pConsole;
+        pConsole = NULL;
         }
     mpPluginActive = false;
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
