@@ -25,6 +25,22 @@ flatpak-steps: &flatpak-steps
 
 jobs:
 
+  build-raspbian-bullseye:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+    environment:
+      - OCPN_TARGET: flatpak-arm64
+    parameters:
+      cache-key:
+        type: string
+        default: "fp-arm20-v2"
+    steps:
+      - checkout
+      - run: ci/generic-build-raspbian-armhf.sh
+      - run: cd build; /bin/bash < upload.sh
+      - run: python3 ci/git-push
+
   build-flatpak-arm64:
     machine:
       image: ubuntu-2004:202101-01
@@ -59,6 +75,7 @@ jobs:
         type: string
         default: "fp-x86-20-v2"
     <<: *flatpak-steps
+
  
   build-macos:
     macos:
@@ -67,18 +84,7 @@ jobs:
       - OCPN_TARGET: macos
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - macos-cache-v1-{{checksum "ci/circleci-build-macos.sh"}}
       - run: ci/circleci-build-macos.sh
-      - save_cache:
-          key: macos-cache-v1-{{checksum "ci/circleci-build-macos.sh"}}
-          paths:
-            - /usr/local/Homebrew
-            - /usr/local/Caskroom
-            - /usr/local/Cellar
-            - /usr/local/lib
-            - /usr/local/include
       - run: sh -c "otool -L build/app/*/OpenCPN.app/Contents/PlugIns/*.dylib"
       - run: cd build; /bin/bash < upload.sh
       - run: python3 ci/git-push
@@ -186,6 +192,9 @@ workflows:
           <<: *std-filters
 
       - build-android-armhf:
+          <<: *std-filters
+
+      - build-raspbian-bullseye:
           <<: *std-filters
 
  

@@ -10,6 +10,12 @@ endif ()
 
 include(Metadata)
 
+if (UNIX AND NOT APPLE AND NOT QT_ANDROID)
+  set(_LINUX ON)
+else ()
+  set(_LINUX OFF)
+endif ()
+
 if (WIN32)
   if (${CMAKE_MAJOR_VERSION} LESS 3 OR ${CMAKE_MINOR_VERSION} LESS 16)
     message(WARNING "windows requires cmake version 3.16 or higher")
@@ -57,14 +63,6 @@ set(_cs_script "
   )
 ")
 file(WRITE "${CMAKE_BINARY_DIR}/checksum.cmake" ${_cs_script})
-
-# Command to build legacy package
-if (APPLE)
-    set(_build_pkg_cmd ${_build_target_cmd} create-pkg)
-else ()
-    set(_build_pkg_cmd ${_build_target_cmd} package)
-endif ()
-
 
 function (tarball_target)
 
@@ -168,28 +166,6 @@ function (flatpak_target manifest)
   add_dependencies(flatpak flatpak-conf)
 endfunction ()
 
-function (pkg_target)
-
-  # pkg target setup
-  #
-  add_custom_target(pkg-conf)
-  add_custom_command(
-    TARGET pkg-conf
-    COMMAND cmake -DBUILD_TYPE:STRING=pkg ${CMAKE_BINARY_DIR}
-  )
-  add_custom_target(pkg-build)
-  add_custom_command(TARGET pkg-build COMMAND ${_build_cmd})
-
-  add_custom_target(pkg-package)
-  add_custom_command(TARGET pkg-package COMMAND ${_build_pkg_cmd})
-
-  add_dependencies(pkg-build pkg-conf)
-  add_dependencies(pkg-package pkg-build)
-
-  add_custom_target(pkg)
-  add_dependencies(pkg pkg-package)
-endfunction ()
-
 function (help_target)
 
   # Help message for plain 'make' without target
@@ -203,14 +179,12 @@ function (help_target)
       "   - tarball: Plugin installer tarball for regular builds."
     COMMAND cmake -E echo
       "   - flatpak: Plugin installer tarball for flatpak builds."
-    COMMAND cmake -E echo
-      "   - pkg: Legacy installer package on Windows, Mac and Debian."
     COMMAND cmake -E echo ""
     COMMAND dont-use-plain-make   # will fail
   )
 
   if ("${BUILD_TYPE}" STREQUAL "" )
-    add_dependencies(${PACKAGE_NAME} make-warning)
+    add_dependencies(${PACKAGE_NAME} tarball)
   endif ()
 endfunction ()
 
@@ -219,8 +193,10 @@ function (create_targets manifest)
   # with helper targets. Parameters:
   # - manifest: Flatpak build manifest
 
+  if (BUILD_TYPE STREQUAL "pkg")
+    message(FATAL_ERROR "Legacy package generation is not supported.")
+  endif ()
   tarball_target()
   flatpak_target(${manifest})
-  pkg_target()
   help_target()
 endfunction ()
