@@ -195,6 +195,9 @@ bool JavaScript_pi::DeInit(void) {
 
     delete pConsole;
     pConsole = NULL;
+
+    delete mpFirstConsole;
+    mpFirstConsole = NULL;
     
     return true;
 }
