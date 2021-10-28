@@ -70,7 +70,7 @@ endif ()
 #
 # -------  Plugin setup --------
 #
-project(javascript_pi VERSION 2.8.6.0)
+project(javascript_pi VERSION 0.5.0.0)
 set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
