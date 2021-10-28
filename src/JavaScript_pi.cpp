@@ -179,22 +179,23 @@ bool JavaScript_pi::DeInit(void) {
         pConsole->clearAlert();
         pConsole->clearDialog();
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
-        delete pConsole;
-        pConsole = NULL;
+        
         }
 
     while (mpBin) {    // also any in the bin
         TRACE(3,"JavaScript plugin DeInit deleting console " + mpBin->mConsoleName + " from bin");
         pConsole = mpBin;
-        mpBin = pConsole->mpNextConsole; // take first off chain
-        delete pConsole;
-        pConsole = NULL;
+        mpBin = pConsole->mpNextConsole; // take first off chain        
         }
     mpPluginActive = false;
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
     RequestRefresh(m_parent_window); // refresh main window
     wxLogMessage("JavaScript completed deinit");
     TRACE(1,"JavaScript_pi->DeInit() returning");
+
+    delete pConsole;
+    pConsole = NULL;
+    
     return true;
 }
 
