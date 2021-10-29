@@ -10,7 +10,7 @@
 wxBitmap *_img_JavaScript_pi;
 wxBitmap *_img_JavaScript;
 
-#ifdef JavaScript_USE_SVG
+#ifdef JAVASCRIPT_USE_SVG
 #include "ocpn_plugin.h"
 wxString _svg_JavaScript;
 wxString _svg_JavaScript_toggled;
@@ -27,11 +27,11 @@ void initialize_images(void)
 		_img_JavaScript = new wxBitmap(wxImage(sm));
 	}
 	
-#ifdef JavaScript_USE_SVG
+#ifdef JAVASCRIPT_USE_SVG
 	wxFileName fn;
 	fn.SetPath(*GetpSharedDataLocation());
 	fn.AppendDir(_T("plugins"));
-	fn.AppendDir(_T("JavaScript_pi"));
+	fn.AppendDir(_T("javascript_pi"));
 	fn.AppendDir(_T("data"));
 	fn.SetFullName(_T("JavaScript_pi.svg"));
 	_svg_JavaScript = fn.GetFullPath();

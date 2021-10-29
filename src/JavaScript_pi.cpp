@@ -118,14 +118,14 @@ int JavaScript_pi::Init(void)
 
 #ifndef IN_HARNESS
                 
-#ifdef JavaScript_USE_SVG
+#ifdef JAVASCRIPT_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
             wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);
 #else
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
                                            "JavaScript",_T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
-#endif // JavaScript_USE_SVG
+#endif // JAVASCRIPT_USE_SVG
 #endif // IN_HARNESS
     }
     mpPluginActive = true;
@@ -199,6 +199,10 @@ bool JavaScript_pi::DeInit(void) {
 
     delete mpFirstConsole;
     mpFirstConsole = NULL;
+
+	delete mpBin;
+	mpBin = NULL;
+	
 }
 
 int JavaScript_pi::GetAPIVersionMajor()
