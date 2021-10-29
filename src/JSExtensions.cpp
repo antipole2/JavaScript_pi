@@ -279,7 +279,6 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
     return 0;
     };
 
-
 duk_ret_t duk_require(duk_context *ctx){ // the module search function
     wxString fileNameGiven, fileString, lineOfData, script;
     wxFileName filePath;
@@ -301,12 +300,12 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
             return 1;
             }
         else {  // we will look for it in the build-in scripts
-            filePath = *GetpSharedDataLocation() +
-                _T("plugins") + wxFileName::GetPathSeparator() +
-                _T("JavaScript_pi") + wxFileName::GetPathSeparator() +
-                _T("data") + wxFileName::GetPathSeparator() +
-                _T("scripts") + wxFileName::GetPathSeparator() +
-                fileNameGiven;
+            // this updated for ocpn v5.5
+            fileString = GetPluginDataDir("javascript_pi");
+            filePath.SetPath(fileString);
+            filePath.AppendDir("data");
+            filePath.AppendDir("scripts");
+            filePath.SetFullName(fileNameGiven);
             if (!filePath.FileExists()){
                 pConsole->throw_error(ctx, "require - " + filePath.GetFullName() + " not in scripts library");
                 }

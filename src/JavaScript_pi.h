@@ -24,8 +24,8 @@
 #include "config.h"
 
 #define     MY_API_VERSION_MAJOR    1
-#define     MY_API_VERSION_MINOR    16  // was 7
-#define     PLUGIN_VERSION_DATE "2021:05:09"
+#define     MY_API_VERSION_MINOR    17  // was 7
+#define     PLUGIN_VERSION_DATE "2021:10:28"
 #define     PLUGIN_VERSION_COMMENT ""
 
 enum Options{
@@ -44,7 +44,7 @@ typedef  std::bitset<8> status_t;
 
 class Console;
 
-class JavaScript_pi : public opencpn_plugin_116  // was 18
+class JavaScript_pi : public opencpn_plugin_117  // was 18
 {
 public:
     JavaScript_pi(void *ppimgr);

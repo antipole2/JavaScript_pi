@@ -70,7 +70,7 @@ endif ()
 #
 # -------  Plugin setup --------
 #
-project(javascript_pi VERSION 2.8.6.0)
+project(javascript_pi VERSION 0.5.0.0)
 set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
@@ -85,7 +85,7 @@ You can use it to script your own enhancements to standard OpenCPN functionality
 set(PKG_AUTHOR "Tony Voss")
 set(PKG_IS_OPEN_SOURCE "yes")
 set(CPACK_PACKAGE_HOMEPAGE_URL https://github.com/antipole2/javascript_pi)
-set(PKG_INFO_URL https://opencpn.org/OpenCPN/plugins/javascript.html)
+set(PKG_INFO_URL https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html)
 
 
 SET(SRC
@@ -102,7 +102,6 @@ SET(SRC
     src/JSExtensions.cpp
     src/ocpn_duk.h
     src/OPCNapis.cpp
-    src/ocpn_plugin.h
     src/duk_config.h
     src/duktape.h
     src/duktape.cpp
@@ -324,13 +323,13 @@ SET(SCINTILLA
     scintilla/src/XPM.h
 	)
 	
-IF(APPLE)
+#IF(APPLE)
 
-    add_library(${CMAKE_PROJECT_NAME}        
-        ${SCINTILLA}
-        )
+#    add_library(${CMAKE_PROJECT_NAME}        
+#        ${SCINTILLA}
+#        )
         
-ENDIF(APPLE)
+#ENDIF(APPLE)
 
 ADD_DEFINITIONS(-DSCI_LEXER)
 
@@ -339,7 +338,7 @@ ADD_DEFINITIONS(-DSCI_LEXER)
 add_library(${CMAKE_PROJECT_NAME} SHARED ${SRC})
 include_directories(BEFORE ${CMAKE_BINARY_DIR}/include)
 
-add_subdirectory("libs/api-16")
+add_subdirectory("libs/api-17")
 target_link_libraries(${CMAKE_PROJECT_NAME} ocpn::api)
 
 set(VERSION_MAJOR ${PROJECT_VERSION_MAJOR})

@@ -57,21 +57,20 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
-:opencpn_plugin_116 (ppimgr)  // was 18
+:opencpn_plugin_117	 (ppimgr)  // was 16
 {
 #ifndef IN_HARNESS
     // Create the PlugIn icons
     initialize_images();
 
 	wxFileName fn;
-
-    auto path = GetPluginDataDir("JavaScript_pi");
+    auto path = GetPluginDataDir("javascript_pi");
     fn.SetPath(path);
     fn.AppendDir("data");
-    fn.SetFullName("JavaScript_panel_icon.png");
+    fn.SetFullName("JavaScript_pi_panel_icon.png");
 
     path = fn.GetFullPath();
-
+    wxString forDebug = fn.GetFullPath();
     wxInitAllImageHandlers();
 
     wxLogDebug(wxString("Using icon path: ") + path);
@@ -85,18 +84,6 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     else
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
-
-
- /*
-    wxString shareLocn = *GetpSharedDataLocation() +
-    _T("plugins") + wxFileName::GetPathSeparator() +
-    _T("JavaScript_pi") + wxFileName::GetPathSeparator()
-    + _T("data") + wxFileName::GetPathSeparator();
-    wxImage panelIcon(shareLocn + _T("JavaScript_pi_panel_icon.png"));
-    if (panelIcon.IsOk())
-        m_panelBitmap = wxBitmap(panelIcon);
-    else
-        wxLogMessage(_T("    JavaScript_pi panel icon NOT loaded"));*/
 #endif
 }
 
@@ -130,12 +117,13 @@ int JavaScript_pi::Init(void)
     if(m_bJavaScriptShowIcon){
 
 #ifndef IN_HARNESS
+                
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
             wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);
 #else
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
-                                           "JavaScript", _T(""), NULL,
+                                           "JavaScript",_T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
 #endif // JavaScript_USE_SVG
 #endif // IN_HARNESS
@@ -192,6 +180,7 @@ bool JavaScript_pi::DeInit(void) {
         pConsole->clearDialog();
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
+        pConsole = NULL;
         }
 
     while (mpBin) {    // also any in the bin
@@ -199,6 +188,7 @@ bool JavaScript_pi::DeInit(void) {
         pConsole = mpBin;
         mpBin = pConsole->mpNextConsole; // take first off chain
         delete pConsole;
+        pConsole = NULL;
         }
     mpPluginActive = false;
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
@@ -206,6 +196,9 @@ bool JavaScript_pi::DeInit(void) {
     wxLogMessage("JavaScript completed deinit");
     TRACE(1,"JavaScript_pi->DeInit() returning");
     return true;
+
+    delete mpFirstConsole;
+    mpFirstConsole = NULL;
 }
 
 int JavaScript_pi::GetAPIVersionMajor()
