@@ -734,7 +734,7 @@ static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     bool result;
     duk_require_object(ctx,0);
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the ocpn waypoint
-    UpdateSingleWaypointEx(p_waypoint);
+    result = UpdateSingleWaypointEx(p_waypoint);
     if (!result){ // waypoint does not exists?
         throwErrorByCtx(ctx, "OCPNupdateSingleWaypoint error. Non-existant GUID? " + p_waypoint->m_GUID);
         }
@@ -946,7 +946,7 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     bool outcome;
 
     GUID = wxString(duk_to_string(ctx,0));
-    if (DeletePlugInTrack(GUID)) {
+    if (true /*DeletePlugInTrack(GUID)*/) {
         throwErrorByCtx(ctx, "OCPNdeleteTrack called with non-existant GUID " + GUID);
         }
     duk_push_boolean(ctx, outcome);
