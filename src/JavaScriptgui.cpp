@@ -195,7 +195,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->SetSizer( bSizer9111 );
 	this->Layout();
 
-	this->Centre( wxBOTH );
+	//this->Centre( wxBOTH );
 
 	// Connect Events
 	this->Connect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console::OnActivate ) );
