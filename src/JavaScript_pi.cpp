@@ -11,7 +11,7 @@
 * https://www.gnu.org/licenses/gpl-3.0.en.html
 ***************************************************************************
  * This module draws on  DR_pi by Mike Rossiter
- */
+ */ 
 
 #include "wx/wxprec.h"
 
