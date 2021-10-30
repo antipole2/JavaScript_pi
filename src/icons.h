@@ -12,7 +12,7 @@ extern void initialize_images(void);
 extern wxBitmap *_img_JavaScript_pi;
 extern wxBitmap *_img_JavaScript;
 
-#ifdef JavaScript_USE_SVG
+#ifdef JAVASCRIPT_USE_SVG
 extern wxString _svg_JavaScript;
 extern wxString _svg_JavaScript_toggled;
 #endif

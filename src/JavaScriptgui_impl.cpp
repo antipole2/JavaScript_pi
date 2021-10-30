@@ -211,7 +211,7 @@ void Console::OnClose(wxCloseEvent& event)
     TRACE(3, "Destroying console " + this->mConsoleName);
     this->Destroy();
     //RequestRefresh(pJavaScript_pi->m_parent_window);
-    }
+ }
 
 static wxString dummyMessage, message_id;
 wxDialog* dialog;
