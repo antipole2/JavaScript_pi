@@ -43,15 +43,15 @@ set(OCPN_TEST_REPO
 )
 set(OCPN_BETA_REPO
     "opencpn/javascript-beta"
-    CACHE STRING 
+    CACHE STRING
     "Default repository for tagged builds matching 'beta'"
 )
 set(OCPN_RELEASE_REPO
     "opencpn/javascript-prod"
-    CACHE STRING 
+    CACHE STRING
     "Default repository for tagged builds not matching 'beta'"
 )
-option(JAVASCRIPT_USE_SVG "Use SVG graphics" ON)
+option(JavaScript_USE_SVG "Use SVG graphics" ON)
 
 set(OCPN_TARGET_TUPLE "" CACHE STRING
   "Target spec: \"platform;version;arch\""
@@ -114,7 +114,7 @@ SET(SRC
     src/toolsDialogImp.h
     src/toolsDialogImp.cpp
     )
-    
+
 SET(SCINTILLA
     scintilla/ScintillaWX.h
     scintilla/ScintillaWX.cpp
@@ -322,13 +322,13 @@ SET(SCINTILLA
     scintilla/src/XPM.cxx
     scintilla/src/XPM.h
 	)
-	
+
 #IF(APPLE)
 
-#    add_library(${CMAKE_PROJECT_NAME}        
+#    add_library(${CMAKE_PROJECT_NAME}
 #        ${SCINTILLA}
 #        )
-        
+
 #ENDIF(APPLE)
 
 ADD_DEFINITIONS(-DSCI_LEXER)
@@ -351,8 +351,8 @@ set(PACKAGE_NAME ${CMAKE_PROJECT_NAME})
 string(REGEX REPLACE "\([0-9]\)\.\([0-9]\).*" "ov\\1\\2"
        OCPN_MIN_VERSION ${API_OCPN_MIN_VERSION})
 
-if (JAVASCRIPT_USE_SVG)
-  add_definitions(-DJAVASCRIPT_USE_SVG)
+if (JavaScript_USE_SVG)
+  add_definitions(-DJavaScript_USE_SVG)
 endif ()
 
 # Set up targets. Targets sets up a recursive call with BUILD_TYPE set to
@@ -384,10 +384,10 @@ if (NOT ${BUILD_TYPE} STREQUAL "flatpak")
 
   add_subdirectory("libs/jsoncpp")
   target_link_libraries(${PACKAGE_NAME} ocpn::jsoncpp)
-  
+
   add_subdirectory("libs/tinyxml")
   target_link_libraries(${PACKAGE_NAME} ocpn::tinyxml)
-  
+
   add_subdirectory("libs/wxJSON")
   target_link_libraries(${PACKAGE_NAME} ocpn::wxjson)
 endif ()

@@ -11,7 +11,7 @@
 * https://www.gnu.org/licenses/gpl-3.0.en.html
 ***************************************************************************
  * This module draws on  DR_pi by Mike Rossiter
- */ 
+ */
 
 #include "wx/wxprec.h"
 
@@ -92,7 +92,7 @@ JavaScript_pi::~JavaScript_pi(void)
     // wxLogMessage("JavaScript_pi deconstructing");
     delete _img_JavaScript_pi;
     delete _img_JavaScript;
-    
+
 }
 
 int JavaScript_pi::Init(void)
@@ -102,23 +102,21 @@ int JavaScript_pi::Init(void)
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");
     AddLocaleCatalog( _T("opencpn-JavaScript_pi") );
-    
+
     mpFirstConsole = nullptr;
     mpBin = nullptr;
 
     //    Get a pointer to the opencpn configuration object
     m_pconfig = GetOCPNConfigObject();
-    
+
     //    And load the configuration items
     LoadConfig();
     mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
-    
+
     //    This PlugIn needs a toolbar icon, so request its insertion
     if(m_bJavaScriptShowIcon){
 
-#ifndef IN_HARNESS
-                
-#ifdef JAVASCRIPT_USE_SVG
+#ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
             wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);
 #else
@@ -133,7 +131,7 @@ int JavaScript_pi::Init(void)
     mTimer.Start(1000);
 
     TRACE(1,"JavaScript_pi->Init() returning");
-    
+
     return (WANTS_TOOLBAR_CALLBACK |
             WANTS_CONFIG             |
             WANTS_PLUGIN_MESSAGING |
@@ -151,7 +149,7 @@ bool JavaScript_pi::DeInit(void) {
     wxLogMessage("JavaScript_pi->DeInit() entered");
      mTimer.Stop();
      mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
-    
+
     SaveConfig();
 
     if (pTools) {
@@ -234,7 +232,7 @@ wxBitmap *JavaScript_pi::GetPlugInBitmap()
 
 wxString JavaScript_pi::GetCommonName()
 {
-    return "JavaScript";
+    return "javascript";
 }
 
 
@@ -259,7 +257,7 @@ void JavaScript_pi::SetColorScheme(PI_ColorScheme cs)
 /*
  if (NULL == m_pConsole)
         return;
-    
+
     DimeWindow(m_pConsole);
  */
 }
@@ -269,9 +267,9 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     void JSlexit(wxStyledTextCtrl* pane);
     void fatal_error_handler(void *udata, const char *msg);
     TRACE(2,"JavaScript_pi->OnToolbarToolCallback() entered");
-    
+
     mShowingConsoles = !mShowingConsoles;   // toggle console display state
-    
+
     Console *m_pConsole = mpFirstConsole;
     for (m_pConsole = mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (mShowingConsoles)   m_pConsole->Show();
@@ -325,7 +323,7 @@ bool JavaScript_pi::LoadConfig(void)
                     wxPoint consolePosition, dialogPosition, alertPosition;
                     wxString fileString;
                     bool autoRun;
-                    
+
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
@@ -350,9 +348,9 @@ bool JavaScript_pi::SaveConfig(void)
 {
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     Console *pConsole;
-    
+
     TRACE(3,"JavaScript_pi->SaveConfig() entered");
-    
+
     if(pConf)
     {
         wxString consoleNames {wxEmptyString};
@@ -455,7 +453,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& tick){
             pConsole->run(pConsole->m_Script->GetValue());
             TRACE(3, "Finished auto-running console " + pConsole->mConsoleName);
             }
-        
+
         if (!pConsole->isWaiting()) continue;  // ignore if we are not waiting on something
         if (!pConsole->mTimerActionBusy){  // only look at timers if not already working on a timer - to stop recursion
             if (!pConsole->mTimes.IsEmpty()){
