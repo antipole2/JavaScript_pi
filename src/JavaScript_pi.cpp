@@ -84,7 +84,7 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     else
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
-#endif
+#endif // not IN_HARNESS
 }
 
 JavaScript_pi::~JavaScript_pi(void)
@@ -123,8 +123,7 @@ int JavaScript_pi::Init(void)
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
                                            "JavaScript",_T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
-#endif // JAVASCRIPT_USE_SVG
-#endif // IN_HARNESS
+#endif // JavaScript_USE_SVG
     }
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());

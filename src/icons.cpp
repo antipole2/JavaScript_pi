@@ -10,7 +10,7 @@
 wxBitmap *_img_JavaScript_pi;
 wxBitmap *_img_JavaScript;
 
-#ifdef JAVASCRIPT_USE_SVG
+#ifdef JavaScript_USE_SVG
 #include "ocpn_plugin.h"
 wxString _svg_JavaScript;
 wxString _svg_JavaScript_toggled;
