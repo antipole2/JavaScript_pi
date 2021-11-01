@@ -76,7 +76,7 @@ set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME javascript) # As of GetCommonName() in plugin API
 set(CPACK_PACKAGE_CONTACT "Mike Rossiter")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simulate ship movements")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Run JavaScripts in the plugin")
 set(CPACK_PACKAGE_DESCRIPTION [=[
 This plugin for OpenCPN allows you to run JavaScript and to interact with OpenCPN.
 You can use it to script your own enhancements to standard OpenCPN functionality.
@@ -115,6 +115,7 @@ SET(SRC
     src/toolsDialogImp.cpp
     )
 
+#IF 0
 SET(SCINTILLA
     scintilla/ScintillaWX.h
     scintilla/ScintillaWX.cpp
@@ -330,6 +331,7 @@ SET(SCINTILLA
 #        )
 
 #ENDIF(APPLE)
+#ENDIF #0
 
 ADD_DEFINITIONS(-DSCI_LEXER)
 
