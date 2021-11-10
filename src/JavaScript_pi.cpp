@@ -70,8 +70,8 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     fn.SetFullName("JavaScript_pi_panel_icon.png");
 
     path = fn.GetFullPath();
-    wxString forDebug = fn.GetFullPath();
-    wxInitAllImageHandlers();
+//    wxString forDebug = fn.GetFullPath();
+//    wxInitAllImageHandlers();
 
     wxLogDebug(wxString("Using icon path: ") + path);
     if (!wxImage::CanRead(path)) {
@@ -154,7 +154,7 @@ bool JavaScript_pi::DeInit(void) {
     if (pTools) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
         pTools->Hide();
-        pTools->Close();
+        pTools->Destroy();
         pTools = nullptr;
         }
 
@@ -192,15 +192,16 @@ bool JavaScript_pi::DeInit(void) {
     RequestRefresh(m_parent_window); // refresh main window
     wxLogMessage("JavaScript completed deinit");
     TRACE(1,"JavaScript_pi->DeInit() returning");
-    return true;
 
-    delete mpFirstConsole;
-    mpFirstConsole = NULL;
-
-	delete mpBin;
-	mpBin = NULL;
+/*    delete mpFirstConsole;
+    mpFirstConsole = nullptr;
 	
-}
+    delete mpBin;
+	mpBin = nullptr;
+ */
+    
+    return true;
+    }
 
 int JavaScript_pi::GetAPIVersionMajor()
 {
@@ -542,10 +543,12 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
 #include "toolsDialogImp.h"
 //void JavaScript_pi::ShowToolsDialog(wxWindow *m_parent_window ){
 void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
-    if (pTools != nullptr) return;    // ignore if already open
-    pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
-    // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
-    // tools distructor, so will store its address in the preference for later access.
-    pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
+    if (pTools == nullptr) {  // do not yet have a preferences dialogue
+        pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
+        // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
+        // tools distructor, so will store its address in the preference for later access.
+//        pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
+        }
     pTools->Show();
+
     };

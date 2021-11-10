@@ -5,7 +5,7 @@
 // PLEASE DO *NOT* EDIT THIS FILE!
 ///////////////////////////////////////////////////////////////////////////
 
-#include "toolsDialogGui.h"
+#include "ToolsDialogGui.h"
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -308,8 +308,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	this->SetSizer( TopSizer );
 	this->Layout();
 	TopSizer->Fit( this );
-
-	this->Centre( wxBOTH );
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ToolsClassBase::onClose ) );

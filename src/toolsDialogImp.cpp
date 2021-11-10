@@ -20,9 +20,12 @@
 extern JavaScript_pi *pJavaScript_pi;
 
 void ToolsClass::onClose( wxCloseEvent& event ){
+/*
     *pPointerToThisInJavaScript_pi = nullptr;
     TRACE(4, "In Tools close");
-    Destroy();
+    this->Destroy();
+ */
+    this->Hide();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
@@ -53,7 +56,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
             }
         }
     pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-    pConsole->CenterOnScreen();
+   // pConsole->CenterOnScreen();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;

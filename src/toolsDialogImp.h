@@ -32,7 +32,7 @@ public:
     void onClean( wxCommandEvent& event );
     void onClose( wxCloseEvent& event );
     
-    ToolsClass **pPointerToThisInJavaScript_pi;   // pointer to pointer to this
+//    ToolsClass **pPointerToThisInJavaScript_pi;   // pointer to pointer to this
     
     ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE )
         :ToolsClassBase(parent, id, title, pos, size, style)

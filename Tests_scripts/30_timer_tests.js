@@ -1,4 +1,4 @@
-// Excrcise an test timers
+// Excrcise and test timers
 print("Repeated onSeconds calls will lose time compared with five second timer\n");
 
 var tickCounter = 0

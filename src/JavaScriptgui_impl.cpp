@@ -203,9 +203,9 @@ void Console::OnClose(wxCloseEvent& event)
             return;
             }
         TRACE(3, "Binning console " + this->mConsoleName);
-        //this->bin();
-        this->clearAndUnhook();
-        this->Destroy();
+        this->bin();
+//        this->clearAndUnhook();
+//        this->Destroy();
         return;
         }
     TRACE(3, "Destroying console " + this->mConsoleName);
@@ -217,7 +217,7 @@ static wxString dummyMessage, message_id;
 wxDialog* dialog;
 
 void Console::OnTools( wxCommandEvent& event){
-    void createDialog();
+//void createDialog();
     extern JavaScript_pi *pJavaScript_pi;
     
     pJavaScript_pi->ShowPreferencesDialog(pJavaScript_pi->m_parent_window);
