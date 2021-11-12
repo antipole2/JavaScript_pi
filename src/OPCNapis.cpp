@@ -276,12 +276,14 @@ void ocpn_waypoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint_Ex *p_waypoint){
             duk_put_prop_literal(ctx, -2, "GUID");
         duk_push_string(ctx, p_waypoint->m_MarkDescription);
             duk_put_prop_literal(ctx, -2, "description");
+        duk_push_boolean(ctx, p_waypoint->IsVisible);
+            duk_put_prop_literal(ctx, -2, "isVisible");
         duk_push_string(ctx, p_waypoint->IconName);
             duk_put_prop_literal(ctx, -2, "iconName");
         duk_push_string(ctx, p_waypoint->IconDescription);
             duk_put_prop_literal(ctx, -2, "iconDescription");
         duk_push_boolean(ctx, p_waypoint->IsNameVisible);
-            duk_put_prop_literal(ctx, -2, "isVisible");
+            duk_put_prop_literal(ctx, -2, "isNameVisible");
         duk_push_int(ctx, p_waypoint->nrange_rings);
         	duk_put_prop_literal(ctx, -2, "nRanges");
         duk_push_number(ctx, p_waypoint->RangeRingSpace);
@@ -298,7 +300,7 @@ void ocpn_waypoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint_Ex *p_waypoint){
         	duk_put_prop_literal(ctx, -2, "isActive");
         	 
         duk_push_int(ctx, p_waypoint->GetRouteMembershipCount());
-        	duk_put_prop_literal(ctx, -2, "routeMembershipCount");         	 	
+        	duk_put_prop_literal(ctx, -2, "routeCount");         	 	
 	    duk_push_number(ctx, p_waypoint->m_CreateTime.GetTicks());
             duk_put_prop_literal(ctx, -2, "creationDateTime");
         duk_idx_t arr_idx = duk_push_array(ctx); // the hyperlinkList array
