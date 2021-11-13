@@ -587,6 +587,8 @@ public:
                 mMessages[index].functionName = wxEmptyString;
                 }
             }
+        // clear out all timer stuff
+        // while (mTimes.GetCount() > 0) mTimes.RemoveAt(0); not needed?
         mTimes.Clear();
         mConsoleCallbacksAwaited = 0;
         mTimerActionBusy = false;

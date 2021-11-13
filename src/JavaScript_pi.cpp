@@ -98,6 +98,7 @@ JavaScript_pi::~JavaScript_pi(void)
 int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
+    wxMessageBox( wxT("In Init") );
     m_parent_window = GetOCPNCanvasWindow();
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");
@@ -173,6 +174,7 @@ bool JavaScript_pi::DeInit(void) {
         // purge stuff out of this one - we do not use wrapUp() because that might do all sorts of other things
         if (pConsole->mpCtx != nullptr) duk_destroy_heap(pConsole->mpCtx);
         pConsole->mMessages.Clear();
+//        while (pConsole->mTimes.GetCount() > 0) pConsole->mTimes.RemoveAt(0);  Not needed?
         pConsole->mTimes.Clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
@@ -445,6 +447,7 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
 
 void JavaScript_pi::OnTimer(wxTimerEvent& tick){
     Console* pConsole;
+    wxMessageBox( wxT("In OnTimer") );
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
 
         // look out to see if we need to automatically run this console
