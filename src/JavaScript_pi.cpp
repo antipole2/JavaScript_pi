@@ -155,6 +155,7 @@ bool JavaScript_pi::DeInit(void) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
         pTools->Hide();
         pTools->Destroy();
+        delete pTools;
         pTools = nullptr;
         }
 
