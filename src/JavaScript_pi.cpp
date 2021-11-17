@@ -89,7 +89,6 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
 
 JavaScript_pi::~JavaScript_pi(void)
 {
-    // wxLogMessage("JavaScript_pi deconstructing");
     delete _img_JavaScript_pi;
     delete _img_JavaScript;
 
@@ -98,7 +97,7 @@ JavaScript_pi::~JavaScript_pi(void)
 int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
-    wxMessageBox( wxT("In Init") );
+    
     m_parent_window = GetOCPNCanvasWindow();
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");
@@ -128,6 +127,9 @@ int JavaScript_pi::Init(void)
     }
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
+//    mTimer.Connect(wxEVT_TIMER, wxTimerEventHandler( JavaScript_pi::OnTimer ), NULL, this);
+//    mTimer = wxTimer();
+//    mTimer.SetOwner(JavaScript_pi::OnTimer, mTimer.GetId());
     mTimer.Start(1000);
 
     TRACE(1,"JavaScript_pi->Init() returning");
@@ -445,7 +447,7 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
     m_positionFix = pfix;
 }
 
-void JavaScript_pi::OnTimer(wxTimerEvent& tick){
+void JavaScript_pi::OnTimer(wxTimerEvent& ){
     Console* pConsole;
     wxMessageBox( wxT("In OnTimer") );
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){

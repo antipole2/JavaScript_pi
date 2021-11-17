@@ -48,11 +48,17 @@ wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
 void throwErrorByCtx(duk_context *ctx, wxString message);
 
 
-
+wxString getContextDump(duk_context *ctx){ // return duktape context dump as string
+    duk_push_context_dump(ctx);
+    wxString result = duk_to_string(ctx, -1);
+    duk_pop(ctx);
+    return result;
+    }
 
 PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
     // returns an opcn waypoint constructed from js waypoint on top of duk stack
     duk_size_t listLength, i;
+    wxString dump;
     void throwErrorByCtx(duk_context *ctx, wxString message);
     PlugIn_Waypoint_Ex *p_waypoint = new PlugIn_Waypoint_Ex;
     // indenting here represents stack hight - do not reformat
@@ -89,15 +95,20 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);    
     if (duk_get_prop_string(ctx, -1, "rangeRingColour"))
 	        p_waypoint->RangeRingColor.Set(duk_to_string(ctx, -1));
-        duk_pop(ctx);    
+        duk_pop(ctx);
+    /*  OCPN does not support setting this
+    if (duk_get_prop_string(ctx, -1, "creationDataTime")) p_waypoint->m_CreateTime.Set(duk_to_number(ctx, -1));
+        duk_pop(ctx);
+     */
+    
+    // hyperlink processing
+    p_waypoint->m_HyperlinkList = new Plugin_HyperlinkList; // need to initialise to empty list
     if (duk_get_prop_string(ctx, -1, "hyperlinkList")){
-        // we have a hyperlinkList - this is hard work!
-        p_waypoint->m_HyperlinkList = new Plugin_HyperlinkList; // need to initialise to empty list
-        if (duk_is_array(ctx, -1)){
-            // and it is an array
+        // we do have a hyperlinkList - this is hard work!
+        if (duk_is_array(ctx, -1) && (listLength = duk_get_length(ctx, -1)) > 0){   // only process if non-empty array of hyperlinks
             duk_to_object(ctx, -1);
-                listLength = duk_get_length(ctx, -1);
                 for (i = 0; i < listLength; i++){
+                    dump = getContextDump(ctx);
                     Plugin_Hyperlink *p_hyperlink{new Plugin_Hyperlink};
                     duk_get_prop_index(ctx, -1, (unsigned int) i);
                         duk_get_prop_string(ctx, -1, "description");
@@ -107,21 +118,21 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
                         p_hyperlink->Link = duk_get_string(ctx, -1);
                         duk_pop(ctx);
                     duk_get_prop_string(ctx, -1, "type");
-                        p_hyperlink->Type = duk_get_string(ctx, -1);
                         duk_pop(ctx);
                     p_waypoint->m_HyperlinkList->Append(p_hyperlink);
                     duk_pop(ctx);
                 }
             }
         }
-    duk_pop(ctx);
+        duk_pop(ctx);
     return(p_waypoint);
     }
     
     PlugIn_Waypoint * js_duk_to_opcn_trackpoint(duk_context *ctx){
-    // returns an opcn waypoint constructed from js waypoint on top of duk stack
+    // returns an opcn trackpoint constructed from js waypoint on top of duk stack
     duk_size_t listLength, i;
     void throwErrorByCtx(duk_context *ctx, wxString message);
+        
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint;
     // indenting here represents stack hight - do not reformat
         if (duk_get_prop_string(ctx, -1, "position")){
@@ -131,44 +142,18 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
             if (!duk_get_prop_string(ctx, -1, "longitude"))throwErrorByCtx(ctx, "add/updateTrack error: no longitude");
                 p_waypoint->m_lon = duk_to_number(ctx, -1);
                 duk_pop(ctx);
+            duk_pop(ctx);   // done with position
             }
         else throwErrorByCtx(ctx, "addtrackpoint error: no position");
-        duk_pop(ctx);   // done with position
-    duk_get_prop_string(ctx, -1, "markName");
-        p_waypoint->m_MarkName = duk_to_string(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "markName")) p_waypoint->m_MarkName = duk_to_string(ctx, -1);
+        duk_pop(ctx);
+    if (duk_get_prop_string(ctx, -1, "creationDataTime")) p_waypoint->m_CreateTime.Set(duk_to_number(ctx, -1));
         duk_pop(ctx);
     duk_get_prop_string(ctx, -1, "GUID");
         p_waypoint->m_GUID = duk_to_string(ctx, -1);
         duk_pop(ctx);
     if (wxIsEmpty(p_waypoint->m_GUID)) p_waypoint->m_GUID = GetNewGUID();  // if no GUID, provide one
-
-/*
-    if (duk_get_prop_string(ctx, -1, "hyperlinkList")){
-        // we have a hyperlinkList - this is hard work!
-        p_waypoint->m_HyperlinkList = new Plugin_HyperlinkList; // need to initialise to empty list
-        if (duk_is_array(ctx, -1)){
-            // and it is an array
-            duk_to_object(ctx, -1);
-                listLength = duk_get_length(ctx, -1);
-                for (i = 0; i < listLength; i++){
-                    Plugin_Hyperlink *p_hyperlink{new Plugin_Hyperlink};
-                    duk_get_prop_index(ctx, -1, (unsigned int) i);
-                        duk_get_prop_string(ctx, -1, "description");
-                        p_hyperlink->DescrText = duk_get_string(ctx, -1);
-                        duk_pop(ctx);
-                    duk_get_prop_string(ctx, -1, "link");
-                        p_hyperlink->Link = duk_get_string(ctx, -1);
-                        duk_pop(ctx);
-                    duk_get_prop_string(ctx, -1, "type");
-                        p_hyperlink->Type = duk_get_string(ctx, -1);
-                        duk_pop(ctx);
-                    p_waypoint->m_HyperlinkList->Append(p_hyperlink);
-                    duk_pop(ctx);
-                }
-            }
-        }
-*/
-    duk_pop(ctx);
+//    duk_pop(ctx);
     return(p_waypoint);
     }
 
@@ -196,12 +181,12 @@ PlugIn_Route_Ex * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
             }
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "waypoints")){
-        p_route->pWaypointList = new Plugin_WaypointExList; // need to initialise to empty list
         if (duk_is_array(ctx, -1)){
             // and it is an array
+            listLength = duk_get_length(ctx, -1);
+            if (listLength < 2) throwErrorByCtx(ctx, "OCPNadd/add/updateupdateRoute error: less than two routepoints");
+            p_route->pWaypointList = new Plugin_WaypointExList; // need to initialise to empty list
             duk_to_object(ctx, -1);
-                listLength = duk_get_length(ctx, -1);
-                if (listLength < 2) throwErrorByCtx(ctx, "OCPNadd/add/updateupdateRoute error: less than two routepoints");
                 for (i = 0; i < listLength; i++){   // do waypoints array
                     duk_get_prop_index(ctx, -1, (unsigned int) i);
                     PlugIn_Waypoint_Ex *p_waypoint = js_duk_to_opcn_waypoint(ctx);
@@ -239,12 +224,12 @@ PlugIn_Track * js_duk_to_opcn_track(duk_context *ctx, bool createGUID){
             }
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "waypoints")){
-        p_track->pWaypointList = new Plugin_WaypointList; // need to initialise to empty list
         if (duk_is_array(ctx, -1)){
             // and it is an array
+            listLength = duk_get_length(ctx, -1);
+            if (listLength < 2) throwErrorByCtx(ctx, "OCPNadd/updateTrack error: less than two trackpoints");
+            p_track->pWaypointList = new Plugin_WaypointList; // need to initialise to empty list
             duk_to_object(ctx, -1);
-                listLength = duk_get_length(ctx, -1);
-                if (listLength < 2) throwErrorByCtx(ctx, "OCPNadd/updateTrack error: less than two trackpoints");
                 for (i = 0; i < listLength; i++){   // do waypoints array
                     duk_get_prop_index(ctx, -1, (unsigned int) i);
                     PlugIn_Waypoint *p_waypoint = js_duk_to_opcn_trackpoint(ctx);
@@ -253,7 +238,7 @@ PlugIn_Track * js_duk_to_opcn_track(duk_context *ctx, bool createGUID){
                 }
             }
         }
-    else throwErrorByCtx(ctx, "OCPNupdateTrack error: called without trackpoints");
+    else throwErrorByCtx(ctx, "OCPNadd/updateTrack error: called without trackpoints");
     duk_pop(ctx);
     return(p_track);
     }
@@ -298,7 +283,6 @@ void ocpn_waypoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint_Ex *p_waypoint){
         	duk_put_prop_literal(ctx, -2, "isFreeStanding");
         duk_push_boolean(ctx, p_waypoint->IsActive);
         	duk_put_prop_literal(ctx, -2, "isActive");
-        	 
         duk_push_int(ctx, p_waypoint->GetRouteMembershipCount());
         	duk_put_prop_literal(ctx, -2, "routeCount");         	 	
 	    duk_push_number(ctx, p_waypoint->m_CreateTime.GetTicks());
@@ -324,7 +308,6 @@ void ocpn_waypoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint_Ex *p_waypoint){
 
 void ocpn_trackpoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint *p_waypoint){
     // constructs a JavaScript trackpoint from an ocpn waypoint leaving it on the top of the stack
-    Plugin_Hyperlink *p_hyperlink = new Plugin_Hyperlink();
     // extra indentation here shows stack depth - do not reformat!
     duk_push_object(ctx); // construct the waypoint object
         duk_push_object(ctx); // construct the waypoint object
@@ -333,33 +316,10 @@ void ocpn_trackpoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint *p_waypoint){
             duk_push_number(ctx, p_waypoint->m_lon);
                 duk_put_prop_literal(ctx, -2, "longitude");
             duk_put_prop_literal(ctx, -2, "position");
-        duk_push_string(ctx, p_waypoint->m_MarkName);
-            duk_put_prop_literal(ctx, -2, "markName");
         duk_push_string(ctx, p_waypoint->m_GUID);
             duk_put_prop_literal(ctx, -2, "GUID");
-        duk_push_string(ctx, p_waypoint->m_MarkDescription);
-            duk_put_prop_literal(ctx, -2, "description");
-        duk_push_string(ctx, p_waypoint->m_IconName);
-            duk_put_prop_literal(ctx, -2, "iconName");       	
 	    duk_push_number(ctx, p_waypoint->m_CreateTime.GetTicks());
             duk_put_prop_literal(ctx, -2, "creationDateTime");
-        duk_idx_t arr_idx = duk_push_array(ctx); // the hyperlinkList array
-        if (p_waypoint->m_HyperlinkList ){  // only attempt this if list of not empty
-            wxPlugin_HyperlinkListNode *linknode = p_waypoint->m_HyperlinkList->GetFirst();
-            for (duk_idx_t i = 0; linknode; linknode = linknode->GetNext(), i++){
-                    p_hyperlink = linknode->GetData();
-                    duk_push_object(ctx); // the link object
-                        duk_push_string(ctx, p_hyperlink->DescrText);
-                            duk_put_prop_literal(ctx, -2, "description");
-                        duk_push_string(ctx, p_hyperlink->Link);
-                            duk_put_prop_literal(ctx, -2, "link");
-                        duk_push_string(ctx, p_hyperlink->Type);
-                            duk_put_prop_literal(ctx, -2, "type");
-                        duk_put_prop_index(ctx, arr_idx, i);
-                    }
-            }
-        duk_put_prop_literal(ctx, -2, "hyperlinkList");
-    delete p_hyperlink;
 }
     
 static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
@@ -651,15 +611,15 @@ p_route->pWaypointList->clear();
 
 void clearWaypointsOutofTrack(PlugIn_Track *p_track){
 // For a track structure, clear out the waypoints
-// For each point, need to clear out any hyperlink lists
 PlugIn_Waypoint *p_waypoint;
-
+/*
 wxPlugin_WaypointListNode *linknode = p_track->pWaypointList->GetFirst();
-for (unsigned int i = 0; linknode; linknode = linknode->GetNext(), i++){
+    for (unsigned int i = 0; linknode; linknode = linknode->GetNext(), i++){
     p_waypoint = linknode->GetData();
     p_waypoint->m_HyperlinkList->DeleteContents(true);
     p_waypoint->m_HyperlinkList->clear();
     }
+ */
 p_track->pWaypointList->DeleteContents(true);
 p_track->pWaypointList->clear();
 }
@@ -905,8 +865,7 @@ static duk_ret_t getTrackByGUID(duk_context *ctx) {
      //No harness equivalent of this, so omit for now
     p_track = GetTrack_Plugin(GUID);
     if (p_track == nullptr){ // no such track
-        duk_push_boolean(ctx, false);
-        return(1);
+        throwErrorByCtx(ctx, "OCPNgetTrack called with non-existant GUID " + GUID);
         }
     // extra indentation here shows stack depth - do not reformat!
     duk_push_object(ctx); // construct the track object
@@ -967,7 +926,7 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     bool outcome;
 
     GUID = wxString(duk_to_string(ctx,0));
-    if (DeletePlugInTrack(GUID)) {
+    if (!DeletePlugInTrack(GUID)) {
         throwErrorByCtx(ctx, "OCPNdeleteTrack called with non-existant GUID " + GUID);
         }
     duk_push_boolean(ctx, outcome);

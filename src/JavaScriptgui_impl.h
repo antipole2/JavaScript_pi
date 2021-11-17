@@ -650,7 +650,8 @@ public:
         if (mAlert.palert != nullptr){ // only if have an alert displayed
             mAlert.position = mAlert.palert->GetPosition(); // remember alert position
             mAlert.palert->Close();
-//            mAlert.palert->Destroy();
+            mAlert.palert->Destroy();
+            delete mAlert.palert;
             mAlert.palert = nullptr;
             mAlert.alertText = wxEmptyString;
             mWaitingCached = false;
@@ -664,6 +665,7 @@ public:
             mDialog.dialogElementsArray.clear();
             mDialog.pdialog->Close();
             mDialog.pdialog->Destroy();
+            delete mDialog.pdialog;
             mDialog.pdialog = nullptr;
             mDialog.functionName = wxEmptyString;
             mWaitingCached = false;

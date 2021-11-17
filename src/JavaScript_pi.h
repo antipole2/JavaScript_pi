@@ -44,7 +44,7 @@ typedef  std::bitset<8> status_t;
 
 class Console;
 
-class JavaScript_pi : public opencpn_plugin_117  // was 18
+class JavaScript_pi : public opencpn_plugin_117
 {
 public:
     JavaScript_pi(void *ppimgr);

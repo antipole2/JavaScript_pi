@@ -132,10 +132,10 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         duk_push_string(ctx, button->GetLabel());
         duk_put_prop_string(ctx, -2, "label");
         duk_put_prop_index(ctx, -2, i); // i will have been left one greater than length of array so this extends it
-        
-        pConsole->mDialog.dialogElementsArray.clear();
-        window->Destroy();
-        pConsole->mDialog.pdialog = nullptr;
+        pConsole->clearDialog();
+ //       window->Destroy();
+ //       delete window;
+ //       window = nullptr;
         TRACE(4,pConsole->mConsoleName + " Done on button processing - to call function " + functionName);
         result = pConsole->executeFunction(functionName);
         TRACE(4,pConsole->mConsoleName + " Button processing - back from function");
