@@ -130,7 +130,6 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
     
     PlugIn_Waypoint * js_duk_to_opcn_trackpoint(duk_context *ctx){
     // returns an opcn trackpoint constructed from js waypoint on top of duk stack
-    duk_size_t listLength, i;
     void throwErrorByCtx(duk_context *ctx, wxString message);
         
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint;
@@ -145,15 +144,10 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
             duk_pop(ctx);   // done with position
             }
         else throwErrorByCtx(ctx, "addtrackpoint error: no position");
-    if (duk_get_prop_string(ctx, -1, "markName")) p_waypoint->m_MarkName = duk_to_string(ctx, -1);
+        if (duk_get_prop_string(ctx, -1, "creationDateTime")) {
+            p_waypoint->m_CreateTime.Set(duk_to_number(ctx, -1));
+            }
         duk_pop(ctx);
-    if (duk_get_prop_string(ctx, -1, "creationDataTime")) p_waypoint->m_CreateTime.Set(duk_to_number(ctx, -1));
-        duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "GUID");
-        p_waypoint->m_GUID = duk_to_string(ctx, -1);
-        duk_pop(ctx);
-    if (wxIsEmpty(p_waypoint->m_GUID)) p_waypoint->m_GUID = GetNewGUID();  // if no GUID, provide one
-//    duk_pop(ctx);
     return(p_waypoint);
     }
 
@@ -316,11 +310,9 @@ void ocpn_trackpoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint *p_waypoint){
             duk_push_number(ctx, p_waypoint->m_lon);
                 duk_put_prop_literal(ctx, -2, "longitude");
             duk_put_prop_literal(ctx, -2, "position");
-        duk_push_string(ctx, p_waypoint->m_GUID);
-            duk_put_prop_literal(ctx, -2, "GUID");
 	    duk_push_number(ctx, p_waypoint->m_CreateTime.GetTicks());
             duk_put_prop_literal(ctx, -2, "creationDateTime");
-}
+    }
     
 static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
     Console *pConsole = findConsoleByCtx(ctx);
@@ -906,7 +898,7 @@ static duk_ret_t addTrack(duk_context *ctx) { // add the track to OpenCPN
     if (!result) duk_push_boolean(ctx, false);  //  failed
     else duk_push_string(ctx, p_track->m_GUID);  // else return the GUID
     // now track safely stored in OpenCPN, clean up - lists data not otherwise released
-    clearWaypointsOutofTrack(p_track);  // works for tracks too
+    clearWaypointsOutofTrack(p_track);
     return(1);
 }
 
