@@ -28,4 +28,3 @@ BY 3.0 (http://creativecommons.org/licenses/by/3.0/)
 
 The software contains open-source licensed files under different licenses
 including Expat and Libpng. See the source files for details.
-
