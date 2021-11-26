@@ -34,7 +34,8 @@ void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
 
     pageNumber = event.GetSelection();
     resizeDialogue(pageNumber);
-    mCurrentDirectoryString->SetLabel(pJavaScript_pi->mCurrentDirectory);
+    wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
+    mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
     }
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
