@@ -311,7 +311,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
             }
         else {  // we will look for it in the build-in scripts
             // this updated for ocpn v5.5
-            fileString = GetPluginDataDir("javascript_pi");
+            fileString = GetPluginDataDir("JavaScript_pi");
             filePath.SetPath(fileString);
             filePath.AppendDir("data");
             filePath.AppendDir("scripts");
