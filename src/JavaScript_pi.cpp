@@ -27,6 +27,7 @@
 #include "wx/stdpaths.h"
 
 int messageIndex(MessagesArray&, messageNameString_t);
+wxString configSection = ("/PlugIns/JavaScript_pi");
 
 // the class factories, used to create and destroy instances of the PlugIn
 
@@ -298,7 +299,7 @@ bool JavaScript_pi::LoadConfig(void)
 #ifndef IN_HARNESS
     if(pConf)
     {
-        pConf->SetPath ( _T( "/Settings/JavaScript_pi" ) );
+        pConf->SetPath (configSection);
         pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 20L );
         int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 20L );
@@ -360,8 +361,8 @@ bool JavaScript_pi::SaveConfig(void)
     {
         wxString consoleNames {wxEmptyString};
         wxString name, nameColon;
-        pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );
-        pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
+        pConf->DeleteGroup (configSection);
+        pConf->SetPath (configSection);
         pConf->Write ( _T ( "VersionMajor" ), PLUGIN_VERSION_MAJOR );
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
