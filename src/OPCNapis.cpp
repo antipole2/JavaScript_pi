@@ -108,7 +108,6 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         if (duk_is_array(ctx, -1) && (listLength = duk_get_length(ctx, -1)) > 0){   // only process if non-empty array of hyperlinks
             duk_to_object(ctx, -1);
                 for (i = 0; i < listLength; i++){
-                    dump = getContextDump(ctx);
                     Plugin_Hyperlink *p_hyperlink{new Plugin_Hyperlink};
                     duk_get_prop_index(ctx, -1, (unsigned int) i);
                         duk_get_prop_string(ctx, -1, "description");
@@ -371,6 +370,27 @@ static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message
         }
     return 0;  // returns no arg
     }
+    
+static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    Console *pConsole = findConsoleByCtx(ctx);
+    if (nargs == 0) { // empty call - cancel any waiting callback
+        pConsole->m_activeLegFunction = wxEmptyString;
+        pConsole->mWaitingCached = false;
+        return(0);
+        }
+
+    if (pConsole->m_activeLegFunction != wxEmptyString){
+        // request already outstanding
+        throwErrorByCtx(ctx, "OCPNonActiveLeg called with call outstanding");
+        }
+    else{
+        duk_require_function(ctx, 0);
+        pConsole->m_activeLegFunction = extractFunctionName(ctx,0);
+        pConsole->mWaitingCached = pConsole->mWaiting = true;
+        }
+    return 0;  // returns no arg
+    }
 
 static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation data and constructs navigation object
     extern JavaScript_pi *pJavaScript_pi;
@@ -463,6 +483,24 @@ static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation d
         duk_put_prop_literal(ctx, -2, "variation");
     return 1;  // returns one arg
 }
+
+/* static duk_ret_t getActiveLeg(duk_context *ctx) {  // gets active leg data and constructs object
+    extern JavaScript_pi *pJavaScript_pi;
+    // ****  Indenting here shows stack depth - do not re-indent this section ****
+    duk_push_object(ctx);
+        duk_push_string(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.wp_name);
+            duk_put_prop_literal(ctx, -2, "markName");
+        duk_push_number(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.Btw);
+            duk_put_prop_literal(ctx, -2, "bearing");
+        duk_push_number(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.Dtw;
+            duk_put_prop_literal(ctx, -2, "distance");
+        duk_push_number(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.Xte);
+            duk_put_prop_literal(ctx, -2, "xte");
+        duk_push_boolean(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.arrival);
+            duk_put_prop_literal(ctx, -2, "arrived");
+    return 1;  // returns one arg
+}
+ */
 
 static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
     // props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
@@ -764,7 +802,7 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
 	    duk_put_prop_literal(ctx, -2, "isActive");
     duk_idx_t arr_idx = duk_push_array(ctx); // the waypoint array
     if (p_route->pWaypointList ){  // only attempt this if waypoint list of not empty
-        wxPlugin_WaypointExListNode *linknode = p_route->pWaypointList ->GetFirst();
+        wxPlugin_WaypointExListNode *linknode = p_route->pWaypointList->GetFirst();
         for (duk_idx_t i = 0; linknode; linknode = linknode->GetNext(), i++){
             p_waypoint = linknode->GetData();
             ocpn_waypoint_to_js_duk(ctx, p_waypoint);   // construct this waypoint
@@ -1159,6 +1197,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNonNMEAsentence");
     duk_push_c_function(ctx, onNMEAsentence, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+    duk_push_string(ctx, "OCPNonActiveLeg");
+    duk_push_c_function(ctx, onActiveLeg, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
         
     duk_push_string(ctx, "OCPNgetARPgpx");
     duk_push_c_function(ctx, getARPgpx, 0 /* no args */);
@@ -1171,7 +1213,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNgetNavigationK");
     duk_push_c_function(ctx, getNavigationK, 0 /* no args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-        
+            
     duk_push_string(ctx, "OCPNgetNewGUID");
     duk_push_c_function(ctx, getNewGUID, 0 /* 1 arg */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);

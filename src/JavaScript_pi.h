@@ -76,6 +76,7 @@ public:
     void SetPluginMessage             (wxString &message_id, wxString &message_body);
     void SetNMEASentence               (wxString &sentence);
     void SetPositionFixEx              (PlugIn_Position_Fix_Ex &pfix);
+    void SetActiveLegInfo   ( Plugin_Active_Leg_Info &leg_info);
     void OnJavaScriptConsoleClose   ();
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
@@ -89,6 +90,7 @@ public:
     wxFileConfig    *m_pconfig;
     wxString        mCurrentDirectory;
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
+    Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
     wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of a script
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON

@@ -447,9 +447,47 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
     m_positionFix = pfix;
 }
 
+void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
+{
+    wxString thisFunction;
+    size_t starPos;
+    bool OK {false};
+    status_t outcome;;
+    duk_context *ctx;
+    Console *m_pConsole;
+    void JSduk_start_exec_timeout(Console);
+    void  JSduk_clear_exec_timeout(Console);
+    // work through all consoles
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+        if (m_pConsole == nullptr) continue;  // ignore if not ready
+        if (!m_pConsole->isWaiting()) continue;
+        thisFunction = m_pConsole->m_activeLegFunction;  // function to be called - if any
+        if (thisFunction == wxEmptyString) continue;  // not waiting for active leg_info
+        m_pConsole->m_activeLegFunction = wxEmptyString; // call only once
+        ctx = m_pConsole->mpCtx;
+        duk_push_object(ctx);
+        duk_push_string(ctx, leg_info.wp_name);
+        duk_put_prop_literal(ctx, -2, "markName");
+        duk_push_number(ctx, leg_info.Btw);
+        duk_put_prop_literal(ctx, -2, "bearing");
+        duk_push_number(ctx, leg_info.Dtw);
+        duk_put_prop_literal(ctx, -2, "distance");
+        duk_push_number(ctx, leg_info.Xte);
+        duk_put_prop_literal(ctx, -2, "xte");
+        duk_push_boolean(ctx, leg_info.arrival);
+        duk_put_prop_literal(ctx, -2, "arrived");
+        outcome = m_pConsole->executeFunction(thisFunction);
+        if (outcome == HAD_ERROR) {
+            m_pConsole->wrapUp(HAD_ERROR);
+            }
+        else if ((outcome == DONE)||(outcome == STOPPED)) {
+            m_pConsole->wrapUp(DONE);
+            }
+        }   // end for this console
+}
+
 void JavaScript_pi::OnTimer(wxTimerEvent& ){
     Console* pConsole;
-    wxMessageBox( wxT("In OnTimer") );
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
 
         // look out to see if we need to automatically run this console

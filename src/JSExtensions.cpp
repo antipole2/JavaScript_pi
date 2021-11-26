@@ -45,7 +45,7 @@ wxString js_formOutput(duk_context *ctx){
     wxString output = wxEmptyString;
     
     nargs = duk_get_top(ctx);
-    MAYBE_DUK_DUMP
+//   MAYBE_DUK_DUMP
     for(int i = 0; i<nargs; i++){
         switch (duk_int_t type = duk_get_type(ctx, i)){
             case DUK_TYPE_STRING:
@@ -185,6 +185,16 @@ static duk_ret_t duk_print_green(duk_context *ctx) {   // print in green
 static duk_ret_t duk_print_blue(duk_context *ctx) {   // print in blue
     return (print_coloured(ctx, STYLE_BLUE));
     }
+
+/*
+    static duk_ret_t duk_print_bold(duk_context *ctx) {   // print bold
+    return (print_coloured(ctx, STYLE_BOLD));
+    }
+*/
+
+static duk_ret_t duk_print_ul(duk_context *ctx) {   // print underlined
+   return (print_coloured(ctx, STYLE_UNDERLINE));
+  }
 
 static duk_ret_t duk_log(duk_context *ctx) {   // log message
     duk_ret_t result = 0;
@@ -466,7 +476,6 @@ duk_ret_t chain_script(duk_context* ctx){
         pConsole->mBrief.theBrief = brief;
         pConsole->mBrief.hasBrief = true;
         pConsole->mBrief.fresh = true;
- //       pConsole->mBrief.callback = false;
         }
     else pConsole->mBrief.hasBrief = false;
     // ready to go
@@ -554,6 +563,16 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_c_function(ctx, duk_print_blue, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
+#if 0
+    duk_push_string(ctx, "printBold");
+    duk_push_c_function(ctx, duk_print_bold, DUK_VARARGS /*variable number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+#endif
+    
+    duk_push_string(ctx, "printUnderlined");
+    duk_push_c_function(ctx, duk_print_ul, DUK_VARARGS /*variable number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "printLog");
     duk_push_c_function(ctx, duk_log, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
