@@ -300,11 +300,15 @@ bool JavaScript_pi::LoadConfig(void)
     if(pConf)
     {
         pConf->SetPath (configSection);
-        pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        if (!configUptoDate){	// configuration may be pre-v0.5
+        	pConf->SetPath("/Settings/JavaScript_pi");	// try old location
+        	pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        	}
         int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 20L );
         int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 20L );
         if ((versionMajor == 0) && (versionMinor < 4)){
-            TRACE(2, "Pre v0.4 - creating default consoles");
+            TRACE(2, "Pre v0.4 or first time ever - creating default consoles");
             // must be old version - forget previous settings
             pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );
             pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
@@ -343,6 +347,11 @@ bool JavaScript_pi::LoadConfig(void)
                     }
                 }
             }
+        if (!configUptoDate){	// read config was from old place
+        	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// dlete the old one
+        	pConf->SetPath (configSection);	// the new grouping
+        	pConf->Flush();	// make sure it gets into new location
+        	}    
         return true;
     }
     else
