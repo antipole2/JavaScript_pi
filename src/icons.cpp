@@ -30,7 +30,7 @@ void initialize_images(void)
 #ifdef JavaScript_USE_SVG
 
 	wxFileName fn;
- 	fn.SetPath(GetPluginDataDir("javascript_pi"));
+ 	fn.SetPath(GetPluginDataDir("JavaScript_pi"));
 	fn.AppendDir(_T("data"));
 	fn.SetFullName(_T("JavaScript_pi.svg"));
 	_svg_JavaScript = fn.GetFullPath();
