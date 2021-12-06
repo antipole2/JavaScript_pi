@@ -19,9 +19,9 @@ function compareWaypoints(waypoint1, waypoint2, label, checkGUID){
 	if (checkGUID){	// we will check both GUID and creationDateTime
 		if (waypoint1.GUID != waypoint2.GUID)
 			displayW ("GUID\t" + waypoint1.GUID + "\t" + waypoint2.GUID);
-		if ((waypoint2.creationDateTime - waypoint1.creationDateTime) > 2)	// allow a bit of lag
-			displayW ("creationDateTime\t" + waypoint1.creationDateTime + "\t" + waypoint2.creationDateTime);
 		}
+	if ((waypoint2.creationDateTime - waypoint1.creationDateTime) > 2)	// allow a bit of lag
+		displayW ("creationDateTime\t" + waypoint1.creationDateTime + "\t" + waypoint2.creationDateTime);
 	if (waypoint1.position.latitude != waypoint2.position.latitude)
 		displayW ("latitude\t" + waypoint1.position.latitude + "\t" + waypoint2.position.latitude);
 	if (waypoint1.position.longitude != waypoint2.position.longitude)
@@ -52,7 +52,7 @@ function compareWaypoints(waypoint1, waypoint2, label, checkGUID){
 				}
 			}
 		}
-	else displayW("Number of hyperlinks differs");
+	else displayW("Number of hyperlinks differs: " + waypoint1.hyperlinkList.length + " & " + waypoint2.hyperlinkList.length);
 	return displaying;
 	}
 	
@@ -93,7 +93,10 @@ function report(message){
 
 function timeStampOK(waypoint){	// checks creationDateTime is within 1 second of start - returns true if OK
 	diff = waypoint.creationDateTime - startTime;
-	if ((diff > 2) || (diff < -1)) return false;
+	if ((diff > 2) || (diff < -1)) {
+		print ("Timestamp: ", waypoint.creationDateTime, " Start time: ", startTime, "\n")
+		return false;
+		}
 	else return true;
 	}
 
@@ -103,7 +106,7 @@ var caught;
 
 testWaypoint = {"position":{"latitude":50.5,"longitude":-2.2},"markName":"Test waypoint","description":"This waypoint is a temporary one for diagnostics",
 "isVisible":true,"iconName":"anchor",
-"minScale": 98765, "nRanges":6, "rangeRingSpace":6.543,"rangeRingColour":"#FFEE11",/* "creationDataTime": startTime, */
+"minScale": 98765, "nRanges":6, "rangeRingSpace":6.543,"rangeRingColour":"#FFEE11","creationDataTime": startTime,
 "hyperlinkList":[{"description":"OpenCPN","link":"https://opencpn.org","type":"Type1"},{"description":"JavaScript user guide","link":"https://github.com/antipole2/JavaScript_pi/blob/master/JavaScript%20plugin%20user%20guide.pdf","type":"Type2"}]};
 
 printUnderlined("Add a waypoint and read it back\n");
@@ -112,7 +115,6 @@ readBack = OCPNgetSingleWaypoint(wpGUID);
 mismatch = compareWaypoints(testWaypoint, readBack, "A", compareGUID = false);
 if (mismatch) {printRed("Readback does not match\n"); errorCount++;}
 else printGreen("Readback matches\n");
-if (!timeStampOK(readBack)) {printRed("Readback timestamp does not look right - ", readBack.creationDateTime, "\n"); errorCount++;}
 print("Readback shows waypoint as ",  readBack.isFreeStanding?"Freestanding\n":"Not freestanding\n");
 print("Readback shows ", readBack.routeCount, " route memberships\n");
 
@@ -129,6 +131,7 @@ testWaypoint.useMinScale = !testWaypoint.useMinScale
 testWaypoint.nRanges = 2;
 testWaypoint.rangeRingSpace = 0.2;
 testWaypoint.rangeRingColour = "#ffDd22";
+testWaypoint.creationTimestamp += 1000;
 testWaypoint.hyperlinkList = [{"description":"OpenCPNupdated","link":"https://opencpn.org","type":"Type1"},
 	{"description":"JavaScript user guide updated","link":"https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html", "type":"Type2"}];
 
@@ -177,7 +180,7 @@ mismatch = compareRoutes(testRoute, readbackRoute, "", checkGUID=false, doWaypoi
 if (mismatch) {printRed("Readback of Route A does not match\n"); errorCount++;}
 else printGreen("Readback of Route A matches\n");
 // make spot checks the other bits only available in readback
-if (!timeStampOK(readbackRoute.waypoints[1])) {printRed("Created routepoint has bad createDateTime\n"); errorCount++;}
+//if (!timeStampOK(readbackRoute.waypoints[1])) {printRed("Created routepoint[1] has bad createDateTime\n"); errorCount++;}
 if (readbackRoute.waypoints[1].isFreeStanding == true) {printRed("Created routepoint marked as freestanding\n");; errorCount++;}
 if (readbackRoute.waypoints[indexOfTestWaypoint].isFreeStanding == false) {printRed("Included waypoint not marked as freestanding\n");; errorCount++;}
 if (readbackRoute.waypoints[1].routeCount != 1) {printRed("Created routepoint has wrong routeCount of ", readbackRoute.waypoints[1].routeCount, "\n");; errorCount++;}

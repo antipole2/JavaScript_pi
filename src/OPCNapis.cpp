@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright â’¸ 2021 by Tony Voss
+* Copyright (C) 2021 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -84,23 +84,18 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "minScale")) p_waypoint->scamin = duk_to_number(ctx, -1);
         duk_pop(ctx);
-         if (duk_get_prop_string(ctx, -1, "useMinScale")) p_waypoint->b_useScamin = duk_to_boolean(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "useMinScale")) p_waypoint->b_useScamin = duk_to_boolean(ctx, -1);
         duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "isVisible");
-        p_waypoint->IsNameVisible = duk_to_boolean(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "isVisible")) p_waypoint->IsNameVisible = duk_to_boolean(ctx, -1);
         duk_pop(ctx);
 	if ( duk_get_prop_string(ctx, -1, "nRanges")) p_waypoint->nrange_rings = duk_to_int(ctx, -1);
         duk_pop(ctx);            
     if (duk_get_prop_string(ctx, -1, "rangeRingSpace")) p_waypoint->RangeRingSpace = duk_to_number(ctx, -1);
         duk_pop(ctx);    
-    if (duk_get_prop_string(ctx, -1, "rangeRingColour"))
-	        p_waypoint->RangeRingColor.Set(duk_to_string(ctx, -1));
+    if (duk_get_prop_string(ctx, -1, "rangeRingColour")) p_waypoint->RangeRingColor.Set(duk_to_string(ctx, -1));
         duk_pop(ctx);
-    /*  OCPN does not support setting this
-    if (duk_get_prop_string(ctx, -1, "creationDataTime")) p_waypoint->m_CreateTime.Set(duk_to_number(ctx, -1));
-        duk_pop(ctx);
-     */
-    
+    if (duk_get_prop_string(ctx, -1, "creationDateTime")) p_waypoint->m_CreateTime.Set((long)(duk_to_number(ctx, -1))); // seconds
+        duk_pop(ctx);    
     // hyperlink processing
     p_waypoint->m_HyperlinkList = new Plugin_HyperlinkList; // need to initialise to empty list
     if (duk_get_prop_string(ctx, -1, "hyperlinkList")){
@@ -144,7 +139,7 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
             }
         else throwErrorByCtx(ctx, "addtrackpoint error: no position");
         if (duk_get_prop_string(ctx, -1, "creationDateTime")) {
-            p_waypoint->m_CreateTime.Set(duk_to_number(ctx, -1));
+            p_waypoint->m_CreateTime.Set((long) duk_to_number(ctx, -1));
             }
         duk_pop(ctx);
     return(p_waypoint);
@@ -278,7 +273,7 @@ void ocpn_waypoint_to_js_duk(duk_context *ctx, PlugIn_Waypoint_Ex *p_waypoint){
         	duk_put_prop_literal(ctx, -2, "isActive");
         duk_push_int(ctx, p_waypoint->GetRouteMembershipCount());
         	duk_put_prop_literal(ctx, -2, "routeCount");         	 	
-	    duk_push_number(ctx, p_waypoint->m_CreateTime.GetTicks());
+	    duk_push_number(ctx, p_waypoint->m_CreateTime.GetTicks());	// seconds since 1st Jan 1970
             duk_put_prop_literal(ctx, -2, "creationDateTime");
         duk_idx_t arr_idx = duk_push_array(ctx); // the hyperlinkList array
         if (p_waypoint->m_HyperlinkList ){  // only attempt this if list of not empty
@@ -691,7 +686,7 @@ static duk_ret_t getSingleWaypoint(duk_context *ctx) {
         throwErrorByCtx(ctx, "OCPNGetSingleWaypoint called with non-existant GUID " + GUID);
         return(1);
         }
-    ocpn_waypoint_to_js_duk(ctx, p_waypoint);   // construct the waypoint
+    ocpn_waypoint_to_js_duk(ctx, p_waypoint);   // construct the waypoint    
     delete p_waypoint;
     return(1);
     }
@@ -1162,7 +1157,7 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
         return 1;
         }
     
-// â€”â€”â€”â€”â€”â€” API registrations follow
+// ÑÑÑÑÑÑ API registrations follow
 
 void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_idx_t duk_push_c_function(duk_context *ctx, duk_c_function func, duk_idx_t nargs);
