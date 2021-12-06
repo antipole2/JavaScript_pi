@@ -94,7 +94,7 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);    
     if (duk_get_prop_string(ctx, -1, "rangeRingColour")) p_waypoint->RangeRingColor.Set(duk_to_string(ctx, -1));
         duk_pop(ctx);
-    if (duk_get_prop_string(ctx, -1, "creationDateTime")) p_waypoint->m_CreateTime.Set((long)(duk_to_number(ctx, -1))); // seconds
+    if (duk_get_prop_string(ctx, -1, "creationDateTime")) p_waypoint->m_CreateTime.Set((time_t)(duk_to_number(ctx, -1))); // seconds
         duk_pop(ctx);    
     // hyperlink processing
     p_waypoint->m_HyperlinkList = new Plugin_HyperlinkList; // need to initialise to empty list
@@ -686,7 +686,7 @@ static duk_ret_t getSingleWaypoint(duk_context *ctx) {
         throwErrorByCtx(ctx, "OCPNGetSingleWaypoint called with non-existant GUID " + GUID);
         return(1);
         }
-    ocpn_waypoint_to_js_duk(ctx, p_waypoint);   // construct the waypoint    
+    ocpn_waypoint_to_js_duk(ctx, p_waypoint);   // construct the waypoint
     delete p_waypoint;
     return(1);
     }
@@ -981,10 +981,8 @@ static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configurati
             duk_put_prop_literal(ctx, -2, "versionMinor");
         duk_push_string(ctx, PLUGIN_VERSION_COMMENT);
             duk_put_prop_literal(ctx, -2, "comment");
-        duk_push_int(ctx, MY_API_VERSION_MAJOR);
-            duk_put_prop_literal(ctx, -2, "APIMajor");
-        duk_push_int(ctx, MY_API_VERSION_MINOR);
-            duk_put_prop_literal(ctx, -2, "APIMinor");
+        duk_push_int(ctx, PLUGIN_VERSION_PATCH);
+            duk_put_prop_literal(ctx, -2, "patch");
 #ifdef IN_HARNESS
         duk_push_boolean(ctx, true);
 #else

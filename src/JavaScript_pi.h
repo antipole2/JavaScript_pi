@@ -23,11 +23,6 @@
 #include <bitset>
 #include "config.h"
 
-#define     MY_API_VERSION_MAJOR    1
-#define     MY_API_VERSION_MINOR    17  // was 7
-#define     PLUGIN_VERSION_DATE "2021:10:28"
-#define     PLUGIN_VERSION_COMMENT ""
-
 enum Options{
     DONT_CARE,
     MUST_EXIST,

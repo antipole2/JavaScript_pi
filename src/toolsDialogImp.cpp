@@ -109,7 +109,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
 
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER));
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
-    dump += (wxString::Format("JavaScript API version %d.%d\n", MY_API_VERSION_MAJOR, MY_API_VERSION_MINOR));
+    dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     wxString svg {"Not using svg"};
 #ifdef JAVASCRIPT_USE_SVG
     svg = "Using svg";
