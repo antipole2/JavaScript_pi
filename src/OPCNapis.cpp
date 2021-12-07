@@ -139,7 +139,7 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
             }
         else throwErrorByCtx(ctx, "addtrackpoint error: no position");
         if (duk_get_prop_string(ctx, -1, "creationDateTime")) {
-            p_waypoint->m_CreateTime.Set((long) duk_to_number(ctx, -1));
+            p_waypoint->m_CreateTime.Set((time_t) duk_to_number(ctx, -1));
             }
         duk_pop(ctx);
     return(p_waypoint);
