@@ -121,7 +121,7 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);
     return(p_waypoint);
     }
-    
+     
     PlugIn_Waypoint * js_duk_to_opcn_trackpoint(duk_context *ctx){
     // returns an opcn trackpoint constructed from js waypoint on top of duk stack
     void throwErrorByCtx(duk_context *ctx, wxString message);
