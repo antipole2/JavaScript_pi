@@ -86,7 +86,9 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "useMinScale")) p_waypoint->b_useScamin = duk_to_boolean(ctx, -1);
         duk_pop(ctx);
-    if (duk_get_prop_string(ctx, -1, "isVisible")) p_waypoint->IsNameVisible = duk_to_boolean(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "isVisible")) p_waypoint->IsVisible = duk_to_boolean(ctx, -1);
+        duk_pop(ctx);
+    if (duk_get_prop_string(ctx, -1, "isNameVisible")) p_waypoint->IsNameVisible = duk_to_boolean(ctx, -1);
         duk_pop(ctx);
 	if ( duk_get_prop_string(ctx, -1, "nRanges")) p_waypoint->nrange_rings = duk_to_int(ctx, -1);
         duk_pop(ctx);            

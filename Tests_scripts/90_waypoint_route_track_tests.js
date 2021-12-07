@@ -100,7 +100,7 @@ function timeStampOK(waypoint){	// checks creationDateTime is within 1 second of
 	else return true;
 	}
 
-startTime = new Date()/1000;
+startTime = Math.round(new Date()/1000);	// present time in whole seconds
 errorCount = 0;
 var caught;
 
@@ -162,10 +162,11 @@ for (i = 0; i < 4; i++) { // construct some waypoints
 	waypoint.description = "Description of " + name;
 	waypoint.position.latitude = 50 + i/10;
 	waypoint.position.longitude = -2.5 - i/10;
-	waypoint.iconName = "";
+	waypoint.iconName = "anchor";
 	waypoint.isVisible = true;
 	waypoint.nRanges = i;
 	waypoint.minScale = 10010+i;
+	waypoint.creationDateTime = startTime - 24*60*60 + i*10;
 	waypoint.hyperlinkList = [];
 	testRoute.waypoints.push(waypoint);
 	}
@@ -200,10 +201,11 @@ for (i = 0; i < 2; i++) { // construct some waypoints
 	waypoint.description = "Description of " + name;
 	waypoint.position.latitude = 50.2 + i/10;
 	waypoint.position.longitude = -2.55 - i/10;
-	waypoint.iconName = "";
+	waypoint.iconName = "circle";
 	waypoint.isVisible = true;
 	waypoint.nRanges = i;
 	waypoint.minScale = 10010+i;
+	waypoint.creationDateTime = startTime - 48*60*60 + i*10;
 	extraRoute.waypoints.push(waypoint);
 	}
 extraRoute.waypoints.push(sharedRoutepoint);	// add shared routepoint

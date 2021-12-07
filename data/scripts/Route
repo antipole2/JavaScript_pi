@@ -34,6 +34,7 @@ function Route(){
 			waypoint = new Waypoint();
 			waypoint.GUID = gotRoute.waypoints[i].GUID;
 			waypoint.markName = gotRoute.waypoints[i].markName;
+			waypoint.iconName = gotRoute.waypoints[i].iconName;
 			waypoint.description = gotRoute.waypoints[i].description;
 			waypoint.position.latitude = gotRoute.waypoints[i].position.latitude;
 			waypoint.position.longitude = gotRoute.waypoints[i].position.longitude;
