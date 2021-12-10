@@ -203,7 +203,7 @@ public:
     void OnSave (wxCommandEvent& event);
     void OnSaveAs ( wxCommandEvent& event );
     void OnRun( wxCommandEvent& event );
-    void OnAutoRun(wxMouseEvent& event);
+    void OnAutoRun(wxCommandEvent& event);
     void OnClearOutput( wxCommandEvent& event );
     void OnTools( wxCommandEvent& event );
     void onActivate( wxActivateEvent& event );
@@ -249,6 +249,8 @@ public:
         mWaitingToRun = false;
         mBrief.hasBrief = false;
         mBrief.theBrief = wxEmptyString;
+        mBrief.callback = false;
+
         mBrief.briefingConsoleName = wxEmptyString;
         // output pane set up
         m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
@@ -314,6 +316,11 @@ public:
         TRACE(3,"Done unhooking console " + this->mConsoleName);
         return this;
     }
+    
+    void clearBrief(){  // initialise brief by clearing it down
+        mBrief.hasBrief = mBrief.fresh = mBrief.callback = false;
+        mConsoleCallbacksAwaited = 0;
+        }
     
   Completions run(wxString script) { // compile and run the script
         Completions outcome;       // result of JS run
