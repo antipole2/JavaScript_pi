@@ -1,13 +1,13 @@
 myDialogue = [];
 myDialogue.push({type:"caption", value:"Dialogue test"});
-myDialogue.push({type:"text", value:"Complete the form and read back th entries"});
+myDialogue.push({type:"text", value:"Complete the form and read back the entries"});
 myDialogue.push({type:"field", label:"Name:", value:"(place holder)"});
 myDialogue.push({type:"tick", value:"*Yes?"});
 myDialogue.push({type:"field", label:"Age:",suffix:"years"});
 myDialogue.push({type:"radio", label:"Gender", value:["Male","Female", "Not saying"]});
 myDialogue.push({type:"tickList", label:"Ticklist", value:["Tinker","Taylor", "Soldier", "Sailor"]});
 myDialogue.push({type:"hLine"});
-myDialogue.push({type:"slider", range:[0,360], value:180, width:300, label:"Course °"});
+myDialogue.push({type:"slider", range:[0,360], value:180, width:300, label:"Course &#xb0"});
 myDialogue.push({type:"spinner", range:[0,10], value:5, label:"Speed", width:80});
 myDialogue.push({type:"choice", value:["Tinker","Taylor", "Soldier", "Sailor"]});
 myDialogue.push({type:"button", label:["Read back", "Finish"]})

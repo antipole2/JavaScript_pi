@@ -73,7 +73,7 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = "JavaScript", const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 738,741 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 738,741 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
 		~m_Console();
 
 		void m_splitter1OnIdle( wxIdleEvent& )

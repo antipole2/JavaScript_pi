@@ -40,8 +40,8 @@ WX_DEFINE_OBJARRAY(ConsoleCallbackArray);
 void Console::OnActivate(wxActivateEvent& event){
     wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
     long int style = pConsole->GetWindowStyle();
-    if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP);
-    else pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);
+    if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
+    pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not force to stay there
     };
 
 
@@ -74,7 +74,7 @@ void Console::OnLoad( wxCommandEvent& event )
         return;
     }
     else if(response == wxID_CANCEL){
-        TRACE(static_cast<void>(3), "Load cancelled");
+        TRACE(3, "Load cancelled");
         return;
     }
 }
@@ -203,21 +203,21 @@ void Console::OnClose(wxCloseEvent& event)
             return;
             }
         TRACE(3, "Binning console " + this->mConsoleName);
-        //this->bin();
-        this->clearAndUnhook();
-        this->Destroy();
+        this->bin();
+//        this->clearAndUnhook();
+//        this->Destroy();
         return;
         }
     TRACE(3, "Destroying console " + this->mConsoleName);
     this->Destroy();
     //RequestRefresh(pJavaScript_pi->m_parent_window);
-    }
+ }
 
 static wxString dummyMessage, message_id;
 wxDialog* dialog;
 
 void Console::OnTools( wxCommandEvent& event){
-    void createDialog();
+//void createDialog();
     extern JavaScript_pi *pJavaScript_pi;
     
     pJavaScript_pi->ShowPreferencesDialog(pJavaScript_pi->m_parent_window);

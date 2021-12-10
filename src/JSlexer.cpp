@@ -76,7 +76,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleDump\
             JS_throw_test\
             JS_mainThread";
-    wxString extensionNames = "print printRed printOrange printGreen printBlue printLog\
+    wxString extensionNames = "print printRed printOrange printGreen printBlue printUnderlined printLog\
             alert\
             readTextFile\
             writeTextFile\
@@ -95,6 +95,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNonMessageName\
             OCPNgetNavigation\
             OCPNgetARPgpx\
+            OCPNonActiveLeg\
             OCPNgetNewGUID\
             OCPNgetWaypointGUIDs\
             OCPNgetPluginConfig\
@@ -102,10 +103,18 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNdeleteSingleWaypoint\
             OCPNaddSingleWaypoint\
             OCPNupdateSingleWaypoint\
+            OCPNgetActiveWaypointGUID\
+            OCPNgetRouteGUIDs\
+            OCPNgetActiveRouteGUID\
             OCPNgetRoute\
             OCPNdeleteRoute\
             OCPNaddRoute\
             OCPNupdateRoute\
+            OCPNgetTrackGUIDs\
+            OCPNaddTrack\
+            OCPNgetTrack\
+            OCPNupdateTrack\
+            OCPNdeleteTrack\
             OCPNrefreshCanvas\
             OCPNgetAISTargets\
             OCPNgetVectorPP\

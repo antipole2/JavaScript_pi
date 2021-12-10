@@ -1,6 +1,15 @@
+# ~~~
+# Summary:      Find and link general plugin libraries
+# License:      GPLv3+
+# Copyright (c) 2021 Alec Leamas
 #
 # Find and link general libraries to use: gettext, wxWidgets and OpenGL
-#
+# ~~~
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
 
 find_package(Gettext REQUIRED)
 
@@ -54,3 +63,8 @@ if (MSYS)
 endif ()
 include(${wxWidgets_USE_FILE})
 target_link_libraries(${PACKAGE_NAME} ${wxWidgets_LIBRARIES})
+
+if (WIN32)
+  add_subdirectory("${PROJECT_SOURCE_DIR}/libs/WindowsHeaders")
+  target_link_libraries(${PACKAGE_NAME} windows::headers)
+endif ()

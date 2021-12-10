@@ -9,7 +9,6 @@ function Track(){
 		if (typeof GUID == "undefined") GUID = this.GUID;
 		if (typeof GUID == "undefined") throw("Attempting to get waypoint without GUID");
 		gotTrack = OCPNgetTrack(GUID);
-		if (!gotTrack) return false;
 		// the gotTrack is a bare objct without methods.  Will copy into this object
 		this.GUID = gotTrack.GUID;
 		this.name = gotTrack.name;

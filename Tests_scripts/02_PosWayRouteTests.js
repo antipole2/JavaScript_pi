@@ -1,5 +1,7 @@
 // Position, waypoint and route confidence tester
 
+log = false;
+
 function compareWaypoints(waypoint1, waypoint2){
 	// compares two waypoints and displays any mismatches.
 	// returns true if error else false if OK
@@ -8,24 +10,33 @@ function compareWaypoints(waypoint1, waypoint2){
 		displaying = true;
 		printOrange(attribute, "\n");
 		}
+	if (log){
+		print(waypoint1, "\n");
+		print(waypoint2, "\n");
+		}
 	displaying = false;
 	if (waypoint1.position.latitude != waypoint2.position.latitude) display ("latitude");
 	if (waypoint1.position.longitude != waypoint2.position.longitude) display ("longitude");
 	if (waypoint1.markName != waypoint2.markName) display ("markName");
-	if (waypoint1.description != waypoint2.description) display ("markName");
+	if (waypoint1.description != waypoint2.description) display ("description");
 	if (waypoint1.iconName != waypoint2.iconName) display ("iconName");
 	if (waypoint1.isVisible != waypoint2.isVisible) display ("isVisible");
 	if (waypoint1.creationDateTime != waypoint2.creationDateTime) display ("creationDateTime");
 	if (waypoint1.GUID != waypoint1.GUID) return ("GUID");  // omit this - too many issues with routes
+	if (waypoint1.nRanges != waypoint2.nRanges) display ("nRanges");
+	if (waypoint1.RangeRingSpace != waypoint2.RangeRingSpace) display ("RangeRingSpace");
+	if (waypoint1.RangeRingColour != waypoint2.RangeRingColour) display ("RangeRingColour");
+	if (waypoint1.isFreeStanding != waypoint2.isFreeStanding) display ("nRanges");
+	if (waypoint1.routeMembershipCount != waypoint2.routeMembershipCount) display ("routeMembershipCount");
 	if (waypoint1.hyperlinkList.length != waypoint2.hyperlinkList.length) return ("number of hyperlinks differs");
 	numberOfLinks = waypoint1.hyperlinkList.length;
 	if (numberOfLinks > 0){  // following loop hangs if no links (why?) so avoid
 		for (i = 0; i < numberOfLinks; i++){
 			if (waypoint1.hyperlinkList[i].description != waypoint2.hyperlinkList[i].description) display ("hyperlink[" + i + "].description differs");
 			if (waypoint1.hyperlinkList[i].link != waypoint2.hyperlinkList[i].link) display ("hyperlink[" + i + "].link differs");
-			if (waypoint1.hyperlinkList[i].type != waypoint2.hyperlinkList[i].type) display ("hyperlink[" + i + "].type differs");
 			}
 		}
+	if (displaying) print(waypoint1, "\n", waypoint2, "\n");
 	return displaying;
 	}
 	
@@ -33,7 +44,7 @@ function compareRoutes(route1, route2){
 	// compares two routes including their waypoints and displays any mismatches.
 	// returns true if error else false if OK
 	function display(attribute){
-	if (!displaying) printOrange("The following attributes of routes do not match:\n");
+		if (!displaying) printOrange("The following attributes of routes do not match:\n");
 		displaying = true;
 		print(attribute, "\n");
 		}
@@ -46,7 +57,28 @@ function compareRoutes(route1, route2){
 	if (route1.waypoints.length != route2.waypoints.length) return ("Number of waypoints does not match");
 	for (i = 0; i < route1.waypoints.length; i++){
 		outcome = compareWaypoints(route1.waypoints[i], route2.waypoints[i]);
-		if (outcome) display("Waypoints " + i + " in routes do not match ");
+		if (outcome) display("Waypoint " + i + " in routes does not match ");
+		}
+	return displaying;
+	}
+
+function compareTracks(track1, track2){
+	// compares two tracks including their trackpoints and displays any mismatches.
+	// returns true if error else false if OK
+	function display(attribute){
+		if (!displaying) printOrange("The following attributes of tracks do not match:\n");
+		displaying = true;
+		print(attribute, "\n");
+		}
+	displaying = false;
+	if (track1.name != track2.name) display ("name");
+	if (track1.from != track2.from) display ("from");
+	if (track1.to != track2.to) display ("to");
+	if (track1.waypoints.length != track2.waypoints.length) return ("Number of trackpoints does not match");
+	for (i = 0; i < track1.waypoints.length; i++){
+		if (track1.waypoints[i].position.latitude != track2.waypoints[i].position.latitude) display("Trackpoints "+ i + " latitudes do not match");
+		if (track1.waypoints[i].position.longitude != track2.waypoints[i].position.longitude) display("Trackpoints " + i + " longitudes do not match");
+		if (track1.waypoints[i].creationDateTime != track2.waypoints[i].creationDateTime) display("Trackpoints " + i + " creationDateTimes do not match");
 		}
 	return displaying;
 	}
@@ -56,16 +88,25 @@ function report(message){
 	OK = false;
 	}
 
+function displayRoute(route){
+	print("Route: ", route.name, " from: ", route.from, " to: ", route.to, "\n");
+	for (i = 0; i < route.waypoints.length; i++) print(i, " ", route.waypoints[i], "\n");
+	print("\n");
+	}
+
+presentTime = Math.round(new Date()/1000);	// present time in whole seconds
+print("Present time: ", presentTime, "\n");
+
 try {config = OCPNgetPluginConfig();}
 catch(err){thow("This test script not for JavaScript plugin versions before v0.3");}
 if (config.inHarness) throw("This tester script cannot be run in the harness");
-print("JavaScript plugin v", config.versionMajor, ".", config.versionMinor, " ", config.comment, "\n");
+print("JavaScript plugin v", config.versionMajor, ".", config.versionMinor, " Patch ", config.patch, " ", config.comment, "\n");
 
 // 1: Position
-print("\n*** Positon tests ***\n");
+print("\n*** Position tests ***\n");
 try { Position = require("Position"); }
 catch(err) {
-	throw("Unable to load Position contructor from plugin library");
+	throw("Unable to load Position constructor from plugin library");
 	}
 if (typeof(Position) != "function") throw("Position did not load constructor function");
 OK = true;
@@ -112,7 +153,8 @@ testWaypoint.position.latitude = 12.345;
 if (testWaypoint.position.NMEA != "1220.70000,N,12327.00000,W") throw("Waypoint NMEA attribute error");
 testWaypoint.markName = "Test waypoint";
 testWaypoint.description = "This waypoint is a temporary one for diagnostics";
-testWaypoint.iconName = "Anchor";
+testWaypoint.iconName = "anchor";
+testWaypoint.creationDateTime = presentTime;
 // add some hyperlinks
 var link1 = {description:"OpenCPN", link: "https://opencpn.org", type: "Type1"};
 var link2 = {description:"JavaScript user guide", link: "https://github.com/antipole2/JavaScript_pi/blob/master/JavaScript%20plugin%20user%20guide.pdf", type: "Type2"};
@@ -121,6 +163,8 @@ testWaypoint.hyperlinkList.push(link2);
 try { GUID = testWaypoint.add();}
 catch(error){ throw("Adding waypoint failed");}
 testWaypoint.GUID = GUID;
+
+print("\nReading back waypoint\n");
 readWaypoint = new Waypoint();
 try { // non-existant waypoint
 	tryError = false;
@@ -132,19 +176,20 @@ catch(error){
 if (!tryError) throw("Trying to read a non-existant waypoint succeeded !!");
 try { readWaypoint.get(GUID); }
 catch(error){ throw("Get existing waypoint failed");}
-printOrange("Expect readback of iconName and creationDateTime to fail - known issues with OpenCPN\n");
+// printOrange("Expect readback of iconName and creationDateTime to fail - known issues with OpenCPN\n");
 outcome = compareWaypoints(testWaypoint, readWaypoint);
 if (outcome) report("Read-back of waypoint does not match original ");
 returnedTimeStamp = readWaypoint.creationDateTime;	// remember for use in Route tests because of OpenCPN bug
 readWaypoint.description = readWaypoint.description + " (updated)";
 readWaypoint.position.latitude = -10;
 readWaypoint.position.longitude = 75;
-readWaypoint.iconName = "Diamond";
+readWaypoint.iconName = "diamond";
 readWaypoint.markName = "Test waypoint updated";
 readWaypoint.isVisible = !readWaypoint.isVisible
 readWaypoint.hyperlinkList[0].description = "Updated";
 try {readWaypoint.update();}
 catch(error){ throw("Updating waypoint failed");}
+print("\nReading back updated waypoint\n");
 updatedWaypoint = new Waypoint();
 try {updatedWaypoint.get(GUID); }
 catch(error){ throw("Getting back updated waypoint failed");}
@@ -155,9 +200,12 @@ catch(error){ throw("Deleting the updated waypoint failed"); }
 delete testWaypoint; delete readWaypoint; delete updatedWaypoint;
 rawWaypoint = {position: {latitude:51,longitude:11}, markName:"Test mark"};
 fullWaypoint = new Waypoint(rawWaypoint);
-printGreen(fullWaypoint.summary(), "\n");
-if (fullWaypoint.summary() != "Mark Test mark is at 51° 00.000'N 011° 0.000'E")
-	report("Constructing fullwaypoint failed");
+summaryShouldBe = "Mark Test mark is at 51" + String.fromCharCode(176)
+	+ " 00.000'N 011" + String.fromCharCode(176) + " 0.000'E";
+if (fullWaypoint.summary() != summaryShouldBe){
+	report("Constructing fullwaypoint failed: " + summaryShouldBe + " " +fullWaypoint.summary() + "\n");
+	OK = false;
+	}
 if (OK) printGreen("Waypoint tests completed OK\n");
 else printRed("Waypoint tests completed with error(s)\n");
 
@@ -170,17 +218,26 @@ catch(err){
 	throw("Unable to load route contructor from plugin library");
 	}
 if (typeof(Route) != "function") throw("Route constructor did not load");
+
+try { // delete non-exitant route
+	tryError = false;
+	OCPNdeleteRoute("aaa");
+	}
+catch(error) {tryError = true;}
+if (!tryError) throw("Deleting non-existant route reports success!");
+
 newRoute = new Route();
 newRoute.name = "Constructed test";
 newRoute.from = "Start place";
 newRoute.to = "End place";
-for (i = 1; i < 4; i++) { // construct some waypoints
+for (i = 0; i < 4; i++) { // construct some waypoints
 	waypoint = new Waypoint();
 	waypoint.markName = "TestWP" + i;
 	waypoint.description = "Description of WP" + i;
 	waypoint.position.latitude = 60 + i/10;
 	waypoint.position.longitude = -1 - i/10
-	waypoint.creationDateTime = returnedTimeStamp;  // *** THIS IS TO STOP BUG BEING REPORTED AGAIN
+	waypoint.iconName = "circle";
+	waypoint.creationDateTime = presentTime;
 	newRoute.waypoints.push(waypoint);
 	}
 try { GUID = newRoute.add();}
@@ -192,12 +249,28 @@ catch(error) { throw("Failed to retrieve route");}
 outcome = compareRoutes(newRoute, retrievedRoute);
 if (outcome) {
 	report("Retrieved route fails to match original ");
-	print("\nnewRoute:\n", JSON.stringify(newRoute), "\n\n");
-	print("\nretrievedRoute:\n", JSON.stringify(retrievedRoute), "\n\n");
+	print("\nnewRoute:\n"); displayRoute(newRoute);
+	print("\nretrievedRoute:\n"); displayRoute(retrievedRoute);
 	}
+else print("Readback of route matched\n");
+
+// we will now modify the retrieved route to test updating
 retrievedRoute.name = "Changed route name";
+retrievedRoute.from = "New from string";
 retrievedRoute.to = "New to string";
-retrievedRoute.waypoints[1].position.longitude += 1;
+retrievedRoute.waypoints[1].position.longitude += 1;	// shift position of existing routepoint
+retrievedRoute.waypoints[1].position.latitude += -1;
+// replace a route point
+replacementWP = new Waypoint();
+replacementWP.markName = "ReplacedMark";
+replacementWP.description = "Replaced Description";
+replacementWP.position.latitude = 50;
+replacementWP.position.longitude = 3;
+replacementWP.iconName = "anchor";
+routepointReplaced = 2;
+replacedWpGUID = retrievedRoute.waypoints[routepointReplaced].GUID;
+retrievedRoute.waypoints[routepointReplaced] = replacementWP;
+print("Retrieved route updated:\n"); displayRoute(retrievedRoute);
 try { retrievedRoute.update(); }
 catch(error) {throw("Failed to update route");}
 updatedRoute = new Route;
@@ -206,15 +279,19 @@ catch(error) {throw("Failed to retrieve updated route");}
 outcome = compareRoutes(retrievedRoute, updatedRoute);
 if (outcome) {
 	report("Retrieved updated route fails to match original ");
-	print("\nretrievedRoute:\n", JSON.stringify(retrievedRoute), "\n\n");
-	print("\nupdatedRoute:\n", JSON.stringify(updatedRoute), "\n\n");
+	print("\nupdated:\n"); displayRoute(retrievedRoute);
+	print("\nreadback updated route:\n"); displayRoute(updatedRoute);
 	}
-try {
-	tryError = false;
-	OCPNdeleteRoute("aaa");
+
+// check that the routepoint removed from route has been deleted
+tryError = false;
+try { updatedRoute.get(replacedWpGUID);}
+catch(error) {tryError = true;};
+if (!tryError) {
+	printRed("Replaced routepoint still exists as orphan\n");
+	OK = false;
 	}
-catch(error) {tryError = true;}
-if (!tryError) throw("Deleting non-existant route reports success!");
+
 updatedRoute.purgeWaypoints();
 if (updatedRoute.waypoints.length) throw("Failed to purge waypoints from updatedRoute");
 try { updatedRoute.delete();}
@@ -225,8 +302,6 @@ else printRed("Route tests completed with error(s)\n");
 
 // 3: Tracks
 print("\n*** Track tests ***\n");
-printOrange("These tests do not yet complete because of limitations in the OpenCPN API\n");
-//throw("Track tests not yet available");
 OK = true;
 try {Track = require("Track");}
 catch(err){
@@ -237,13 +312,13 @@ newTrack = new Track();
 newTrack.name = "Constructed test";
 newTrack.from = "Start place";
 newTrack.to = "End place";
-for (i = 1; i < 4; i++) { // construct some waypoints
+for (i = 0; i < 4; i++) { // construct some waypoints
 	waypoint = new Waypoint();
 	waypoint.markName = "TestWP" + i;
 	waypoint.description = "Description of WP" + i;
 	waypoint.position.latitude = 60 + i/10;
 	waypoint.position.longitude = -1 - i/10
-	waypoint.creationDateTime = returnedTimeStamp;  // *** THIS IS TO STOP BUG BEING REPORTED AGAIN
+	waypoint.creationDateTime = presentTime - 86400 + i*60; // set to yesterday
 	newTrack.waypoints.push(waypoint);
 	}
 // print("Track is:\n", newTrack, "\n\n");
@@ -256,19 +331,19 @@ if (!retrievedTrack.get(GUID)){
 	OK = false;
 	}
 else {
-	outcome = compareRoutes(newTrack, retrievedTrack); // works for tracks too
+	outcome = compareTracks(newTrack, retrievedTrack);
 	if (outcome) {
 		report("Retrieved track fails to match original ");
 		print("\nnewTrack:\n", JSON.stringify(newTrack), "\n\n");
-		print("\nretrievedTrack:\n", JSON.stringify(retrieved), "\n\n");
+		print("\nretrievedTrack:\n", JSON.stringify(retrievedTrack), "\n\n");
 		}
 	retrievedTrack.name = "Changed track name";
 	retrievedTrack.to = "New to string";
 	retrievedTrack.waypoints[1].position.longitude += 1;
-	if (!retrievedRTrack.update()) throw("Failed to update track");
+	if (!retrievedTrack.update()) throw("Failed to update track");
 	updatedTrack = new Track;
 	if (!updatedTrack.get(GUID)) throw("Failed to retrieve updated track");
-	outcome = compareRoutes(retrievedTrack, updatedTrack);	// compare works for tracks too
+	outcome = compareTracks(retrievedTrack, updatedTrack);	// compare works for tracks too
 	if (outcome) {
 		report("Retrieved updated track fails to match original ");
 		print("\nretrievedTrack:\n", JSON.stringify(retrievedTrack), "\n\n");
@@ -276,10 +351,15 @@ else {
 		}
 	updatedTrack.purgeWaypoints();
 	if (updatedTrack.waypoints.length) throw("Failed to purge waypoints from updatedTrack");
-	updatedTrack.delete();
-	if (updatedTrack.get(GUID)) throw("Failed to delete track in OpenCPN");
+	tryError = false;
+	try{ updatedTrack.delete();}
+	catch(err){tryError = true;}
+	if (tryError) throw("Failed to delete track in OpenCPN");
 	}
-if (OCPNdeleteTrack("aaa")) throw("Deleting non-existant track reports success!");
+tryError = false;
+try {OCPNdeleteTrack("aaa");}
+catch(err){ tryError =  true;}
+if (!tryError) throw("Deleting non-existant track reports success!");
 
 // synthesise a track
 var scale = 0.05;
@@ -297,17 +377,18 @@ for (i = 0; i < numberRoutepoints; i++){
 	routepoint.markName = "Rpt" + i;
 	routepoint.iconName = "Circle";
 	routepoint.position = rpPosition;
-	routepoint.creationDateTime = new Date()/1000;
+	routepoint.creationDateTime = presentTime - 86400 + i*60;
 	nextPosition.latitude += Math.sin(i)*scale;
 	nextPosition.longitude += 0.5;
-//	print("Next position: ", nextPosition.formatted, "\n");
 	track.waypoints.push(routepoint);
 	}
 
 GUID = OCPNaddTrack(track);
+track.GUID = GUID;
 
 readbackTrack = OCPNgetTrack(track.GUID);
 if (!readbackTrack) printOrange("Failed to read back track\n");
+compareTracks(track, readbackTrack);
 
 track.name = "Synthesised track updated";
 track.from = "Starting place 2";
@@ -316,9 +397,12 @@ track.waypoints[2].markName += "updated";
 track.waypoints[2].position.latitude = 60;
 track.waypoints[2].position.longitude = -1;
 outcome = OCPNupdateTrack(track);
+
 if (!outcome) printOrange("Failed to update track\n");
-outcome = OCPNdeleteTrack(track);
-if (!outcome) printOrange("Failed to delete track\n");
+tryError = false;
+try { OCPNdeleteTrack(track);}
+catch(err){tryError = true;}
+if (!tryError) printOrange("Failed to delete track\n");
 
 
 if (OK) printGreen("Track tests OK\n");
