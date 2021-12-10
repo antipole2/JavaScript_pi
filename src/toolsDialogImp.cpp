@@ -20,9 +20,12 @@
 extern JavaScript_pi *pJavaScript_pi;
 
 void ToolsClass::onClose( wxCloseEvent& event ){
+/*
     *pPointerToThisInJavaScript_pi = nullptr;
     TRACE(4, "In Tools close");
-    Destroy();
+    this->Destroy();
+ */
+    this->Hide();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
@@ -31,7 +34,8 @@ void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
 
     pageNumber = event.GetSelection();
     resizeDialogue(pageNumber);
-    mCurrentDirectoryString->SetLabel(pJavaScript_pi->mCurrentDirectory);
+    wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
+    mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
     }
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
@@ -53,7 +57,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
             }
         }
     pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-    pConsole->CenterOnScreen();
+   // pConsole->CenterOnScreen();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
@@ -105,9 +109,9 @@ void ToolsClass::onDump( wxCommandEvent& event ){
 
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER));
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
-    dump += (wxString::Format("JavaScript API version %d.%d\n", MY_API_VERSION_MAJOR, MY_API_VERSION_MINOR));
+    dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     wxString svg {"Not using svg"};
-#ifdef JavaScript_USE_SVG
+#ifdef JAVASCRIPT_USE_SVG
     svg = "Using svg";
 #endif
     dump += (svg + "\n");

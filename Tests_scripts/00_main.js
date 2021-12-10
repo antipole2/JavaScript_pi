@@ -40,13 +40,13 @@ tests = [ // test table format
 	{name:"Explicit result stop", functionToUse:load, script:"62_explict_result_stopped.js", time:1, result:"Explicit result"},
 	{name:"Explicit main callback stop", functionToUse:load, script:"64_explicit_main_callback_stop.js", time:3, result:"Explicit result"},
 	{name:"Alert", functionToUse:load, script:"70_alerts.js", time:10, result:"result: Alert OK"},
-	{name:"Dialogue", functionToUse:load, script:"74_dialogue_test.js", time:10, result:"Dialogue done"},
+	{name:"Dialogue", functionToUse:load, script:"74_dialogue_test.js", time:20, result:"Dialogue done"},
 	{name:"Chain_no_brief", functionToUse:load, script:"80_chain_no_brief.js", time:1, result:"getBrief found no brief"},
 	{name:"Chain_with_brief", functionToUse:load, script:"82_chain_with_brief.js", time:5, result:"Found brief This is the brief"},
 	{name:"Call no brief", functionToUse:load, script:"84_call_no_brief.js", time:1, result:"getBrief found no brief"},
 	{name:"Call with brief", functionToUse:load, script:"86_call_with_brief.js", time:1, result:"Found brief This is the brief"},
-	{name:"Call chain with brief", functionToUse:load, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"}
-	
+	{name:"Call chain with brief", functionToUse:load, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"},
+	{name:"Waypoint, route & track", functionToUse:load, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"}	
 	];
 
 // we will construct the button rows dynamically from the tests table.
@@ -143,7 +143,7 @@ function callResult(handback){
 	success = lastLine.search(tests[testIndex][4]);
 	if (success >= 0) printGreen("PASSED\n");
 	else {
-		printOrange("FAILED");
+		printRed("FAILED");
 		errorCount++;
 		print("\t\t", lastLine, "\n");
 		}
@@ -169,8 +169,10 @@ function callTimedOut(){
 	}
 
 function wrapup(){
+		print("Run all done - ");
+		if (errorCount > 0) printRed(errorCount, " errors\n");
+		else printGreen("No errors\n");
 		message = "Run all done - "+ (errorCount> 0?(errorCount + " errors"):"No errors");
-		print(message, "\n");
 		consoleClose(name);
 		control[control.length-1].value = message;
 		onDialogue(action, control);

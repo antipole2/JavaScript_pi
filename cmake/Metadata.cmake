@@ -1,7 +1,16 @@
+# ~~~
+# Summary:      Set up variables for xml metadata and upload scripts
+# License:      GPLv3+
+# Copyright (c) 2021 Alec Leamas
 #
-# Set up variables for configuration of xml metadata and upload scripts, all of
-# which with a pkg_ prefix.
-#
+# Set up variables for configuration of xml metadata and upload scripts, 
+# all of which with a pkg_ prefix.
+# ~~~
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
 
 #cmake-format: off
 
@@ -77,7 +86,7 @@ if ("${_git_tag}" STREQUAL "")
   endif ()
 else ()
   string(TOLOWER  ${_git_tag}  _lc_git_tag)
-  if (_lc_git_tag MATCHES "beta")
+  if (_lc_git_tag MATCHES "beta|rc")
     set(pkg_repo "$ENV{CLOUDSMITH_BETA_REPO}")
     if ("${pkg_repo}" STREQUAL "")
       set(pkg_repo ${OCPN_BETA_REPO})

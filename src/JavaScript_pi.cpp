@@ -27,6 +27,7 @@
 #include "wx/stdpaths.h"
 
 int messageIndex(MessagesArray&, messageNameString_t);
+wxString configSection = ("/PlugIns/JavaScript_pi");
 
 // the class factories, used to create and destroy instances of the PlugIn
 
@@ -57,22 +58,21 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
-:opencpn_plugin_116 (ppimgr)  // was 18
+:opencpn_plugin_117	 (ppimgr)  // was 16
 {
 #ifndef IN_HARNESS
     // Create the PlugIn icons
     initialize_images();
 
 	wxFileName fn;
-
     auto path = GetPluginDataDir("JavaScript_pi");
     fn.SetPath(path);
     fn.AppendDir("data");
-    fn.SetFullName("JavaScript_panel_icon.png");
+    fn.SetFullName("JavaScript_pi_panel_icon.png");
 
     path = fn.GetFullPath();
-
-    wxInitAllImageHandlers();
+//    wxString forDebug = fn.GetFullPath();
+//    wxInitAllImageHandlers();
 
     wxLogDebug(wxString("Using icon path: ") + path);
     if (!wxImage::CanRead(path)) {
@@ -85,67 +85,56 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     else
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
-
-
- /*
-    wxString shareLocn = *GetpSharedDataLocation() +
-    _T("plugins") + wxFileName::GetPathSeparator() +
-    _T("JavaScript_pi") + wxFileName::GetPathSeparator()
-    + _T("data") + wxFileName::GetPathSeparator();
-    wxImage panelIcon(shareLocn + _T("JavaScript_pi_panel_icon.png"));
-    if (panelIcon.IsOk())
-        m_panelBitmap = wxBitmap(panelIcon);
-    else
-        wxLogMessage(_T("    JavaScript_pi panel icon NOT loaded"));*/
-#endif
+#endif // not IN_HARNESS
 }
 
 JavaScript_pi::~JavaScript_pi(void)
 {
-    // wxLogMessage("JavaScript_pi deconstructing");
     delete _img_JavaScript_pi;
     delete _img_JavaScript;
-    
+
 }
 
 int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
+    
     m_parent_window = GetOCPNCanvasWindow();
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");
     AddLocaleCatalog( _T("opencpn-JavaScript_pi") );
-    
+
     mpFirstConsole = nullptr;
     mpBin = nullptr;
 
     //    Get a pointer to the opencpn configuration object
     m_pconfig = GetOCPNConfigObject();
-    
+
     //    And load the configuration items
     LoadConfig();
     mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
-    
+
     //    This PlugIn needs a toolbar icon, so request its insertion
     if(m_bJavaScriptShowIcon){
 
-#ifndef IN_HARNESS
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
             wxITEM_CHECK, "JavaScript", _T(""), NULL, CONSOLE_POSITION, 0, this);
 #else
     m_leftclick_tool_id = InsertPlugInTool(_T(""), _img_JavaScript, _img_JavaScript, wxITEM_CHECK,
-                                           "JavaScript", _T(""), NULL,
+                                           "JavaScript",_T(""), NULL,
                                            CONSOLE_POSITION, 0, this);
 #endif // JavaScript_USE_SVG
-#endif // IN_HARNESS
     }
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
+//    mTimer.Connect(wxEVT_TIMER, wxTimerEventHandler( JavaScript_pi::OnTimer ), NULL, this);
+//    mTimer = wxTimer();
+//    mTimer.SetOwner(JavaScript_pi::OnTimer, mTimer.GetId());
     mTimer.Start(1000);
 
     TRACE(1,"JavaScript_pi->Init() returning");
-    
+
     return (WANTS_TOOLBAR_CALLBACK |
             WANTS_CONFIG             |
             WANTS_PLUGIN_MESSAGING |
@@ -163,13 +152,14 @@ bool JavaScript_pi::DeInit(void) {
     wxLogMessage("JavaScript_pi->DeInit() entered");
      mTimer.Stop();
      mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
-    
+
     SaveConfig();
 
     if (pTools) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
         pTools->Hide();
-        pTools->Close();
+        pTools->Destroy();
+        delete pTools;
         pTools = nullptr;
         }
 
@@ -187,11 +177,13 @@ bool JavaScript_pi::DeInit(void) {
         // purge stuff out of this one - we do not use wrapUp() because that might do all sorts of other things
         if (pConsole->mpCtx != nullptr) duk_destroy_heap(pConsole->mpCtx);
         pConsole->mMessages.Clear();
+//        while (pConsole->mTimes.GetCount() > 0) pConsole->mTimes.RemoveAt(0);  Not needed?
         pConsole->mTimes.Clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
+        pConsole = NULL;
         }
 
     while (mpBin) {    // also any in the bin
@@ -199,14 +191,23 @@ bool JavaScript_pi::DeInit(void) {
         pConsole = mpBin;
         mpBin = pConsole->mpNextConsole; // take first off chain
         delete pConsole;
+        pConsole = NULL;
         }
     mpPluginActive = false;
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
     RequestRefresh(m_parent_window); // refresh main window
     wxLogMessage("JavaScript completed deinit");
     TRACE(1,"JavaScript_pi->DeInit() returning");
+
+/*    delete mpFirstConsole;
+    mpFirstConsole = nullptr;
+	
+    delete mpBin;
+	mpBin = nullptr;
+ */
+    
     return true;
-}
+    }
 
 int JavaScript_pi::GetAPIVersionMajor()
 {
@@ -237,7 +238,7 @@ wxBitmap *JavaScript_pi::GetPlugInBitmap()
 
 wxString JavaScript_pi::GetCommonName()
 {
-    return "JavaScript";
+    return "javascript";
 }
 
 
@@ -262,7 +263,7 @@ void JavaScript_pi::SetColorScheme(PI_ColorScheme cs)
 /*
  if (NULL == m_pConsole)
         return;
-    
+
     DimeWindow(m_pConsole);
  */
 }
@@ -272,9 +273,9 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     void JSlexit(wxStyledTextCtrl* pane);
     void fatal_error_handler(void *udata, const char *msg);
     TRACE(2,"JavaScript_pi->OnToolbarToolCallback() entered");
-    
+
     mShowingConsoles = !mShowingConsoles;   // toggle console display state
-    
+
     Console *m_pConsole = mpFirstConsole;
     for (m_pConsole = mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (mShowingConsoles)   m_pConsole->Show();
@@ -298,12 +299,16 @@ bool JavaScript_pi::LoadConfig(void)
 #ifndef IN_HARNESS
     if(pConf)
     {
-        pConf->SetPath ( _T( "/Settings/JavaScript_pi" ) );
-        pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        pConf->SetPath (configSection);
+        bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        if (!configUptoDate){	// configuration may be pre-v0.5
+        	pConf->SetPath("/Settings/JavaScript_pi");	// try old location
+        	pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        	}
         int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 20L );
         int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 20L );
         if ((versionMajor == 0) && (versionMinor < 4)){
-            TRACE(2, "Pre v0.4 - creating default consoles");
+            TRACE(2, "Pre v0.4 or first time ever - creating default consoles");
             // must be old version - forget previous settings
             pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );
             pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
@@ -328,7 +333,7 @@ bool JavaScript_pi::LoadConfig(void)
                     wxPoint consolePosition, dialogPosition, alertPosition;
                     wxString fileString;
                     bool autoRun;
-                    
+
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
@@ -342,6 +347,11 @@ bool JavaScript_pi::LoadConfig(void)
                     }
                 }
             }
+        if (!configUptoDate){	// read config was from old place
+        	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// dlete the old one
+        	pConf->SetPath (configSection);	// the new grouping
+        	pConf->Flush();	// make sure it gets into new location
+        	}    
         return true;
     }
     else
@@ -353,15 +363,15 @@ bool JavaScript_pi::SaveConfig(void)
 {
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     Console *pConsole;
-    
+
     TRACE(3,"JavaScript_pi->SaveConfig() entered");
-    
+
     if(pConf)
     {
         wxString consoleNames {wxEmptyString};
         wxString name, nameColon;
-        pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );
-        pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
+        pConf->DeleteGroup (configSection);
+        pConf->SetPath (configSection);
         pConf->Write ( _T ( "VersionMajor" ), PLUGIN_VERSION_MAJOR );
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
@@ -447,7 +457,46 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
     m_positionFix = pfix;
 }
 
-void JavaScript_pi::OnTimer(wxTimerEvent& tick){
+void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
+{
+    wxString thisFunction;
+    size_t starPos;
+    bool OK {false};
+    status_t outcome;;
+    duk_context *ctx;
+    Console *m_pConsole;
+    void JSduk_start_exec_timeout(Console);
+    void  JSduk_clear_exec_timeout(Console);
+    // work through all consoles
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+        if (m_pConsole == nullptr) continue;  // ignore if not ready
+        if (!m_pConsole->isWaiting()) continue;
+        thisFunction = m_pConsole->m_activeLegFunction;  // function to be called - if any
+        if (thisFunction == wxEmptyString) continue;  // not waiting for active leg_info
+        m_pConsole->m_activeLegFunction = wxEmptyString; // call only once
+        ctx = m_pConsole->mpCtx;
+        duk_push_object(ctx);
+        duk_push_string(ctx, leg_info.wp_name);
+        duk_put_prop_literal(ctx, -2, "markName");
+        duk_push_number(ctx, leg_info.Btw);
+        duk_put_prop_literal(ctx, -2, "bearing");
+        duk_push_number(ctx, leg_info.Dtw);
+        duk_put_prop_literal(ctx, -2, "distance");
+        duk_push_number(ctx, leg_info.Xte);
+        duk_put_prop_literal(ctx, -2, "xte");
+        duk_push_boolean(ctx, leg_info.arrival);
+        duk_put_prop_literal(ctx, -2, "arrived");
+        outcome = m_pConsole->executeFunction(thisFunction);
+        if (outcome == HAD_ERROR) {
+            m_pConsole->wrapUp(HAD_ERROR);
+            }
+        else if ((outcome == DONE)||(outcome == STOPPED)) {
+            m_pConsole->wrapUp(DONE);
+            }
+        }   // end for this console
+}
+
+void JavaScript_pi::OnTimer(wxTimerEvent& ){
     Console* pConsole;
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
 
@@ -458,7 +507,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& tick){
             pConsole->run(pConsole->m_Script->GetValue());
             TRACE(3, "Finished auto-running console " + pConsole->mConsoleName);
             }
-        
+
         if (!pConsole->isWaiting()) continue;  // ignore if we are not waiting on something
         if (!pConsole->mTimerActionBusy){  // only look at timers if not already working on a timer - to stop recursion
             if (!pConsole->mTimes.IsEmpty()){
@@ -548,10 +597,12 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
 #include "toolsDialogImp.h"
 //void JavaScript_pi::ShowToolsDialog(wxWindow *m_parent_window ){
 void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
-    if (pTools != nullptr) return;    // ignore if already open
-    pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
-    // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
-    // tools distructor, so will store its address in the preference for later access.
-    pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
+    if (pTools == nullptr) {  // do not yet have a preferences dialogue
+        pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
+        // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
+        // tools distructor, so will store its address in the preference for later access.
+//        pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
+        }
     pTools->Show();
+
     };

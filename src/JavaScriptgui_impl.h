@@ -66,7 +66,9 @@ enum {
     STYLE_RED,
     STYLE_BLUE,
     STYLE_ORANGE,
-    STYLE_GREEN
+    STYLE_GREEN,
+    STYLE_BOLD,
+    STYLE_UNDERLINE
     };
 
 // declare completion states
@@ -172,6 +174,7 @@ public:
     DialogAction    mDialog;      // Dialogue call-back table
     AlertDetails    mAlert;        // details of alert dialog
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
+    jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
     int         mConsoleCallbacksAwaited {0};   // number of console callbacks awaited
 
@@ -228,10 +231,10 @@ public:
             }
 
 #ifndef IN_HARNESS
-        wxString iconLocation = *GetpSharedDataLocation()
-        + _T("plugins/JavaScript_pi/data/blank.ico");
-        wxIcon icon(iconLocation, wxBITMAP_TYPE_ICO);
-        SetIcon(icon);
+        //wxString iconLocation = *GetpSharedDataLocation()
+       //+ _T("plugins/JavaScript_pi/data/blank.ico");
+       // wxIcon icon(iconLocation, wxBITMAP_TYPE_ICO);
+       // SetIcon(icon);
 #endif
 
         mConsoleName = consoleName;
@@ -248,10 +251,12 @@ public:
         mBrief.theBrief = wxEmptyString;
         mBrief.briefingConsoleName = wxEmptyString;
         // output pane set up
-        m_Output->StyleSetSpec(STYLE_RED, _("fore:red"));
-        m_Output->StyleSetSpec(STYLE_BLUE, _("fore:blue"));
-        m_Output->StyleSetSpec(STYLE_ORANGE, _("fore:#DE7700"));
-        m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#009F00"));
+        m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
+        m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
+        m_Output->StyleSetSpec(STYLE_ORANGE, _("fore:#FF7F00"));
+        m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
+        m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
+        m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
         JSlexit(this->m_Script);  // set up lexing
 
         // script pane set up
@@ -271,7 +276,7 @@ public:
                 }
             }
         else {
-            wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
+            wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  " patch " << PLUGIN_VERSION_PATCH  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
         Hide();   // we hide console now but this may be changed later
@@ -383,7 +388,8 @@ public:
             duk_push_global_object(mpCtx);  // get our compiled script
             if (
                 functionMissing(m_NMEAmessageFunction) ||
-                functionMissing(mDialog.functionName))
+                functionMissing(mDialog.functionName) ||
+                functionMissing(m_activeLegFunction) )
                 outcome = HAD_ERROR;;
             if (!mTimes.IsEmpty()){
                 // has set up one or more timers - check them out
@@ -525,6 +531,7 @@ public:
         if (
             (mTimes.GetCount() > 0) ||
             (m_NMEAmessageFunction != wxEmptyString) ||
+            (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
             (mAlert.palert != nullptr) )
                 result = true;
@@ -581,12 +588,15 @@ public:
         
         // clear any non-console callbacks set up
         m_NMEAmessageFunction = wxEmptyString;
+        m_activeLegFunction = wxEmptyString;
         size_t messageCount = mMessages.GetCount();
         if (messageCount > 0){
             for(unsigned int index = 0; index < messageCount; index++){
                 mMessages[index].functionName = wxEmptyString;
                 }
             }
+        // clear out all timer stuff
+        // while (mTimes.GetCount() > 0) mTimes.RemoveAt(0); not needed?
         mTimes.Clear();
         mConsoleCallbacksAwaited = 0;
         mTimerActionBusy = false;
@@ -648,7 +658,8 @@ public:
         if (mAlert.palert != nullptr){ // only if have an alert displayed
             mAlert.position = mAlert.palert->GetPosition(); // remember alert position
             mAlert.palert->Close();
-//            mAlert.palert->Destroy();
+            mAlert.palert->Destroy();
+            delete mAlert.palert;
             mAlert.palert = nullptr;
             mAlert.alertText = wxEmptyString;
             mWaitingCached = false;
@@ -662,6 +673,7 @@ public:
             mDialog.dialogElementsArray.clear();
             mDialog.pdialog->Close();
             mDialog.pdialog->Destroy();
+            delete mDialog.pdialog;
             mDialog.pdialog = nullptr;
             mDialog.functionName = wxEmptyString;
             mWaitingCached = false;
@@ -838,6 +850,7 @@ public:
         dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format("Active with %d elements",  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
+        dump += "m_activeLegFunction:\t\t" + m_activeLegFunction + "\n";
         dump += "m_exitFunction:\t" + m_exitFunction + "\n";
         dump += "m_explicitResult:\t\t" + (m_explicitResult?_("true"):_("false")) + "\n";
         dump += "m_result:\t\t\t\t" + m_result + "\n";
