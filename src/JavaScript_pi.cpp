@@ -281,9 +281,12 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
         if (mShowingConsoles)   m_pConsole->Show();
         else m_pConsole->Hide();
         if (m_pConsole->mWaitingToRun){ // we have a script to run
+            TRACE(4, "OnToolbarToolCallback has script to autorun for console " + m_pConsole->mConsoleName);
             wxString script = m_pConsole->m_Script->GetValue();
             if (script == wxEmptyString) continue;  // should not be but just in case
-            m_pConsole->run(script);  // auto-run the script
+            m_pConsole->clearBrief();
+            Completions outcome = m_pConsole->run(script);  // auto-run the script
+            if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
             }
         }
     // Toggle is handled by the toolbar but we must keep plugin manager b_toggle updated
@@ -504,7 +507,9 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
         if (pConsole->mWaitingToRun){
             TRACE(3, "About to auto-run console " + pConsole->mConsoleName);
             pConsole->mWaitingToRun = false;
-            pConsole->run(pConsole->m_Script->GetValue());
+            pConsole->clearBrief();
+            Completions outcome = pConsole->run(pConsole->m_Script->GetValue());
+            if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
             TRACE(3, "Finished auto-running console " + pConsole->mConsoleName);
             }
 

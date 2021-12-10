@@ -161,13 +161,12 @@ void Console::OnRun( wxCommandEvent& event )
         message(STYLE_ORANGE, wxString::Format("Trace level is %d",TRACE_LEVEL));
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
-    Brief brief;
-    brief.hasBrief = brief.fresh = brief.callback = false;
+    clearBrief();
     mConsoleCallbacksAwaited = 0;
-    doRunCommand(brief);
+    doRunCommand(mBrief);
 }
 
-void Console::OnAutoRun(wxMouseEvent& event){   // Auto run tick box
+void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     if (this->auto_run->GetValue()){
         // box has been ticked
         mFileString  = m_fileStringBox->GetValue();

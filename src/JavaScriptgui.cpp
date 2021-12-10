@@ -223,8 +223,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	save_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSave ), NULL, this );
 	save_as_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSaveAs ), NULL, this );
 	run_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnRun ), NULL, this );
-	auto_run->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::OnAutoRun ), NULL, this );
-	auto_run->Connect( wxEVT_RIGHT_UP, wxMouseEventHandler( m_Console::OnAutoRun ), NULL, this );
+	auto_run->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
 	tools_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
 	m_Script->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -297,8 +296,7 @@ m_Console::~m_Console()
 	save_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSave ), NULL, this );
 	save_as_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSaveAs ), NULL, this );
 	run_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnRun ), NULL, this );
-	auto_run->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::OnAutoRun ), NULL, this );
-	auto_run->Disconnect( wxEVT_RIGHT_UP, wxMouseEventHandler( m_Console::OnAutoRun ), NULL, this );
+	auto_run->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
 	tools_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
 	m_Script->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );

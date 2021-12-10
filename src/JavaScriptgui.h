@@ -61,7 +61,7 @@ class m_Console : public wxDialog
 		virtual void OnSave( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnSaveAs( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnRun( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnAutoRun( wxMouseEvent& event ) { event.Skip(); }
+		virtual void OnAutoRun( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnTools( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnClearOutput( wxCommandEvent& event ) { event.Skip(); }
 
