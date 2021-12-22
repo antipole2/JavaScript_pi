@@ -280,6 +280,7 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     for (m_pConsole = mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (mShowingConsoles)   m_pConsole->Show();
         else m_pConsole->Hide();
+/*
         if (m_pConsole->mWaitingToRun){ // we have a script to run
             TRACE(4, "OnToolbarToolCallback has script to autorun for console " + m_pConsole->mConsoleName);
             wxString script = m_pConsole->m_Script->GetValue();
@@ -288,6 +289,7 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
             Completions outcome = m_pConsole->run(script);  // auto-run the script
             if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
             }
+*/
         }
     // Toggle is handled by the toolbar but we must keep plugin manager b_toggle updated
     // to actual status to ensure correct status upon toolbar rebuild
