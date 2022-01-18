@@ -13,11 +13,11 @@
 # -------- Options ----------
 
 set(OCPN_TEST_REPO
-    "opencpn/javascript-antipole-alpha"
+    "opencpn/javascript-alpha"
     CACHE STRING "Default repository for untagged builds"
 )
 set(OCPN_BETA_REPO
-    "opencpn/javascript-antipole-beta"
+    "opencpn/javascript-beta"
     CACHE STRING
     "Default repository for tagged builds matching 'beta'"
 )
