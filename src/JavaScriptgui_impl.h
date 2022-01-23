@@ -259,10 +259,21 @@ public:
         m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
         m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
         m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
-        JSlexit(this->m_Script);  // set up lexing
+        // wrap text in output pane
+        m_Output->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+        
+        
 
         // script pane set up
         Fit(); // fit now to keep space for Autorun button, even if initially hidden
+        JSlexit(this->m_Script);  // set up lexing
+        // wrap text in script pane
+        m_Script->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Script->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Script->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+
         auto_run->Hide();
         if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
             wxString    script;

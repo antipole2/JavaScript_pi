@@ -249,8 +249,8 @@ wxString JavaScript_pi::GetShortDescription()
 
 wxString JavaScript_pi::GetLongDescription()
 {
-    return "Allows running of JavaScript\n\
-             provided in a file";
+    return "Run JavaScript and interact with OpenCPN\n\
+Details and user guide here: https://github.com/antipole2/JavaScript_pi/releases";
 }
 
 int JavaScript_pi::GetToolbarToolCount(void)
