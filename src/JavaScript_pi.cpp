@@ -244,12 +244,12 @@ wxString JavaScript_pi::GetCommonName()
 
 wxString JavaScript_pi::GetShortDescription()
 {
-    return "Providing JavaScript support";
+    return "Run JavaScripts and interact with OpenCPN";
 }
 
 wxString JavaScript_pi::GetLongDescription()
 {
-    return "Run JavaScript and interact with OpenCPN\n\
+    return "Run JavaScripts and interact with OpenCPN\n\
 Details and user guide here: https://github.com/antipole2/JavaScript_pi/releases";
 }
 

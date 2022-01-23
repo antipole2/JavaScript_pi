@@ -1,6 +1,6 @@
 # ~~~
 # Summary:      Local, non-generic plugin setup
-# Copyright (c) 2020-2021 Mike Rossiter
+# Copyright (c) 2020-2022 Tony Voss
 # License:      GPLv3+
 # ~~~
 
@@ -34,7 +34,7 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 # -------  Plugin setup --------
 #
 set(PKG_NAME JavaScript_pi)
-set(PKG_VERSION  0.5.2)
+set(PKG_VERSION  0.6.0)
 set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
