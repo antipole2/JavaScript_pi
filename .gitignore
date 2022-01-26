@@ -6,3 +6,4 @@ po/*.pot
 *humbs.db
 cache
 plugins
+.DS_Store

@@ -289,7 +289,9 @@ public:
                 }
             }
         else {
-            wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  " patch " << PLUGIN_VERSION_PATCH  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
+        	wxString patchString = wxEmptyString;
+        	if (PLUGIN_VERSION_PATCH > 0) patchString = wxString(_(".")) << PLUGIN_VERSION_PATCH;
+        	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  patchString  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
         Hide();   // we hide console now but this may be changed later
