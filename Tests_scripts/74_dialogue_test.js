@@ -7,9 +7,10 @@ myDialogue.push({type:"field", label:"Age:",suffix:"years"});
 myDialogue.push({type:"radio", label:"Gender", value:["Male","Female", "Not saying"]});
 myDialogue.push({type:"tickList", label:"Ticklist", value:["Tinker","Taylor", "Soldier", "Sailor"]});
 myDialogue.push({type:"hLine"});
-myDialogue.push({type:"slider", range:[0,360], value:180, width:300, label:"Course &#xb0"});
+myDialogue.push({type:"slider", range:[0,360], value:180, width:300, label:"Course " + String.fromCharCode(176)});
 myDialogue.push({type:"spinner", range:[0,10], value:5, label:"Speed", width:80});
 myDialogue.push({type:"choice", value:["Tinker","Taylor", "Soldier", "Sailor"]});
+myDialogue.push({type:"text", value:"This text is monospaced", style:{font:"monospace"}});
 myDialogue.push({type:"button", label:["Read back", "Finish"]})
 
 onDialogue(dialogAction, myDialogue);

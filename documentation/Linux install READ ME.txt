@@ -1,7 +1,0 @@
-README Linux installation
-
-Install with gdebi rather than the Ubuntu installer.
-
-The Ubuntu installer fails to install the plugin icons nor the scripts library.
-If you must use the Ubuntu installer, you will need to copy the data folder from the source into
-SharedSupport/plugins/JavaScript_pi within the OpenCPN application.

@@ -219,7 +219,12 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 fontSize = duk_get_number(ctx, -1);
                 font.SetPointSize(fontSize);
                 } duk_pop(ctx);
-            if (duk_get_prop_literal(ctx, -1, "font")) font.SetFaceName(duk_get_string(ctx, -1));
+            if (duk_get_prop_literal(ctx, -1, "font")) {
+            	wxString fontName;
+            	fontName = duk_get_string(ctx, -1);
+            	if (fontName == "monospace") font.SetFamily(wxFONTFAMILY_TELETYPE);
+            	else font.SetFaceName(fontName);
+            	}
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "italic"))
                 if (duk_get_boolean(ctx, -1)) font.MakeItalic();
@@ -295,21 +300,17 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             
             // look for field styling which overrides the main styling
             if (duk_get_prop_literal(ctx, -1, "fieldStyle")){
-                if (duk_get_prop_literal(ctx, -1, "font")) font.SetFaceName(duk_get_string(ctx, -1));
-                duk_pop(ctx);
                 if (duk_get_prop_literal(ctx, -1, "italic")){
                     if (duk_get_boolean(ctx, -1)) font.SetStyle(wxFONTSTYLE_ITALIC);
                     else font.SetStyle(wxFONTSTYLE_NORMAL);
-                    }
-                duk_pop(ctx);
+                    }  duk_pop(ctx);
                 if (duk_get_prop_literal(ctx, -1, "underline"))
                     font.SetUnderlined(duk_get_boolean(ctx, -1));
-                duk_pop(ctx);
+                	duk_pop(ctx);
                 if (duk_get_prop_literal(ctx, -1, "bold")){
                     if (duk_get_boolean(ctx, -1)) font.SetWeight(wxFONTWEIGHT_BOLD);
                     else font.SetWeight(wxFONTWEIGHT_NORMAL);
-                    }
-                duk_pop(ctx);
+                    } duk_pop(ctx);
                 } duk_pop(ctx);   // pop off the style
             textCtrl->SetFont(font);    // overrid for the field
             duk_pop(ctx);

@@ -259,10 +259,21 @@ public:
         m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
         m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
         m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
-        JSlexit(this->m_Script);  // set up lexing
+        // wrap text in output pane
+        m_Output->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+        
+        
 
         // script pane set up
         Fit(); // fit now to keep space for Autorun button, even if initially hidden
+        JSlexit(this->m_Script);  // set up lexing
+        // wrap text in script pane
+        m_Script->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Script->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Script->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+
         auto_run->Hide();
         if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
             wxString    script;
@@ -278,7 +289,9 @@ public:
                 }
             }
         else {
-            wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  " patch " << PLUGIN_VERSION_PATCH  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
+        	wxString patchString = wxEmptyString;
+        	if (PLUGIN_VERSION_PATCH > 0) patchString = wxString(_(".")) << PLUGIN_VERSION_PATCH;
+        	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  patchString  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
         Hide();   // we hide console now but this may be changed later
