@@ -128,9 +128,6 @@ int JavaScript_pi::Init(void)
     }
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
-//    mTimer.Connect(wxEVT_TIMER, wxTimerEventHandler( JavaScript_pi::OnTimer ), NULL, this);
-//    mTimer = wxTimer();
-//    mTimer.SetOwner(JavaScript_pi::OnTimer, mTimer.GetId());
     mTimer.Start(1000);
 
     TRACE(1,"JavaScript_pi->Init() returning");
@@ -244,13 +241,13 @@ wxString JavaScript_pi::GetCommonName()
 
 wxString JavaScript_pi::GetShortDescription()
 {
-    return "Providing JavaScript support";
+    return "Run JavaScripts and interact with OpenCPN";
 }
 
 wxString JavaScript_pi::GetLongDescription()
 {
-    return "Allows running of JavaScript\n\
-             provided in a file";
+    return "Run JavaScripts and interact with OpenCPN\n\
+Details and user guide here: https://github.com/antipole2/JavaScript_pi/releases";
 }
 
 int JavaScript_pi::GetToolbarToolCount(void)
@@ -280,16 +277,6 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     for (m_pConsole = mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (mShowingConsoles)   m_pConsole->Show();
         else m_pConsole->Hide();
-/*
-        if (m_pConsole->mWaitingToRun){ // we have a script to run
-            TRACE(4, "OnToolbarToolCallback has script to autorun for console " + m_pConsole->mConsoleName);
-            wxString script = m_pConsole->m_Script->GetValue();
-            if (script == wxEmptyString) continue;  // should not be but just in case
-            m_pConsole->clearBrief();
-            Completions outcome = m_pConsole->run(script);  // auto-run the script
-            if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
-            }
-*/
         }
     // Toggle is handled by the toolbar but we must keep plugin manager b_toggle updated
     // to actual status to ensure correct status upon toolbar rebuild
