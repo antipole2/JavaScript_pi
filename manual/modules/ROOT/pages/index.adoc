@@ -50,8 +50,10 @@ if the checksum is OK.
 
 == Resources
 
+There is a comprehensive user guide available as a ,pdf  and in .epub format.
+These are available from the release details.
+
 https://github.com/antipole2/JavaScript_pi/releases[Releases (including installers)] +
-Included in each release is a comprehensive User Guide and also a Technical Guide to assist trouble shooting.
 
 https://github.com/antipole2/JavaScript_pi[Github Repository]
 
