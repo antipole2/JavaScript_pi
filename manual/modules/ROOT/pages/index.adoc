@@ -97,5 +97,3 @@ https://github.com/antipole2/JavaScript_pi[Github Repository]
 == Support
 
 For discussion on applications of the plugin, use the forum thread.
-
-Raise technical issues here.
