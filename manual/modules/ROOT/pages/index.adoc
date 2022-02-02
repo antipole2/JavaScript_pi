@@ -33,7 +33,7 @@ OCPNpushNMEA(“$OCRMB,A,0.000,L,,Yarmouth,5030.530,N,00120.030,W,
 ----
 
 It is also possible to arrrange for a JavaScript function to be executed on certain OpenCPN events. 
-For example
+For example, this script listens for an NMEA sentence and, if it the checksum is correct, displays it.
 ----
 OCPNonNMEAsentence(handleNMEA);
 
@@ -45,20 +45,57 @@ function handleNMEA(result){
     }
 ----
 
-This listens out for the next NMEA sentence and displays it on receipt
-if the checksum is OK.
+== Example application
 
-== Resources
+The following script examines all waypoints.
+If the icon name is _circle_, it sets the waypoint to display at all chart scales.
+Otherwise it set it to display on large scale charts only.
+Thus anchorage waypoints, docks and the like will not clutter small scale charts.
 
-There is a comprehensive user guide available as a .pdf  and in .epub format.
-These are available from the release details.
+You can easily adopt this to your own criteria.
 
-https://github.com/antipole2/JavaScript_pi/releases[Releases (including installers)] +
-
-https://github.com/antipole2/JavaScript_pi[Github Repository]
-
-https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers Forum Thread]
+----
+scaled = unscaled = 0;	              // counters
+guids = OCPNgetWaypointGUIDs();           // get all waypoint GUIDs
+for (g = 0; g < guids.length; g++){	// for each waypoint
+	waypoint = OCPNgetSingleWaypoint(guids[g]);	// get the waypoint
+	if (!waypoint.isFreeStanding) continue; // skip routepoints
+	if (waypoint.iconName == "circle") {
+		waypoint.useMinScale = false;
+		unscaled++;}
+	else {
+		waypoint.minScale = 52000;
+		waypoint.useMinScale = true;
+		scaled++;
+		}
+	OCPNupdateSingleWaypoint(waypoint); // update in OCPN
+	}
+scriptResult("scaled: " + scaled + " unscaled: " + unscaled);
+----
 
 == Script library
 
 There is a https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[library of useful scripts] which you can use as they are or modify for your own purposes.
+Contributions to this are welcome.
+
+== Resources
+
+A comprehensive user guide is available as a .pdf  and also in .epub format, which may be more convenient for mobile devices.
+They can be down-loaded from here:
+
+https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.pdf[User guide as .pdf]
+
+https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.epub[User guide as .epub]
+
+There is also a https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_technical_guide.pdf[technical guide] for those wanting to undestand the internal functioning of the plugin or maintain it.
+This is not relevant for plugin users.
+
+https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers Forum Thread]
+
+https://github.com/antipole2/JavaScript_pi[Github Repository]
+
+== Support
+
+For discussion on applications of the plugin, use the forum thread.
+
+Raise technical issues here.
