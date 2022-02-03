@@ -105,12 +105,12 @@ For discussion on applications of the plugin, use the forum thread.
 *How do I learn JavaScript programming?*
 
 Start with a simple example and build up by trying things.
-Have a look at the eamples in the https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[script library].
+Have a look at the examples in the https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[script library].
 
 There is a good reference guide https://www.w3schools.com/js/js_statements.asp[here].
 JavaScript is much used in programming web sites and many of the examples in the tutorials assume that.  Ignore examples accessing the document object, such as
 _document.getElementById("demo").innerHTML_
-The reference material is very good but some of the latest JavaScript contructs are not supported by the plugin.
+The reference material is very good but some of the latest JavaScript constructs are not supported by the plugin.
 See the plugin user guide.
 
 *Can it do this or that?*
