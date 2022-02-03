@@ -1,7 +1,7 @@
 = Javascript Plugin
 :toc:
 
-image:js_icon_full_size_.png[]
+image:../images/js_icon_full_size_.png[]
 
 == Aim
 
@@ -22,6 +22,8 @@ print("Hello from OpenCPN\n");
 ----
 
 When you click on the Run button, the message will be displayed.  (The \n bit adds a new line to the end of the message.)
+
+image:../images/Console.png[]
 
 The plugin extends JavaScript to add many interfaces to OpenCPN and it is here that the fun starts.
 As an example, the following statement takes the supplied NMEA sentence, adds a checksum (replacing any existing one) and
@@ -97,3 +99,25 @@ https://github.com/antipole2/JavaScript_pi[Github Repository]
 == Support
 
 For discussion on applications of the plugin, use the forum thread.
+
+== FAQs
+
+*How do I learn JavaScript programming?*
+
+Start with a simple example and build up by trying things.
+Have a look at the eamples in the https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[script library].
+
+There is a good reference guide https://www.w3schools.com/js/js_statements.asp[here].
+JavaScript is much used in programming web sites and many of the examples in the tutorials assume that.  Ignore examples accessing the document object, such as
+_document.getElementById("demo").innerHTML_
+The reference material is very good but some of the latest JavaScript contructs are not supported by the plugin.
+See the plugin user guide.
+
+*Can it do this or that?*
+
+Read the user guide which documents the APIs that allow a script to interact with OpenCPN.
+If you cannot find what you ned, ask in the plugin forum.
+
+*It cannot do what I need - can that be added?*
+
+If you have confirmed the plugin cannot do something you would like it to, submit an enhancement request in FlySpray.
