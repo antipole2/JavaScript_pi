@@ -116,7 +116,7 @@ See the plugin user guide.
 *Can it do this or that?*
 
 Read the user guide which documents the APIs that allow a script to interact with OpenCPN.
-If you cannot find what you ned, ask in the plugin forum.
+If you cannot find what you need, ask in the plugin forum.
 
 *It cannot do what I need - can that be added?*
 
