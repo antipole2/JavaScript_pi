@@ -100,6 +100,8 @@ https://github.com/antipole2/JavaScript_pi[Github Repository]
 
 For discussion on applications of the plugin, use the forum thread.
 
+For problems with the plugin or feature requests, please https://opencpn.org/flyspray/index.php?project=97&do=index&switch=1[submit on Flyspray here].
+
 == FAQs
 
 *How do I learn JavaScript programming?*
@@ -120,4 +122,4 @@ If you cannot find what you need, ask in the plugin forum.
 
 *It cannot do what I need - can that be added?*
 
-If you have confirmed the plugin cannot do something you would like it to, submit an enhancement request in FlySpray.
+If you have confirmed the plugin cannot do something you would like it to, https://opencpn.org/flyspray/index.php?project=97&do=index&switch=1[submit an enhancement request on FlySpray].
