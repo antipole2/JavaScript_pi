@@ -1,7 +1,7 @@
 = Javascript Plugin
 :toc:
 
-image:../images/js_icon_full_size_.png[]
+image::js_icon_full_size_.png[]
 
 == Aim
 
@@ -23,7 +23,7 @@ print("Hello from OpenCPN\n");
 
 When you click on the Run button, the message will be displayed.  (The \n bit adds a new line to the end of the message.)
 
-image:../images/Console.png[]
+image::Console.png[]
 
 The plugin extends JavaScript to add many interfaces to OpenCPN and it is here that the fun starts.
 As an example, the following statement takes the supplied NMEA sentence, adds a checksum (replacing any existing one) and
