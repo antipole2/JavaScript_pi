@@ -37,13 +37,6 @@
  //    return (*duk_push_sprintf(ctx, "meaning of life: %d, name", 42));
  }
  */
- void present(wxStyledTextCtrl* pText){
-	// given output text area, ensure does not exceed size limit and scroll to end
-	int lineCount pText->GetLineCount();   // for diagnostics
-	pText->ScrollToEnd();
-//	pText->:LineScroll(1, lineCount);
-	}
- 
 
 Console *findConsoleByCtx(duk_context *ctx);
 
