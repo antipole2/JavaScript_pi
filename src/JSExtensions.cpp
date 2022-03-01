@@ -37,7 +37,7 @@
  //    return (*duk_push_sprintf(ctx, "meaning of life: %d, name", 42));
  }
  */
- 
+
 Console *findConsoleByCtx(duk_context *ctx);
 
 void limitOutput(wxStyledTextCtrl* pText){

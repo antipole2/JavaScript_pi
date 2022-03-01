@@ -274,7 +274,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "multiLine")){
-                anElement.multiLine = duk_get_boolean(ctx, -1)?wxTE_MULTILINE:0;
+                anElement.multiLine = duk_get_boolean(ctx, -1)?(wxTE_MULTILINE | wxTE_BESTWRAP):0;
                 }
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "suffix")){
