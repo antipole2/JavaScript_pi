@@ -34,7 +34,7 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 # -------  Plugin setup --------
 #
 set(PKG_NAME JavaScript_pi)
-set(PKG_VERSION  1.0.0)
+set(PKG_VERSION  1.1.0)
 set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...

@@ -37,8 +37,26 @@
  //    return (*duk_push_sprintf(ctx, "meaning of life: %d, name", 42));
  }
  */
-
+ 
 Console *findConsoleByCtx(duk_context *ctx);
+
+void limitOutput(wxStyledTextCtrl* pText){
+	// given output text area, ensure does not exceed size limit and scroll to end
+	int maxLength = 100000;	// max chars allowed
+	int textLength = pText->GetTextLength();
+	if (textLength > maxLength) {
+		wxString deleted = "<Text has been deleted>\n";
+		pText->DeleteRange(0, textLength - maxLength);
+		// to avoid leaving a part tine, we will look for a new line near top
+		int newlinePos = pText->FindText(0, 100, wxString("\n"));
+		if (newlinePos != wxSTC_INVALID_POSITION) pText->DeleteRange(0, newlinePos+1);
+		// now we will insert a coloured noe at the start
+		pText->InsertText(0, deleted);
+		pText->StartStyling(0,0);	// 2nd parameter included Linux still using wxWidgets v3.0.2
+		pText->SetStyling(deleted.Length(), STYLE_BLUE);
+		}
+	pText->ScrollToEnd();
+	}
     
 wxString js_formOutput(duk_context *ctx){
     duk_idx_t nargs;  // number of args in call
@@ -85,6 +103,7 @@ duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on
     afterLength = output_window->GetTextLength(); // where we are after adding text
     output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
     output_window->SetStyling((int)(afterLength-beforeLength), colour);
+    limitOutput(output_window);
     return (0);
 }
 
@@ -167,6 +186,7 @@ static duk_ret_t duk_print(duk_context *ctx) {   // print
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->Show(); // make sure console is visible
     pConsole->m_Output->AppendText(js_formOutput(ctx));
+    limitOutput(pConsole->m_Output);
     return (result);
     }
 
@@ -482,7 +502,7 @@ duk_ret_t chain_script(duk_context* ctx){
     pConsole->m_result = wxEmptyString;
     pConsole->m_explicitResult = true;
     pConsole->mStatus.set(TOCHAIN);
-    duk_throw(ctx); // terminates this script.  clearAndDestroyCtx will run the loaded script.
+    duk_throw(ctx); // terminates this script.
     return 0;   // this to keep compiler happy
     }
 

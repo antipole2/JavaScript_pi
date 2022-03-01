@@ -76,6 +76,7 @@ PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
         duk_pop(ctx);
     duk_get_prop_string(ctx, -1, "GUID");
         p_waypoint->m_GUID = duk_to_string(ctx, -1);
+        if ((p_waypoint->m_GUID == "undefined") || wxIsEmpty(p_waypoint->m_GUID)) p_waypoint->m_GUID = GetNewGUID();
         duk_pop(ctx);
     if (wxIsEmpty(p_waypoint->m_GUID)) p_waypoint->m_GUID = GetNewGUID();  // if no GUID, provide one
     if (duk_get_prop_string(ctx, -1, "description")) p_waypoint->m_MarkDescription = duk_to_string(ctx, -1);
@@ -556,6 +557,7 @@ static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
     wxString message_id = wxString(duk_to_string(ctx,0));
     duk_pop(ctx);
     message_id.Trim();
+    if (message_id == "OCPN_DRAW_PI") throwErrorByCtx(ctx, "OCPNsendMessage blocked: sending to OCPN_DRAW_PI not supported");
     TRACE(4, "Sending message " + message_id);
     TRACE (5, findConsoleByCtx(ctx)->dukDump());
     SendPluginMessage(message_id, message_body);
@@ -707,10 +709,9 @@ static duk_ret_t addSingleWaypoint(duk_context *ctx) {
         duk_pop(ctx);
         }
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the opcn waypoint
-    if (p_waypoint->m_GUID == "undefined") p_waypoint->m_GUID = GetNewGUID();
     result = AddSingleWaypointEx(p_waypoint);
     if (!result){ // waypoint already exists?
-            throwErrorByCtx(ctx, "OCPNaddSingleWaypoint called with existing GUID " + p_waypoint->m_GUID);
+            throwErrorByCtx(ctx, "OCPNaddSingleWaypoint called with existing GUID? " + p_waypoint->m_GUID);
             }
     duk_push_string(ctx, p_waypoint->m_GUID);  // else return the GUID
     // now waypoint safely stored in OpenCPN, clean up - list data not otherwise released

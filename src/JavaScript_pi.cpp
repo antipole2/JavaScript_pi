@@ -297,8 +297,8 @@ bool JavaScript_pi::LoadConfig(void)
         	pConf->SetPath("/Settings/JavaScript_pi");	// try old location
         	pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         	}
-        int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 20L );
-        int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 20L );
+        int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 0L );
+        int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 0L );
         if ((versionMajor == 0) && (versionMinor < 4)){
             TRACE(2, "Pre v0.4 or first time ever - creating default consoles");
             // must be old version - forget previous settings
@@ -307,7 +307,8 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
-            mpFirstConsole->Show();
+            mpFirstConsole->m_Output->AppendText(wxString(PLUGIN_FIRST_TIME_WELCOME) + wxString(USERGUIDES));
+            mpFirstConsole->Hide();
             }
         else {
             TRACE(2, "Loading console configurations");
@@ -320,6 +321,9 @@ bool JavaScript_pi::LoadConfig(void)
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
+                wxString welcome = wxEmptyString;
+                if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR)))
+                    welcome = wxString(PLUGIN_UPDATE_WELCOME) + wxString(USERGUIDES);
                 mpFirstConsole = nullptr;
                 while ( tkz.HasMoreTokens() ){
                     wxPoint consolePosition, dialogPosition, alertPosition;
@@ -335,7 +339,7 @@ bool JavaScript_pi::LoadConfig(void)
                     alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
-                    new Console(m_parent_window, name, consolePosition, dialogPosition, alertPosition, fileString, autoRun);
+                    new Console(m_parent_window, name, consolePosition, dialogPosition, alertPosition, fileString, autoRun, welcome);
                     }
                 }
             }
@@ -429,6 +433,11 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             sentence = sentence.BeforeFirst('*');   // drop * onwards
             }
         ctx = m_pConsole->mpCtx;
+        if (m_pConsole->mJSrunning){
+            m_pConsole->message(STYLE_RED, "NMEA callback while JS active - ignored\n");
+            return;
+            }
+
         duk_push_object(ctx);
         duk_push_string(ctx, sentence.c_str());
         duk_put_prop_literal(ctx, -2, "value");
@@ -521,6 +530,11 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
                         count--; i--;
                         if (thisFunction != wxEmptyString){  //only if have valid function
                             Completions  outcome;
+                            if (pConsole->mJSrunning){
+                                pConsole->message(STYLE_RED, "Timer callback while JS active - ignored\n");
+                                return;
+                                }
+
                             duk_push_string(ctx, argument.c_str());
                             outcome = pConsole->executeFunction(thisFunction);
                             if (outcome == MORE) continue;
@@ -551,7 +565,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
     wxString statusesToString(status_t mStatus);
-    TRACE(15,"Entered SetPluginMessage");
+    TRACE(5,"Entered SetPlugin Message message_id: " + message_id + " message:" + message_body);
     if (message_id == "OpenCPN Config"){
 //    if (message_id.Cmp("OpenCPN Config")){
         // capture this while we can
@@ -575,6 +589,10 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             m_pConsole->mMessages[index].functionName = wxEmptyString;  // only use once
             if (!ctx) continue; // just in case
             duk_push_string(ctx, message_body.c_str());
+            if (m_pConsole->mJSrunning){
+                m_pConsole->message(STYLE_RED, "Message callback while JS active - ignored - message is:\n" + message_body + "\n");
+                return;
+                }
             TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
             TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));

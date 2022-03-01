@@ -163,6 +163,7 @@ public:
     bool        mWaitingCached = true; // true if mWaiting valid cached state
     bool        mWaiting {false};       // true if waiting for something
     bool        mRunningMain {false}; // true while main is running
+    bool        mJSrunning {false}; // true while any JS code is running
     bool        mChainedScriptToRun {false};   // true if script to be run because it was chained
     status_t    mStatus;     // the status of this process
     
@@ -214,7 +215,7 @@ private:
     void OnClose( wxCloseEvent& event );
     
 public:
-    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
         extern JavaScript_pi *pJavaScript_pi;
@@ -294,6 +295,7 @@ public:
         	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  patchString  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
+        m_Output->AppendText(welcome);
         Hide();   // we hide console now but this may be changed later
         }
     
@@ -446,6 +448,14 @@ public:
         // returns result with nothing on stack
         duk_int_t outcome;
         duk_context *ctx = mpCtx;
+        
+/*
+        if (mRunningMain) {
+            message(STYLE_RED, _("executeFunction called while main running"));
+            return(HAD_ERROR);
+            }
+*/
+        
         outcome = duk_get_global_string(ctx, function.c_str());
         if (!outcome){ // failed to find the function
             TRACE(14, "executeFunction failed to find function");
@@ -522,13 +532,16 @@ public:
     void startTimeout(){
         extern Console* pConsoleBeingTimed;
         m_timeout_check_counter = 0;
-        m_pcall_endtime =  wxGetUTCTimeMillis() + m_time_to_allocate;
+        if (m_time_to_allocate > 0) m_pcall_endtime =  wxGetUTCTimeMillis() + m_time_to_allocate;
+        else m_pcall_endtime = 0;
+        mJSrunning = true;
         pConsoleBeingTimed = this;
         }
     
     void clearTimeout() {   // to cancel the timeout
         extern Console* pConsoleBeingTimed;
         m_pcall_endtime = 0;
+        mJSrunning = false;
         pConsoleBeingTimed = nullptr;
         }
     
