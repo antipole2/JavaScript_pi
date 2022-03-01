@@ -716,6 +716,7 @@ public:
         }
     
     void message(int style, wxString message){
+        void limitOutput(wxStyledTextCtrl* pText);
         TRACE(5,mConsoleName + "->message() " + message);
         Show(); // make sure console is visible
         wxStyledTextCtrl* output_window = m_Output;
@@ -725,6 +726,7 @@ public:
         int long afterLength = output_window->GetTextLength(); // where we are after adding text
         output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
         output_window->SetStyling((int)(afterLength-beforeLength-1), style);
+		limitOutput(output_window);
         }
     
     void display_error(duk_context *ctx, wxString message){

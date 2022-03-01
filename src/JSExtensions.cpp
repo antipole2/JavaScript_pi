@@ -37,6 +37,13 @@
  //    return (*duk_push_sprintf(ctx, "meaning of life: %d, name", 42));
  }
  */
+ void present(wxStyledTextCtrl* pText){
+	// given output text area, ensure does not exceed size limit and scroll to end
+	int lineCount pText->GetLineCount();   // for diagnostics
+	pText->ScrollToEnd();
+//	pText->:LineScroll(1, lineCount);
+	}
+ 
 
 Console *findConsoleByCtx(duk_context *ctx);
     
@@ -85,6 +92,7 @@ duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on
     afterLength = output_window->GetTextLength(); // where we are after adding text
     output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
     output_window->SetStyling((int)(afterLength-beforeLength), colour);
+    present(output_window);
     return (0);
 }
 
@@ -167,6 +175,7 @@ static duk_ret_t duk_print(duk_context *ctx) {   // print
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->Show(); // make sure console is visible
     pConsole->m_Output->AppendText(js_formOutput(ctx));
+    present(pConsole);
     return (result);
     }
 

@@ -274,7 +274,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "multiLine")){
-                anElement.multiLine = duk_get_boolean(ctx, -1)?wxTE_MULTILINE:0;
+                anElement.multiLine = duk_get_boolean(ctx, -1)?(wxTE_MULTILINE | wxTE_BESTWRAP):0;
                 }
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "suffix")){
@@ -340,11 +340,12 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 pConsole->throw_error(ctx, "onDialog error: tickList requires value");
                 }
             else {
-                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: tickLit requires value array");
+                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: tickList requires value array");
                 else {
                     int maxChars = 0;
                     strings.Clear();
                     int listLength = (int) duk_get_length(ctx, -1);
+                    if (listLength < 1) pConsole->throw_error(ctx, "onDialog error: tickList has empty value array");
                     for (int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
@@ -474,6 +475,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     int maxChars = 0;
                     strings.Clear();
                     int listLength = (int) duk_get_length(ctx, -1);
+                    if (listLength < 1) pConsole->throw_error(ctx, "onDialog error: choice has empty value array");
                     for (int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
@@ -506,6 +508,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: radio requires value array");
                 else {
                     numberOfButtons = (int) duk_get_length(ctx, -1);
+                    if (numberOfButtons < 1) pConsole->throw_error(ctx, "onDialog error: radioButtons has empty value array");
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
                     int maxChars = 0;
                     for (int j = 0; j < numberOfButtons; j++) {
@@ -541,6 +544,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_is_array(ctx, -1)){
                 // have array of buttons
                 int numberOfButtons = (int) duk_get_length(ctx, -1);
+                if (numberOfButtons < 1) pConsole->throw_error(ctx, "onDialog error: buttons has empty labels array");
                 for (int j = 0; j < numberOfButtons; j++) {
                     defaultButton = false;
                     duk_get_prop_index(ctx, -1, j);
