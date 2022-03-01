@@ -87,6 +87,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleShow\
             onSeconds\
             onDialogue\
+            onExit\
             stopScript\
             OCPNpushNMEA\
             OCPNgetMessageNames\
