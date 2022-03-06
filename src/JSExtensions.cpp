@@ -44,7 +44,9 @@ void limitOutput(wxStyledTextCtrl* pText){
 	// given output text area, ensure does not exceed size limit and scroll to end
 	int maxLength = 100000;	// max chars allowed
 	int textLength = pText->GetTextLength();
+	TRACE(1, wxString::Format(wxT("textLength is %i"),textLength));
 	if (textLength > maxLength) {
+		TRACE(1,wxString::Format(wxT("will shorten from %i to %i"),textLength, maxLength));
 		wxString deleted = "<Text has been deleted>\n";
 		pText->DeleteRange(0, textLength - maxLength);
 		// to avoid leaving a part tine, we will look for a new line near top
