@@ -16,7 +16,7 @@
 // 
 //USE:  TRACE(level, wxString); will display if level >= TRACE_LEVEL
 // output will go to log or, if in harness, to stdout
-#define TRACE_LEVEL 1   // set to zero to omit all tracing code
+#define TRACE_LEVEL 0   // set to zero to omit all tracing code
 #ifdef IN_HARNESS
 #define TRACE_LEVEL 5   // trace level override for harness
 #endif
