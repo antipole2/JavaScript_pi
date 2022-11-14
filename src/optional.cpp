@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -91,13 +91,16 @@ duk_ret_t console_getOutput(duk_context *ctx){
 
 duk_ret_t console_add(duk_context *ctx){
     // add new console
-    duk_require_string(ctx, 0);
+    wxString checkConsoleName(wxString name, Console* pConsole);
     Console* pConsole;
     int x, y;
+    wxString outcome;
+    
+    duk_require_string(ctx, 0);
     wxString name = duk_get_string(ctx, 0);
     duk_pop(ctx);
-    pConsole = findConsoleByName(name);
-    if (pConsole) throwErrorByCtx(ctx, "Console " + name + " already exists");
+    outcome = checkConsoleName(name, nullptr);
+    if (outcome !="") throwErrorByCtx(ctx, outcome);
     pConsole = new Console(pJavaScript_pi->m_parent_window, name);
     pConsole->CenterOnScreen();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
@@ -116,6 +119,20 @@ duk_ret_t console_close(duk_context* ctx){
     Console* pConsole = findConsoleByName(name);
     if (!pConsole) throwErrorByCtx(ctx, "Console " + name + " does not exist");
     if (pConsole == findConsoleByCtx(ctx)) throwErrorByCtx(ctx, "Console " + name + " cannot close yourself");
+    if (pConsole->mpMessageDialog != nullptr){ // There is a message box still open
+        // This is tricky...  It is difficult to close and we cannot clear the ctx until after.
+    	// see https://forums.wxwidgets.org/viewtopic.php?p=176963&sid=4be2a9e298f2d4e785b400bf4c3cfd75#p176963
+		// the following does not work
+		// wxCommandEvent evt(wxEVT_BUTTON, wxID_CANCEL);	// create any button event
+		// evt.SetEventObject(pConsole->mpMessageDialog);
+		// pConsole->mpMessageDialog->GetEventHandler()->ProcessEvent(evt);	// trigger a button
+		// pConsole->mpMessageDialog->EndModal(0);
+		// so we make do with the following
+		pConsole->mStatus.set(SHUTTING);  // we set a special status to say we are shutting it down
+        pConsole->mBrief.callback = false;  // and clear any callback
+        return (0);
+        }
+    else if (pConsole->isBusy()) pConsole->wrapUp(STOPPED);
     pConsole->bin();
     return 0;
     }
@@ -137,15 +154,19 @@ duk_ret_t console_load(duk_context* ctx){
     if (pConsole == pConsoleBeingTimed)
         pConsole->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " cannot load into own console");
     if (pConsole->mpCtx) pConsoleBeingTimed->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
-    wxFileName filePath = resolveFileName(pConsoleBeingTimed, wxString(fileString), MUST_EXIST);
-    fileString = filePath.GetFullPath();
-    inputFile.Open(fileString);
-    pConsole->m_Script->ClearAll();
-    for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
-        pConsole->m_Script->AppendText(lineOfFile + "\n");
+    if (fileString.EndsWith(".js")){   // we are to try and load a file
+        wxFileName filePath = resolveFileName(pConsoleBeingTimed, wxString(fileString), MUST_EXIST);
+        fileString = filePath.GetFullPath();
+        inputFile.Open(fileString);
+        pConsole->m_Script->ClearAll();
+        for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
+            pConsole->m_Script->AppendText(lineOfFile + "\n");
+            }
+        pConsole->m_fileStringBox->SetValue(wxString(fileString));
+        pConsole->auto_run->Show();
         }
-    pConsole->m_fileStringBox->SetValue(wxString(fileString));
-    pConsole->auto_run->Show();
+    else pConsole->m_Script->SetText(fileString);   // we were passed a script
+
     pConsole->auto_run->SetValue(false);
     return 0;
     }
@@ -282,6 +303,18 @@ void register_console(duk_context *ctx){
 
 bool loadComponent(duk_context *ctx, wxString name) {
     bool result {false};
+    
     if (name == "Consoles") {register_console(ctx); result = true;}
+    
+#ifdef SOCKETS
+    void register_sockets(duk_context *ctx);
+	if (name == "Sockets") {register_sockets(ctx); result = true;}
+#endif
+
+#ifdef IPC
+	void register_tcp(duk_context *ctx);
+	if (name == "IPC") {register_tcp(ctx); result = true;}
+#endif
+	
     return result;
     };

@@ -47,7 +47,6 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         }
     functionName = pConsole->mDialog.functionName;
     pConsole->mDialog.functionName = wxEmptyString;   // clear out so we do not use again
-    pConsole->mDialog.position = window->GetPosition();   // remember where it is
     if ( window->Validate() && window->TransferDataFromWindow() ){
         window->Show(false);
         // now to build the returned object

@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -28,6 +28,7 @@
 #include "trace.h"
 #include <vector>
 #include <bitset>
+#include "buildConfig.h"
 
 #define DUK_DUMP true
 #if DUK_DUMP
@@ -78,10 +79,13 @@ enum Completions {
     STOPPED,
     MORE,
     TOCHAIN,
-    CLOSE
+    CLOSE,
+    SHUTTING    // needing to stop but unable to release ctx yet
     };
 
 #define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
+
+// timers
 #include "wx/datetime.h"
 class TimeActions  // holds times at which function is to be called
 {
@@ -91,8 +95,40 @@ public:
     wxString argument;  // optional argument to pass to function
 };
 #define MAX_TIMERS 10   // safety limit of timers
-
 WX_DECLARE_OBJARRAY(TimeActions, TimesArray);
+
+// menus
+//#include "wx/datetime.h"
+class MenuActions
+{
+public:
+    int menuID;
+    wxMenuItem* pmenuItem;
+    wxString menuName;
+    jsFunctionNameString_t functionName;
+    wxString argument;  // optional argument to pass to function
+};
+#define MAX_MENUS 10   // safety limit of number of menus
+WX_DECLARE_OBJARRAY(MenuActions, MenusArray);
+
+#ifdef SOCKETS
+#include "wx/socket.h"
+class SocketRecord
+{
+public:
+    int socketID;
+    int type;	// 0 not in use; 1 server; 2 client
+    wxSocketBase * pSocket;
+    jsFunctionNameString_t functionName;
+    wxString argument;  // optional argument to pass to function
+};
+#define MAX_SOCKETS 10   // safety limit of number of sockets
+WX_DECLARE_OBJARRAY(SocketRecord, SocketRecordsArray);
+#endif
+
+#ifdef IPC
+#include "wx/sckipc.h"
+#endif	// IPC
 
 class ConsoleCallbackAwaited
 {
@@ -172,8 +208,13 @@ public:
     bool        mTimerActionBusy;  // true while handling timer event to stop them piling up
     MessagesArray   mMessages;   // The messages call-back table
     TimesArray      mTimes;       // Timers call-back table
+    MenusArray      mMenus;         // Menus callback table
+#ifdef SOCKETS
+	SocketRecordsArray	mSockets;		// array of sockets
+#endif
     DialogAction    mDialog;      // Dialogue call-back table
     AlertDetails    mAlert;        // details of alert dialog
+    wxMessageDialog* mpMessageDialog;	// the wxWidgets message dialogue if there is one
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
@@ -210,12 +251,20 @@ public:
     void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
-    
+    void OnSize(wxSizeEvent& event);
+#ifdef SOCKETS
+	DECLARE_EVENT_TABLE()
+#endif	// SOCKETS
+
+#ifdef IPC
+	wxTCPServer*	m_IPCserver;
+#endif	// IPC
+
 private:
     void OnClose( wxCloseEvent& event );
     
 public:
-    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxSize consoleSize = wxSize(738,800), wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
         extern JavaScript_pi *pJavaScript_pi;
@@ -230,14 +279,6 @@ public:
             while (pConsole->mpNextConsole) pConsole = pConsole->mpNextConsole; // point to last
             pConsole->mpNextConsole = this; // add us
             }
-
-#ifndef IN_HARNESS
-        //wxString iconLocation = *GetpSharedDataLocation()
-       //+ _T("plugins/JavaScript_pi/data/blank.ico");
-       // wxIcon icon(iconLocation, wxBITMAP_TYPE_ICO);
-       // SetIcon(icon);
-#endif
-
         mConsoleName = consoleName;
         mpCtx = nullptr;
         Move(wxPoint(checkPointOnScreen(consolePosition)));
@@ -265,10 +306,7 @@ public:
         m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
         m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
         
-        
-
         // script pane set up
-        Fit(); // fit now to keep space for Autorun button, even if initially hidden
         JSlexit(this->m_Script);  // set up lexing
         // wrap text in script pane
         m_Script->SetWrapMode(wxSTC_WRAP_WORD);
@@ -296,6 +334,10 @@ public:
             m_Script->AddText(welcome); // some initial script
             }
         m_Output->AppendText(welcome);
+        this->setMinWidth();
+        this->SetSize(consoleSize);
+//        Fit(); // fit now to keep space for Autorun button, even if initially hidden
+        TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         Hide();   // we hide console now but this may be changed later
         }
     
@@ -365,8 +407,10 @@ public:
         mDialog.functionName = wxEmptyString;
         mAlert.palert = nullptr;
         mAlert.alertText = wxEmptyString;
+        mpMessageDialog = nullptr;
         mConsoleCallbacksAwaited = 0;
         m_exitFunction = wxEmptyString;
+        mChainedScriptToRun = false;
         if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
             mAlert.position.y = 150;
             }
@@ -390,6 +434,7 @@ public:
       // For now we will mark not busy in case the following are true
         mWaiting = false;
         mWaitingCached = true;
+      mpMessageDialog = nullptr;    // Since here, any modla dialog must have ended, one way or another
        if (mStatus.test(STOPPED)) return STOPPED;
        if (mStatus.test(TOCHAIN)) return TOCHAIN;
        if (dukOutcome != DUK_EXEC_SUCCESS){
@@ -419,6 +464,12 @@ public:
                 for (int i = 0; i < count; i++)
                     if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
                 }
+            if (!mMenus.IsEmpty()){
+                // has set up one or more context menus - check them out
+                int count = (int)mMenus.GetCount();
+                for (int i = 0; i < count; i++)
+                    if (functionMissing(mMenus[i].functionName)) outcome = HAD_ERROR;
+                }
             duk_pop(mpCtx);   // the global object
             }
        TRACE(4, wxString::Format("%s->run() completed with outcome %d",mConsoleName, outcome ));
@@ -426,7 +477,7 @@ public:
         }
     
     void doRunCommand(Brief brief){
-        // this is implemented as a method so we can lazy call with CallAfter
+        // this is implemented as a method so we can lazy call it with CallAfter
         if (run_button->GetLabel() == _("Run")){
             Completions outcome;
             mBrief = brief;
@@ -496,21 +547,7 @@ public:
         wxString functionName;
         ConsoleCallbackAwaited thisConsoleCallback;
         TRACE(4, mConsoleName + "->doExecuteFunction " + result.functionName + " with " + result.result + " reason " + ((result.resultType == HAD_ERROR)?"HAD_ERROR":((result.resultType == MORE)?"MORE":((result.resultType == STOPPED)?"STOPPED":((result.resultType == DONE)?"DONE":"unknown")))));
-#if 0   // Not implementing automatic throw of calling console
-        if (result.resultType == HAD_ERROR){
-            // the other script threw an error - so we will simulate this for the invoking script
-            m_result = _("onConsoleResult -") +_(" other script threw error ") + result.result;
-            wrapUp(HAD_ERROR);
-            return;
-            }
-#endif
         mConsoleCallbacksAwaited--;
-#if 0   // Passing error through to function, so not here
-        if (result.resultType == HAD_ERROR){
-            message(STYLE_RED, _("onConsoleResult - Console ") + thisConsoleCallback.consoleName + _("threw error ") + result.result);
-            wrapUp(HAD_ERROR);
-            }
-#endif
         // ready to invoke function and give it an object we will construct here
         functionName = result.functionName;
         duk_push_object(mpCtx);
@@ -563,9 +600,14 @@ public:
         int count;
         if (
             (mTimes.GetCount() > 0) ||
+            (mMenus.GetCount() > 0) ||
+#ifdef SOCKETS
+            (mSockets.GetCount() > 0) ||
+#endif
             (m_NMEAmessageFunction != wxEmptyString) ||
             (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
+            (mpMessageDialog != nullptr) ||
             (mAlert.palert != nullptr) )
                 result = true;
         else if ((count = (int)mMessages.GetCount()) > 0){ // look at messages
@@ -584,7 +626,7 @@ public:
         return mWaiting;
     }
     
-    bool isBusy(){  // tests if wating or running main script
+    bool isBusy(){  // tests if waiting or running main script
         return(mRunningMain || isWaiting());
         }
     
@@ -628,14 +670,19 @@ public:
                 mMessages[index].functionName = wxEmptyString;
                 }
             }
-        // clear out all timer stuff
+        // clear out all timer stuff etc.
         // while (mTimes.GetCount() > 0) mTimes.RemoveAt(0); not needed?
         mTimes.Clear();
+        clearMenus();
+#ifdef SOCKETS
+		clearSockets();
+#endif
         mConsoleCallbacksAwaited = 0;
         mTimerActionBusy = false;
         mRunningMain = false;
         clearDialog();
         clearAlert();
+        mpMessageDialog = nullptr;
         mWaitingCached = mWaiting = false;
         if (!mBrief.fresh) mBrief.hasBrief = false; // was only available once
 
@@ -652,8 +699,11 @@ public:
             ConsoleCallbackResult resultStruct;
             
             mBrief.callback = false;    // we only do this once
-            if (!pConsole) message(STYLE_RED, "Console to call back not found");
-            else if (!pConsole->isWaiting()) message(STYLE_RED, "Console to call back not waiting for us");
+            if (!pConsole) {
+            	// no console to report error - use first
+            	wxMessageBox("Console "+ mConsoleName + " not found to call back");
+			}
+            else if (!pConsole->isWaiting()) this->message(STYLE_RED, "Console to call back not waiting for us");
             else {
                 resultStruct.result = m_result;
                 resultStruct.resultType = reason;
@@ -678,12 +728,17 @@ public:
                 mTimes.Clear();
                 clearDialog();
                 clearAlert();
+                mpMessageDialog = nullptr;
                 }
             }
-        if (mpCtx != nullptr) { // for safety - nasty consequences if no context
-            duk_destroy_heap(mpCtx);
-            mpCtx = nullptr;
-            }
+		if (mStatus.test(SHUTTING)){
+			bin();  // if we had a messageBox and shutting, bin but leave context
+			}
+        else if (mpCtx != nullptr) { // for safety - nasty consequences if no context
+ 	       duk_destroy_heap(mpCtx);
+			mpCtx = nullptr;
+ 	       }
+ 	   mConsoleCallbacksAwaited = 0;	// make sure
         }
     
     void clearAlert(){  // clears away any alert dialogue
@@ -712,6 +767,41 @@ public:
             mWaitingCached = false;
             }
         }
+        
+    void clearMessageBox(){	// clear away any message box
+    	if (mpMessageDialog != nullptr) {
+    		// This is tricky... there is a message box still open
+    		// see https://forums.wxwidgets.org/viewtopic.php?p=176963&sid=4be2a9e298f2d4e785b400bf4c3cfd75#p176963
+//			mpMessageDialog->Destroy();
+ //           mpMessageDialog->Close();
+//            delete mpMessageDialog;
+
+        wxCommandEvent evt(wxEVT_BUTTON, wxID_CANCEL);	// create a CANCEL event
+        evt.SetEventObject(mpMessageDialog);	// add it to the dialogue
+        mpMessageDialog->GetEventHandler()->ProcessEvent(evt);	// trigger the event
+ //   		delete mpMessageDialog;
+//    		mpMessageDialog = nullptr;
+    		}
+    	}
+    
+    void clearMenus()           {   // clear away any menus for this console
+        int count = mMenus.GetCount();
+        for (int i = count-1; i >= 0; i--){   // do this backwards
+            delete mMenus[i].pmenuItem;
+            RemoveCanvasContextMenuItem(mMenus[i].menuID);
+            mMenus.RemoveAt(i);
+            }
+        }
+
+#ifdef SOCKETS        
+    void clearSockets()           {   // clear away any sockets for this console
+        int count = mSockets.GetCount();
+        for (int i = count-1; i >= 0; i--){   // do this backwards
+	        if (mSockets[i].pSocket != nullptr) mSockets[i].pSocket->Close();        		
+            mSockets.RemoveAt(i);
+            }
+        }
+#endif
     
     void throw_error(duk_context *ctx, wxString message){
         // throw an error from within c++ code called from running script
@@ -732,6 +822,12 @@ public:
         void limitOutput(wxStyledTextCtrl* pText);
         TRACE(5,mConsoleName + "->message() " + message);
         Show(); // make sure console is visible
+        // make sure it is big enough to see the output
+        wxSize consoleSize = this->GetSize();
+        if ((consoleSize.x < 200)|| (consoleSize.y < 400)) {
+            consoleSize = wxSize(680,700);
+            this->SetSize(consoleSize);
+            }
         wxStyledTextCtrl* output_window = m_Output;
         int long beforeLength = output_window->GetTextLength(); // where we are before adding text
         output_window->AppendText(message);
@@ -863,6 +959,7 @@ public:
         dump += "m_backingOut:\t\t" + (this->m_backingOut?_("true"):_("false")) + "\n";
         dump += "mWaitingCached:\t\t" + (this->mWaitingCached?_("true"):_("false")) + "\n";
         dump += "mWaiting:\t\t\t" + (this->mWaiting?_("true"):_("false")) + "\n";
+        dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
         dump += "auto_run:\t\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
@@ -882,6 +979,24 @@ public:
                 dump += _("\t") + mTimes[i].timeToCall.FormatTime() + "\t" + this->mTimes[i].functionName +_("\t") + this->mTimes[i].argument + _("\n");
                 }
             }
+        dump += _("Menus callback table\n");
+        count = (int)this->mMenus.GetCount();
+        if (count == 0) dump += _("\t(empty)\n");
+        else {
+            for (i = 0; i < count; i++){
+                dump += _("\t") + this->mMenus[i].menuName +_("\t") + this->mMenus[i].functionName +_("\t") + this->mMenus[i].argument + _("\n");
+                }
+            }
+#ifdef SOCKETS
+        dump += _("Sockets table\n");
+        count = (int)this->mSockets.GetCount();
+        if (count == 0) dump += _("\t(empty)\n");
+        else {
+            for (i = 0; i < count; i++){
+                dump += wxString::Format("\tID %i\t%s\t%s\n", this->mSockets[i].socketID, this->mSockets[i].functionName,this->mSockets[i].argument);
+                }
+            }
+#endif
         dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format("Active with %d elements",  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
@@ -916,6 +1031,52 @@ public:
         }
     }
     
+    void setMinWidth(){ // set the minimum width for console
+    	// if new width > old, grow
+    	// if was minimized and mew width < old, shrink
+    	wxSize oldSize = this->GetSize();
+    	bool wasMinimized = (oldSize.y <= MIN_CONSOLE_HEIGHT+2);    // allow for rounding
+        int minWidth = 80 + mConsoleName.Length() * 8;
+        wxSize newMinSize = wxSize(minWidth, MIN_CONSOLE_HEIGHT);
+        this->SetMinSize(newMinSize);
+        if (wasMinimized) this->SetSize(newMinSize);
+        else {
+			wxSize size = this->GetSize();
+			if (size.x < newMinSize.x){
+				size.x = newMinSize.x;
+				this->SetSize(size);
+				}
+			}
+        TRACE(3, wxString::Format("Set console %s to min size to %dx%d", this->mConsoleName, newMinSize.x, newMinSize.y));
+        }
+        
+#ifdef SOCKETS
+	void onSocketEvent(wxSocketEvent& event){  // here when any socket event
+		extern JavaScript_pi* pJavaScript_pi;
+		void pushSocketDescriptor(duk_context *ctx, int ID, int type, int status, int lastEvent);
+		wxSocketBase* pSocket;
+		int s, count;
+		int ID = 0;
+		wxSocketNotify eventType;
+
+		pSocket = event.GetSocket();
+		eventType = event.GetSocketEvent();
+		if (mSockets.IsEmpty()) return;  // ignore if nothing waiting
+		// look for this socket in the array of sockets
+		count = mSockets.GetCount();
+		for (s = 0; s < count; s++){
+			ID =mSockets[s].socketID;
+			break;
+			}
+		SocketRecord record = mSockets[s];
+		if (ID == 0) wxMessageBox("Program error: onSocketEvent for unknown socket");
+		jsFunctionNameString_t thisFunction = record.functionName;
+		pushSocketDescriptor(mpCtx, record.socketID, record.type, record.pSocket->IsConnected()?1:0, eventType);
+		Completions outcome = executeFunction(thisFunction);
+		if (outcome != MORE) wrapUp(outcome);
+		}
+#endif
+    
 private:
     bool functionMissing(wxString function){ // checks if function missing in global object
         // global object must be on stack when this is called
@@ -930,13 +1091,13 @@ private:
         return false;
         }
 
-void consoleInit(){
-    // initialise various attributes of a console
-    mBrief.hasBrief = false;
-    mBrief.theBrief = wxEmptyString;
-    mBrief.briefingConsoleName = wxEmptyString;
-    }
-};
+    void consoleInit(){
+        // initialise various attributes of a console
+        mBrief.hasBrief = false;
+        mBrief.theBrief = wxEmptyString;
+        mBrief.briefingConsoleName = wxEmptyString;
+        }
+    };
 
 class jsButton : public wxButton {
     // adds pointer to console to button so we can find it from button event
@@ -946,6 +1107,7 @@ public:
             wxButton(parent, id, label, pos, size, style, validator, name ),
             pConsole(buttonConsole)
     {};
+    
 };
 
 #endif  // JavaScript_impl_h

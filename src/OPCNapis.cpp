@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright (C) 2021 by Tony Voss
+* Copyright (C) 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -46,6 +46,7 @@ wxString getNames[] = {
 Console *findConsoleByCtx(duk_context *ctx);
 wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
 void throwErrorByCtx(duk_context *ctx, wxString message);
+extern JavaScript_pi *pJavaScript_pi;
 
 
 wxString getContextDump(duk_context *ctx){ // return duktape context dump as string
@@ -390,8 +391,49 @@ static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg mess
     return 0;  // returns no arg
     }
 
-static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation data and constructs navigation object
+static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context menu
     extern JavaScript_pi *pJavaScript_pi;
+    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    duk_ret_t result = 0;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    MenuActions menuAction;
+    wxString argument = wxEmptyString;
+    wxString menuName;
+    int menuID, menuCount;
+    wxMenu dummy_menu;
+    Console *pConsole = findConsoleByCtx(ctx);
+    
+    if (nargs == 0) { // empty call - cancel all menus
+        pConsole->clearMenus();
+        pConsole->mWaitingCached = false;   // force full isWaiting check
+        return(result);
+        }
+    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onContextMenu first argument must be function");
+    menuCount = pConsole->mMenus.GetCount();
+    if (menuCount >= MAX_MENUS){
+        pConsole->throw_error(ctx, "onContextMenu already have maximum menus outstanding");
+        }
+    if ((nargs < 2) || (nargs > 3)){
+        pConsole->throw_error(ctx, "onContextMenu requires two or three arguments");
+        }
+    menuAction.functionName = extractFunctionName(ctx, 0);
+    if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
+    menuName = wxString(duk_to_string(ctx,1));
+    // check menuName not already in use
+    for (int i = 0; i < menuCount; i++){
+         if (pConsole->mMenus[i].menuName == menuName)
+             pConsole->throw_error(ctx, "onContextMenu menu name '" + menuName + "' already in use");
+        }
+    menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
+    menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
+    menuAction.menuName = menuName;
+    menuAction.argument = argument;
+    pConsole->mMenus.Add(menuAction);  // add this menu to array
+    pConsole->mWaitingCached = pConsole->mWaiting = true;
+    return(result);
+    }
+
+static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation data and constructs navigation object
     // ****  Indenting here shows stack depth - do not re-indent this section ****
     duk_push_object(ctx);
         duk_push_number(ctx, pJavaScript_pi->m_positionFix.FixTime);
@@ -418,7 +460,6 @@ static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation da
 }
 
 static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation data and constructs navigation object Signak K formatted
-    extern JavaScript_pi *pJavaScript_pi;
     wxString thisTime = wxDateTime(pJavaScript_pi->m_positionFix.FixTime).FormatISOCombined().c_str();
 
     // ****  Indenting here shows stack depth - do not re-indent this section ****
@@ -483,7 +524,6 @@ static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation d
 }
 
 /* static duk_ret_t getActiveLeg(duk_context *ctx) {  // gets active leg data and constructs object
-    extern JavaScript_pi *pJavaScript_pi;
     // ****  Indenting here shows stack depth - do not re-indent this section ****
     duk_push_object(ctx);
         duk_push_string(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.wp_name);
@@ -525,6 +565,8 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
         if (starPos != wxNOT_FOUND){ // yes there is one
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
+        if ((sentence[0] != '$') || (sentence[6] != ',')) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $.....,");
+//      if (sentence.Length() > 77) throwErrorByCtx(ctx, wxString::Format("OCPNpushNMEA sentence > 77 chars - is %d",sentence.Length()));
         wxString Checksum = ComputeChecksum(sentence);
         sentence = sentence.Append("*");
         sentence = sentence.Append(Checksum);
@@ -962,18 +1004,20 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
 }
 #endif
 
-#ifdef OMIT
-static duk_ret_t jump_to_position(duk_context *ctx) { // jump to position
+static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
     duk_double_t lat, lon, scale;
+    wxWindow *canvas;
     MAYBE_DUK_DUMP
     lat = duk_get_number(ctx, -3);
     lon = duk_get_number(ctx, -2);
-    scale = duk_get_number(ctx, -1);
-    JumpToPosition(lat, lon, scale);
+    scale = 1/duk_get_number(ctx, -1);
+//    scale = GetNativeScale();
+    canvas = GetCanvasUnderMouse();
+    CanvasJumpToPosition(canvas, lat, lon, scale);
     duk_pop_3(ctx);
     return(0);  // no arguments returned
 }
-#endif
+
 
 static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configuration object
     // ****  Indenting here shows stack depth - do not re-indent this section ****
@@ -995,9 +1039,18 @@ static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configurati
     return 1;  // returns one arg
 }
 
+static duk_ret_t getCursorPosition(duk_context *ctx) {  // gets cursor position
+    // ****  Indenting here shows stack depth - do not re-indent this section ****
+    duk_push_object(ctx);
+    duk_push_number(ctx, pJavaScript_pi->mCursorPosition.lat);
+            duk_put_prop_literal(ctx, -2, "latitude");
+    duk_push_number(ctx, pJavaScript_pi->mCursorPosition.lon);
+            duk_put_prop_literal(ctx, -2, "longitude");
+    return 1;  // returns one arg
+    }
+
 static duk_ret_t getOCPNconfig(duk_context *ctx) {  // gets OCPN configuration as JSON
     // json = OCPNgetOCPNconfig()
-    extern JavaScript_pi* pJavaScript_pi;
     if (pJavaScript_pi->openCPNConfig == wxEmptyString) throwErrorByCtx(ctx, "OCPNgetOCPNconfig  no config available");
     duk_push_string(ctx, pJavaScript_pi->openCPNConfig);
     return 1;
@@ -1157,6 +1210,19 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
         duk_push_number(ctx, distance);
         return 1;
         }
+
+// wxString soundFile = wxString("/Applications/OpenCPN.app/Contents/SharedSupport/sounds/beep_ssl.wav");
+static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
+    Console *pConsole = findConsoleByCtx(ctx);
+    wxString* directory = GetpSharedDataLocation();
+    wxString soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
+//    OCPNMessageBox_PlugIn(pConsole, file);
+        bool OK = false;
+        OK = PlugInPlaySoundEx(soundFile);
+        duk_push_boolean(ctx, OK);
+        duk_ret_t result = 1;
+        return (result);
+        }
     
 // ÑÑÑÑÑÑ API registrations follow
 
@@ -1197,7 +1263,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNonActiveLeg");
     duk_push_c_function(ctx, onActiveLeg, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-        
+    
+    duk_push_string(ctx, "OCPNonContextMenu");
+    duk_push_c_function(ctx, onContextMenu, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     duk_push_string(ctx, "OCPNgetARPgpx");
     duk_push_c_function(ctx, getARPgpx, 0 /* no args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -1278,6 +1348,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, OCPNrefreshCanvas, 0);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "OCPNcentreCanvas");
+    duk_push_c_function(ctx, OCPNcentreCanvas, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
 #ifdef TRACKS
 
     duk_push_string(ctx, "OCPNgetTrackGUIDs");
@@ -1300,12 +1374,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, deleteTrack, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 #endif
-
-#ifdef OMIT
-    duk_push_string(ctx, "OCPNjumpToPosition");
-    duk_push_c_function(ctx, jump_to_position, 3);  // 3 arguments
+    
+    duk_push_string(ctx, "OCPNgetCursorPosition");
+    duk_push_c_function(ctx, getCursorPosition, 0);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-#endif
     
     duk_push_string(ctx, "OCPNgetPluginConfig");
     duk_push_c_function(ctx, getPluginConfig, 1);
@@ -1318,6 +1390,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     
     duk_push_string(ctx, "OCPNgetAISTargets");
     duk_push_c_function(ctx, getAISTargetsArray, 0);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNsoundAlarm");
+    duk_push_c_function(ctx, playSound, 1 /* 1 arg */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_pop(ctx);

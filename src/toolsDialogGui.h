@@ -23,6 +23,7 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
+#include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
@@ -41,6 +42,10 @@ class ToolsClassBase : public wxDialog
 		wxPanel* Consoles;
 		wxStaticText* m_prompt;
 		wxTextCtrl* m_newConsoleName;
+		wxStaticText* m_rename_prompt;
+		wxChoice* m_oldNames;
+		wxStaticText* m_staticText15;
+		wxTextCtrl* m_changedName;
 		wxTextCtrl* m_ConsolesMessage;
 		wxPanel* Directory;
 		wxStaticText* mCurrentDirectory;
@@ -66,6 +71,7 @@ class ToolsClassBase : public wxDialog
 		virtual void onClose( wxCloseEvent& event ) { event.Skip(); }
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveNMEAmessage( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveMessage( wxCommandEvent& event ) { event.Skip(); }
@@ -76,11 +82,13 @@ class ToolsClassBase : public wxDialog
 	public:
 		wxNotebook* m_notebook;
 		wxButton* m_addButton;
+		wxButton* m_changeButton;
 		wxButton* mDirectoryChangeButton;
 		wxTextCtrl* m_NMEAmessage;
 		wxTextCtrl* m_MessageID;
 		wxTextCtrl* m_MessageBody;
-		wxString mConsoleNameInput;
+		wxString mNewNameInput;
+		wxString m_changedNameInput;
 
 		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript tools"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP );
 		~ToolsClassBase();

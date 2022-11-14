@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -20,7 +20,7 @@
 #ifdef IN_HARNESS
 #define TRACE_LEVEL 5   // trace level override for harness
 #endif
-#define TRACE_TO_WINDOW false     // if true, trace will be to a window
+#define TRACE_TO_WINDOW true     // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout
 #if TRACE_TO_WINDOW
     // trace to window goes here

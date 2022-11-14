@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -16,7 +16,10 @@
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
 #include "ocpn_duk.h"
+#include <wx/url.h>
 #include <string>
+#include <wx/filedlg.h>
+#include <wx/msgdlg.h>
 
 /*  On hold for now - cannot find a way of handling the variable arguments
  // sprintf function
@@ -28,7 +31,7 @@
  duk_idx_t nargs;  // number of args in call
  
  nargs = duk_get_top(ctx);
- cout << "Inside sprintf - nargs=" << nargs <<"\n";
+ cout << "  sprintf - nargs=" << nargs <<"\n";
  cout << "arg0 is type:" << duk_get_type(ctx, 0) << " and value:" << duk_to_string(ctx,0) << "\n";
  cout << "arg1 is type:" << duk_get_type(ctx, 1) << " and value:" << duk_to_string(ctx,1) << "\n";
  cout << "sprintf gives:" << duk_push_sprintf(ctx, duk_to_string(ctx,0), duk_to_string(ctx,1)) << "\n";
@@ -38,6 +41,7 @@
  }
  */
 
+extern JavaScript_pi *pJavaScript_pi;
 Console *findConsoleByCtx(duk_context *ctx);
 
 void limitOutput(wxStyledTextCtrl* pText){
@@ -185,6 +189,12 @@ static duk_ret_t duk_print(duk_context *ctx) {   // print
     duk_ret_t result = 0;
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->Show(); // make sure console is visible
+    // make sure it is big enough to see the output
+    wxSize consoleSize = pConsole->GetSize();
+    if ((consoleSize.x < 200)|| (consoleSize.y < 400)) {
+        consoleSize = wxSize(680,700);
+        pConsole->SetSize(consoleSize);
+        }
     pConsole->m_Output->AppendText(js_formOutput(ctx));
     limitOutput(pConsole->m_Output);
     return (result);
@@ -206,7 +216,7 @@ static duk_ret_t duk_print_blue(duk_context *ctx) {   // print in blue
     return (print_coloured(ctx, STYLE_BLUE));
     }
 
-/*
+/*	doesn't seem to work
     static duk_ret_t duk_print_bold(duk_context *ctx) {   // print bold
     return (print_coloured(ctx, STYLE_BOLD));
     }
@@ -221,6 +231,64 @@ static duk_ret_t duk_log(duk_context *ctx) {   // log message
     wxLogMessage(js_formOutput(ctx));
     return (result);
     }
+    
+    static duk_ret_t duk_message(duk_context *ctx) {   // show message in box
+    // messageBox(message [, caption, "YesNo"]);
+    wxString buttonType;
+    int style = wxCANCEL; // | wxSTAY_ON_TOP;
+    duk_ret_t result = 0;
+    int answer;
+    Console *pConsole = findConsoleByCtx(ctx);
+    wxString caption = "JavaScript " + pConsole->mConsoleName;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    if (nargs == 0){	// clear away any message box
+    	pConsole->clearMessageBox();
+    	return (0);
+    	}
+    if (nargs > 3) pConsole->throw_error(ctx, "MessageBox called with invalid number of args");
+    wxString message = duk_get_string(ctx, 0);
+    if (nargs > 1){
+        buttonType = duk_get_string(ctx,1);
+        if (buttonType == "YesNo") style |= wxYES_NO;
+        else if (buttonType == "OK") style |= wxOK;
+        else if (buttonType == "") style = wxCANCEL;
+        else pConsole->throw_error(ctx, "MessageBox invalid 2nd arg");
+        }
+    if (nargs > 2) caption = duk_get_string(ctx, 2);
+    duk_pop_n(ctx, nargs);
+    pConsole->mpMessageDialog = new wxMessageDialog(pConsole, message, caption, style, wxDefaultPosition);
+    pConsole->clearTimeout();   // suspend timer during modal window
+    try {
+        answer = pConsole->mpMessageDialog->ShowModal();
+        }
+    catch(int reason){
+        return (0);
+        }
+    if (pConsole->mStatus.test(SHUTTING)){
+		// Oh oh!  This console was closed while the dialogue was displayed modally - we need to get out
+	     pConsole->throw_error(ctx, "MessageBox being shut");
+	     }
+    switch (answer) {
+        case wxID_CANCEL:
+            pConsole->throw_error(ctx, "MessageBox cancelled");
+            break;
+        case wxID_OK:
+            answer = 1;
+            break;
+        case wxID_YES:
+        	answer = 2;
+            break;
+        case wxID_NO:
+            answer = 3;
+            break;
+        default: pConsole->throw_error(ctx, "MessageBox logic error");
+        }
+    pConsole->mpMessageDialog = nullptr;
+    pConsole->startTimeout();
+    duk_push_int(ctx, answer);
+    return(1);
+    }
+
 
 #if 0
 // On hold for now - variable arguments of variable types defeated me
@@ -265,12 +333,27 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     
     fileNameGiven = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
-    filePath = resolveFileName(pConsole, wxFileName(fileNameGiven), MUST_EXIST);
-    fileString = filePath.GetFullPath();
-    ok = inputFile.Open(fileString);
-    for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
-        text += lineOfFile + "\n";
-        }
+    if ((fileNameGiven.substr(0, 6) == "https:")|| (fileNameGiven.substr(0, 5) == "http:")){
+    	// its a URL - let's try and get it
+    	if (!OCPN_isOnline()) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " failed - not on-line");
+    	wxURI url(fileNameGiven);
+		wxString tmp_file = wxFileName::CreateTempFileName("");
+		_OCPN_DLStatus ret = OCPN_downloadFile(url.BuildURI(), tmp_file,
+		"", "", wxNullBitmap, pConsole,
+		OCPN_DLDS_ELAPSED_TIME | OCPN_DLDS_ESTIMATED_TIME | OCPN_DLDS_REMAINING_TIME | OCPN_DLDS_SPEED | OCPN_DLDS_SIZE | OCPN_DLDS_CAN_PAUSE | OCPN_DLDS_CAN_ABORT | OCPN_DLDS_AUTO_CLOSE,
+		10);
+		if (ret == OCPN_DL_ABORTED) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " download aborted");
+		if (ret == OCPN_DL_FAILED) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " failed - invalid URL?");
+		fileString = tmp_file;
+    	}
+    else {
+		filePath = resolveFileName(pConsole, wxFileName(fileNameGiven), MUST_EXIST);
+		fileString = filePath.GetFullPath();
+		}
+	ok = inputFile.Open(fileString);
+	for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
+		text += lineOfFile + "\n";
+		}
     text = JScleanString(text);
     duk_push_string(ctx, text);
     return 1;
@@ -462,10 +545,83 @@ static duk_ret_t duk_consoleShow(duk_context *ctx) {
     getConsoleWithOptionalNameOnStack(ctx)->Show();
     return 0;
     }
+    
+static duk_ret_t duk_consolePark(duk_context *ctx) {
+	// park this console
+	wxSize minSize;
+	wxPoint position, thisPos, canvasPosition;
+	Console* pConsole;
+	wxWindow* pCanvas;
+    int highest {1000000};
+    int rightMost {0};    // most right hand edge of a console
+    int parkingBase;    // any console with position above this is regarded as parked
+    int cill {3};   // allow a cill of this amount above bottom of window top margin
+    int sep {10};   // separation between parked consoles
+    int firstX {70};    // first parking place indented this amount from lefthand edle of canvas
+    int pad {5};    // when a first console is parked, position this amount above the parking base
+    
+    pCanvas = GetOCPNCanvasWindow();
+    canvasPosition = pCanvas->GetScreenPosition();
+    parkingBase = canvasPosition.y - MIN_CONSOLE_HEIGHT - cill;
+	
+	pConsole = findConsoleByCtx(ctx);
+    thisPos = pConsole->GetScreenPosition();
+    if (thisPos.y <= parkingBase){  // this console regarded as already parked
+        minSize = pConsole->GetMinSize();
+        pConsole->SetSize(minSize);
+        }
+    else {  // determine parking height
+        // first look for highest other console
+        for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){ // for each console
+            if (pC == pConsole) continue;	// omit this console from check
+            position = pC->GetPosition();
+            if (position.y > parkingBase) continue; // this one not parked
+            if (position.y < highest) highest = position.y;
+            minSize = pC->GetMinSize();
+            int rhe = position.x + minSize.x + sep;
+            if (rhe > rightMost) rightMost = rhe;   // move right of existing parked console
+            thisPos.x = rightMost;
+            }
+        if (highest == 1000000) {
+            highest = parkingBase - pad; // no other windows parked - default to top of main window
+            thisPos.x = canvasPosition.x + firstX; // position in first parking place
+            }
+        minSize = pConsole->GetMinSize();
+        pConsole->SetSize(minSize);
+        thisPos.y = highest;
+        pConsole->Move(thisPos);
+        }
+	return 0;
+	}
+
+static duk_ret_t duk_consoleName(duk_context *ctx) {
+    // consoleName(newName) to rename this console
+    // consoleShow() no change
+    // returns console name
+    extern JavaScript_pi* pJavaScript_pi;
+    wxString newName, outcome;
+    wxString checkConsoleName(wxString name, Console* pConsole);
+    
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    Console* pConsole = findConsoleByCtx(ctx);
+    if (nargs > 1){pConsole->throw_error(ctx, "consoleName has more than 1 argument");}
+    if (nargs == 1){	// have proposed new name
+    	newName = duk_get_string(ctx, 0);
+    	duk_pop(ctx);
+        outcome = checkConsoleName(newName, pConsole);
+        if (outcome != "") pConsole->throw_error(ctx, outcome);
+        // OK - ready to go
+		pConsole->mConsoleName = newName;
+		pConsole->SetLabel(newName);
+		pConsole->setMinWidth();
+    	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();
+        }
+    duk_push_string(ctx, pConsole->mConsoleName);
+    return 1;
+    }
 
 duk_ret_t chain_script(duk_context* ctx){
     // consoleChain(fileString,  brief)
-    Console *findConsoleByCtx(duk_context *ctx);
     wxString getTextFile(Console* pConsole, wxString fileString);
     wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
     wxString fileString, script, brief;
@@ -601,6 +757,10 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_c_function(ctx, duk_alert, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "messageBox");
+    duk_push_c_function(ctx, duk_message, DUK_VARARGS /*variable number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
      duk_push_string(ctx, "scriptResult");
     duk_push_c_function(ctx, duk_result, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -608,7 +768,7 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_string(ctx, "onSeconds");
     duk_push_c_function(ctx, onSeconds, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
+    
     duk_push_string(ctx, "onDialogue");
     duk_push_c_function(ctx, duk_dialog, DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -643,6 +803,14 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_c_function(ctx, duk_consoleShow, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
+	duk_push_string(ctx, "consoleName");
+    duk_push_c_function(ctx, duk_consoleName, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "consolePark");
+    duk_push_c_function(ctx, duk_consolePark, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "stopScript");
     duk_push_c_function(ctx, duk_stopScript , DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -658,6 +826,15 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_string(ctx, "onExit");
     duk_push_c_function(ctx, duk_onExit , 1 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+#if 0
+	// experiment only
+    duk_push_string(ctx, "APImenu");
+    duk_ret_t APImenu(duk_context *ctx);
+    duk_push_c_function(ctx, APImenu , DUK_VARARGS /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+#endif
+
 
 
 #ifdef DUK_DUMP

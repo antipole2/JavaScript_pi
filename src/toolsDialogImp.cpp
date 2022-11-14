@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -18,6 +18,14 @@
 #include "wx/dirdlg.h"
 
 extern JavaScript_pi *pJavaScript_pi;
+
+void ToolsClass::setConsoleChoices(){
+    Console *pConsole;
+    m_oldNames->Clear();
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        m_oldNames->Append(pConsole->mConsoleName);
+        }
+    }
 
 void ToolsClass::onClose( wxCloseEvent& event ){
 /*
@@ -39,14 +47,46 @@ void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     }
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
-    wxString newConsoleName;
+    wxString newConsoleName, outcome;
     Console *pConsole;
+    wxString checkConsoleName(wxString name, Console* pConsole);
     int x, y;
     
     this->m_ConsolesMessage->Clear();
     newConsoleName = this->m_newConsoleName->GetValue();
     if (newConsoleName == wxEmptyString){
         m_ConsolesMessage->AppendText("Must specify a name for the new console");
+        return;
+        }
+    outcome = checkConsoleName(newConsoleName, nullptr);
+    if (outcome != ""){
+        m_ConsolesMessage->AppendText("This name is already taken");
+        return;
+        }
+    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+    pConsole->GetPosition(&x, &y);
+    x += - 25 + rand()%50; y += - 25 + rand()%50;
+    pConsole->SetPosition(wxPoint(x, y));
+    pConsole->setMinWidth();
+    setConsoleChoices();    // update
+    pConsole->Show();
+    m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
+    }
+
+void ToolsClass::onChangeName( wxCommandEvent& event ){
+    wxString oldConsoleName, newConsoleName;
+    wxSize minSize, oldSize, newSize;
+    Console *pConsole;
+ 
+    this->m_ConsolesMessage->Clear();
+    newConsoleName = this->m_changedName->GetValue();
+    oldConsoleName = m_oldNames->GetStringSelection();
+    if (oldConsoleName == newConsoleName){
+        m_ConsolesMessage->AppendText("New name same as old name");
+        return;
+        }
+    if (newConsoleName == wxEmptyString){
+        m_ConsolesMessage->AppendText("Must specify a new name");
         return;
         }
     //check for existing console with this name
@@ -56,14 +96,16 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
             return;
             }
         }
-    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-   // pConsole->CenterOnScreen();
-    // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
-    pConsole->GetPosition(&x, &y);
-    x += - 25 + rand()%50; y += - 25 + rand()%50;
-    pConsole->SetPosition(wxPoint(x, y));
-    pConsole->Show();
-    m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        if (pConsole->mConsoleName == oldConsoleName){
+            pConsole->mConsoleName = newConsoleName;
+            break;
+            }
+        }
+    m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
+    pConsole->SetLabel(newConsoleName);
+    pConsole->setMinWidth();
+    setConsoleChoices();    // update
     }
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
@@ -116,6 +158,12 @@ void ToolsClass::onDump( wxCommandEvent& event ){
 #endif
     dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
+    dump += "favouriteFiles:\n";
+    for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
+        dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
+    dump += "recentFiles:\n";
+    for (int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
+        dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
     dump += "pJavaScript_pi->mpFirstConsole\t" + ptrToString(pJavaScript_pi->mpFirstConsole) + "\n";
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
         dump += ("\n————————————Console " + pConsole->mConsoleName + "————————————\n");

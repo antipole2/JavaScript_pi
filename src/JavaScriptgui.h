@@ -38,8 +38,8 @@ class m_Console : public wxDialog
 	private:
 
 	protected:
-		wxSplitterWindow* m_splitter1;
-		wxPanel* m_panel1;
+		wxSplitterWindow* m_splitter;
+		wxPanel* m_scriptSizer;
 		wxButton* m_clearScript;
 		wxButton* copy_button;
 		wxButton* load_button;
@@ -47,7 +47,7 @@ class m_Console : public wxDialog
 		wxButton* save_as_button;
 		wxButton* tools_button;
 		wxStaticLine* m_staticline1;
-		wxPanel* m_panel2;
+		wxPanel* m_outputSizer;
 		wxStaticLine* m_staticline2;
 		wxButton* m_clearOutput;
 
@@ -73,13 +73,13 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 738,741 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 738,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMINIMIZE_BOX|wxRESIZE_BORDER );
 		~m_Console();
 
-		void m_splitter1OnIdle( wxIdleEvent& )
+		void m_splitterOnIdle( wxIdleEvent& )
 		{
-			m_splitter1->SetSashPosition( 600 );
-			m_splitter1->Disconnect( wxEVT_IDLE, wxIdleEventHandler( m_Console::m_splitter1OnIdle ), NULL, this );
+			m_splitter->SetSashPosition( 600 );
+			m_splitter->Disconnect( wxEVT_IDLE, wxIdleEventHandler( m_Console::m_splitterOnIdle ), NULL, this );
 		}
 
 };

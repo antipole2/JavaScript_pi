@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -85,10 +85,13 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             scriptResult\
             consoleHide\
             consoleShow\
+            consoleName\
+            consolePark\
             onSeconds\
             onDialogue\
             onExit\
             stopScript\
+            messageBox\
             OCPNpushNMEA\
             OCPNgetMessageNames\
             OCPNsendMessage\
@@ -97,6 +100,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetNavigation\
             OCPNgetARPgpx\
             OCPNonActiveLeg\
+            OCPNonContextMenu\
             OCPNgetNewGUID\
             OCPNgetWaypointGUIDs\
             OCPNgetPluginConfig\
@@ -105,6 +109,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNaddSingleWaypoint\
             OCPNupdateSingleWaypoint\
             OCPNgetActiveWaypointGUID\
+            OCPNgetCursorPosition\
             OCPNgetRouteGUIDs\
             OCPNgetActiveRouteGUID\
             OCPNgetRoute\
@@ -121,6 +126,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetVectorPP\
             OCPNgetPositionPV\
             OCPNgetGCdistance\
+            OCPNsoundAlarm\
             consoleExists\
             consoleBusy\
             consoleClearOutput\

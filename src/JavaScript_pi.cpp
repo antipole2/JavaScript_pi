@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -41,19 +41,14 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
     delete p;
 }
 
-//---------------------------------------------------------------------------------------------------------
+//#include "ODAPI.h"
+//extern ODAPI ODAPI
+
+//----------------------------------------------------------------------------------------
 //
 //    JavaScript PlugIn Implementation
 //
-//---------------------------------------------------------------------------------------------------------
-
-#include "icons.h"
-
-//---------------------------------------------------------------------------------------------------------
-//
-//          PlugIn initialization and de-init
-//
-//---------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
@@ -133,6 +128,7 @@ int JavaScript_pi::Init(void)
     TRACE(1,"JavaScript_pi->Init() returning");
 
     return (WANTS_TOOLBAR_CALLBACK |
+            WANTS_CURSOR_LATLON |
             WANTS_CONFIG             |
             WANTS_PLUGIN_MESSAGING |
             WANTS_NMEA_SENTENCES |
@@ -178,6 +174,9 @@ bool JavaScript_pi::DeInit(void) {
         pConsole->mTimes.Clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
+#ifdef SOCKETS
+		pConsole->clearSockets();
+#endif
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
         pConsole = NULL;
@@ -288,6 +287,7 @@ bool JavaScript_pi::LoadConfig(void)
 {
     void JSlexit(wxStyledTextCtrl* pane);
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
+    wxString fileNames;
 #ifndef IN_HARNESS
     if(pConf)
     {
@@ -316,7 +316,7 @@ bool JavaScript_pi::LoadConfig(void)
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             // create consoles as in config file
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
-            if (consoles == wxEmptyString){ // no consoles configued
+            if (consoles == wxEmptyString){ // no consoles configured
                 new Console(m_parent_window, "JavaScript");
                 }
             else {
@@ -327,20 +327,41 @@ bool JavaScript_pi::LoadConfig(void)
                 mpFirstConsole = nullptr;
                 while ( tkz.HasMoreTokens() ){
                     wxPoint consolePosition, dialogPosition, alertPosition;
+                    wxSize  consoleSize;
                     wxString fileString;
                     bool autoRun;
 
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
+                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
+                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
                     alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
-                    new Console(m_parent_window, name, consolePosition, dialogPosition, alertPosition, fileString, autoRun, welcome);
+                    // take care of no console size
+                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
+                    new Console(m_parent_window, name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun, welcome);
                     }
+                }
+            }
+        fileNames = pConf->Read ( _T ( "Recents" ), _T("") );
+        if (fileNames != wxEmptyString){	// we have some recent file names
+        	wxStringTokenizer tkz(fileNames, ":");
+        	while ( tkz.HasMoreTokens() ){
+        		wxString name = tkz.GetNextToken();
+        		recentFiles.Add(name);
+        		}
+        	}
+        fileNames = pConf->Read ( _T ( "Favourites" ), _T("") );
+        if (fileNames != wxEmptyString){    // we have some favourite file names
+            wxStringTokenizer tkz(fileNames, ":");
+            while ( tkz.HasMoreTokens() ){
+                wxString name = tkz.GetNextToken();
+                favouriteFiles.Add(name);
                 }
             }
         if (!configUptoDate){	// read config was from old place
@@ -372,13 +393,37 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
+        
+        // now to save the recent files list - if any
+        if (recentFiles.GetCount() > 0){
+			wxString recents;
+			for (int i = 0; i < recentFiles.GetCount(); i++){
+				recents += recentFiles.Item(i) + ":";        	
+				}
+			recents = recents.BeforeLast(wxString(":").Last());	// drop last :
+			pConf->Write (_T ("Recents"),  recents);
+			}
+        
+        // and the favourite files list - if any
+        if (favouriteFiles.GetCount() > 0){
+            wxString favourites;
+            for (int i = 0; i < favouriteFiles.GetCount(); i++){
+                favourites += favouriteFiles.Item(i) + ":";
+                }
+            favourites = favourites.BeforeLast(wxString(":").Last());    // drop last :
+            pConf->Write (_T ("Favourites"),  favourites);
+            }
+
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
             name = pConsole->mConsoleName;
             nameColon = name + ":";
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
             wxPoint p = pConsole->GetPosition();
+            wxSize  s = pConsole->GetSize();
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   p.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   p.y );
+            pConf->Write (nameColon + _T ( "ConsoleSizeX" ),   s.x );
+            pConf->Write (nameColon + _T ( "ConsoleSizeY" ),   s.y );
             pConf->Write (nameColon + _T ( "DialogPosX" ),   pConsole->mDialog.position.x );
             pConf->Write (nameColon + _T ( "DialogPosY" ),   pConsole->mDialog.position.y);
             pConf->Write (nameColon + _T ( "AlertPosX" ),   pConsole->mAlert.position.x );
@@ -457,6 +502,11 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
 {   // note the pfix for others use
     m_positionFix = pfix;
 }
+
+void JavaScript_pi::SetCursorLatLon(double lat, double lon){
+    mCursorPosition.lat = lat;
+    mCursorPosition.lon = lon;
+    }
 
 void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
 {
@@ -551,10 +601,58 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
         }
     while (mpBin) {    // empty the bin if anything in it
         Console* pConsole;
-        TRACE(3,"JavaScript plugin deleting console " + mpBin->mConsoleName + " from bin");
         pConsole = mpBin;
+        if (pConsole->mpMessageDialog != nullptr) continue;	// don't delete a binned console with a message box still open.
+        TRACE(3,"JavaScript plugin deleting console " + mpBin->mConsoleName + " from bin");
         mpBin = pConsole->mpNextConsole; // take first off chain
         pConsole->Destroy();
+        }
+    }
+
+void JavaScript_pi::OnContextMenuItemCallback(int menuID){
+    Console* pConsole;
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        if (!pConsole->isWaiting()) continue;  // ignore if we are not waiting on something
+        if (!pConsole->mMenus.IsEmpty()){
+            int count;
+            TRACE(3, "Looking at menus for console " + pConsole->mConsoleName);
+            count = (int)pConsole->mMenus.GetCount();
+             for (int i = 0; i < count; i++){
+                if (pConsole->mMenus[i].menuID == menuID){
+                    // it's for this one
+                    wxString argument;
+                    jsFunctionNameString_t thisFunction;
+                    duk_context *ctx = pConsole->mpCtx;
+                    thisFunction = pConsole->mMenus[i].functionName;
+                    argument = pConsole->mMenus[i].argument;
+                    RemoveCanvasContextMenuItem(pConsole->mMenus[i].menuID);
+                    pConsole->mMenus.RemoveAt(i);
+                    count--; i--;
+                    if (thisFunction != wxEmptyString){  //only if have valid function
+                        Completions  outcome;
+                        if (pConsole->mJSrunning){
+                            pConsole->message(STYLE_RED, "Menu callback while JS active - ignored\n");
+                            return;
+                            }
+                        // we return a position, supplemented with the info from when it was set up.
+						duk_push_object(ctx);
+						duk_push_number(ctx, mCursorPosition.lat);
+						duk_put_prop_literal(ctx, -2, "latitude");
+						duk_push_number(ctx, mCursorPosition.lon);
+						duk_put_prop_literal(ctx, -2, "longitude");
+						duk_push_string(ctx, argument.c_str());
+						duk_put_prop_literal(ctx, -2, "info");                       	
+                        outcome = pConsole->executeFunction(thisFunction);
+                        if (outcome == MORE) continue;
+                        else {
+                            i = 99999;  // this will stop us looking for further action on this console
+                            pConsole->wrapUp(outcome);
+                            }
+                        }
+                    }
+
+                }
+            }
         }
     }
 
@@ -615,6 +713,7 @@ void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
         // tools distructor, so will store its address in the preference for later access.
 //        pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
         }
+    pTools->setConsoleChoices();
     pTools->Show();
-
+    pTools->Raise();
     };

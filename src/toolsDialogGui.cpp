@@ -28,6 +28,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* ConsolesSizer;
 	ConsolesSizer = new wxBoxSizer( wxVERTICAL );
 
+	ConsolesSizer->SetMinSize( wxSize( -1,100 ) );
 	wxStaticBoxSizer* ConsolesChoiceSizer;
 	ConsolesChoiceSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
@@ -50,7 +51,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_newConsoleName->SetMinSize( wxSize( 120,-1 ) );
 	m_newConsoleName->SetMaxSize( wxSize( 110,-1 ) );
 
-	m_newConsoleName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC, &mConsoleNameInput ) );
+	m_newConsoleName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC|wxFILTER_INCLUDE_CHAR_LIST, &mNewNameInput ) );
 
 	ConsolesChoiceSizer->Add( m_newConsoleName, 0, wxALL, 2 );
 
@@ -61,20 +62,70 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesChoiceSizer->Add( m_addButton, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( ConsolesChoiceSizer, 0, 0, 0 );
+	ConsolesSizer->Add( ConsolesChoiceSizer, 0, 0, 5 );
+
+	wxStaticBoxSizer* ConsolesRenameSizer;
+	ConsolesRenameSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+
+	m_rename_prompt = new wxStaticText( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxT("Change name of console"), wxDefaultPosition, wxDefaultSize, 0|wxBORDER_NONE );
+	m_rename_prompt->Wrap( -1 );
+	m_rename_prompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
+
+	ConsolesRenameSizer->Add( m_rename_prompt, 0, wxALL, 5 );
+
+	wxArrayString m_oldNamesChoices;
+	m_oldNames = new wxChoice( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_oldNamesChoices, wxCB_SORT );
+	m_oldNames->SetSelection( 0 );
+	m_oldNames->SetMinSize( wxSize( 130,-1 ) );
+
+	ConsolesRenameSizer->Add( m_oldNames, 0, wxALL, 5 );
+
+	m_staticText15 = new wxStaticText( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxT("to"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText15->Wrap( -1 );
+	m_staticText15->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
+
+	ConsolesRenameSizer->Add( m_staticText15, 0, wxALL, 5 );
+
+	m_changedName = new wxTextCtrl( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 120,-1 ), 0 );
+	#ifdef __WXGTK__
+	if ( !m_changedName->HasFlag( wxTE_MULTILINE ) )
+	{
+	m_changedName->SetMaxLength( 14 );
+	}
+	#else
+	m_changedName->SetMaxLength( 14 );
+	#endif
+	m_changedName->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
+	m_changedName->SetMinSize( wxSize( 120,-1 ) );
+	m_changedName->SetMaxSize( wxSize( 110,-1 ) );
+
+	m_changedName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC|wxFILTER_INCLUDE_CHAR_LIST, &m_changedNameInput ) );
+
+	ConsolesRenameSizer->Add( m_changedName, 0, wxALL, 2 );
+
+
+	ConsolesRenameSizer->Add( 120, 0, 1, 0, 5 );
+
+	m_changeButton = new wxButton( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxT("Change"), wxDefaultPosition, wxDefaultSize, 0 );
+	ConsolesRenameSizer->Add( m_changeButton, 0, wxALL, 5 );
+
+
+	ConsolesSizer->Add( ConsolesRenameSizer, 0, 0, 5 );
 
 	wxStaticBoxSizer* ConsolesMessageSizer;
 	ConsolesMessageSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
+	ConsolesMessageSizer->SetMinSize( wxSize( -1,135 ) );
 	m_ConsolesMessage = new wxTextCtrl( ConsolesMessageSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 550,-1 ), 0|wxBORDER_NONE );
 	m_ConsolesMessage->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	m_ConsolesMessage->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
 	m_ConsolesMessage->SetBackgroundColour( wxColour( 242, 242, 242 ) );
+	m_ConsolesMessage->SetMinSize( wxSize( 550,30 ) );
 
 	ConsolesMessageSizer->Add( m_ConsolesMessage, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( ConsolesMessageSizer, 0, 0, 0 );
+	ConsolesSizer->Add( ConsolesMessageSizer, 0, wxEXPAND, 0 );
 
 
 	Consoles->SetSizer( ConsolesSizer );
@@ -118,6 +169,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	mCurrentDirectoryString->Wrap( -1 );
 	mCurrentDirectoryString->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNTEXT ) );
 	mCurrentDirectoryString->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	mCurrentDirectoryString->SetMinSize( wxSize( -1,100 ) );
 
 	bSizer11->Add( mCurrentDirectoryString, 0, wxALL, 5 );
 
@@ -313,6 +365,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ToolsClassBase::onClose ) );
 	m_notebook->Connect( wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxNotebookEventHandler( ToolsClassBase::onPageChanged ), NULL, this );
 	m_addButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onAddConsole ), NULL, this );
+	m_changeButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeName ), NULL, this );
 	mDirectoryChangeButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
@@ -326,6 +379,7 @@ ToolsClassBase::~ToolsClassBase()
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ToolsClassBase::onClose ) );
 	m_notebook->Disconnect( wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxNotebookEventHandler( ToolsClassBase::onPageChanged ), NULL, this );
 	m_addButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onAddConsole ), NULL, this );
+	m_changeButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeName ), NULL, this );
 	mDirectoryChangeButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );

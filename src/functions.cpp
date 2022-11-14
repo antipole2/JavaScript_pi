@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -16,6 +16,7 @@
 #include <wx/wxprec.h>
 #include "duktape.h"
 #include "JavaScriptgui_impl.h"
+#include <wx/msgdlg.h>
 
 extern JavaScript_pi *pJavaScript_pi;
 
@@ -142,9 +143,11 @@ Console *findConsoleByCtx(duk_context *ctx){
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (m_pConsole->mpCtx == ctx) return m_pConsole;
         }
-    // failed to match - emit an error message to first console
-    throwErrorByCtx(ctx, "findConsoleByCtx logic error - failed to match ctx");
-    return m_pConsole;  // This to keep compiler happy
+    // failed to match - emit an error message
+    wxMessageBox( wxT("findConsoleByCtx failed to match console"), wxT("JavaScript_pi program error"), wxICON_ERROR);
+    return nullptr;
+    // or maybe we will return the first console anyway
+    return pJavaScript_pi->mpFirstConsole;
 }
 
 void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw error message
@@ -238,7 +241,29 @@ wxString statusesToString(status_t mStatus){
            (mStatus.test(HAD_ERROR)?_("HAD_ERROR "):_("")) +
            (mStatus.test(MORE)?_("MORE "):_("")) +
            (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
-           (mStatus.test(TOCHAIN)?_("TOCHAIN "):_(""));
+           (mStatus.test(TOCHAIN)?_("TOCHAIN "):_("")) +
+            (mStatus.test(SHUTTING)?_("STOPPING "):_(""))
+    ;
+    }
+
+wxString checkConsoleName(wxString newName, Console* pConsole){
+    // validate proposed name - alphanumeric  or '_' and not more than 14 chars
+    // checks if name already taken but does not check pConsole to allow keeping same name
+    // returns error message or empty string if OK
+    if ((newName.Length() > 14) || (newName.Length() < 1)) return("New console name must be 1-14 chars");
+    wxString::const_iterator i;
+    for (i = newName.begin(); i != newName.end(); ++i) {
+        wxUniChar code = *i;
+        if (((code  < 48) || (code >  122) || ((code > 57) && (code <65)) || ((code >90) && (code < 97)))
+            && (code != 95))
+        return("consoleName new name must only be alphanumeric or _");
+    }
+    //check for existing console with this name
+    for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
+        if (pCon == pConsole) continue;    // don't check this console to allow repeated renaming
+        if (newName == pCon->mConsoleName) return("New console name already taken by another console");
+        }
+    return(wxEmptyString);
     }
 
 #include "wx/regex.h"

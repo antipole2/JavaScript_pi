@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -25,18 +25,28 @@ public:
 
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
+    void onChangeName( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
     void onRecieveMessage( wxCommandEvent& event );
     void onChangeDirectory( wxCommandEvent& event );
     void onDump( wxCommandEvent& event );
     void onClean( wxCommandEvent& event );
     void onClose( wxCloseEvent& event );
+    void setConsoleChoices();
     
 //    ToolsClass **pPointerToThisInJavaScript_pi;   // pointer to pointer to this
     
     ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE )
         :ToolsClassBase(parent, id, title, pos, size, style)
         {
+        // adding extra _ to list of valid chards via wxFormBuilder does not work.  Bug in wxWidgets?
+        // so we will do it this way
+        wxTextValidator* validator;
+        validator = (wxTextValidator*)m_newConsoleName->GetValidator();
+        validator->AddCharIncludes("_");
+        validator = (wxTextValidator*)m_changedName->GetValidator();
+        validator->AddCharIncludes("_");
+        
         this->resizeDialogue(0); // we open on first page
         }
 

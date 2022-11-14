@@ -14,6 +14,7 @@ function five(){
 	}
 
 function seven(){
+	OCPNsoundAlarm();
 	alert("**** Dismiss this alert now ****");
 	onSeconds(check, 1);
 	}

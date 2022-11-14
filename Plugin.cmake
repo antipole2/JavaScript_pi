@@ -34,8 +34,8 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 # -------  Plugin setup --------
 #
 set(PKG_NAME JavaScript_pi)
-set(PKG_VERSION  1.1.0)
-set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
+set(PKG_VERSION  2.0.0)
+set(PKG_PRERELEASE "alpha")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME javascript) # As of GetCommonName() in plugin API
@@ -62,6 +62,7 @@ SET(SRC
     src/JavaScriptgui.cpp
     src/JavaScriptgui_impl.cpp
     src/JavaScriptgui_impl.h
+    src/fileOrganiser.cpp
     src/JSExtensions.cpp
     src/ocpn_duk.h
     src/OPCNapis.cpp
@@ -76,6 +77,7 @@ SET(SRC
     src/toolsDialogGui.cpp
     src/toolsDialogImp.h
     src/toolsDialogImp.cpp
+    src/ipc.cpp
     )
 
 set(PKG_API_LIB api-17)  #  A directory in libs/ e. g., api-17 or api-16

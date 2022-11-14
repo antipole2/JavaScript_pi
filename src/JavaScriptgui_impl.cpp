@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,20 +17,37 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/wx.h>
 #include <wx/arrimpl.cpp>
+#include <wx/button.h>
 #include "ocpn_plugin.h"
 #include "trace.h"
 #include <wx/event.h>
-
+#include "wx/window.h"
 
 #define FAIL(X) do { error = X; goto failed; } while(0)
 
 extern JavaScript_pi *pJavaScript_pi;
+
+void updateRecentFiles(wxString fileString){
+    //  Updates the array of recent file names
+    const int maxFiles {10}; // maximum number of recents to save
+    if (pJavaScript_pi->favouriteFiles.Index(fileString) == wxNOT_FOUND){  // not in favourites, so revise recents
+        pJavaScript_pi->recentFiles.Remove(fileString); // remove any existing matching entry
+        pJavaScript_pi->recentFiles.Insert(fileString, 0);  // insert this one as the first
+        int newCount = pJavaScript_pi->recentFiles.GetCount();
+        // trim list if over maximum
+        if (newCount > maxFiles) pJavaScript_pi->recentFiles.RemoveAt(maxFiles, newCount-maxFiles);
+        }
+    }
 
 int messageComp(MessagePair** arg1, MessagePair** arg2) {   // used when sorting messages
     return (strcmp((*arg1)->messageName, (*arg2)->messageName));}
 
 WX_DEFINE_OBJARRAY(MessagesArray);
 WX_DEFINE_OBJARRAY(TimesArray);
+WX_DEFINE_OBJARRAY(MenusArray);
+#ifdef SOCKETS
+WX_DEFINE_OBJARRAY(SocketRecordsArray);
+#endif
 WX_DEFINE_OBJARRAY(ConsoleCallbackArray);
 // WX_DEFINE_OBJARRAY(DialogActionsArray);
 
@@ -44,40 +61,40 @@ void Console::OnActivate(wxActivateEvent& event){
     pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not force to stay there
     };
 
-
-void Console::OnLoad( wxCommandEvent& event )
-{
-    int response = wxID_CANCEL;
- //   wxArrayString file_array;
-    wxString filename;
+void Console::OnLoad( wxCommandEvent& event ) {
+    // we are to load a script
+    wxString fileString;
     wxTextFile ourFile;
     wxString lineOfData, script;
-    wxDialog query;
     wxString JScleanString(wxString line);
+    wxString chooseFileString(Console*);
+    wxString chooseLoadFile(Console*);
     
-    wxFileDialog openConsole( this, _( "File to load" ), wxT ( "" ), wxT ( "" ),
-                             wxT ( "*.js" ),
-                             wxFD_OPEN);
-    response = openConsole.ShowModal();
-    if( response == wxID_OK ) {
-        mFileString = openConsole.GetPath();
-        ourFile.Open(mFileString);
+    fileString = chooseFileString(this);
+    if (fileString == "**cancel**"){
+        TRACE(3, "Load cancelled");
+        return;
+        }
+    if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
+    if (fileString != wxEmptyString){   // only if something now chosen
+        bool OK = ourFile.Open(fileString);
+        if (!OK){ // can't read file - it may have gone away
+            message(STYLE_RED, "File '" + fileString + "' not found or unreadable");
+            pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
+            return;
+            }
         m_Script->ClearAll();   // clear old content
         for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
             script += lineOfData + "\n";
             }
         script = JScleanString(script);
         m_Script->AppendText(script);
-        m_fileStringBox->SetValue(wxString(mFileString));
+        m_fileStringBox->SetValue(wxString(fileString));
         auto_run->Show();
         auto_run->SetValue(false);
-        return;
+        updateRecentFiles(fileString);
+        }
     }
-    else if(response == wxID_CANCEL){
-        TRACE(3, "Load cancelled");
-        return;
-    }
-}
 
 void Console::OnSaveAs( wxCommandEvent& event )
 {
@@ -105,6 +122,7 @@ void Console::OnSaveAs( wxCommandEvent& event )
         m_Script->SaveFile(filePath, wxTEXT_TYPE_ANY);
         m_fileStringBox->SetValue(wxString(filePath));
         auto_run->Show();
+        updateRecentFiles(filePath);
         return;
     }
     else if(response == wxID_CANCEL){
@@ -127,6 +145,7 @@ void Console::OnSave( wxCommandEvent& event )
         m_Script->SaveFile(mFileString);
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
         auto_run->Show();
+        updateRecentFiles(mFileString);
         return;
     }
     else OnSaveAs(event);  // No previous save, so do Save As
@@ -201,14 +220,15 @@ void Console::OnClose(wxCloseEvent& event)
             event.Veto(true);
             return;
             }
-        TRACE(3, "Binning console " + this->mConsoleName);
-        this->bin();
-//        this->clearAndUnhook();
-//        this->Destroy();
-        return;
         }
-    TRACE(3, "Destroying console " + this->mConsoleName);
-    this->Destroy();
+	this->bin();
+	// take care to remove from tools, if we have them open
+    ToolsClass *pTools = pJavaScript_pi->pTools;
+    if (pTools != nullptr) pTools->setConsoleChoices();
+	TRACE(3, "Binning console " + this->mConsoleName);
+	return;
+//    TRACE(3, "Destroying console " + this->mConsoleName);
+//    this->Destroy();
     //RequestRefresh(pJavaScript_pi->m_parent_window);
  }
 
@@ -222,3 +242,28 @@ void Console::OnTools( wxCommandEvent& event){
     pJavaScript_pi->ShowPreferencesDialog(pJavaScript_pi->m_parent_window);
     return;
     }
+    
+    
+/* played with this but not implemented
+void Console::OnSize( wxSizeEvent& event){
+	this->message(STYLE_RED, wxString("Console resized"));
+    wxSize consoleSize, scriptSize, outputSize, sizerSize;
+    wxPoint sizerPoint;
+    consoleSize = this->GetSize();
+    scriptSize = m_Script->GetSize();
+    outputSize = m_Output->GetSize();
+    wxString text = wxString::Format("Resized %d %d  %d %d  %d %d", consoleSize.GetHeight(), consoleSize.GetWidth(), scriptSize.GetHeight(), scriptSize.GetWidth(), outputSize.GetHeight(), outputSize.GetWidth());
+    // int sashPos = this->m_Console->consoleTopSizer->m_splitter.GetSashPosition ();
+    // OCPNMessageBox_PlugIn(this, text);
+    // adjust script pane
+//    sizerPoint = this->m_Console->m_splitter->m_scriptSizer.GetPosition();
+//    sizerSize = this->m_Console->m_splitter->m_scriptSizer.GetSize();
+//    sizerSize.SetHight(consoleSize.GetHeight()/2);
+ //   m_Console->m_splitter->m_scriptSizer.SetDimension(sizerPoint, sizerSize):
+    
+ //   m_Script->SetSize(consoleSize.GetWidth(), consoleSize.GetHeight()/2);
+ //   m_Output->SetSize(consoleSize.GetWidth(), consoleSize.GetHeight()/2);
+    return;
+    }
+ */
+      

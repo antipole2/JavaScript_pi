@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -15,6 +15,7 @@
 #define JavaScript_pi_h
 
 #include "version.h"
+#include "buildConfig.h"
 #include "wx/wx.h"
 #include <wx/fileconf.h>
 #include "ocpn_plugin.h" //Required for OCPN plugin functions
@@ -29,6 +30,8 @@ enum Options{
     MUST_NOT_EXIST
 };
 
+#define MIN_CONSOLE_HEIGHT 28
+
 typedef  std::bitset<8> status_t;
 
 //----------------------------------------------------------------------------------------------------------
@@ -38,6 +41,11 @@ typedef  std::bitset<8> status_t;
  #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
 
 class Console;
+
+class Position {
+public:
+    double lat; double lon;
+    };
 
 class JavaScript_pi : public opencpn_plugin_117
 {
@@ -62,6 +70,8 @@ public:
 //  The required override PlugIn Methods
     int GetToolbarToolCount(void);
     void OnToolbarToolCallback(int id);
+    void OnContextMenuItemCallback(int id);
+    void SetCursorLatLon(double lat, double lon);
 
 //  Optional plugin overrides
     void SetColorScheme(PI_ColorScheme cs);
@@ -75,6 +85,8 @@ public:
     void OnJavaScriptConsoleClose   ();
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
+    wxArrayString recentFiles;	// array of recent file strings
+    wxSortedArrayString favouriteFiles; //array of favourite file strings
 
     Console         *mpFirstConsole;   // pointer to the first console
     Console*        mpBin;      // the bin for consoles to be deleted
@@ -86,8 +98,11 @@ public:
     wxString        mCurrentDirectory;
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
+    Position        mCursorPosition;     // latest cursor position
+    
     wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of a script
+    int				nextID = 1;		// used to generate unique IDs
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
 	bool			m_bShowJavaScript;
 

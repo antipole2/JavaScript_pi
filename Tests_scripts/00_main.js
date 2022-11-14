@@ -1,6 +1,8 @@
 // test suite
 
 require("Consoles");
+consoleHide();
+consoleName("PluginTests");
 
 try { readTextFile("textFile.txt");}
 catch(error){
@@ -11,8 +13,10 @@ catch(error){
 
 message = "";
 var buttons = [];
-var testIndex;
+var testIndex;	// index of test being run
+var runAll;	// true: run all tests  false: run just textIndex
 var errorCount;
+var timerCount;
 var name = "Test";	//The test console name;
 control = [];
 control.push({type:"caption", value:"Test control"});
@@ -21,32 +25,50 @@ control.push({type:"button", label:["Run all", "Quit"]});	// the Run all button
 control.push({type:"hLine"});
 control.push({type:"text", value:"or run indivually..."});
 
+// test table format
+// (0) Test name	(1) function to run (not used at present) (2) script name (3) max seconds to wait (4) expected last line of output
+
+/*
+tests = [ // short list for testing this script
+	{name:"Simple script", functionToUse:loadRunWait, script:"01_simple_script.js", time:2, result:"All done OK"},
+	{name:"Alarm", functionToUse:loadRunWait, script:"72_alarm.js", time:10, result:"Alarm OK"},
+	{name:"Context menu", functionToUse:loadRunWait, script:"76_contextMenu_test.js", time:20, result:"OK"},
+	{name:"Waypoint, route & track", functionToUse:loadRunWait, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"}	
+	];
+*/
+
 tests = [ // test table format
 	// (0) Test name	(1) function to run	(2) script name (3) max seconds to wait (4) expected last line of output
-	{name:"Basic console", functionToUse:load, script:"05_basic_console_tests.js", time:2, result:"Basic console OK"},
-	{name:"Compile error", functionToUse:load, script:"10_error_compile.js", time:1, result:"SyntaxError: unterminated string"},
-	{name:"Throw from main", functionToUse:load, script:"11_throw_from_main.js", time:1, result:"Thrown from main"},
-	{name:"Runtime error main", functionToUse:load, script:"12_runtime_error_main.js", time:3, result:"onSeconds first argument must be function"},
-	{name:"Error trace", functionToUse:load, script:"16a_error_message_checks.js", time:3, result:"All OK"},
-	{name:"Throw from callback", functionToUse:load, script:"14_error_from_callback.js", time:3, result:"onSeconds first argument must be function"},
-	{name:"Printing", functionToUse:load, script:"20_print_tests.js", time:1, result:"Print tests completed OK"},
-	{name:"Position/Waypoint/Route", functionToUse:load, script:"02_PosWayRouteTests.js", time:2, result:"Tests ran to completion"},
-	{name:"Timer", functionToUse:load, script:"30_timer_tests.js", time:21, result:"Timer tests ended OK"},
-	{name:"Stop main", functionToUse:load, script:"50_stop_main.js", time:1, result:"undefined"},
-	{name:"Stop result", functionToUse:load, script:"52_stop_result_main.js", time:1, result:"Stop result"},
-	{name:"Stop callback", functionToUse:load, script:"54_stop_explicit_callback.js", time:3, result:"Explicit stop callback"},
-	{name:"Explicit main explicit stop callback", functionToUse:load, script:"56_result_explicit_callback_stop_explicit.js", time:3, result:"Explicit stop callback"},
-	{name:"Explicit main", functionToUse:load, script:"60_explicit_result_main.js", time:1, result:"Explicit result"},
-	{name:"Explicit result stop", functionToUse:load, script:"62_explict_result_stopped.js", time:1, result:"Explicit result"},
-	{name:"Explicit main callback stop", functionToUse:load, script:"64_explicit_main_callback_stop.js", time:3, result:"Explicit result"},
-	{name:"Alert", functionToUse:load, script:"70_alerts.js", time:10, result:"result: Alert OK"},
-	{name:"Dialogue", functionToUse:load, script:"74_dialogue_test.js", time:20, result:"Dialogue done"},
-	{name:"Chain_no_brief", functionToUse:load, script:"80_chain_no_brief.js", time:1, result:"getBrief found no brief"},
-	{name:"Chain_with_brief", functionToUse:load, script:"82_chain_with_brief.js", time:5, result:"Found brief This is the brief"},
-	{name:"Call no brief", functionToUse:load, script:"84_call_no_brief.js", time:1, result:"getBrief found no brief"},
-	{name:"Call with brief", functionToUse:load, script:"86_call_with_brief.js", time:1, result:"Found brief This is the brief"},
-	{name:"Call chain with brief", functionToUse:load, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"},
-	{name:"Waypoint, route & track", functionToUse:load, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"}	
+	{name:"Simple script", functionToUse:loadRunWait, script:"01_simple_script.js", time:2, result:"All done OK"},
+	{name:"Alarm", functionToUse:loadRunWait, script:"72_alarm.js", time:10, result:"Alarm OK"},
+	{name:"Message", functionToUse:loadRunWait, script:"71_message_test.js", time:10, result:"OK"},
+	{name:"Basic console", functionToUse:loadRunWait, script:"05_basic_console_tests.js", time:2, result:"Basic console OK"},
+	{name:"Compile error", functionToUse:loadRunWait, script:"10_error_compile.js", time:1, result:"SyntaxError: unterminated string"},
+	{name:"Throw from main", functionToUse:loadRunWait, script:"11_throw_from_main.js", time:1, result:"Thrown from main"},
+	{name:"Runtime error main", functionToUse:loadRunWait, script:"12_runtime_error_main.js", time:3, result:"onSeconds first argument must be function"},
+	{name:"Error trace", functionToUse:loadRunWait, script:"16a_error_message_checks.js", time:3, result:"All OK"},
+	{name:"Throw from callback", functionToUse:loadRunWait, script:"14_error_from_callback.js", time:3, result:"onSeconds first argument must be function"},
+	{name:"Printing", functionToUse:loadRunWait, script:"20_print_tests.js", time:30, result:"Print tests completed OK"},
+	{name:"Position/Waypoint/Route", functionToUse:loadRunWait, script:"02_PosWayRouteTests.js", time:2, result:"Tests ran to completion"},
+	{name:"Timer", functionToUse:loadRunWait, script:"30_timer_tests.js", time:21, result:"Timer tests ended OK"},
+	{name:"Read text file", functionToUse:loadRunWait, script:"40_read_text_file.js", time:3, result:"Read remote text file matched"},
+	{name:"Park console", functionToUse:loadRunWait, script:"44_parking.js", time:30, result:"Parking completed"},
+	{name:"Stop main", functionToUse:loadRunWait, script:"50_stop_main.js", time:1, result:"undefined"},
+	{name:"Stop result", functionToUse:loadRunWait, script:"52_stop_result_main.js", time:1, result:"Stop result"},
+	{name:"Stop callback", functionToUse:loadRunWait, script:"54_stop_explicit_callback.js", time:3, result:"Explicit stop callback"},
+	{name:"Explicit main explicit stop callback", functionToUse:loadRunWait, script:"56_result_explicit_callback_stop_explicit.js", time:3, result:"Explicit stop callback"},
+	{name:"Explicit main", functionToUse:loadRunWait, script:"60_explicit_result_main.js", time:1, result:"Explicit result"},
+	{name:"Explicit result stop", functionToUse:loadRunWait, script:"62_explict_result_stopped.js", time:1, result:"Explicit result"},
+	{name:"Explicit main callback stop", functionToUse:loadRunWait, script:"64_explicit_main_callback_stop.js", time:3, result:"Explicit result"},
+	{name:"Alert", functionToUse:loadRunWait, script:"70_alerts.js", time:20, result:"Alert OK"},
+	{name:"Dialogue", functionToUse:loadRunWait, script:"74_dialogue_test.js", time:20, result:"Dialogue done"},
+	{name:"Context menu", functionToUse:loadRunWait, script:"76_contextMenu_test.js", time:20, result:"OK"},
+	{name:"Chain_no_brief", functionToUse:loadRunWait, script:"80_chain_no_brief.js", time:1, result:"getBrief found no brief"},
+	{name:"Chain_with_brief", functionToUse:loadRunWait, script:"82_chain_with_brief.js", time:5, result:"Found brief This is the brief"},
+	{name:"Call no brief", functionToUse:loadRunWait, script:"84_call_no_brief.js", time:1, result:"getBrief found no brief"},
+	{name:"Call with brief", functionToUse:loadRunWait, script:"86_call_with_brief.js", time:1, result:"Found brief This is the brief"},
+	{name:"Call chain with brief", functionToUse:loadRunWait, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"},
+	{name:"Waypoint, route & track", functionToUse:loadRunWait, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"}	
 	];
 
 // we will construct the button rows dynamically from the tests table.
@@ -63,23 +85,35 @@ for (i = 0, buttonsRow = 0; i < buttonCount; i++){//  construct the array of but
 		buttonsRow++;
 		}
 	}
-//stopScript("Place two");
+if (buttonsArray[buttonsArray.length-1].length == 0) buttonsArray.pop();	// Remove last if empty
 for (i = 0; i < buttonsArray.length; i++){
 	control.push({type:"button", label:buttonsArray[i]});
 	}
 control.push({type:"text", value:message});		// space for message
+// printOrange(JSON.stringify(control), "\t", 1);
 onDialogue(action, control);
 // end of buttons construction
 
 function action(dialog){	// match button to tests
+//	consoleClearOutput();
 	button = dialog[dialog.length-1].label;
 	for (i = 0; i < tests.length; i++){
 		if (button == tests[i].name){
-			tests[i].functionToUse(tests[i].script);
-			break;
+			runAll = false;
+			testIndex = i;
+			callOne(testIndex);
+			return;
 			}
 		}
 	if (button == "Run all"){	// to run all tests
+			runAll = true;
+			testIndex = 0;
+			errorCount = 0;
+			callAll(testIndex);
+			return;
+		}
+	}
+/*
 		consoleClearOutput();
 		if (!consoleExists(name)) consoleAdd(name);
 		else if (consoleBusy(name)){
@@ -87,93 +121,130 @@ function action(dialog){	// match button to tests
 			consoleAdd(name);
 			}
 		testIndex = 0; errorCount = 0;
-		call(testIndex);
+		callAll(testIndex);
 		return;
 		}
 	else if (button == "Quit") stopScript("Quitted");
 	if (i >= tests.length) throw("Logic error - failed to match button");
-	onSeconds(waitForIt, tests[i].time, i);
+//	onSeconds(waitForIt, tests[i].time, i);
 	}
+*/
 
-function waitForIt(thisTest){	// test should have completed
-	if (consoleBusy(name)){
-//		print("Still waiting for test\n");
-		onSeconds(waitForIt(2, thisTest));
-		}
-	else {
-		output = consoleGetOutput(name).split("\n");
-		lastLine = output[output.length-2];
-		button = (tests[thisTest].name + "                                    ").slice(0, 40);
-		success = lastLine.search(tests[thisTest].result);
-		message = button + ((success>= 0)?"PASSED":"FAILED" + "\t\t\t" + lastLine);
-		control[control.length-1].value = message;
-		onDialogue(action, control);
-		}
-	}
-		
-
-function load(file){
+function callOne(which){
+	// run one test
 	if (!consoleExists(name)) consoleAdd(name);
-	if (consoleBusy(name)) alert("Console ", name, " is busy\n");
-	else {
-		consoleClearOutput(name);
-		consoleLoad(name, file)
-		consoleRun(name);
+	else if (consoleBusy(name)){
+		consoleClose(name);
+		consoleAdd(name);
 		}
+	consoleLoad(name, tests[which].script);
+	timerCount = 0;
+	onSeconds(oneTimeout, tests[which].time);
+	onConsoleResult(name, oneDone);
 	}
 
-function dialogue(file){
+function callAll(which){
+	// run next test
+//printBlue("callAll for ", which, "\t console exists is ", consoleExists(name), "\n");
 	if (!consoleExists(name)) consoleAdd(name);
-	consoleLoad(name,"dialogue_test.js")
-	consoleRun(name);
+	else if (consoleBusy(name)){
+//printBlue("Console was found busy\n");
+		consoleClose(name);
+		consoleAdd(name);
+		}
+	consoleLoad(name, tests[which].script);
+	timerCount = 0;
+	onSeconds(allTimeout, tests[which].time);
+//printOrange("About to call test ", tests[which].script, "\n", consoleDump(), "\n");
+	onConsoleResult(name, nextDone);
+//printBlue("Just set off test ", tests[which].script, "\n", consoleDump(), "\n");
 	}
 
-function call(index){
-	buttonNamePadded = (tests[testIndex].name + "                                    ").slice(0, 40);
-	print(buttonNamePadded);
-	consoleClearOutput(name);
-	consoleLoad(name, tests[index].script);
-	onConsoleResult(name, callResult);
-	onSeconds(callTimedOut, (tests[index].time)*2);	// give it twice usual times
-	}
-
-function callResult(handback){
-	onSeconds();	// cancel longstop timer
+function oneDone(handback){
+	onSeconds();	// cancel timeer
 	lastLine = handback.value;
-	success = lastLine.search(tests[testIndex][4]);
-	if (success >= 0) printGreen("PASSED\n");
+	shouldBe = tests[testIndex].result;
+	success = (lastLine.indexOf(shouldBe) >= 0);	// compare with expected result
+	message = tests[testIndex].name + " test   ";
+	if (success) message += "PASSED";
+	else message += "FAILED - " + lastLine;
+	control[control.length-1].value = message;
+	onDialogue(action, control);
+	}
+
+function nextDone(handback){
+	onSeconds();	// cancel timer
+	if (handback.type == 2){
+//		print("Script ", tests[testIndex].script, " was stopped\n");
+		more();
+		return;
+		}
+	lastLine = handback.value;
+	shouldBe = tests[testIndex].result;
+	success = (lastLine.indexOf(shouldBe) >= 0);	// compare with expected result
+	message = tests[testIndex].name + " test   ";
+	print((tests[testIndex].name + "                                    ").slice(0, 40));
+	if (success) {
+		message += "PASSED";
+		printGreen("PASSED\n");
+		}
 	else {
-		printRed("FAILED");
+		message += "FAILED - " + lastLine;
+		printRed("FAILED - ", lastLine, "\n");
 		errorCount++;
-		print("\t\t", lastLine, "\n");
 		}
-	if (++testIndex < tests.length ){
-		call(testIndex);
-		}
-	else wrapup();
+	control[control.length-1].value = message;
+	more();
 	}
 
-function timedOut(){
-	throw("Test " + tests[testIndex].name + ", timed out");
+function oneTimeout(){
+	message = tests[testIndex].name + " test   timed out";
+	control[control.length-1].value = message;
+	onDialogue(action, control);
 	}
 
-function callTimedOut(){
-	printOrange("TIMED OUT\n");
+function allTimeout(){
 	consoleClose(name);
-	consoleAdd(name);
+	print((tests[testIndex].name + "                                    ").slice(0, 40));
+	printOrange("TIMED OUT\n");
+	message = tests[testIndex].name + " test   timed out";
+	control[control.length-1].value = message;
 	errorCount++;
-		if (++testIndex < tests.length ){
-		call(testIndex);
+	if (consoleExists(name)){
+		alert("Close the message dialogue left open");
+		OCPNsoundAlarm();
+		onSeconds(waitForDialogClose, 4);
 		}
-	else wrapup();
+//	else more();
+	else onSeconds(closeTimeout, 2);	// wait around for it to finish closing
 	}
 
-function wrapup(){
+function more(){	// decide if more to run
+//print("In more() with testIndex ", testIndex, "\n", consoleDump(), "\n\n");
+	if (++testIndex < tests.length) callAll(testIndex);
+	else {
 		print("Run all done - ");
 		if (errorCount > 0) printRed(errorCount, " errors\n");
 		else printGreen("No errors\n");
 		message = "Run all done - "+ (errorCount> 0?(errorCount + " errors"):"No errors");
-		consoleClose(name);
 		control[control.length-1].value = message;
 		onDialogue(action, control);
+		}
 	}
+
+function waitForDialogClose(){	// waiting for user to close message dialogue
+	if (consoleExists(name)){
+		alert("\nStill waiting"); 
+		onSeconds(waitForDialogClose, 4);
+		}
+	else {
+		alert(false);
+		more();
+		}
+	}
+
+function closeTimeout(){
+	throw("Close of timed out console did not complete");
+	}
+
+function loadRunWait(){};
