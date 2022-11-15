@@ -43,9 +43,14 @@ public:
         // so we will do it this way
         wxTextValidator* validator;
         validator = (wxTextValidator*)m_newConsoleName->GetValidator();
+#ifdef APPLE
+		// this not yet available in wxWidgets as sud by Windows and Linux
         validator->AddCharIncludes("_");
+#endif        
         validator = (wxTextValidator*)m_changedName->GetValidator();
+#ifdef APPLE
         validator->AddCharIncludes("_");
+#endif
         
         this->resizeDialogue(0); // we open on first page
         }
