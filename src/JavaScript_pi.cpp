@@ -41,6 +41,8 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
     delete p;
 }
 
+#define FS ";"	// character to use as file separator in recents and favourites in .in file
+
 //#include "ODAPI.h"
 //extern ODAPI ODAPI
 
@@ -350,7 +352,7 @@ bool JavaScript_pi::LoadConfig(void)
             }
         fileNames = pConf->Read ( _T ( "Recents" ), _T("") );
         if (fileNames != wxEmptyString){	// we have some recent file names
-        	wxStringTokenizer tkz(fileNames, ":");
+        	wxStringTokenizer tkz(fileNames, FS);
         	while ( tkz.HasMoreTokens() ){
         		wxString name = tkz.GetNextToken();
         		recentFiles.Add(name);
@@ -358,14 +360,14 @@ bool JavaScript_pi::LoadConfig(void)
         	}
         fileNames = pConf->Read ( _T ( "Favourites" ), _T("") );
         if (fileNames != wxEmptyString){    // we have some favourite file names
-            wxStringTokenizer tkz(fileNames, ":");
+            wxStringTokenizer tkz(fileNames, FS);
             while ( tkz.HasMoreTokens() ){
                 wxString name = tkz.GetNextToken();
                 favouriteFiles.Add(name);
                 }
             }
         if (!configUptoDate){	// read config was from old place
-        	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// dlete the old one
+        	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// delete the old one
         	pConf->SetPath (configSection);	// the new grouping
         	pConf->Flush();	// make sure it gets into new location
         	}    
@@ -398,9 +400,9 @@ bool JavaScript_pi::SaveConfig(void)
         if (recentFiles.GetCount() > 0){
 			wxString recents;
 			for (int i = 0; i < recentFiles.GetCount(); i++){
-				recents += recentFiles.Item(i) + ":";        	
+				recents += recentFiles.Item(i) + ";";        	
 				}
-			recents = recents.BeforeLast(wxString(":").Last());	// drop last :
+			recents = recents.BeforeLast(wxString(";").Last());	// drop last :
 			pConf->Write (_T ("Recents"),  recents);
 			}
         
@@ -408,9 +410,9 @@ bool JavaScript_pi::SaveConfig(void)
         if (favouriteFiles.GetCount() > 0){
             wxString favourites;
             for (int i = 0; i < favouriteFiles.GetCount(); i++){
-                favourites += favouriteFiles.Item(i) + ":";
+                favourites += favouriteFiles.Item(i) + FS;
                 }
-            favourites = favourites.BeforeLast(wxString(":").Last());    // drop last :
+            favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
 

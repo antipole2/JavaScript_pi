@@ -28,7 +28,7 @@ function step1(){
 	}
 
 function step2(){
-	result = messageBox("Rightmost console has been renamed to '2'\Has width of minimized window has shrunk correctly?", "YesNo");
+	result = messageBox("Rightmost console has been renamed to '2'\nHas width of minimized window shrunk correctly?", "YesNo");
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
 	console = "2";
