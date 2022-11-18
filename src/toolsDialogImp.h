@@ -39,16 +39,15 @@ public:
     ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE )
         :ToolsClassBase(parent, id, title, pos, size, style)
         {
+        
         // adding extra _ to list of valid chards via wxFormBuilder does not work.  Bug in wxWidgets?
         // so we will do it this way
+        // this not yet available in wxWidgets as used by Windows and Linux so only for Apple for now
+#ifdef __APPLE__
         wxTextValidator* validator;
         validator = (wxTextValidator*)m_newConsoleName->GetValidator();
-#ifdef APPLE
-		// this not yet available in wxWidgets as sud by Windows and Linux
-        validator->AddCharIncludes("_");
-#endif        
+        validator->AddCharIncludes("_");   
         validator = (wxTextValidator*)m_changedName->GetValidator();
-#ifdef APPLE
         validator->AddCharIncludes("_");
 #endif
         
