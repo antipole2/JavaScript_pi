@@ -555,14 +555,10 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
     int highest {1000000};
     int rightMost {0};    // most right hand edge of a console
     int parkingBase;    // any console with position above this is regarded as parked
-    int cill {3};   // allow a cill of this amount above bottom of window top margin
-    int sep {10};   // separation between parked consoles
-    int firstX {70};    // first parking place indented this amount from lefthand edle of canvas
-    int pad {5};    // when a first console is parked, position this amount above the parking base
     
     pCanvas = GetOCPNCanvasWindow();
     canvasPosition = pCanvas->GetScreenPosition();
-    parkingBase = canvasPosition.y - MIN_CONSOLE_HEIGHT - cill;
+    parkingBase = canvasPosition.y - MIN_CONSOLE_HEIGHT - PARK_CILL;
 	
 	pConsole = findConsoleByCtx(ctx);
     thisPos = pConsole->GetScreenPosition();
@@ -578,13 +574,13 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
             if (position.y > parkingBase) continue; // this one not parked
             if (position.y < highest) highest = position.y;
             minSize = pC->GetMinSize();
-            int rhe = position.x + minSize.x + sep;
+            int rhe = position.x + minSize.x + PARK_SEP;
             if (rhe > rightMost) rightMost = rhe;   // move right of existing parked console
             thisPos.x = rightMost;
             }
         if (highest == 1000000) {
-            highest = parkingBase - pad; // no other windows parked - default to top of main window
-            thisPos.x = canvasPosition.x + firstX; // position in first parking place
+            highest = parkingBase; // no other windows parked - default to top of main window
+            thisPos.x = canvasPosition.x + PARK_FIRST_X; // position in first parking place
             }
         minSize = pConsole->GetMinSize();
         pConsole->SetSize(minSize);

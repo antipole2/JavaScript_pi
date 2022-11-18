@@ -8,6 +8,8 @@ shrinkYourself = "consoleName('2');scriptResult('');";
 growYourself = "consoleName('Maximum_Length');scriptResult('');";
 restoreName = "consoleName(\"" + consoleNames[consoleNames.length-1] + "\");scriptResult('');";
 var console;
+deleteConsoles();	// clear out any consoles left from previous runs
+onExit(deleteConsoles);
 
 for (i = 0; i < consoleNames.length; i++){
 	console = consoleNames[i];
@@ -44,13 +46,16 @@ function step3(){
 	console = "Maximum_Length";		
 	consoleLoad(console, restoreName);
 	consoleRun(console);
-	onSeconds(deleteConsoles, 1);
+	consoleNames.push("2");	// this one might be hanging around so add to ones to be deleted
+	onSeconds(waitforit, 1);
+	scriptResult("Parking completed");
 	}
+
+function waitforit(){};
 
 function deleteConsoles(){
 	for (i = 0; i < consoleNames.length; i++){
 		console = consoleNames[i];
 		if (consoleExists(console)) consoleClose(console);
 		}
-	scriptResult("Parking completed");
 	}

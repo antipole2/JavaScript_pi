@@ -29,6 +29,7 @@
 #include <vector>
 #include <bitset>
 #include "buildConfig.h"
+#include "consolePositioning.h"
 
 #define DUK_DUMP true
 #if DUK_DUMP
@@ -1033,10 +1034,10 @@ public:
     
     void setMinWidth(){ // set the minimum width for console
     	// if new width > old, grow
-    	// if was minimized and mew width < old, shrink
+    	// if was minimized and new width < old, shrink
     	wxSize oldSize = this->GetSize();
     	bool wasMinimized = (oldSize.y <= MIN_CONSOLE_HEIGHT+2);    // allow for rounding
-        int minWidth = 80 + mConsoleName.Length() * 8;
+        int minWidth = CONSOLE_STUB + mConsoleName.Length() * CONSOLE_CHAR_WIDTH;
         wxSize newMinSize = wxSize(minWidth, MIN_CONSOLE_HEIGHT);
         this->SetMinSize(newMinSize);
         if (wasMinimized) this->SetSize(newMinSize);
