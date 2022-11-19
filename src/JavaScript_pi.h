@@ -30,13 +30,6 @@ enum Options{
     MUST_NOT_EXIST
 };
 
-// Minimised console height is platform dependent
-#ifdef __WXMSW__
-#define MIN_CONSOLE_HEIGHT 16
-#else
-#define MIN_CONSOLE_HEIGHT 28
-#endif
-
 typedef  std::bitset<8> status_t;
 
 //----------------------------------------------------------------------------------------------------------
