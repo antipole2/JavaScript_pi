@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Oct 26 2018)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -51,7 +51,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_newConsoleName->SetMinSize( wxSize( 120,-1 ) );
 	m_newConsoleName->SetMaxSize( wxSize( 110,-1 ) );
 
-	m_newConsoleName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC|wxFILTER_INCLUDE_CHAR_LIST, &mNewNameInput ) );
+	m_newConsoleName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC, &mNewNameInput ) );
 
 	ConsolesChoiceSizer->Add( m_newConsoleName, 0, wxALL, 2 );
 
@@ -99,7 +99,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_changedName->SetMinSize( wxSize( 120,-1 ) );
 	m_changedName->SetMaxSize( wxSize( 110,-1 ) );
 
-	m_changedName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC|wxFILTER_INCLUDE_CHAR_LIST, &m_changedNameInput ) );
+	m_changedName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC, &m_changedNameInput ) );
 
 	ConsolesRenameSizer->Add( m_changedName, 0, wxALL, 2 );
 
