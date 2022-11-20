@@ -1036,9 +1036,9 @@ public:
     	// if new width > old, grow
     	// if was minimized and new width < old, shrink
     	wxSize oldSize = this->GetSize();
-    	bool wasMinimized = (oldSize.y <= MIN_CONSOLE_HEIGHT+2);    // allow for rounding
+    	bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+2);    // allow for rounding
         int minWidth = CONSOLE_STUB + mConsoleName.Length() * CONSOLE_CHAR_WIDTH;
-        wxSize newMinSize = wxSize(minWidth, MIN_CONSOLE_HEIGHT);
+        wxSize newMinSize = wxSize(minWidth, CONSOLE_MIN_HEIGHT);
         this->SetMinSize(newMinSize);
         if (wasMinimized) this->SetSize(newMinSize);
         else {

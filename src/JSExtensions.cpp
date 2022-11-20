@@ -558,7 +558,7 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
     
     pCanvas = GetOCPNCanvasWindow();
     canvasPosition = pCanvas->GetScreenPosition();
-    parkingBase = canvasPosition.y - MIN_CONSOLE_HEIGHT - PARK_CILL;
+    parkingBase = canvasPosition.y - CONSOLE_MIN_HEIGHT - PARK_CILL;
 	
 	pConsole = findConsoleByCtx(ctx);
     thisPos = pConsole->GetScreenPosition();
