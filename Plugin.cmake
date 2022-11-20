@@ -53,6 +53,7 @@ set(PKG_INFO_URL https://opencpn-manuals.github.io/plugins/javascript/0.1/index.
 
 SET(SRC
 	src/bitmaps.cpp
+	src/consolePositioning.h
     src/duk_config.h
     src/duktape.cpp
     src/duktape.h
