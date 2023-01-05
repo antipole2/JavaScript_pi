@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -15,7 +15,7 @@
 #define trace_h
 // 
 //USE:  TRACE(level, wxString); will display if level >= TRACE_LEVEL
-// output will go to log or, if in harness, to stdout
+// output will go to log or, if in harness, to stdout or to a window
 #define TRACE_LEVEL 0   // set to zero to omit all tracing code
 #ifdef IN_HARNESS
 #define TRACE_LEVEL 5   // trace level override for harness

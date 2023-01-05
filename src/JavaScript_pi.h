@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -24,13 +24,29 @@
 #include <bitset>
 #include "config.h"
 
-enum Options{
+enum FileOptions{
     DONT_CARE,
     MUST_EXIST,
     MUST_NOT_EXIST
 };
 
-typedef  std::bitset<8> status_t;
+// declare completion states
+// These must agree with statusesToString() in functions.cpp
+enum Completions {
+    HAD_ERROR,  // avoid 'ERROR' - conflicts with "ERROR" defined in "wingdi.h", a Windows file
+    TIMEOUT,
+    DONE,
+    INEXIT,
+    STOPPED,
+    MORETODO,
+    INMAIN,
+    TOCHAIN,
+    CLOSED,
+    CLOSING,    // needing to stop but unable to release ctx yet
+    Completions_count
+    };
+
+typedef  std::bitset<Completions_count> status_t;
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition

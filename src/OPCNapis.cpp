@@ -17,7 +17,6 @@
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
 #include <wx/listimpl.cpp>
-
 #include <stdarg.h>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
@@ -322,6 +321,7 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
 static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onMessageName within onExit function");
     if (nargs > 2) throwErrorByCtx(ctx, "OCPNonMessageName bad call");
     if (nargs == 0) { // empty call - cancel any waiting callback
         size_t messageCount = pConsole->mMessages.GetCount();
@@ -352,6 +352,7 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
 static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonNMEAsentence within onExit function");
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_NMEAmessageFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
@@ -373,6 +374,7 @@ static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonActiveLeg within onExit function");
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_activeLegFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
@@ -408,13 +410,14 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
         pConsole->mWaitingCached = false;   // force full isWaiting check
         return(result);
         }
-    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onContextMenu first argument must be function");
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonContextMenu within onExit function");
+    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "OCPNonContextMenu first argument must be function");
     menuCount = pConsole->mMenus.GetCount();
     if (menuCount >= MAX_MENUS){
-        pConsole->throw_error(ctx, "onContextMenu already have maximum menus outstanding");
+        pConsole->throw_error(ctx, "OCPNonContextMenu already have maximum menus outstanding");
         }
     if ((nargs < 2) || (nargs > 3)){
-        pConsole->throw_error(ctx, "onContextMenu requires two or three arguments");
+        pConsole->throw_error(ctx, "OCPNonContextMenu requires two or three arguments");
         }
     menuAction.functionName = extractFunctionName(ctx, 0);
     if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
@@ -422,7 +425,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     // check menuName not already in use
     for (int i = 0; i < menuCount; i++){
          if (pConsole->mMenus[i].menuName == menuName)
-             pConsole->throw_error(ctx, "onContextMenu menu name '" + menuName + "' already in use");
+             pConsole->throw_error(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
         }
     menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
     menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
@@ -566,6 +569,7 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
         if ((sentence[0] != '$') || (sentence[6] != ',')) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $.....,");
+//      Following length limit not implemented  as OCPN allows higher number and useful
 //      if (sentence.Length() > 77) throwErrorByCtx(ctx, wxString::Format("OCPNpushNMEA sentence > 77 chars - is %d",sentence.Length()));
         wxString Checksum = ComputeChecksum(sentence);
         sentence = sentence.Append("*");
@@ -760,7 +764,7 @@ static duk_ret_t addSingleWaypoint(duk_context *ctx) {
     p_waypoint->m_HyperlinkList->DeleteContents(true);
     p_waypoint->m_HyperlinkList->clear();
     return(1);  // returns result
-}
+    }
 
 static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     PlugIn_Waypoint_Ex *p_waypoint;
@@ -776,7 +780,7 @@ static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     p_waypoint->m_HyperlinkList->clear();
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);
-}
+    }
 
 static duk_ret_t deleteSingleWaypoint(duk_context *ctx) {  // given a GUID, deletes waypoint
     wxString GUID;
@@ -897,13 +901,7 @@ static duk_ret_t deleteRoute(duk_context *ctx) {  // given a GUID, deletes route
         }
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);
-}
-
-#define TRACKS
-#ifdef IN_HARNESS
-#undef TRACKS   // no support in the harness for tracks at this time, so don't compile
-#endif
-#ifdef TRACKS
+    }
 
 static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     wxArrayString guidArray;
@@ -978,7 +976,7 @@ static duk_ret_t addTrack(duk_context *ctx) { // add the track to OpenCPN
     // now track safely stored in OpenCPN, clean up - lists data not otherwise released
     clearWaypointsOutofTrack(p_track);
     return(1);
-}
+    }
 
 static duk_ret_t updateTrack(duk_context *ctx) { // update the track in OpenCPN
     PlugIn_Track *p_track;
@@ -989,7 +987,7 @@ static duk_ret_t updateTrack(duk_context *ctx) { // update the track in OpenCPN
     duk_push_boolean(ctx, UpdatePlugInTrack(p_track));  // result will be returned
     clearWaypointsOutofTrack(p_track);
     return(1);
-}
+    }
 
 static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     wxString GUID;
@@ -1001,8 +999,7 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
         }
     duk_push_boolean(ctx, outcome);
     return(1);  // returns boolean result
-}
-#endif
+    }
 
 static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
     duk_double_t lat, lon, scale;
@@ -1021,15 +1018,26 @@ static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
 
 static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configuration object
     // ****  Indenting here shows stack depth - do not re-indent this section ****
+#include <wx/versioninfo.h>
     duk_push_object(ctx);
         duk_push_int(ctx, PLUGIN_VERSION_MAJOR);
-            duk_put_prop_literal(ctx, -2, "versionMajor");
+            duk_put_prop_literal(ctx, -2, "PluginVersionMajor");
         duk_push_int(ctx, PLUGIN_VERSION_MINOR);
-            duk_put_prop_literal(ctx, -2, "versionMinor");
-        duk_push_string(ctx, PLUGIN_VERSION_COMMENT);
-            duk_put_prop_literal(ctx, -2, "comment");
+            duk_put_prop_literal(ctx, -2, "PluginVersionMinor");
         duk_push_int(ctx, PLUGIN_VERSION_PATCH);
             duk_put_prop_literal(ctx, -2, "patch");
+        duk_push_string(ctx, PLUGIN_VERSION_COMMENT);
+            duk_put_prop_literal(ctx, -2, "comment");
+        duk_push_int(ctx, API_VERSION_MAJOR);
+        	duk_put_prop_literal(ctx, -2, "ApiMajor");
+		duk_push_int(ctx, API_VERSION_MINOR);
+        	duk_put_prop_literal(ctx, -2, "ApiMinor");
+        wxVersionInfo info = wxGetLibraryVersionInfo();
+        duk_push_string(ctx, info.GetVersionString());
+            duk_put_prop_literal(ctx, -2, "wxWidgets");
+        duk_push_int(ctx, DUK_VERSION);
+        	duk_put_prop_literal(ctx, -2, "DuktapeVersion");
+
 #ifdef IN_HARNESS
         duk_push_boolean(ctx, true);
 #else
@@ -1351,8 +1359,6 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNcentreCanvas");
     duk_push_c_function(ctx, OCPNcentreCanvas, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-    
-#ifdef TRACKS
 
     duk_push_string(ctx, "OCPNgetTrackGUIDs");
     duk_push_c_function(ctx, getTrackGUIDs, 0 /* 0 args */);
@@ -1373,7 +1379,6 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNdeleteTrack");
     duk_push_c_function(ctx, deleteTrack, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-#endif
     
     duk_push_string(ctx, "OCPNgetCursorPosition");
     duk_push_c_function(ctx, getCursorPosition, 0);
@@ -1386,7 +1391,6 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNgetOCPNconfig");
     duk_push_c_function(ctx, getOCPNconfig, 0);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
     
     duk_push_string(ctx, "OCPNgetAISTargets");
     duk_push_c_function(ctx, getAISTargetsArray, 0);

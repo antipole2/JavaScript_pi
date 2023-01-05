@@ -1453,9 +1453,10 @@ DUK_EXTERNAL_DECL const void * const duk_rom_compressed_pointers[];
  *  END PUBLIC API
  */
 
-#endif  /* DUKTAPE_H_INCLUDED */
-
 /* added by Tony Voss for time-out support */
+#define DUK_USE_INTERRUPT_COUNTER                    // Changed to define by Tony 28/6/2020
 #define DUK_USE_EXEC_TIMEOUT_CHECK JSduk_timeout_check // our timeout check function
 duk_bool_t JSduk_timeout_check(void *udata);
+
+#endif  /* DUKTAPE_H_INCLUDED */
 

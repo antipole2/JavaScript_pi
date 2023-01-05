@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -42,9 +42,6 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 }
 
 #define FS ";"	// character to use as file separator in recents and favourites in .in file
-
-//#include "ODAPI.h"
-//extern ODAPI ODAPI
 
 //----------------------------------------------------------------------------------------
 //
@@ -161,18 +158,9 @@ bool JavaScript_pi::DeInit(void) {
     while (mpFirstConsole) {    // close all remaining consoles
         TRACE(3,"JavaScript plugin DeInit closing console " + mpFirstConsole->mConsoleName);
         pConsole = mpFirstConsole;
-        if (pConsole->m_exitFunction != wxEmptyString){
-            // there is an onExit function to run
-            duk_int_t outcome;
-            TRACE(4, "Deinit running onExit function for console " + pConsole->mConsoleName);
-            outcome = duk_get_global_string(pConsole->mpCtx, pConsole->m_exitFunction.c_str()); // make sure function exists
-            if (outcome) duk_pcall(pConsole->mpCtx, 0); // only call it if it exists and no arguments
-            // don't bother checking for errors - we will not be around to do anything with them
-            }
         // purge stuff out of this one - we do not use wrapUp() because that might do all sorts of other things
         if (pConsole->mpCtx != nullptr) duk_destroy_heap(pConsole->mpCtx);
         pConsole->mMessages.Clear();
-//        while (pConsole->mTimes.GetCount() > 0) pConsole->mTimes.RemoveAt(0);  Not needed?
         pConsole->mTimes.Clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
@@ -187,6 +175,11 @@ bool JavaScript_pi::DeInit(void) {
     while (mpBin) {    // also any in the bin
         TRACE(3,"JavaScript plugin DeInit deleting console " + mpBin->mConsoleName + " from bin");
         pConsole = mpBin;
+        if (pConsole->mpCtx != nullptr) { // deferred heap distruction
+            duk_destroy_heap(pConsole->mpCtx);
+            pConsole->mpCtx = nullptr;  // don't need this but...
+            TRACE(3,"JavaScript plugin deinit destroying console" + pConsole->mConsoleName + " ctx while emtying bin");
+            }
         mpBin = pConsole->mpNextConsole; // take first off chain
         delete pConsole;
         pConsole = NULL;
@@ -195,15 +188,7 @@ bool JavaScript_pi::DeInit(void) {
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
     RequestRefresh(m_parent_window); // refresh main window
     wxLogMessage("JavaScript completed deinit");
-    TRACE(1,"JavaScript_pi->DeInit() returning");
-
-/*    delete mpFirstConsole;
-    mpFirstConsole = nullptr;
-	
-    delete mpBin;
-	mpBin = nullptr;
- */
-    
+    TRACE(1,"JavaScript_pi->DeInit() returning");    
     return true;
     }
 
@@ -445,7 +430,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     wxString thisFunction, checksum, correctChecksum;
     size_t starPos;
     bool OK {false};
-    status_t outcome;;
+    Completions outcome;
     duk_context *ctx;
     wxUniChar star = '*';
     Console *m_pConsole;
@@ -460,8 +445,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             }
         };
     bool haveDoneChecksum = false;
-    // work through all consoles
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
         if (!haveDoneChecksum){ // only do this once, avoiding repeat for each console
@@ -491,12 +475,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
         duk_push_boolean(ctx, OK);
         duk_put_prop_literal(ctx, -2, "OK");
         outcome = m_pConsole->executeFunction(thisFunction);
-        if (outcome == HAD_ERROR) {
-            m_pConsole->wrapUp(HAD_ERROR);
-            }
-        else if ((outcome == DONE)||(outcome == STOPPED)) {
-            m_pConsole->wrapUp(DONE);
-            }
+        m_pConsole->wrapUp(outcome);
         }   // end for this console
     }
 
@@ -515,13 +494,11 @@ void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
     wxString thisFunction;
     size_t starPos;
     bool OK {false};
-    status_t outcome;;
     duk_context *ctx;
     Console *m_pConsole;
     void JSduk_start_exec_timeout(Console);
     void  JSduk_clear_exec_timeout(Console);
-    // work through all consoles
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
         thisFunction = m_pConsole->m_activeLegFunction;  // function to be called - if any
@@ -539,20 +516,15 @@ void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
         duk_put_prop_literal(ctx, -2, "xte");
         duk_push_boolean(ctx, leg_info.arrival);
         duk_put_prop_literal(ctx, -2, "arrived");
-        outcome = m_pConsole->executeFunction(thisFunction);
-        if (outcome == HAD_ERROR) {
-            m_pConsole->wrapUp(HAD_ERROR);
-            }
-        else if ((outcome == DONE)||(outcome == STOPPED)) {
-            m_pConsole->wrapUp(DONE);
-            }
+        Completions outcome = m_pConsole->executeFunction(thisFunction);
+        if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
         }   // end for this console
 }
 
 void JavaScript_pi::OnTimer(wxTimerEvent& ){
+    // This is the regular timer tick through which all timed functions are implemented
     Console* pConsole;
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){	// for each console
         // look out to see if we need to automatically run this console
         if (pConsole->mWaitingToRun){
             TRACE(3, "About to auto-run console " + pConsole->mConsoleName);
@@ -567,19 +539,18 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
         if (!pConsole->mTimerActionBusy){  // only look at timers if not already working on a timer - to stop recursion
             if (!pConsole->mTimes.IsEmpty()){
                 int count;
-                TRACE(3, "Looking at timers for console " + pConsole->mConsoleName);
+                TRACE(8, "Looking at timers for console " + pConsole->mConsoleName);
                 pConsole->mTimerActionBusy = true;  // There is at least one timer running - stop being called again until we are done
                 count = (int)pConsole->mTimes.GetCount();
                  for (int i = 0; i < count; i++){
-                    if (pConsole->mTimes[i].timeToCall <= wxDateTime::Now()){
-                        // this one due
+                    if (pConsole->mTimes[i].timeToCall <= wxDateTime::Now()){  // this one due
                         wxString argument;
                         jsFunctionNameString_t thisFunction;
                         duk_context *ctx = pConsole->mpCtx;
                         thisFunction = pConsole->mTimes[i].functionName;
                         argument = pConsole->mTimes[i].argument;
-                        pConsole->mTimes.RemoveAt(i);
-                        count--; i--;
+                        pConsole->mTimes.RemoveAt(i);	// remove timer to stop it firing again
+                        count--; i--;	// adjust because have removed item
                         if (thisFunction != wxEmptyString){  //only if have valid function
                             Completions  outcome;
                             if (pConsole->mJSrunning){
@@ -589,7 +560,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
 
                             duk_push_string(ctx, argument.c_str());
                             outcome = pConsole->executeFunction(thisFunction);
-                            if (outcome == MORE) continue;
+                            if (outcome == MORETODO) continue;
                             else {
                                 i = 99999;  // this will stop us looking for further timers on this console
                                 pConsole->wrapUp(outcome);
@@ -601,14 +572,28 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
             }
         pConsole->mTimerActionBusy = false;
         }
-    while (mpBin) {    // empty the bin if anything in it
-        Console* pConsole;
-        pConsole = mpBin;
-        if (pConsole->mpMessageDialog != nullptr) continue;	// don't delete a binned console with a message box still open.
-        TRACE(3,"JavaScript plugin deleting console " + mpBin->mConsoleName + " from bin");
-        mpBin = pConsole->mpNextConsole; // take first off chain
-        pConsole->Destroy();
+
+    Console* pLater = nullptr;  // the linked list of consoles whose deletion is to be deferred
+    while (mpBin) {    // empty the bin if anything in it that can go
+        Console* pThisConsole = mpBin;
+        mpBin = pThisConsole->mpNextConsole; // take first off chain
+        if (pThisConsole->isBusy()){  // this console's messageBox not yet dismissed
+            TRACE(8,"JavaScript plugin console " + pThisConsole->mConsoleName + " deletion from bin deferred");
+            // push it onto the do later chain
+            pThisConsole->mpNextConsole = (pLater == nullptr) ? nullptr : pLater;
+            pLater = pThisConsole;
+            }
+        else {
+            if (pThisConsole->mpCtx != nullptr) { // deferred heap distruction
+                duk_destroy_heap(pThisConsole->mpCtx);
+                pThisConsole->mpCtx = nullptr;  // don't need this but...
+                TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emtying bin");
+                }
+            TRACE(3,"JavaScript plugin deleting console " + pThisConsole->mConsoleName + " from bin");
+            pThisConsole->Destroy();
+            }
         }
+    mpBin = pLater; // try later
     }
 
 void JavaScript_pi::OnContextMenuItemCallback(int menuID){
@@ -631,7 +616,6 @@ void JavaScript_pi::OnContextMenuItemCallback(int menuID){
                     pConsole->mMenus.RemoveAt(i);
                     count--; i--;
                     if (thisFunction != wxEmptyString){  //only if have valid function
-                        Completions  outcome;
                         if (pConsole->mJSrunning){
                             pConsole->message(STYLE_RED, "Menu callback while JS active - ignored\n");
                             return;
@@ -644,15 +628,11 @@ void JavaScript_pi::OnContextMenuItemCallback(int menuID){
 						duk_put_prop_literal(ctx, -2, "longitude");
 						duk_push_string(ctx, argument.c_str());
 						duk_put_prop_literal(ctx, -2, "info");                       	
-                        outcome = pConsole->executeFunction(thisFunction);
-                        if (outcome == MORE) continue;
-                        else {
-                            i = 99999;  // this will stop us looking for further action on this console
-                            pConsole->wrapUp(outcome);
-                            }
+                        Completions outcome = pConsole->executeFunction(thisFunction);
+                        pConsole->wrapUp(outcome);
+                        return;
                         }
                     }
-
                 }
             }
         }
@@ -661,19 +641,17 @@ void JavaScript_pi::OnContextMenuItemCallback(int menuID){
 void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_body) {
     // message received but we use this regular event to also do many things
     int index;
-    int outcome;
+    Completions outcome;
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
     wxString statusesToString(status_t mStatus);
     TRACE(5,"Entered SetPlugin Message message_id: " + message_id + " message:" + message_body);
     if (message_id == "OpenCPN Config"){
-//    if (message_id.Cmp("OpenCPN Config")){
         // capture this while we can
         TRACE(4, "Captured openCPNConfig");
         openCPNConfig = message_body;
         };
-    // work through all consoles
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         jsFunctionNameString_t thisFunction;
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         duk_context *ctx = m_pConsole->mpCtx;
@@ -696,24 +674,15 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
             TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));
-            if (outcome == HAD_ERROR){
-                m_pConsole->wrapUp(HAD_ERROR);
-                }
-            else if ((outcome == DONE)||(outcome == STOPPED)) {
-                m_pConsole->wrapUp(DONE);
-                }
+            m_pConsole->wrapUp(outcome);
             }
         }
     }
 
 #include "toolsDialogImp.h"
-//void JavaScript_pi::ShowToolsDialog(wxWindow *m_parent_window ){
 void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
     if (pTools == nullptr) {  // do not yet have a preferences dialogue
         pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
-        // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
-        // tools distructor, so will store its address in the preference for later access.
-//        pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
         }
     pTools->setConsoleChoices();
     pTools->Show();

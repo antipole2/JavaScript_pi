@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -152,6 +152,8 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER));
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
+    dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
+    dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
     wxString svg {"Not using svg"};
 #ifdef JAVASCRIPT_USE_SVG
     svg = "Using svg";
@@ -169,6 +171,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
         dump += ("\n————————————Console " + pConsole->mConsoleName + "————————————\n");
         dump += (pConsole->consoleDump());
         }
+    dump += "\n----------------------------------------------------\n";
     dump += "\npJavaScript_pi->mpBin\t\t" + ptrToString(pJavaScript_pi->mpBin) + "\n";
     for (pConsole = pJavaScript_pi->mpBin; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
         dump += ("\n————————————Console in bin " + pConsole->mConsoleName + "————————————\n");
@@ -178,7 +181,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dumpTextCtrl->AppendText(dump);
     dumpWindow->SetSize(600, 900);
     dumpWindow->Show();
- }
+    }
 
 wxString JS_dumpString(wxString identifier, wxString string){
     // dumps string to output window
@@ -192,7 +195,8 @@ wxString JS_dumpString(wxString identifier, wxString string){
         if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl += "\n";
         }
     return dumpTextCtrl;
-}
+    }
+
 void ToolsClass::onClean( wxCommandEvent& event ){
     wxWindow *stringWindow;
     wxTextCtrl *dumpTextCtrl;
@@ -217,7 +221,6 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     dumpTextCtrl->AppendText(JS_dumpString("\nCleaned", text));
     stringWindow->SetSize(500, 500);
     stringWindow->Show();
-
     }
 
 void displayTools(wxWindow* parent){ // this used for testing in harness only
@@ -225,5 +228,4 @@ void displayTools(wxWindow* parent){ // this used for testing in harness only
 
     pToolsDialog->Fit();
     pToolsDialog->Show();
-    
-}
+    }

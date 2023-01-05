@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -44,23 +44,12 @@ typedef wxString jsFunctionNameString_t;
 typedef wxString messageNameString_t;
 
 class MessagePair  // holds OPCN messages seen, together with JS callback function name, if to be called back
-{
+    {
 public:
     messageNameString_t messageName;
     jsFunctionNameString_t functionName;
-};
+    };
 WX_DECLARE_OBJARRAY(MessagePair, MessagesArray);
-
-#if 0   // not used?
-#define NUMBER_OF_MESSAGE_TYPES 1    no longer needed?
-
-enum CallBackTypes
-{
-    // The call back types supported in the API
-    NMEA_SENTENCES,
-    PLUGIN_MESSAGING
-};
-#endif
 
 // declare wxStyledText styles
 enum {
@@ -73,56 +62,45 @@ enum {
     STYLE_UNDERLINE
     };
 
-// declare completion states
-enum Completions {
-    HAD_ERROR,  // avoid 'ERROR' - conflicts with "ERROR" defined in "wingdi.h", a Windows file
-    DONE,
-    STOPPED,
-    MORE,
-    TOCHAIN,
-    CLOSE,
-    SHUTTING    // needing to stop but unable to release ctx yet
-    };
-
 #define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
 
 // timers
 #include "wx/datetime.h"
 class TimeActions  // holds times at which function is to be called
-{
+    {
 public:
     wxDateTime timeToCall;
     jsFunctionNameString_t functionName;
     wxString argument;  // optional argument to pass to function
-};
+    };
 #define MAX_TIMERS 10   // safety limit of timers
 WX_DECLARE_OBJARRAY(TimeActions, TimesArray);
 
 // menus
 //#include "wx/datetime.h"
 class MenuActions
-{
+    {
 public:
     int menuID;
     wxMenuItem* pmenuItem;
     wxString menuName;
     jsFunctionNameString_t functionName;
     wxString argument;  // optional argument to pass to function
-};
+    };
 #define MAX_MENUS 10   // safety limit of number of menus
 WX_DECLARE_OBJARRAY(MenuActions, MenusArray);
 
 #ifdef SOCKETS
 #include "wx/socket.h"
 class SocketRecord
-{
+    {
 public:
     int socketID;
     int type;	// 0 not in use; 1 server; 2 client
     wxSocketBase * pSocket;
     jsFunctionNameString_t functionName;
     wxString argument;  // optional argument to pass to function
-};
+}   ;
 #define MAX_SOCKETS 10   // safety limit of number of sockets
 WX_DECLARE_OBJARRAY(SocketRecord, SocketRecordsArray);
 #endif
@@ -131,22 +109,22 @@ WX_DECLARE_OBJARRAY(SocketRecord, SocketRecordsArray);
 #include "wx/sckipc.h"
 #endif	// IPC
 
-class ConsoleCallbackAwaited
-{
+class ConsoleReplyAwaited
+    {
 public:
-    Console*    pWaitedfrom;   // The console the callback is awaited from
+    Console*    pWaitedfrom;   // The console the console reply is awaited from
     wxString    consoleName;    // name of console
-    wxString    functionToCall; // the function to call when callback arrives
-};
+    wxString    functionToCall; // the function to call when console reply arrives
+    };
 
-WX_DECLARE_OBJARRAY(ConsoleCallbackAwaited, ConsoleCallbackArray);
+WX_DECLARE_OBJARRAY(ConsoleReplyAwaited, ConsoleRepliesArray);
 
-class ConsoleCallbackResult{
+class ConsoleReplyResult{
 public:
     wxString        result;
     Completions     resultType;
     wxString        functionName;   // function to be called
-};
+    };
 
 // dialogues storage
 class dialogElement{
@@ -164,21 +142,21 @@ public:
     };
 
 class DialogAction // hold details of open dialogue
-{
+    {
 public:
     jsFunctionNameString_t functionName;    // function to be called when dialogue acted on
     wxDialog    *pdialog;    // points to open dialog else nullptr
     wxPoint     position = wxPoint(wxDefaultPosition);
     std::vector<dialogElement> dialogElementsArray;// will be an array of dialogue elements
-};
+    };
 
 class AlertDetails // holds details of open dialogue
-{
+    {
 public:
     wxDialog    *palert;    // points to open alert else nullptr
     wxPoint     position = wxPoint(wxDefaultPosition);
     wxString    alertText;  // the currently displayed text
-};
+    };
 
 class Brief   // holds details of briefs and call-backs for this console
     {
@@ -186,13 +164,12 @@ public:
     bool        fresh; // this brief just posted - keep for collection
     bool        hasBrief;  // there is a brief in theBrief
     wxString    theBrief;
-    bool        callback;   // true if callback to be made
+    bool        reply;   // true if console reply to be made
     wxString    briefingConsoleName;
     wxString    function;   // function to be called back
     };
 
-class Console : public m_Console
-{
+class Console : public m_Console {
 public:
     Console     *mpNextConsole {nullptr}; // -> next console in chained list of consoles
     wxString    mConsoleName;
@@ -201,7 +178,7 @@ public:
     bool        mWaiting {false};       // true if waiting for something
     bool        mRunningMain {false}; // true while main is running
     bool        mJSrunning {false}; // true while any JS code is running
-    bool        mChainedScriptToRun {false};   // true if script to be run because it was chained
+    bool        mscriptToBeRun {false};   // true if script to be run because it was chained
     status_t    mStatus;     // the status of this process
     
 
@@ -215,17 +192,16 @@ public:
 #endif
     DialogAction    mDialog;      // Dialogue call-back table
     AlertDetails    mAlert;        // details of alert dialog
-    wxMessageDialog* mpMessageDialog;	// the wxWidgets message dialogue if there is one
+    wxDialog* 		mpMessageDialog;	// the wxWidgets message dialogue if there is one
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
-    int         mConsoleCallbacksAwaited {0};   // number of console callbacks awaited
+    int         mConsoleRepliesAwaited {0};   // number of console replies awaited
 
     // duktape timeout handling
     wxLongLong m_pcall_endtime;         // time we must end execution (msecs since 1970)
     long       m_time_to_allocate;      // the time we allocate (msec)
     long       m_timeout_check_counter; // counter of number of timeout checks
-    bool       m_backingOut;            // true while backing out following timeout
     
     // result handling - can be made explicit by scriptResult or stopScript
     bool        m_explicitResult;    // true if using explicit result
@@ -281,7 +257,7 @@ public:
             pConsole->mpNextConsole = this; // add us
             }
         mConsoleName = consoleName;
-        mpCtx = nullptr;
+        consoleInit();        
         Move(wxPoint(checkPointOnScreen(consolePosition)));
         mDialog.position = checkPointOnScreen(dialogPosition);
         mDialog.pdialog = nullptr;
@@ -289,11 +265,9 @@ public:
         mAlert.palert = nullptr;
         m_fileStringBox->SetValue(fileString);
         auto_run->SetValue(autoRun);
-        mWaitingToRun = false;
         mBrief.hasBrief = false;
         mBrief.theBrief = wxEmptyString;
-        mBrief.callback = false;
-
+        mBrief.reply = false;
         mBrief.briefingConsoleName = wxEmptyString;
         // output pane set up
         m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
@@ -331,13 +305,13 @@ public:
         else {
         	wxString patchString = wxEmptyString;
         	if (PLUGIN_VERSION_PATCH > 0) patchString = wxString(_(".")) << PLUGIN_VERSION_PATCH;
-        	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR <<  patchString  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << _("\\n\");\n\"All OK\";");
+        	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR\
+        			<<  patchString  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
         m_Output->AppendText(welcome);
         this->setMinWidth();
         this->SetSize(consoleSize);
-//        Fit(); // fit now to keep space for Autorun button, even if initially hidden
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         Hide();   // we hide console now but this may be changed later
         }
@@ -346,20 +320,14 @@ public:
         extern JavaScript_pi *pJavaScript_pi;
         Console *pConsole, *pPrevConsole;
         TRACE(3,"Unhooking console " + this->mConsoleName);
-        
-        mStatus = 0; // clear out all other reasons
-        mMessages.Clear();    // also delete the messages array
-        mConsoleCallbacksAwaited = 0;
-        wrapUp(CLOSE);
+
         // unhook ourself from the chained list of consoles
         if (!pJavaScript_pi->mpFirstConsole)
             message(STYLE_RED, "Logic error ClearAndUnhook called with no first console");   // should never be
-        if (this == pJavaScript_pi->mpFirstConsole){
-            // we are the first on the chain
+        if (this == pJavaScript_pi->mpFirstConsole){    // we are the first on the chain
             pJavaScript_pi->mpFirstConsole = this->mpNextConsole;   // unhook ourself
             }
-        else {
-            // we will start at the second on the chain
+        else {  // we will start at the second on the chain
             pPrevConsole = pJavaScript_pi->mpFirstConsole;
             for (pConsole = pPrevConsole->mpNextConsole; pConsole != nullptr;
                         pPrevConsole = pConsole, pConsole = pConsole->mpNextConsole){
@@ -376,106 +344,72 @@ public:
     }
     
     void clearBrief(){  // initialise brief by clearing it down
-        mBrief.hasBrief = mBrief.fresh = mBrief.callback = false;
-        mConsoleCallbacksAwaited = 0;
+        mBrief.hasBrief = mBrief.fresh = mBrief.reply = false;
+        mConsoleRepliesAwaited = 0;
         }
     
+ 
+ void consoleInit(){	// Initialises console, clearing out settings
+	mpCtx = nullptr;
+	mRunningMain = false;
+	mStatus = 0;
+	mWaitingCached = false;
+	m_explicitResult = false;
+	m_result = wxEmptyString;
+	m_hadError = false;
+	m_time_to_allocate = 1000;   //default time allocation (msecs)
+	mTimerActionBusy = false;
+	mDialog.pdialog = nullptr;
+	mDialog.functionName = wxEmptyString;
+	mAlert.palert = nullptr;
+	mAlert.alertText = wxEmptyString;
+	mpMessageDialog = nullptr;
+	mConsoleRepliesAwaited = 0;
+	m_exitFunction = wxEmptyString;
+	#ifdef SOCKETS
+		clearSockets();
+	#endif
+	mscriptToBeRun = false;
+    run_button->SetLabel("Run");
+	if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
+		mAlert.position.y = 150;
+		}
+	return;
+	}
+ 
   Completions run(wxString script) { // compile and run the script
-        Completions outcome;       // result of JS run
-        bool more;    // true if more work by call-backs to functions
-        extern bool runLable, stopLabel;
-        wxString result;
-        void fatal_error_handler(void *udata, const char *msg);
-        void duk_extensions_init(duk_context *ctx);
-        void ocpn_apis_init(duk_context *ctx);
-        void ConsoleHandle_init(duk_context *ctx);
-        wxString getStringFromDuk(duk_context *ctx);
-        
-        TRACE(3, this->mConsoleName + "->run() entered");
-        if (script == wxEmptyString) return HAD_ERROR;  // ignore
-        
-        // initialise
-        mStatus = 0;
-        mWaitingCached = false;
-        m_explicitResult = false;
-        m_result = wxEmptyString;
-        m_hadError = false;
-        mRunningMain = true;
-        m_time_to_allocate = 1000;   //default time allocation (msecs)
-        mTimerActionBusy = false;
-        m_backingOut = false;
-        mDialog.pdialog = nullptr;
-        mDialog.functionName = wxEmptyString;
-        mAlert.palert = nullptr;
-        mAlert.alertText = wxEmptyString;
-        mpMessageDialog = nullptr;
-        mConsoleCallbacksAwaited = 0;
-        m_exitFunction = wxEmptyString;
-        mChainedScriptToRun = false;
-        if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
-            mAlert.position.y = 150;
-            }
-        // ready to go
-        mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
-        if (!mpCtx) {
-        	message(STYLE_RED, _("Plugin logic error: Duktape failed to create heap"));
-            return HAD_ERROR;
-            }
-        duk_extensions_init(mpCtx);  // register our own extensions
-        ocpn_apis_init(mpCtx);       // register our API extensions
-        run_button->SetLabel(_("Stop"));
-        more = false;      // start with no call-backs - will be set true in 'on' callback APIs
-        duk_push_string(mpCtx, script.mb_str());   // load the script
-        startTimeout();
-        duk_int_t dukOutcome = duk_peval(mpCtx);    // run code **** this is where it all happens ****
-        clearTimeout();
-        mRunningMain = false;
-       // if certain flags set, it will have thown an error
-       // we check for this before other types of error
-      // For now we will mark not busy in case the following are true
-        mWaiting = false;
-        mWaitingCached = true;
-      mpMessageDialog = nullptr;    // Since here, any modla dialog must have ended, one way or another
-       if (mStatus.test(STOPPED)) return STOPPED;
-       if (mStatus.test(TOCHAIN)) return TOCHAIN;
-       if (dukOutcome != DUK_EXEC_SUCCESS){
-            wxString formErrorMessage(duk_context *ctx);
-            m_result = formErrorMessage(mpCtx);
-            duk_pop(mpCtx);
-            return HAD_ERROR;
-            }
-       mWaitingCached = false;   // now we are past those cases, get a re-check
-        result = getStringFromDuk(mpCtx);
-        if (!m_explicitResult) m_result = result; // for when not explicit result
-        duk_pop(mpCtx);  // pop result
-        outcome = DONE; // starting assumption
-        
-        if (isWaiting()){ // if script set up call-backs with nominated functions, check they exist
-            outcome = MORE;
-            TRACE(4, mConsoleName + "->run()  completed with something to wait for");
-            duk_push_global_object(mpCtx);  // get our compiled script
-            if (
-                functionMissing(m_NMEAmessageFunction) ||
-                functionMissing(mDialog.functionName) ||
-                functionMissing(m_activeLegFunction) )
-                outcome = HAD_ERROR;;
-            if (!mTimes.IsEmpty()){
-                // has set up one or more timers - check them out
-                int count = (int)mTimes.GetCount();
-                for (int i = 0; i < count; i++)
-                    if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
-                }
-            if (!mMenus.IsEmpty()){
-                // has set up one or more context menus - check them out
-                int count = (int)mMenus.GetCount();
-                for (int i = 0; i < count; i++)
-                    if (functionMissing(mMenus[i].functionName)) outcome = HAD_ERROR;
-                }
-            duk_pop(mpCtx);   // the global object
-            }
-       TRACE(4, wxString::Format("%s->run() completed with outcome %d",mConsoleName, outcome ));
-        return outcome;
-        }
+	   Completions outcome;       // result of JS run
+	   bool more;    // true if more work by call-backs to functions
+	   extern bool runLable, stopLabel;
+	   wxString result;
+	   void fatal_error_handler(void *udata, const char *msg);
+	   void duk_extensions_init(duk_context *ctx);
+	   void ocpn_apis_init(duk_context *ctx);
+	   void ConsoleHandle_init(duk_context *ctx);
+   
+	   TRACE(3, this->mConsoleName + "->run() entered");
+	   if (script == wxEmptyString) return HAD_ERROR;  // ignore
+	   consoleInit();
+	   mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
+	   if (!mpCtx) {
+		message(STYLE_RED, _("Plugin logic error: Duktape failed to create heap"));
+		  return HAD_ERROR;
+		  }
+	   duk_extensions_init(mpCtx);  // register our own extensions
+	   ocpn_apis_init(mpCtx);       // register our API extensions
+	   run_button->SetLabel(_("Stop"));
+	   more = false;      // start with no call-backs - will be set true in 'on' callback APIs
+	   mRunningMain = true;
+	   duk_push_string(mpCtx, script.mb_str());   // load the script
+	   startTimeout();
+	   duk_int_t dukOutcome = duk_peval(mpCtx);    // run code **** this is where it all happens ****
+	   clearTimeout();
+	   mRunningMain = false;
+	   
+	   outcome = afterwards(dukOutcome);
+      TRACE(4, wxString::Format("%s->run() completed with outcome %d",mConsoleName, outcome ));
+	   return outcome;
+	   }
     
     void doRunCommand(Brief brief){
         // this is implemented as a method so we can lazy call it with CallAfter
@@ -483,8 +417,7 @@ public:
             Completions outcome;
             mBrief = brief;
             outcome = run(m_Script->GetText());
-            if (isBusy()) return;   // callbacks etc to do
-            wrapUp(outcome);
+       		if (!isBusy()) wrapUp(outcome);
             }
         else { // Stop button clicked - we have a script running - kill it off
             TRACE(4, mConsoleName + " script stopped");
@@ -498,18 +431,11 @@ public:
     Completions executeFunction(wxString function){
         // execute function wih single argument already on duktape stack
         // returns result with nothing on stack
-        duk_int_t outcome;
+        duk_int_t duk_outcome;
         duk_context *ctx = mpCtx;
-        
-/*
-        if (mRunningMain) {
-            message(STYLE_RED, _("executeFunction called while main running"));
-            return(HAD_ERROR);
-            }
-*/
-        
-        outcome = duk_get_global_string(ctx, function.c_str());
-        if (!outcome){ // failed to find the function
+       
+        duk_outcome = duk_get_global_string(ctx, function.c_str());
+        if (!duk_outcome){ // failed to find the function
             TRACE(14, "executeFunction failed to find function");
             m_result = _("Logic error: ") + mConsoleName + _("->executeFunction - no function ") + function;
             duk_pop(ctx);
@@ -519,36 +445,18 @@ public:
         Console *findConsoleByCtx(duk_context *ctx); // ******
         TRACE(8, "Before call " + findConsoleByCtx(ctx)->dukDump());
         startTimeout();
-        outcome = duk_pcall(ctx, 1);   // single argument
+        duk_outcome = duk_pcall(ctx, 1);   // single argument
         clearTimeout();
-        TRACE(8, "After call " + findConsoleByCtx(ctx)->dukDump() + _("Result is ") + ((outcome == DUK_EXEC_SUCCESS)?"success":"error"));
-        if (mStatus.test(STOPPED)){
-            duk_pop(ctx); // result
-            mStatus.reset(MORE);
-            return STOPPED;
-            }
-        if (mStatus.test(TOCHAIN)){
-            duk_pop(ctx); // result
-            mStatus.reset(MORE);
-            return TOCHAIN;
-            }
-        if (outcome != DUK_EXEC_SUCCESS){
-             wxString formErrorMessage(duk_context *ctx);
-             m_result = formErrorMessage(mpCtx);
-             duk_pop(mpCtx);
-             return HAD_ERROR;
-            }
-        duk_pop(ctx);  // result
-        mWaitingCached = false; // function may have changed something
-        return isWaiting()?MORE:DONE;
+        TRACE(8, "After call " + findConsoleByCtx(ctx)->dukDump() + _("Result is ") + ((duk_outcome == DUK_EXEC_SUCCESS)?"success":"error"));
+		return(afterwards(duk_outcome));
         }
     
-    void doExecuteFunction(Console* pFromConsole, ConsoleCallbackResult result){
+    void doExecuteFunction(Console* pFromConsole, ConsoleReplyResult result){
         // this is implemented as a method so we can lazy-call a fuction with CallAfter
         wxString functionName;
-        ConsoleCallbackAwaited thisConsoleCallback;
-        TRACE(4, mConsoleName + "->doExecuteFunction " + result.functionName + " with " + result.result + " reason " + ((result.resultType == HAD_ERROR)?"HAD_ERROR":((result.resultType == MORE)?"MORE":((result.resultType == STOPPED)?"STOPPED":((result.resultType == DONE)?"DONE":"unknown")))));
-        mConsoleCallbacksAwaited--;
+        TRACE(4, mConsoleName + "->doExecuteFunction " + result.functionName + " with " + result.result + " reason " +
+        	((result.resultType == HAD_ERROR)?"HAD_ERROR":((result.resultType == MORETODO)?"MORETODO":((result.resultType == STOPPED)?"STOPPED":((result.resultType == DONE)?"DONE":"unknown")))));
+        mConsoleRepliesAwaited--;
         // ready to invoke function and give it an object we will construct here
         functionName = result.functionName;
         duk_push_object(mpCtx);
@@ -557,14 +465,7 @@ public:
         duk_push_string(mpCtx , result.result.c_str());
         duk_put_prop_literal(mpCtx, -2, "value");
         Completions outcome = executeFunction(functionName);
-        if (isBusy()) return;   // callbacks etc to do
-        // This script has finished
-        wrapUp(outcome);
-        if (mStatus.test(TOCHAIN)){
-            // we are to run the script that has been loaded into our script window
-            // we use CallAfter so present action can complete and unwind
-            CallAfter(&Console::doRunCommand, mBrief);
-            }
+        if (!isBusy()) wrapUp(outcome);
         }
     
     void startTimeout(){
@@ -572,6 +473,7 @@ public:
         m_timeout_check_counter = 0;
         if (m_time_to_allocate > 0) m_pcall_endtime =  wxGetUTCTimeMillis() + m_time_to_allocate;
         else m_pcall_endtime = 0;
+        mStatus.reset(TIMEOUT);
         mJSrunning = true;
         pConsoleBeingTimed = this;
         }
@@ -585,18 +487,17 @@ public:
     
     void setWaiting(){
         // mark that we have set something that waits on a response
-        TRACE(5,mConsoleName + "->setWaiting()");
+        TRACE(4,mConsoleName + "->setWaiting()");
         mWaitingCached = mWaiting = true;
         }
     
-    bool isWaiting()  // returns true if waiting for anything
-    {
+    bool isWaiting() { // returns true if waiting for anything
         // for efficiencey, we may have a cached result in mWaiting
         if (mWaitingCached) {
             TRACE(15,mConsoleName + "->isWaiting() returning cached result " + (mWaiting?"true":"false"));
             return mWaiting;
             }
-        TRACE(15,mConsoleName + "->isWaiting() doing full check");
+        TRACE(4,mConsoleName + "->isWaiting() doing full check");
         bool result = false;
         int count;
         if (
@@ -609,41 +510,110 @@ public:
             (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
             (mpMessageDialog != nullptr) ||
-            (mAlert.palert != nullptr) )
+            (mAlert.palert != nullptr) ){
+            	TRACE(5, mConsoleName + "->isWaiting() 1st if true");
                 result = true;
+                }
         else if ((count = (int)mMessages.GetCount()) > 0){ // look at messages
              for(unsigned int index = 0; index < count; index++){
                 if (mMessages[index].functionName != wxEmptyString) {
+                    TRACE(5, mConsoleName + "->isWaiting() else if true");
                     result = true;
                     break;
                     }
                 }
             }
-        else if (mConsoleCallbacksAwaited > 0) result = true;
-        
+        if (mConsoleRepliesAwaited > 0) result = true;
         mWaiting = result;
         mWaitingCached = true;
-        TRACE(5,mConsoleName + "->isWaiting() returning new result " + (mWaiting?"true":"false"));
+        TRACE(4,mConsoleName + "->isWaiting() returning new result " + (mWaiting?"true":"false"));
         return mWaiting;
-    }
+        }
     
     bool isBusy(){  // tests if waiting or running main script
         return(mRunningMain || isWaiting());
-        }
-    
-    void wrapUp(Completions reason) {    // clears down and destroys context etc.
-        // reason is or'd into existing status and actions taken accordingly
+        }  
+        
+	Completions afterwards(duk_int_t dukOutcome){	// called after execution of JavaScript
+		// if certain flags set, it will have thown an error
+		// we check for this before other types of error
+		// For now we will mark not busy in case the following are true
+		wxString result;
+		wxString getStringFromDuk(duk_context *ctx);
+		Completions outcome;
         wxString statusesToString(status_t mStatus);
+		
+        TRACE(4, wxString::Format("%s->afterwards() with dukOutcome %d and status now %s",mConsoleName, dukOutcome, statusesToString(mStatus)));
+        mWaiting = false;
+		mWaitingCached = true;
+		// here we determine the order of presidence of the various outcomes 
+		if (mStatus.test(TIMEOUT)) return TIMEOUT;
+        if (mStatus.test(CLOSING)) {
+            duk_pop(mpCtx);	// pop off the error object
+            return CLOSING;
+            }
+		if (mStatus.test(STOPPED)) return STOPPED;	// not a real error
+		if (mStatus.test(TOCHAIN)) return TOCHAIN;	// not a real error
+		if (dukOutcome != DUK_EXEC_SUCCESS) return HAD_ERROR;	// a real error
+		
+		mWaitingCached = false;   // now we are past those cases, get a re-check
+	   result = getStringFromDuk(mpCtx);
+	   if (!m_explicitResult) m_result = result; // for when not explicit result
+	   duk_pop(mpCtx);  // pop result
+	   outcome = DONE; // starting assumption
+   
+	   if (isWaiting()){ // if script set up call-backs with nominated functions, check they exist
+		  outcome = MORETODO;
+		  TRACE(4, mConsoleName + "->afterwards()  completed with something to wait for");
+		  duk_push_global_object(mpCtx);  // get our compiled script
+		  if (
+			 functionMissing(m_NMEAmessageFunction) ||
+			 functionMissing(mDialog.functionName) ||
+			 functionMissing(m_activeLegFunction) )
+			 outcome = HAD_ERROR;;
+		  if (!mTimes.IsEmpty()){
+			 // has set up one or more timers - check them out
+			 int count = (int)mTimes.GetCount();
+			 for (int i = 0; i < count; i++)
+				if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
+			 }
+		  if (!mMenus.IsEmpty()){
+			 // has set up one or more context menus - check them out
+			 int count = (int)mMenus.GetCount();
+			 for (int i = 0; i < count; i++)
+				if (functionMissing(mMenus[i].functionName)) outcome = HAD_ERROR;
+			 }
+		  duk_pop(mpCtx);   // the global object
+			}
+		return(outcome);
+		}
+    
+	void wrapUp(Completions reason) {    // clean down and maybe destroy ctx
+		wrapUpWorks(reason);
+		if (!isBusy()){
+			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
+				TRACE(4, mConsoleName + "->wrapUp() destroying ctx");
+				duk_destroy_heap(mpCtx);
+				mpCtx = nullptr;
+				}
+			}
+		}
+
+    void wrapUpWorks(Completions reason) {    // consider clearing down and destroying context etc.
+    	// this is guts of wrapUp as sub-function to allow multiple returns to wrapUp
+        wxString statusesToString(status_t mStatus);
+        wxString formErrorMessage(duk_context *ctx);
+        
         mStatus.set(reason);
-        TRACE(4, wxString::Format("%s->wrapUp() status %d and now %s",mConsoleName, reason, statusesToString(mStatus)));
+        TRACE(4, wxString::Format("%s->wrapUpWorks() with status %d and now %s\n%s",mConsoleName, reason, statusesToString(mStatus), dukDump()));
 #if TRACE_LEVEL>0
         {wxString dump {""};
-            if (mBrief.hasBrief || mBrief.callback){
+            if (mBrief.hasBrief || mBrief.reply){
                 dump += "mBrief\n";
                 dump += "\tfresh:\t\t\t" + (mBrief.fresh?_("true"):_("false")) + "\n";
                 dump += "\thasBrief:\t\t\t" + (mBrief.hasBrief?_("true"):_("false")) + "\n";
                 dump += "\ttheBrief:\t\t\t" + mBrief.theBrief + "\n";
-                dump += "\tcallback:\t\t\t" + (mBrief.callback?_("true"):_("false")) + "\n";
+                dump += "\treply:\t\t\t" + (mBrief.reply?_("true"):_("false")) + "\n";
                 dump += "\tconsole:\t\t\t" + mBrief.briefingConsoleName + "\n";
                 dump += "\tfunction:\t\t\t" + mBrief.function + "\n";
             }
@@ -651,95 +621,91 @@ public:
             TRACE(4, dump);
         }
 #endif
-        wxString runLabel="Run";
-        this->Show();
-        if (m_backingOut) message(STYLE_RED, "Script timed out");
-        else if (mStatus.test(HAD_ERROR)) this->message(STYLE_RED,  this->m_result);
-        else {
-            if (!this->m_explicitResult && this->m_result == wxEmptyString)this->m_result = "undefined";
-            if (!this->m_explicitResult || this->m_result != wxEmptyString)
-            this->message(STYLE_BLUE, _("result: ") + this->m_result);
+        if (reason == TIMEOUT){
+            message(STYLE_RED, m_result = "Script timed out");
+            clearCallbacks();
+            replyToConsole(reason);
+            return;
+			}
+		if (reason == CLOSING){	// this differes from a real error in that no error message is generated
+			clearCallbacks();
+			reason = CLOSED;	// we now treat it further just like a simple Close
             }
-        run_button->SetLabel(runLabel);
+        if (reason == HAD_ERROR){   // output error message
+            TRACE(4, "wrapUpWorks with error stack:" + dukDump());
+            message(STYLE_RED,  m_result = formErrorMessage(mpCtx));
+            clearCallbacks();
+            replyToConsole(reason);
+            return;
+            }
+        if (reason == MORETODO){
+        	TRACE(4, "wrapUpWorks says MORETODO");
+        	return;
+        	}
+        if (reason & (STOPPED | TOCHAIN | DONE)) { // exit function if any of these
+            if (m_exitFunction != wxEmptyString){    // we have an onExit function to run
+				TRACE(2, "wrapUpWorks has exit function about to be run: " + m_exitFunction);
+				duk_int_t duk_outcome;
+				mStatus.set(INEXIT);
+				duk_push_string(mpCtx, ""); // next bit expects an argument - put anything there
+				Completions onExitCompletion = executeFunction(m_exitFunction);
+				mStatus.reset(INEXIT);
+				TRACE(4, "wrapUpWorks back from exit function");
+				if (onExitCompletion == TIMEOUT){
+					message(STYLE_RED, m_result = "onExit function timed out");
+					clearCallbacks();
+					replyToConsole(onExitCompletion);
+					return;
+					}	
+				if (onExitCompletion == HAD_ERROR){ // error during exit function
+					TRACE(4, "wrapUpWorks with exit function error stack:" + dukDump());
+					message(STYLE_RED,  m_result = "onExit function " + formErrorMessage(mpCtx));
+					clearCallbacks();
+					replyToConsole(onExitCompletion);
+					return;
+					}
+				}
+			}
+		clearCallbacks();
+		if (isBusy())	message(STYLE_RED, "wrapUpWorks logic error - isBusy() true");
+		// now for the result
+		if (!this->m_explicitResult && this->m_result == wxEmptyString)this->m_result = "undefined";
+		if (!this->m_explicitResult || this->m_result != wxEmptyString)
+		this->message(STYLE_BLUE, _("result: ") + this->m_result);
         
-        // clear any non-console callbacks set up
-        m_NMEAmessageFunction = wxEmptyString;
-        m_activeLegFunction = wxEmptyString;
-        size_t messageCount = mMessages.GetCount();
-        if (messageCount > 0){
-            for(unsigned int index = 0; index < messageCount; index++){
-                mMessages[index].functionName = wxEmptyString;
-                }
-            }
-        // clear out all timer stuff etc.
-        // while (mTimes.GetCount() > 0) mTimes.RemoveAt(0); not needed?
-        mTimes.Clear();
-        clearMenus();
-#ifdef SOCKETS
-		clearSockets();
-#endif
-        mConsoleCallbacksAwaited = 0;
-        mTimerActionBusy = false;
-        mRunningMain = false;
-        clearDialog();
-        clearAlert();
-        mpMessageDialog = nullptr;
-        mWaitingCached = mWaiting = false;
         if (!mBrief.fresh) mBrief.hasBrief = false; // was only available once
 
         if (reason == TOCHAIN){  // a new script will have been loaded to chain to and any brief set
-            TRACE(4, wxString::Format("%s->wrapUp() chaining",mConsoleName));
+            TRACE(4, wxString::Format("%s->wrapUpWorks() chaining",mConsoleName));
             mStatus.reset(TOCHAIN);
             CallAfter(&Console::doRunCommand, mBrief);
             }
-        // if not chaining, maybe we have to do a callback to another console?
-        else if (mBrief.callback){
-            TRACE(4, wxString::Format("%s->wrapUp() calling back",mConsoleName));
-            Console* findConsoleByName(wxString name);
-            Console* pConsole = findConsoleByName(mBrief.briefingConsoleName);
-            ConsoleCallbackResult resultStruct;
-            
-            mBrief.callback = false;    // we only do this once
-            if (!pConsole) {
-            	// no console to report error - use first
-            	wxMessageBox("Console "+ mConsoleName + " not found to call back");
+     	else {
+     		replyToConsole(reason);	// only replies if so set up
 			}
-            else if (!pConsole->isWaiting()) this->message(STYLE_RED, "Console to call back not waiting for us");
-            else {
-                resultStruct.result = m_result;
-                resultStruct.resultType = reason;
-                resultStruct.functionName = mBrief.function;
-                TRACE(4, wxString::Format("Calling back to console %s function %s with result %s & reason %d", mBrief.briefingConsoleName, resultStruct.functionName, resultStruct.result, resultStruct.resultType));
-                pConsole->CallAfter(&Console::doExecuteFunction , this, resultStruct);
-                }
+        if (reason != CLOSED) Show();   // make console visiibleunless was binned
+		}
+        
+    void replyToConsole(Completions reason){ // reply according to brief
+        if (!mBrief.reply) return; // no reply to do
+        TRACE(4, wxString::Format("%s->reply() replying to console %s",mConsoleName, mBrief.briefingConsoleName));
+        Console* findConsoleByName(wxString name);
+        Console* pConsole = findConsoleByName(mBrief.briefingConsoleName);
+        ConsoleReplyResult resultStruct;
+        
+        mBrief.reply = false;    // we only do this once
+        if (!pConsole) {
+            // no console to report error - use first
+            wxMessageBox("Console "+ mBrief.briefingConsoleName + " not found to call back");
             }
+        else if (!pConsole->isWaiting()) this->message(STYLE_RED, "Console to call back not waiting for us");
         else {
-            TRACE(4, wxString::Format("%s->wrapUp() Neither chaining nor calling back",mConsoleName));
-            if (m_exitFunction != wxEmptyString){
-                duk_int_t outcome;
-                // we have an onExit function to run
-                duk_push_string(mpCtx, ""); // next bit expects an argument - put anything there
-                outcome = executeFunction(m_exitFunction);
-                m_exitFunction = wxEmptyString; // only once
-                if (outcome == HAD_ERROR){
-                    // error during exit function
-                    this->message(STYLE_RED,  this->m_result);
-                    }
-                // Just in case the script tried to set up call-backs, clear them down again
-                mTimes.Clear();
-                clearDialog();
-                clearAlert();
-                mpMessageDialog = nullptr;
-                }
+            resultStruct.result = m_result;
+            resultStruct.resultType = reason;
+            resultStruct.functionName = mBrief.function;
+            TRACE(4, wxString::Format("Replying to console %s function %s with result %s & reason %d", mBrief.briefingConsoleName, resultStruct.functionName, resultStruct.result, resultStruct.resultType));
+            pConsole->CallAfter(&Console::doExecuteFunction , this, resultStruct);
             }
-		if (mStatus.test(SHUTTING)){
-			bin();  // if we had a messageBox and shutting, bin but leave context
-			}
-        else if (mpCtx != nullptr) { // for safety - nasty consequences if no context
- 	       duk_destroy_heap(mpCtx);
-			mpCtx = nullptr;
- 	       }
- 	   mConsoleCallbacksAwaited = 0;	// make sure
         }
     
     void clearAlert(){  // clears away any alert dialogue
@@ -768,22 +734,6 @@ public:
             mWaitingCached = false;
             }
         }
-        
-    void clearMessageBox(){	// clear away any message box
-    	if (mpMessageDialog != nullptr) {
-    		// This is tricky... there is a message box still open
-    		// see https://forums.wxwidgets.org/viewtopic.php?p=176963&sid=4be2a9e298f2d4e785b400bf4c3cfd75#p176963
-//			mpMessageDialog->Destroy();
- //           mpMessageDialog->Close();
-//            delete mpMessageDialog;
-
-        wxCommandEvent evt(wxEVT_BUTTON, wxID_CANCEL);	// create a CANCEL event
-        evt.SetEventObject(mpMessageDialog);	// add it to the dialogue
-        mpMessageDialog->GetEventHandler()->ProcessEvent(evt);	// trigger the event
- //   		delete mpMessageDialog;
-//    		mpMessageDialog = nullptr;
-    		}
-    	}
     
     void clearMenus()           {   // clear away any menus for this console
         int count = mMenus.GetCount();
@@ -804,6 +754,35 @@ public:
         }
 #endif
     
+	void clearCallbacks(){// clears all reasons a console might be called back
+		mTimes.Clear();	//timers
+		clearDialog();
+		clearAlert();
+		clearMenus();
+		m_NMEAmessageFunction = wxEmptyString;  // function to invoke on receipt of NMEA message, else ""
+    	m_activeLegFunction = wxEmptyString;  // function to invoke on receipt of active leg, else ""
+		m_exitFunction = wxEmptyString;  // function to call on exit, else ""
+		size_t messageCount = mMessages.GetCount();
+		if (messageCount > 0){
+			for(unsigned int index = 0; index < messageCount; index++){
+				mMessages[index].functionName = wxEmptyString;
+				}
+            }
+        mConsoleRepliesAwaited = 0;
+        mTimerActionBusy = false;
+        mRunningMain = false;
+        if (mpMessageDialog != nullptr){
+        	TRACE(4,mConsoleName + "->clearCallbacks() found mpMessageDialog - clearing");
+        	mpMessageDialog->Destroy();
+        	mpMessageDialog = nullptr;
+        	}
+#ifdef SOCKETS
+		clearSockets();wrapUp
+#endif
+		mWaitingCached = false;
+		run_button->SetLabel(_("Run"));
+		}
+		
     void throw_error(duk_context *ctx, wxString message){
         // throw an error from within c++ code called from running script
         // either there is an error object on the stack or a message
@@ -933,14 +912,17 @@ public:
         Destroy();
     };
     
-    void bin(){
-        // move console to bin
+    void bin(){  // move console to bin
         extern JavaScript_pi *pJavaScript_pi;
         Console *pConsole, *pFreedConsole;
+        TRACE(4, "bin() " + this->mConsoleName + " being binned");
         pFreedConsole = this->clearAndUnhook();
         pConsole = pJavaScript_pi->mpBin;
-        if (pConsole == nullptr) pJavaScript_pi->mpBin = pFreedConsole;
-        else {  // there is one already in the bin - push freed one on the front
+        if (pConsole == nullptr){	// bin was empty
+        	pJavaScript_pi->mpBin = pFreedConsole;
+        	pFreedConsole->mpNextConsole = nullptr;
+        	}
+        else {  // there is one already in the bin - push freed one onto the front
             pFreedConsole->mpNextConsole = pJavaScript_pi->mpBin;
             pJavaScript_pi->mpBin = pFreedConsole;
             }
@@ -957,7 +939,8 @@ public:
         dump += "mpNextConsole:\t\t" + ptrToString((Console *)mpNextConsole) + "\n";
         dump += "mStatus:\t\t\t\t" + statusesToString(mStatus) + "\n";
         dump += "mRunningMain:\t\t" + (this->mRunningMain?_("true"):_("false")) + "\n";
-        dump += "m_backingOut:\t\t" + (this->m_backingOut?_("true"):_("false")) + "\n";
+        dump += wxString::Format( "m_time_to_allocate:\t%ldms\n", this->m_time_to_allocate);
+        dump += wxString::Format( "m_timeout_check_counter:\t%d\n", this->m_timeout_check_counter);
         dump += "mWaitingCached:\t\t" + (this->mWaitingCached?_("true"):_("false")) + "\n";
         dump += "mWaiting:\t\t\t" + (this->mWaiting?_("true"):_("false")) + "\n";
         dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
@@ -1005,18 +988,18 @@ public:
         dump += "m_exitFunction:\t" + m_exitFunction + "\n";
         dump += "m_explicitResult:\t\t" + (m_explicitResult?_("true"):_("false")) + "\n";
         dump += "m_result:\t\t\t\t" + m_result + "\n";
-        dump += "mChainedScriptToRun:\t" + (this->mChainedScriptToRun?_("true"):_("false")) + "\n";
-        if (mBrief.hasBrief || mBrief.callback){
+        dump += "mscriptToBeRun:\t" + (this->mscriptToBeRun?_("true"):_("false")) + "\n";
+        if (mBrief.hasBrief || mBrief.reply){
             dump += "mBrief\n";
             dump += "\tfresh:\t\t\t" + (mBrief.fresh?_("true"):_("false")) + "\n";
             dump += "\thasBrief:\t\t\t" + (mBrief.hasBrief?_("true"):_("false")) + "\n";
             dump += "\ttheBrief:\t\t\t" + mBrief.theBrief + "\n";
-            dump += "\tcallback:\t\t\t" + (mBrief.callback?_("true"):_("false")) + "\n";
+            dump += "\treply:\t\t\t" + (mBrief.reply?_("true"):_("false")) + "\n";
             dump += "\tconsole:\t\t\t" + mBrief.briefingConsoleName + "\n";
             dump += "\tfunction:\t\t\t" + mBrief.function + "\n";
             }
         else dump += "No brief\n";
-        dump += wxString::Format("mConsoleCallbacksAwaited\t%d\n", mConsoleCallbacksAwaited);
+        dump += wxString::Format("mConsoleRepliesAwaited\t%d\n", mConsoleRepliesAwaited);
         dump+= dukDump();
         return dump;
         }
@@ -1036,7 +1019,7 @@ public:
     	// if new width > old, grow
     	// if was minimized and new width < old, shrink
     	wxSize oldSize = this->GetSize();
-    	bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+2);    // allow for rounding
+    	bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+1);	// allow for rounding error
         int minWidth = CONSOLE_STUB + mConsoleName.Length() * CONSOLE_CHAR_WIDTH;
         wxSize newMinSize = wxSize(minWidth, CONSOLE_MIN_HEIGHT);
         this->SetMinSize(newMinSize);
@@ -1048,7 +1031,7 @@ public:
 				this->SetSize(size);
 				}
 			}
-        TRACE(3, wxString::Format("Set console %s to min size to %dx%d", this->mConsoleName, newMinSize.x, newMinSize.y));
+        TRACE(4, wxString::Format("setMinWidth %s was minimised: %b\nNew min size to %dx%d", this->mConsoleName, newMinSize.x, newMinSize.y));
         }
         
 #ifdef SOCKETS
@@ -1090,13 +1073,6 @@ private:
             }
         duk_pop(mpCtx);   // pop off function or undefined
         return false;
-        }
-
-    void consoleInit(){
-        // initialise various attributes of a console
-        mBrief.hasBrief = false;
-        mBrief.theBrief = wxEmptyString;
-        mBrief.briefingConsoleName = wxEmptyString;
         }
     };
 

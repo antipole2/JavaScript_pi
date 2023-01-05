@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/09/2022
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -16,6 +16,7 @@
 
 #ifdef IPC	// Inter Process Communication
 // This feature is compiled optionally
+// As of plugin V2.0 it is incomplete and should not be included
 
 #include "wx/wx.h"
 #include "wx/ipc.h"

@@ -3776,4 +3776,17 @@ typedef struct duk_hthread duk_context;
 #error unsupported: byte order detection failed
 #endif  /* defined(DUK_USE_BYTEORDER) */
 
+/*
+  * Added by Tony Dec 2023
+  */
+ #define DUK_USE_FATAL_HANDLER(udata,msg) do { \
+     const char *fatal_msg = (msg); /* avoid double evaluation */ \
+     (void) udata; \
+     fprintf(stderr, "*** FATAL ERROR: %s\n", fatal_msg ? fatal_msg : "no message"); \
+     fflush(stderr); \
+     abort(); \
+ } while (0)
+
+
+
 #endif  /* DUK_CONFIG_H_INCLUDED */

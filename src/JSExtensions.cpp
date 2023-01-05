@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -86,7 +86,6 @@ wxString js_formOutput(duk_context *ctx){
             default:
                 findConsoleByCtx(ctx)->throw_error(ctx, "print - arg " + to_string(i) + " of unexpected type " + to_string(type));
         }
- //       duk_pop_n(ctx, nargs);
     }
 #ifdef __WXMSW__
     wxString JScleanOutput(wxString given);
@@ -132,7 +131,6 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
         duk_push_boolean(ctx, (alert != nullptr) ? true : false);
         return 1;
         }
-    
     // if called with single argument of false, is attempt to cancel any open alert
     // cancel any existing alert and return true if there was one
     if (nargs == 1 && duk_is_boolean(ctx, -1) && !duk_get_boolean(ctx, -1)){
@@ -145,7 +143,6 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
         else duk_push_boolean(ctx, false);
         return 1;
         }
-    
     // we have alert text to display
     pConsole->mAlert.alertText += js_formOutput(ctx); // add text to any existing
     if (alert != nullptr){  // clear any existing alert being displayed
@@ -232,45 +229,70 @@ static duk_ret_t duk_log(duk_context *ctx) {   // log message
     return (result);
     }
     
-    static duk_ret_t duk_message(duk_context *ctx) {   // show message in box
+void onMessageButton(wxCommandEvent & event)
+	{
+	jsButton* button = wxDynamicCast(event.GetEventObject(), jsButton);
+    Console* pConsole = button->pConsole;
+    pConsole->mpMessageDialog->EndModal(button->GetId());
+	}
+	
+static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     // messageBox(message [, caption, "YesNo"]);
+    // NB This feature should be able to use wxMessageBox() and would be very much simpler
+    // But wxMessageBox cannot be cancelled (EndModal()) as needed by consoleClose
+    // So we implement it with wxDialog and cope with the complexity, including having to have a handler for "YesNo" above
     wxString buttonType;
-    int style = wxCANCEL; // | wxSTAY_ON_TOP;
+    int style = wxCANCEL;
     duk_ret_t result = 0;
     int answer;
     Console *pConsole = findConsoleByCtx(ctx);
     wxString caption = "JavaScript " + pConsole->mConsoleName;
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    if (nargs == 0){	// clear away any message box
-    	pConsole->clearMessageBox();
-    	return (0);
-    	}
-    if (nargs > 3) pConsole->throw_error(ctx, "MessageBox called with invalid number of args");
+    if (nargs > 3) pConsole->throw_error(ctx, "messageBox called with invalid number of args");
     wxString message = duk_get_string(ctx, 0);
     if (nargs > 1){
         buttonType = duk_get_string(ctx,1);
         if (buttonType == "YesNo") style |= wxYES_NO;
         else if (buttonType == "OK") style |= wxOK;
         else if (buttonType == "") style = wxCANCEL;
-        else pConsole->throw_error(ctx, "MessageBox invalid 2nd arg");
+        else pConsole->throw_error(ctx, "messageBox invalid 2nd arg");
         }
+    else buttonType = "OK";
     if (nargs > 2) caption = duk_get_string(ctx, 2);
     duk_pop_n(ctx, nargs);
-    pConsole->mpMessageDialog = new wxMessageDialog(pConsole, message, caption, style, wxDefaultPosition);
-    pConsole->clearTimeout();   // suspend timer during modal window
-    try {
-        answer = pConsole->mpMessageDialog->ShowModal();
-        }
-    catch(int reason){
-        return (0);
-        }
-    if (pConsole->mStatus.test(SHUTTING)){
-		// Oh oh!  This console was closed while the dialogue was displayed modally - we need to get out
-	     pConsole->throw_error(ctx, "MessageBox being shut");
-	     }
+	wxDialog *dialog = new wxDialog(pConsole, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
+    dialog->SetSizer(topSizer);
+    wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls
+    topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+    wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, message, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER );
+    boxSizer->Add(staticText, 0, wxALIGN_CENTER|wxALL, 5);
+    wxBoxSizer* buttonBoxSizer = new  wxBoxSizer(wxHORIZONTAL);
+    jsButton* cancel = new jsButton(pConsole, dialog, wxID_CANCEL, "Cancel",wxDefaultPosition);
+    buttonBoxSizer->Add(cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    if (buttonType == "OK"){
+	    jsButton* OK = new jsButton(pConsole, dialog, wxID_OK, "OK", wxDefaultPosition);
+	    OK->SetDefault();
+		buttonBoxSizer->Add(OK, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		}
+	else if (buttonType == "YesNo"){
+		jsButton* Yes = new jsButton(pConsole, dialog, wxID_YES,"Yes",wxDefaultPosition);
+		buttonBoxSizer->Add(Yes, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		jsButton* No = new jsButton(pConsole, dialog, wxID_NO, "No",wxDefaultPosition);
+		buttonBoxSizer->Add(No, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		}
+	else pConsole->throw_error(ctx, "messageBox invalid 2nd arg");
+	boxSizer->Add(buttonBoxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 2);
+	dialog->Bind(wxEVT_BUTTON, &onMessageButton, wxID_ANY);
+	dialog->Fit();
+	pConsole->mpMessageDialog = dialog;
+	answer = dialog->ShowModal();
     switch (answer) {
+    	case -1:	// modal was closed by consoleClose()
+    		pConsole->mStatus.set(CLOSING); // note special case
+    		// now fall through to get out
         case wxID_CANCEL:
-            pConsole->throw_error(ctx, "MessageBox cancelled");
+            pConsole->throw_error(ctx, "messageBox cancelled");
             break;
         case wxID_OK:
             answer = 1;
@@ -281,8 +303,9 @@ static duk_ret_t duk_log(duk_context *ctx) {   // log message
         case wxID_NO:
             answer = 3;
             break;
-        default: pConsole->throw_error(ctx, "MessageBox logic error");
+        default: pConsole->throw_error(ctx, "messageBox logic error");
         }
+	pConsole->mpMessageDialog->Destroy();
     pConsole->mpMessageDialog = nullptr;
     pConsole->startTimeout();
     duk_push_int(ctx, answer);
@@ -402,6 +425,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
     Console *pConsole = findConsoleByCtx(ctx);
     
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "require within onExit function");
     fileNameGiven = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
     filePath = wxFileName(fileNameGiven);
@@ -457,7 +481,7 @@ static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseco
         pConsole->mWaitingCached = false;   // force full isWaiting check
         return(result);
         }
-    
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onSeconds within onExit function");
     if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onSeconds first argument must be function");
     if ((int)pConsole->mTimes.GetCount() > MAX_TIMERS){
         pConsole->throw_error(ctx, "onSeconds already have maximum timers outstanding");
@@ -494,6 +518,7 @@ static duk_ret_t duk_stopScript(duk_context *ctx) {
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
     
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "stopScript within onExit function");
     if (nargs > 0){
         pConsole->m_result = duk_safe_to_string(ctx, -1);
         pConsole->m_explicitResult = true;
@@ -548,7 +573,7 @@ static duk_ret_t duk_consoleShow(duk_context *ctx) {
     
 static duk_ret_t duk_consolePark(duk_context *ctx) {
 	// park this console
-	wxSize minSize;
+	wxSize size, minSize;
 	wxPoint position, thisPos, canvasPosition;
 	Console* pConsole;
 	wxWindow* pCanvas;
@@ -557,12 +582,15 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
     int parkingBase;    // any console with position above this is regarded as parked
     
     pCanvas = GetOCPNCanvasWindow();
-    canvasPosition = pCanvas->GetScreenPosition();
-    parkingBase = canvasPosition.y - CONSOLE_MIN_HEIGHT - PARK_CILL;
+    canvasPosition = pCanvas->GetScreenPosition();  // This is top left corner of canvas below the top bar
+    TRACE(4, wxString::Format("consolePark canvas position X:%i  Y:%i", canvasPosition.x, canvasPosition.y));
+    parkingBase = canvasPosition.y - PARK_FRAME_HEIGHT - PARK_CILL;
+    TRACE(4, wxString::Format("consolePark parkingBase:%i", parkingBase));
 	
 	pConsole = findConsoleByCtx(ctx);
     thisPos = pConsole->GetScreenPosition();
-    if (thisPos.y <= parkingBase){  // this console regarded as already parked
+    size = pConsole->GetSize();
+    if (size.y <= CONSOLE_MIN_HEIGHT){  // this console regarded as already parked    
         minSize = pConsole->GetMinSize();
         pConsole->SetSize(minSize);
         }
@@ -570,8 +598,10 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
         // first look for highest other console
         for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){ // for each console
             if (pC == pConsole) continue;	// omit this console from check
+            wxSize oldSize = pC->GetSize();
+    		bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+1);	// allow for rounding error
+    		if (!wasMinimized) continue;	// omit non-minimized from this
             position = pC->GetPosition();
-            if (position.y > parkingBase) continue; // this one not parked
             if (position.y < highest) highest = position.y;
             minSize = pC->GetMinSize();
             int rhe = position.x + minSize.x + PARK_SEP;
@@ -592,7 +622,7 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
 
 static duk_ret_t duk_consoleName(duk_context *ctx) {
     // consoleName(newName) to rename this console
-    // consoleShow() no change
+    // consoleName() no change
     // returns console name
     extern JavaScript_pi* pJavaScript_pi;
     wxString newName, outcome;
@@ -673,6 +703,7 @@ static duk_ret_t duk_onExit(duk_context *ctx){
     wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
     extern JavaScript_pi *pJavaScript_pi;
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onExit within onExit function");
     pConsole->m_exitFunction = extractFunctionName(ctx, -1);
     duk_pop(ctx);
     return 0;
@@ -757,7 +788,7 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_c_function(ctx, duk_message, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
-     duk_push_string(ctx, "scriptResult");
+    duk_push_string(ctx, "scriptResult");
     duk_push_c_function(ctx, duk_result, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     

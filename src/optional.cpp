@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -119,21 +119,13 @@ duk_ret_t console_close(duk_context* ctx){
     Console* pConsole = findConsoleByName(name);
     if (!pConsole) throwErrorByCtx(ctx, "Console " + name + " does not exist");
     if (pConsole == findConsoleByCtx(ctx)) throwErrorByCtx(ctx, "Console " + name + " cannot close yourself");
-    if (pConsole->mpMessageDialog != nullptr){ // There is a message box still open
-        // This is tricky...  It is difficult to close and we cannot clear the ctx until after.
-    	// see https://forums.wxwidgets.org/viewtopic.php?p=176963&sid=4be2a9e298f2d4e785b400bf4c3cfd75#p176963
-		// the following does not work
-		// wxCommandEvent evt(wxEVT_BUTTON, wxID_CANCEL);	// create any button event
-		// evt.SetEventObject(pConsole->mpMessageDialog);
-		// pConsole->mpMessageDialog->GetEventHandler()->ProcessEvent(evt);	// trigger a button
-		// pConsole->mpMessageDialog->EndModal(0);
-		// so we make do with the following
-		pConsole->mStatus.set(SHUTTING);  // we set a special status to say we are shutting it down
-        pConsole->mBrief.callback = false;  // and clear any callback
-        return (0);
-        }
-    else if (pConsole->isBusy()) pConsole->wrapUp(STOPPED);
-    pConsole->bin();
+    if (pConsole->mpMessageDialog != nullptr){ 
+    	pConsole->mpMessageDialog->EndModal(-1);	// close modal with special outcome
+    	}
+	else {
+		pConsole->clearCallbacks();
+		}
+	pConsole->bin();
     return 0;
     }
 
@@ -165,8 +157,11 @@ duk_ret_t console_load(duk_context* ctx){
         pConsole->m_fileStringBox->SetValue(wxString(fileString));
         pConsole->auto_run->Show();
         }
-    else pConsole->m_Script->SetText(fileString);   // we were passed a script
-
+    else {
+    	pConsole->m_Script->SetText(fileString);   // we were passed a script
+    	pConsole->m_fileStringBox->SetValue(wxEmptyString);
+        pConsole->auto_run->Hide();
+		}
     pConsole->auto_run->SetValue(false);
     return 0;
     }
@@ -191,19 +186,19 @@ duk_ret_t console_run(duk_context* ctx){
     if (pConsole == pConsoleBeingTimed)
         pConsole->throw_error(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " cannot run own console");
     if (pConsole->mpCtx) pConsoleBeingTimed->throw_error(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " is busy");
-    pConsole->mBrief.callback = false;
+    pConsole->mBrief.reply = false;
     if (haveBrief){
         pConsole->mBrief.theBrief = brief;
         pConsole->mBrief.hasBrief = true;
         }
-    pConsole->mChainedScriptToRun = true;
+    pConsole->mscriptToBeRun = true;
+    TRACE(0, "console_run about to run " + consoleName + "with haveBrief " + (haveBrief?("true and brief: " + pConsole->mBrief.theBrief):"false"));
     pConsole->CallAfter(&Console::doRunCommand, pConsole->mBrief);
     return 0;
     }
     
 duk_ret_t onConsoleResult(duk_context* ctx){
-    // onConsoleResult(consoleName,  [brief,] function)
-    // or onConsoleResult(consoleName, function, brief)
+    // onConsoleResult(consoleName, function [, brief])
     Console* findConsoleByCtx(duk_context* ctx);
     wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
     wxString consoleName, functionName, brief;
@@ -214,49 +209,34 @@ duk_ret_t onConsoleResult(duk_context* ctx){
  
     if (nargs < 2) pCallingConsole->throw_error(ctx, "onConsoleResult called with insufficient args");
     duk_require_string(ctx, 0);
+    duk_require_object(ctx, 1);
     consoleName = wxString(duk_get_string(ctx, 0));
+    functionName = extractFunctionName(ctx, 1);
     if (nargs>2){
-        if (duk_is_string(ctx, 2)){
-            // arg 2 must be brief and arg 1 the function
-            duk_require_object(ctx, 1);
-            brief = duk_get_string(ctx, 2);
-            haveBrief = true;
-            functionName = extractFunctionName(ctx, 1);
-            }
-        else {
-            // arg 1 must be brief and arg 2 the function
-            duk_require_object(ctx, 2);
-            functionName = extractFunctionName(ctx, 2);
-            brief = duk_get_string(ctx, 1);
-            haveBrief = true;
-            }
-        duk_pop(ctx);   // the third arg
-        }
-    else {
-        // 2 args - 2nd must be function
-        duk_require_object(ctx, 1);
-        functionName = extractFunctionName(ctx, 1);
-        }
+    	brief = duk_get_string(ctx, 2);
+    	haveBrief = true;
+    	duk_pop(ctx);   // the third arg
+    	}
     duk_pop_2(ctx); // first and second args
     pConsole = findConsoleByName(consoleName);
     if (pConsole->mRunningMain || pConsole->isWaiting())
         pCallingConsole->throw_error(ctx, "onConsoleResult target console " + pConsole->mConsoleName + " is busy");
-    if (pCallingConsole->mConsoleCallbacksAwaited > MAX_TIMERS){
+    if (pCallingConsole->mConsoleRepliesAwaited > MAX_TIMERS){
         pCallingConsole->throw_error(ctx, "onConsoleResult error: already have maximum callbacks outstanding");
         }
     // OK - ready to go
     pConsole->mBrief.briefingConsoleName = pCallingConsole->mConsoleName;
-    pConsole->mBrief.callback = true;
+    pConsole->mBrief.reply = true;
     pConsole->mBrief.function = functionName;
     if (haveBrief){
         pConsole->mBrief.theBrief = brief;
         pConsole->mBrief.hasBrief = true;
         }
     else pConsole->mBrief.hasBrief = false;
-    pConsole->mChainedScriptToRun = true;
-    pCallingConsole->mConsoleCallbacksAwaited++;
-    pCallingConsole->mWaitingCached = false;
-    pConsole->mWaitingCached = pConsole->mWaiting = true;
+    pConsole->mscriptToBeRun = true;
+    pCallingConsole->mConsoleRepliesAwaited++;
+    pCallingConsole->setWaiting();
+    TRACE(4, "onConsoleResult about to run " + consoleName + " with haveBrief " + (haveBrief?("true and brief: " + pConsole->mBrief.theBrief):"false"));
     pConsole->CallAfter(&Console::doRunCommand, pConsole->mBrief);
     return 0;
     }

@@ -15,7 +15,8 @@ onExit(deleteConsoles);
 
 for (i = 0; i < consoleNames.length; i++){
 	console = consoleNames[i];
-	if (!consoleExists(console)) consoleAdd(console);
+	if (consoleExists(console)) consoleClose(console);
+	consoleAdd(console);
 	consoleLoad(console, parkYourself);
 	consoleRun(console);
 	}
@@ -47,7 +48,7 @@ function step3(){
 	result = messageBox("Rightmost console has been renamed to " + maximumLengthName + "\nHas width of minimized window grown as needed?", "YesNo");
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
-//	onSeconds(waitforit, 1);
+	onSeconds(waitforit, 1);
 	scriptResult("Parking completed");
 	}
 

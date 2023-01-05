@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2022 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -48,11 +48,7 @@ WX_DEFINE_OBJARRAY(MenusArray);
 #ifdef SOCKETS
 WX_DEFINE_OBJARRAY(SocketRecordsArray);
 #endif
-WX_DEFINE_OBJARRAY(ConsoleCallbackArray);
-// WX_DEFINE_OBJARRAY(DialogActionsArray);
-
-// wxString stopLabel="Stop";
-// wxString runLabel="Run";
+WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
 void Console::OnActivate(wxActivateEvent& event){
     wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
@@ -61,8 +57,7 @@ void Console::OnActivate(wxActivateEvent& event){
     pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not force to stay there
     };
 
-void Console::OnLoad( wxCommandEvent& event ) {
-    // we are to load a script
+void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString fileString;
     wxTextFile ourFile;
     wxString lineOfData, script;
@@ -96,8 +91,7 @@ void Console::OnLoad( wxCommandEvent& event ) {
         }
     }
 
-void Console::OnSaveAs( wxCommandEvent& event )
-{
+void Console::OnSaveAs( wxCommandEvent& event ) {
     int response = wxID_CANCEL;
     wxArrayString file_array;
     wxString filename, filePath;
@@ -111,13 +105,6 @@ void Console::OnSaveAs( wxCommandEvent& event )
     response = SaveAsConsole.ShowModal();
     if( response == wxID_OK ) {
         filePath = SaveAsConsole.GetPath();
-/*
-        if (!filePath.EndsWith(".js")){
-            filePath += ".js";
-            message(STYLE_ORANGE, "OnSaveAs - file name must end with .js - not saved");
-            return;
-        }
- */
         if (!filePath.EndsWith(".js")) filePath += ".js";
         m_Script->SaveFile(filePath, wxTEXT_TYPE_ANY);
         m_fileStringBox->SetValue(wxString(filePath));
@@ -126,13 +113,11 @@ void Console::OnSaveAs( wxCommandEvent& event )
         return;
     }
     else if(response == wxID_CANCEL){
-        // cout  << "Save cancelled\n";
         return;
+        }
     }
-}
 
-void Console::OnSave( wxCommandEvent& event )
-{
+void Console::OnSave( wxCommandEvent& event ) {
     wxArrayString file_array;
     wxString filename;
     wxTextFile ourFile;
@@ -140,24 +125,24 @@ void Console::OnSave( wxCommandEvent& event )
     wxDialog query;
     
     mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") & wxFileExists(   mFileString))
-    {  // Have a 'current' file, so can just save to it
+    if ((   mFileString != "") & wxFileExists(   mFileString)) {
+        // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
         auto_run->Show();
         updateRecentFiles(mFileString);
         return;
-    }
+        }
     else OnSaveAs(event);  // No previous save, so do Save As
     return;
-}
+    }
 
 void Console::OnCopyAll(wxCommandEvent& event) {
     int currentPosition = m_Script->GetCurrentPos();
     m_Script->SelectAll();
     m_Script->Copy();
     m_Script->GotoPos(currentPosition);
-}
+    }
 
 void Console::OnClearScript( wxCommandEvent& event ){
     m_Script->ClearAll();
@@ -166,14 +151,13 @@ void Console::OnClearScript( wxCommandEvent& event ){
     mFileString = wxEmptyString;
     auto_run->SetValue(false);
     auto_run->Hide();
-}
+    }
 
 void Console::OnClearOutput( wxCommandEvent& event ){
     m_Output->ClearAll();
-}
+    }
 
-void Console::OnRun( wxCommandEvent& event )
-{
+void Console::OnRun( wxCommandEvent& event ) {
 #if TRACE_LEVEL > 0
     extern JavaScript_pi *pJavaScript_pi;
     if (!pJavaScript_pi->mTraceLevelStated)
@@ -181,9 +165,9 @@ void Console::OnRun( wxCommandEvent& event )
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
     clearBrief();
-    mConsoleCallbacksAwaited = 0;
+    mConsoleRepliesAwaited = 0;
     doRunCommand(mBrief);
-}
+    }
 
 void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     if (this->auto_run->GetValue()){
@@ -202,8 +186,7 @@ void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     else this->m_autoRun = false;
     }
 
-void Console::OnClose(wxCloseEvent& event)
-{
+void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
 
@@ -227,43 +210,14 @@ void Console::OnClose(wxCloseEvent& event)
     if (pTools != nullptr) pTools->setConsoleChoices();
 	TRACE(3, "Binning console " + this->mConsoleName);
 	return;
-//    TRACE(3, "Destroying console " + this->mConsoleName);
-//    this->Destroy();
-    //RequestRefresh(pJavaScript_pi->m_parent_window);
- }
+    }
 
 static wxString dummyMessage, message_id;
 wxDialog* dialog;
 
 void Console::OnTools( wxCommandEvent& event){
-//void createDialog();
     extern JavaScript_pi *pJavaScript_pi;
     
     pJavaScript_pi->ShowPreferencesDialog(pJavaScript_pi->m_parent_window);
     return;
     }
-    
-    
-/* played with this but not implemented
-void Console::OnSize( wxSizeEvent& event){
-	this->message(STYLE_RED, wxString("Console resized"));
-    wxSize consoleSize, scriptSize, outputSize, sizerSize;
-    wxPoint sizerPoint;
-    consoleSize = this->GetSize();
-    scriptSize = m_Script->GetSize();
-    outputSize = m_Output->GetSize();
-    wxString text = wxString::Format("Resized %d %d  %d %d  %d %d", consoleSize.GetHeight(), consoleSize.GetWidth(), scriptSize.GetHeight(), scriptSize.GetWidth(), outputSize.GetHeight(), outputSize.GetWidth());
-    // int sashPos = this->m_Console->consoleTopSizer->m_splitter.GetSashPosition ();
-    // OCPNMessageBox_PlugIn(this, text);
-    // adjust script pane
-//    sizerPoint = this->m_Console->m_splitter->m_scriptSizer.GetPosition();
-//    sizerSize = this->m_Console->m_splitter->m_scriptSizer.GetSize();
-//    sizerSize.SetHight(consoleSize.GetHeight()/2);
- //   m_Console->m_splitter->m_scriptSizer.SetDimension(sizerPoint, sizerSize):
-    
- //   m_Script->SetSize(consoleSize.GetWidth(), consoleSize.GetHeight()/2);
- //   m_Output->SetSize(consoleSize.GetWidth(), consoleSize.GetHeight()/2);
-    return;
-    }
- */
-      
