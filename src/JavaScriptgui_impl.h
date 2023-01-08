@@ -241,7 +241,9 @@ private:
     void OnClose( wxCloseEvent& event );
     
 public:
-    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxSize consoleSize = wxSize(738,800), wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxSize consoleSize = wxSize(738,800),
+    	wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false,
+    	wxString welcome = wxEmptyString): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
         extern JavaScript_pi *pJavaScript_pi;
@@ -1031,7 +1033,7 @@ public:
 				this->SetSize(size);
 				}
 			}
-        TRACE(4, wxString::Format("setMinWidth %s was minimised: %b\nNew min size to %dx%d", this->mConsoleName, newMinSize.x, newMinSize.y));
+        TRACE(28, wxString::Format("setMinWidth %s was minimised: %s\nNew min size to X:%i  Y:%i", this->mConsoleName, wasMinimized?"true":"false", newMinSize.x, newMinSize.y));
         }
         
 #ifdef SOCKETS

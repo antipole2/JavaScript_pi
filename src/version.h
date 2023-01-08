@@ -14,8 +14,8 @@
 #ifndef version_h
 #define version_h
 
-#define     PLUGIN_VERSION_DATE "2023:01:05"
-#define     PLUGIN_VERSION_COMMENT "alpha2"
+#define     PLUGIN_VERSION_DATE "2023:01:08"
+#define     PLUGIN_VERSION_COMMENT "alpha3"
 #define     USERGUIDES "\nhttps://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.pdf\nor\nhttps://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.epub\n\n"
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above\n\nThe User Guide can be downloaded from here:\n"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.  Changes can be found in the updated User Guide which can be downloaded from here:\n"

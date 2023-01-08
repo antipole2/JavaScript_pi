@@ -583,23 +583,30 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
     
     pCanvas = GetOCPNCanvasWindow();
     canvasPosition = pCanvas->GetScreenPosition();  // This is top left corner of canvas below the top bar
-    TRACE(4, wxString::Format("consolePark canvas position X:%i  Y:%i", canvasPosition.x, canvasPosition.y));
+    TRACE(25, wxString::Format("consolePark canvas position X:%i  Y:%i", canvasPosition.x, canvasPosition.y));
     parkingBase = canvasPosition.y - PARK_FRAME_HEIGHT - PARK_CILL;
-    TRACE(4, wxString::Format("consolePark parkingBase:%i", parkingBase));
+    TRACE(25, wxString::Format("consolePark parkingBase:%i", parkingBase));
 	
 	pConsole = findConsoleByCtx(ctx);
     thisPos = pConsole->GetScreenPosition();
     size = pConsole->GetSize();
+    TRACE(25, wxString::Format("%s->consolePark() on call position X:%i  Y:%i  size X:%i  Y:%i",
+    	pConsole->mConsoleName, thisPos.x, thisPos.y, size.x, size.y));
     if (size.y <= CONSOLE_MIN_HEIGHT){  // this console regarded as already parked    
         minSize = pConsole->GetMinSize();
         pConsole->SetSize(minSize);
+        TRACE(25, wxString::Format("%s->consolePark() already parked - size set to minsize X:%i  Y:%i",
+    	pConsole->mConsoleName, minSize.x, minSize.y));
+
         }
     else {  // determine parking height
         // first look for highest other console
+        TRACE(25, wxString::Format("%s->consolePark() to be parked", pConsole->mConsoleName)); 
         for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){ // for each console
             if (pC == pConsole) continue;	// omit this console from check
             wxSize oldSize = pC->GetSize();
     		bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+1);	// allow for rounding error
+    		TRACE(25, wxString::Format("%s->consolePark() console %s is %s", pConsole->mConsoleName, pC->mConsoleName, wasMinimized?"parked":"not parked")); 
     		if (!wasMinimized) continue;	// omit non-minimized from this
             position = pC->GetPosition();
             if (position.y < highest) highest = position.y;
@@ -609,6 +616,7 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
             thisPos.x = rightMost;
             }
         if (highest == 1000000) {
+        	TRACE(25, wxString::Format("%s->consolePark() first to be parked", pConsole->mConsoleName)); 
             highest = parkingBase; // no other windows parked - default to top of main window
             thisPos.x = canvasPosition.x + PARK_FIRST_X; // position in first parking place
             }
@@ -616,6 +624,8 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
         pConsole->SetSize(minSize);
         thisPos.y = highest;
         pConsole->Move(thisPos);
+        TRACE(25, wxString::Format("%s->consolePark() parked at position X:%i  Y:%i  size X:%i  Y:%i",
+    	pConsole->mConsoleName, thisPos.x, thisPos.y, minSize.x, minSize.y));
         }
 	return 0;
 	}

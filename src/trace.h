@@ -16,33 +16,32 @@
 // 
 //USE:  TRACE(level, wxString); will display if level >= TRACE_LEVEL
 // output will go to log or, if in harness, to stdout or to a window
-#define TRACE_LEVEL 0   // set to zero to omit all tracing code
-#ifdef IN_HARNESS
-#define TRACE_LEVEL 5   // trace level override for harness
-#endif
+#define TRACE_YES   // if defined, include TRACE code. Should be undefined in release
+#define TRACE_MAX	30	// TRACE level range   (Level 0 always traced)
+#define TRACE_MIN	25
+
 #define TRACE_TO_WINDOW true     // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout
 #if TRACE_TO_WINDOW
     // trace to window goes here
     void windowTrace(int level, wxString text);
     inline void ptrace(int level, wxString text){
-        if (level <= TRACE_LEVEL) windowTrace(level, wxString::Format("L%d\t%s", level, text));
+        if ((level == 0) || ((level <= TRACE_MAX) && (level >= TRACE_MIN))) windowTrace(level, wxString::Format("L%d\t%s", level, text));
         }
 #else   // TRACE_TO_WINDOW false
-
     #ifdef IN_HARNESS
         #include <iostream>
         inline void ptrace(int level, wxString text){
-            if (level <= TRACE_LEVEL) std::cout << "Trace L" << level << ":\t" << text << "\n";
+            if ((level == 0) || ((level <= TRACE_MAX) && (level >= TRACE_MIN))) std::cout << "Trace L" << level << ":\t" << text << "\n";
             }
     #else   // not IN_HARNESS
         inline void ptrace(int level, wxString text){
-            if (level <= TRACE_LEVEL) wxLogMessage(wxString::Format("JavaScript_pi L%d\t%s", level, text));
+            if ((level == 0) || ((level <= TRACE_MAX) && (level >= TRACE_MIN))) wxLogMessage(wxString::Format("JavaScript_pi L%d\t%s", level, text));
             }
     #endif  // IN_HARNESS
 #endif    // TRACE_TO_WINDOW false
 
-#if TRACE_LEVEL>0
+#ifdef TRACE_YES
     #define TRACE ptrace
 #else
     #define TRACE

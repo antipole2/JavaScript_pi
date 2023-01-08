@@ -278,6 +278,7 @@ bool JavaScript_pi::LoadConfig(void)
 #ifndef IN_HARNESS
     if(pConf)
     {
+    	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME) + wxString(USERGUIDES);
         pConf->SetPath (configSection);
         bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         if (!configUptoDate){	// configuration may be pre-v0.5
@@ -294,7 +295,7 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
-            mpFirstConsole->m_Output->AppendText(wxString(PLUGIN_FIRST_TIME_WELCOME) + wxString(USERGUIDES));
+            mpFirstConsole->m_Output->AppendText(welcome);
             mpFirstConsole->Hide();
             }
         else {
@@ -302,16 +303,17 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             // create consoles as in config file
+            mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configured
-                new Console(m_parent_window, "JavaScript");
+                new Console(m_parent_window, "JavaScript", wxPoint(300,20), wxSize(738,800), wxPoint(150, 100),
+                	wxPoint(90, 20), wxEmptyString, false, welcome);
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
                 wxString welcome = wxEmptyString;
                 if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR)))
                     welcome = wxString(PLUGIN_UPDATE_WELCOME) + wxString(USERGUIDES);
-                mpFirstConsole = nullptr;
                 while ( tkz.HasMoreTokens() ){
                     wxPoint consolePosition, dialogPosition, alertPosition;
                     wxSize  consoleSize;
