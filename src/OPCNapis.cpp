@@ -401,7 +401,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     MenuActions menuAction;
     wxString argument = wxEmptyString;
     wxString menuName;
-    int menuID, menuCount;
+    int menuCount;
     wxMenu dummy_menu;
     Console *pConsole = findConsoleByCtx(ctx);
     
@@ -686,7 +686,6 @@ p_route->pWaypointList->clear();
 
 void clearWaypointsOutofTrack(PlugIn_Track *p_track){
 // For a track structure, clear out the waypoints
-PlugIn_Waypoint *p_waypoint;
 /*
 wxPlugin_WaypointListNode *linknode = p_track->pWaypointList->GetFirst();
     for (unsigned int i = 0; linknode; linknode = linknode->GetNext(), i++){
@@ -743,17 +742,9 @@ static duk_ret_t getSingleWaypoint(duk_context *ctx) {
 
 static duk_ret_t addSingleWaypoint(duk_context *ctx) {
     PlugIn_Waypoint_Ex *p_waypoint;
-    bool permanent = true;  // permanent waypoint by default
     bool result;
     wxString GUID;
-    duk_idx_t nargs;
     duk_require_object(ctx,0);
-    nargs = duk_get_top(ctx);   // number of arguments in call
-    if (nargs == 2) {
-        duk_require_boolean(ctx,1);
-        permanent = duk_get_boolean(ctx, 1);   // decide on permanency
-        duk_pop(ctx);
-        }
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the opcn waypoint
     result = AddSingleWaypointEx(p_waypoint);
     if (!result){ // waypoint already exists?
@@ -860,16 +851,9 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
 static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
     PlugIn_Route_Ex *p_route;
 
-    bool permanent = true;  // permanent by default
+//    bool permanent = true;  // permanent by default
     bool result;
-    duk_idx_t nargs;
     duk_require_object(ctx,0);
-    nargs = duk_get_top(ctx);   // number of arguments in call
-    if (nargs == 2) {
-        duk_require_boolean(ctx,1);
-        permanent = duk_get_boolean(ctx, 1);   // decide on permanency
-        duk_pop(ctx);
-        }
     p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
     result = AddPlugInRouteEx(p_route);
     if (!result){
@@ -922,10 +906,8 @@ static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     }
     
 static duk_ret_t getTrackByGUID(duk_context *ctx) {
-    bool result;
     wxString GUID;
     std::unique_ptr<PlugIn_Track> p_track;
-    Plugin_Hyperlink *p_hyperlink = new Plugin_Hyperlink();
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint();
 
     GUID = duk_get_string(ctx, 0);
@@ -980,8 +962,6 @@ static duk_ret_t addTrack(duk_context *ctx) { // add the track to OpenCPN
 
 static duk_ret_t updateTrack(duk_context *ctx) { // update the track in OpenCPN
     PlugIn_Track *p_track;
-    bool result;
-    duk_idx_t nargs;
 
     p_track = js_duk_to_opcn_track(ctx, false);
     duk_push_boolean(ctx, UpdatePlugInTrack(p_track));  // result will be returned
@@ -991,14 +971,11 @@ static duk_ret_t updateTrack(duk_context *ctx) { // update the track in OpenCPN
 
 static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     wxString GUID;
-    bool outcome;
-
     GUID = wxString(duk_to_string(ctx,0));
     if (!DeletePlugInTrack(GUID)) {
         throwErrorByCtx(ctx, "OCPNdeleteTrack called with non-existant GUID " + GUID);
         }
-    duk_push_boolean(ctx, outcome);
-    return(1);  // returns boolean result
+    return(0);  // returns boolean result
     }
 
 static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
@@ -1162,7 +1139,6 @@ static duk_ret_t getVectorPP(duk_context *ctx) {
 static duk_ret_t getPositionPV(duk_context *ctx) {
         // get position after position moved by vector
         double fromLat, fromLon, toLat, toLon, bearing, distance;
-        duk_idx_t obj_idx;
         duk_idx_t pos_idx {0};
         duk_idx_t vector_idx {1};
 
@@ -1221,10 +1197,8 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
 
 // wxString soundFile = wxString("/Applications/OpenCPN.app/Contents/SharedSupport/sounds/beep_ssl.wav");
 static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
-    Console *pConsole = findConsoleByCtx(ctx);
     wxString* directory = GetpSharedDataLocation();
     wxString soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
-//    OCPNMessageBox_PlugIn(pConsole, file);
         bool OK = false;
         OK = PlugInPlaySoundEx(soundFile);
         duk_push_boolean(ctx, OK);

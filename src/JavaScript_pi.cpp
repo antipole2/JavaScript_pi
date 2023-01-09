@@ -494,8 +494,6 @@ void JavaScript_pi::SetCursorLatLon(double lat, double lon){
 void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
 {
     wxString thisFunction;
-    size_t starPos;
-    bool OK {false};
     duk_context *ctx;
     Console *m_pConsole;
     void JSduk_start_exec_timeout(Console);

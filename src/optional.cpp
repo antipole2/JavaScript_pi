@@ -192,7 +192,7 @@ duk_ret_t console_run(duk_context* ctx){
         pConsole->mBrief.hasBrief = true;
         }
     pConsole->mscriptToBeRun = true;
-    TRACE(0, "console_run about to run " + consoleName + "with haveBrief " + (haveBrief?("true and brief: " + pConsole->mBrief.theBrief):"false"));
+    TRACE(5, "console_run about to run " + consoleName + "with haveBrief " + (haveBrief?("true and brief: " + pConsole->mBrief.theBrief):"false"));
     pConsole->CallAfter(&Console::doRunCommand, pConsole->mBrief);
     return 0;
     }

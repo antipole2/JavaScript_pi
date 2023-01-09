@@ -242,22 +242,18 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     // But wxMessageBox cannot be cancelled (EndModal()) as needed by consoleClose
     // So we implement it with wxDialog and cope with the complexity, including having to have a handler for "YesNo" above
     wxString buttonType;
-    int style = wxCANCEL;
-    duk_ret_t result = 0;
     int answer;
     Console *pConsole = findConsoleByCtx(ctx);
     wxString caption = "JavaScript " + pConsole->mConsoleName;
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs > 3) pConsole->throw_error(ctx, "messageBox called with invalid number of args");
     wxString message = duk_get_string(ctx, 0);
+	buttonType = "OK";
     if (nargs > 1){
-        buttonType = duk_get_string(ctx,1);
-        if (buttonType == "YesNo") style |= wxYES_NO;
-        else if (buttonType == "OK") style |= wxOK;
-        else if (buttonType == "") style = wxCANCEL;
-        else pConsole->throw_error(ctx, "messageBox invalid 2nd arg");
+        wxString arg2 = duk_get_string(ctx,1);
+        if (arg2 == "YesNo") buttonType = arg2;
+        else if (arg2 != "") pConsole->throw_error(ctx, "messageBox invalid 2nd arg");
         }
-    else buttonType = "OK";
     if (nargs > 2) caption = duk_get_string(ctx, 2);
     duk_pop_n(ctx, nargs);
 	wxDialog *dialog = new wxDialog(pConsole, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
@@ -350,7 +346,6 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     wxString fileNameGiven, fileString, lineOfFile, text;
     wxFileName filePath;
     wxTextFile inputFile;
-    bool ok;
     wxString JScleanString(wxString line);
     Console *pConsole = findConsoleByCtx(ctx);
     
@@ -373,7 +368,7 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
 		filePath = resolveFileName(pConsole, wxFileName(fileNameGiven), MUST_EXIST);
 		fileString = filePath.GetFullPath();
 		}
-	ok = inputFile.Open(fileString);
+	inputFile.Open(fileString);
 	for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
 		text += lineOfFile + "\n";
 		}
@@ -622,6 +617,11 @@ static duk_ret_t duk_consolePark(duk_context *ctx) {
             }
         minSize = pConsole->GetMinSize();
         pConsole->SetSize(minSize);
+//x temp
+		wxSize readBack  = pConsole->GetMinSize();
+		TRACE(25, wxString::Format("%s->consolePark() resize to X:%i  Y:%i readback is X:%i  Y:%i",
+			pConsole->mConsoleName, minSize.x, minSize.y, readBack.x, readBack.y));
+// end of temp 
         thisPos.y = highest;
         pConsole->Move(thisPos);
         TRACE(25, wxString::Format("%s->consolePark() parked at position X:%i  Y:%i  size X:%i  Y:%i",

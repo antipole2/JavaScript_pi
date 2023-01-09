@@ -186,7 +186,6 @@ bool organiseFavourites(Console* pConsole){ // returns true while more to organi
 wxString chooseFileString(Console* pConsole){
     // choose fileString from favourites or recents
     wxString fileString;
-    wxButton* fileButton;
     int favouritesCount = pJavaScript_pi->favouriteFiles.GetCount();
     int recentsCount = pJavaScript_pi->recentFiles.GetCount();
     if ((favouritesCount + recentsCount) == 0) return wxEmptyString;    // nothing to choose from

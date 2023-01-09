@@ -166,7 +166,7 @@ void Console::OnRun( wxCommandEvent& event ) {
 #endif
     clearBrief();
     mConsoleRepliesAwaited = 0;
-    TRACE(0, "––––––––––––––– Run console " + mConsoleName);
+    TRACE(0, "------------------ Run console " + mConsoleName);
     doRunCommand(mBrief);
     }
 

@@ -11,7 +11,7 @@
 * https://www.gnu.org/licenses/gpl-3.0.en.html
 ***************************************************************************
 */
-
+#if 0
 // This file is the start an exploration of adding a general menus capability
 // It is in abeyance because of the difficulty of accessing the menubar (gFrame->m_pMenuBar) without a plugin API
 #include <iostream>
@@ -49,4 +49,4 @@ duk_ret_t APImenu(duk_context *ctx){
 	return 0;
     }
 
-
+#endif

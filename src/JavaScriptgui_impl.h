@@ -271,6 +271,7 @@ public:
         mBrief.theBrief = wxEmptyString;
         mBrief.reply = false;
         mBrief.briefingConsoleName = wxEmptyString;
+        setMinWidth();
         // output pane set up
         m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
         m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
@@ -381,7 +382,6 @@ public:
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
-	   bool more;    // true if more work by call-backs to functions
 	   extern bool runLable, stopLabel;
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
@@ -400,7 +400,6 @@ public:
 	   duk_extensions_init(mpCtx);  // register our own extensions
 	   ocpn_apis_init(mpCtx);       // register our API extensions
 	   run_button->SetLabel(_("Stop"));
-	   more = false;      // start with no call-backs - will be set true in 'on' callback APIs
 	   mRunningMain = true;
 	   duk_push_string(mpCtx, script.mb_str());   // load the script
 	   startTimeout();
@@ -647,7 +646,6 @@ public:
         if (reason & (STOPPED | TOCHAIN | DONE)) { // exit function if any of these
             if (m_exitFunction != wxEmptyString){    // we have an onExit function to run
 				TRACE(2, "wrapUpWorks has exit function about to be run: " + m_exitFunction);
-				duk_int_t duk_outcome;
 				mStatus.set(INEXIT);
 				duk_push_string(mpCtx, ""); // next bit expects an argument - put anything there
 				Completions onExitCompletion = executeFunction(m_exitFunction);
