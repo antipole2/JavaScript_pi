@@ -263,6 +263,22 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
         }
     return(wxEmptyString);
     }
+    
+wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
+	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
+	wxPoint framePos = frame->GetPosition();	// screen position of frame
+	pos.x -= framePos.x;
+	pos.y -= framePos.y;
+	return pos;
+	}
+	
+wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
+	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
+	wxPoint framePos = frame->GetPosition();	// screen position of frame
+	pos.x += framePos.x;
+	pos.y += framePos.y;
+	return pos;
+	}
 
 #include "wx/regex.h"
 // The following could be Duktape release dependent

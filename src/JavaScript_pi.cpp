@@ -318,7 +318,8 @@ bool JavaScript_pi::LoadConfig(void)
                     wxPoint consolePosition, dialogPosition, alertPosition;
                     wxSize  consoleSize;
                     wxString fileString;
-                    bool autoRun;
+                    bool autoRun, parked;
+                    wxPoint frameToScreen(wxPoint);
 
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
@@ -331,9 +332,14 @@ bool JavaScript_pi::LoadConfig(void)
                     alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
+                    parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
+                    // from V2 positions have been saved relative to frame
+                    consolePosition = frameToScreen(consolePosition);
+                    dialogPosition = frameToScreen(dialogPosition);
+                    alertPosition = frameToScreen(alertPosition);
                     // take care of no console size
                     if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
-                    new Console(m_parent_window, name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun, welcome);
+                    new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     }
                 }
             }
@@ -404,19 +410,24 @@ bool JavaScript_pi::SaveConfig(void)
             }
 
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        	wxPoint screenToFrame(wxPoint);
+        	// v2 positions now saved relative to frame
             name = pConsole->mConsoleName;
             nameColon = name + ":";
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
-            wxPoint p = pConsole->GetPosition();
-            wxSize  s = pConsole->GetSize();
-            pConf->Write (nameColon + _T ( "ConsolePosX" ),   p.x );
-            pConf->Write (nameColon + _T ( "ConsolePosY" ),   p.y );
-            pConf->Write (nameColon + _T ( "ConsoleSizeX" ),   s.x );
-            pConf->Write (nameColon + _T ( "ConsoleSizeY" ),   s.y );
-            pConf->Write (nameColon + _T ( "DialogPosX" ),   pConsole->mDialog.position.x );
-            pConf->Write (nameColon + _T ( "DialogPosY" ),   pConsole->mDialog.position.y);
-            pConf->Write (nameColon + _T ( "AlertPosX" ),   pConsole->mAlert.position.x );
-            pConf->Write (nameColon + _T ( "AlertPosY" ),   pConsole->mAlert.position.y);
+            wxPoint consolePosition = screenToFrame(pConsole->GetPosition());
+            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);
+            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);
+            wxSize  consoleSize = pConsole->GetSize();            
+            pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
+            pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
+            pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );
+            pConf->Write (nameColon + _T ( "ConsoleSizeX" ),   consoleSize.x );
+            pConf->Write (nameColon + _T ( "ConsoleSizeY" ),   consoleSize.y );
+            pConf->Write (nameColon + _T ( "DialogPosX" ),   dialogPosition.x );
+            pConf->Write (nameColon + _T ( "DialogPosY" ),   dialogPosition.y);
+            pConf->Write (nameColon + _T ( "AlertPosX" ),   alertPosition.x );
+            pConf->Write (nameColon + _T ( "AlertPosY" ),  alertPosition.y);
             pConf->Write (nameColon + _T ( "AutoRun" ),   (pConsole->auto_run->GetValue())?"1":"0");
             pConf->Write (nameColon + _T ("LoadFile"),  pConsole->m_fileStringBox->GetValue());
             }

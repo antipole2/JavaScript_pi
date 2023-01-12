@@ -20,6 +20,7 @@
 #include <string>
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
+#include <wx/event.h>
 
 /*  On hold for now - cannot find a way of handling the variable arguments
  // sprintf function
@@ -42,7 +43,9 @@
  */
 
 extern JavaScript_pi *pJavaScript_pi;
-Console *findConsoleByCtx(duk_context *ctx);
+Console* findConsoleByCtx(duk_context *ctx);
+Console* findConsoleByName(wxString name);
+void throwErrorByCtx(duk_context *ctx, wxString message);
 
 void limitOutput(wxStyledTextCtrl* pText){
 	// given output text area, ensure does not exceed size limit and scroll to end
@@ -236,6 +239,10 @@ void onMessageButton(wxCommandEvent & event)
     pConsole->mpMessageDialog->EndModal(button->GetId());
 	}
 	
+void onMove(wxMoveEvent & event){
+	TRACE(29, "Move event");
+	}
+	
 static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     // messageBox(message [, caption, "YesNo"]);
     // NB This feature should be able to use wxMessageBox() and would be very much simpler
@@ -244,16 +251,19 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     wxString buttonType;
     int answer;
     Console *pConsole = findConsoleByCtx(ctx);
+    wxString ok = "OK";
+    wxString yesNo = "YesNo";
     wxString caption = "JavaScript " + pConsole->mConsoleName;
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs > 3) pConsole->throw_error(ctx, "messageBox called with invalid number of args");
     wxString message = duk_get_string(ctx, 0);
-	buttonType = "OK";
     if (nargs > 1){
         wxString arg2 = duk_get_string(ctx,1);
-        if (arg2 == "YesNo") buttonType = arg2;
-        else if (arg2 != "") pConsole->throw_error(ctx, "messageBox invalid 2nd arg");
+        if (arg2 == yesNo) buttonType = arg2;
+        else if ((arg2 == ok) || (arg2 == wxEmptyString)) buttonType = ok;
+        else pConsole->throw_error(ctx, "messageBox invalid 2nd arg");
         }
+    else buttonType = ok;
     if (nargs > 2) caption = duk_get_string(ctx, 2);
     duk_pop_n(ctx, nargs);
 	wxDialog *dialog = new wxDialog(pConsole, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
@@ -266,12 +276,12 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     wxBoxSizer* buttonBoxSizer = new  wxBoxSizer(wxHORIZONTAL);
     jsButton* cancel = new jsButton(pConsole, dialog, wxID_CANCEL, "Cancel",wxDefaultPosition);
     buttonBoxSizer->Add(cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-    if (buttonType == "OK"){
-	    jsButton* OK = new jsButton(pConsole, dialog, wxID_OK, "OK", wxDefaultPosition);
+    if (buttonType == ok){
+	    jsButton* OK = new jsButton(pConsole, dialog, wxID_OK, ok, wxDefaultPosition);
 	    OK->SetDefault();
 		buttonBoxSizer->Add(OK, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 		}
-	else if (buttonType == "YesNo"){
+	else if (buttonType == yesNo){
 		jsButton* Yes = new jsButton(pConsole, dialog, wxID_YES,"Yes",wxDefaultPosition);
 		buttonBoxSizer->Add(Yes, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 		jsButton* No = new jsButton(pConsole, dialog, wxID_NO, "No",wxDefaultPosition);
@@ -526,8 +536,6 @@ static duk_ret_t duk_stopScript(duk_context *ctx) {
 
 
 Console* getConsoleWithOptionalNameOnStack(duk_context *ctx){
-    Console* findConsoleByName(wxString name);
-    void throwErrorByCtx(duk_context *ctx, wxString message);
     extern JavaScript_pi *pJavaScript_pi;
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console* pConsole;
@@ -567,66 +575,19 @@ static duk_ret_t duk_consoleShow(duk_context *ctx) {
     }
     
 static duk_ret_t duk_consolePark(duk_context *ctx) {
-	// park this console
-	wxSize size, minSize;
-	wxPoint position, thisPos, canvasPosition;
+	// park console consolePark(consolName) - if no name, park self
 	Console* pConsole;
-	wxWindow* pCanvas;
-    int highest {1000000};
-    int rightMost {0};    // most right hand edge of a console
-    int parkingBase;    // any console with position above this is regarded as parked
-    
-    pCanvas = GetOCPNCanvasWindow();
-    canvasPosition = pCanvas->GetScreenPosition();  // This is top left corner of canvas below the top bar
-    TRACE(25, wxString::Format("consolePark canvas position X:%i  Y:%i", canvasPosition.x, canvasPosition.y));
-    parkingBase = canvasPosition.y - PARK_FRAME_HEIGHT - PARK_CILL;
-    TRACE(25, wxString::Format("consolePark parkingBase:%i", parkingBase));
-	
-	pConsole = findConsoleByCtx(ctx);
-    thisPos = pConsole->GetScreenPosition();
-    size = pConsole->GetSize();
-    TRACE(25, wxString::Format("%s->consolePark() on call position X:%i  Y:%i  size X:%i  Y:%i",
-    	pConsole->mConsoleName, thisPos.x, thisPos.y, size.x, size.y));
-    if (size.y <= CONSOLE_MIN_HEIGHT){  // this console regarded as already parked    
-        minSize = pConsole->GetMinSize();
-        pConsole->SetSize(minSize);
-        TRACE(25, wxString::Format("%s->consolePark() already parked - size set to minsize X:%i  Y:%i",
-    	pConsole->mConsoleName, minSize.x, minSize.y));
-
-        }
-    else {  // determine parking height
-        // first look for highest other console
-        TRACE(25, wxString::Format("%s->consolePark() to be parked", pConsole->mConsoleName)); 
-        for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){ // for each console
-            if (pC == pConsole) continue;	// omit this console from check
-            wxSize oldSize = pC->GetSize();
-    		bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+1);	// allow for rounding error
-    		TRACE(25, wxString::Format("%s->consolePark() console %s is %s", pConsole->mConsoleName, pC->mConsoleName, wasMinimized?"parked":"not parked")); 
-    		if (!wasMinimized) continue;	// omit non-minimized from this
-            position = pC->GetPosition();
-            if (position.y < highest) highest = position.y;
-            minSize = pC->GetMinSize();
-            int rhe = position.x + minSize.x + PARK_SEP;
-            if (rhe > rightMost) rightMost = rhe;   // move right of existing parked console
-            thisPos.x = rightMost;
-            }
-        if (highest == 1000000) {
-        	TRACE(25, wxString::Format("%s->consolePark() first to be parked", pConsole->mConsoleName)); 
-            highest = parkingBase; // no other windows parked - default to top of main window
-            thisPos.x = canvasPosition.x + PARK_FIRST_X; // position in first parking place
-            }
-        minSize = pConsole->GetMinSize();
-        pConsole->SetSize(minSize);
-//x temp
-		wxSize readBack  = pConsole->GetMinSize();
-		TRACE(25, wxString::Format("%s->consolePark() resize to X:%i  Y:%i readback is X:%i  Y:%i",
-			pConsole->mConsoleName, minSize.x, minSize.y, readBack.x, readBack.y));
-// end of temp 
-        thisPos.y = highest;
-        pConsole->Move(thisPos);
-        TRACE(25, wxString::Format("%s->consolePark() parked at position X:%i  Y:%i  size X:%i  Y:%i",
-    	pConsole->mConsoleName, thisPos.x, thisPos.y, minSize.x, minSize.y));
-        }
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call 
+	wxString consoleName;	// console to park
+	 
+	if (nargs > 0) {
+		consoleName = duk_get_string(ctx, 0);
+		duk_pop(ctx);	// pop console name
+		pConsole = findConsoleByName(consoleName);
+		if (pConsole == nullptr) throwErrorByCtx(ctx, "consolPark called with non-existant console name: " + consoleName);
+		}
+	else pConsole = findConsoleByCtx(ctx);
+	pConsole->park();
 	return 0;
 	}
 
@@ -649,9 +610,10 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
         // OK - ready to go
 		pConsole->mConsoleName = newName;
 		pConsole->SetLabel(newName);
-		pConsole->setMinWidth();
+		pConsole->setConsoleMinSize();
     	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();
         }
+    if (pConsole->isParked()) pConsole->SetSize(pConsole->GetMinSize());	// shrink it
     duk_push_string(ctx, pConsole->mConsoleName);
     return 1;
     }

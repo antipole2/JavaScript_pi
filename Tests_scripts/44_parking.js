@@ -3,7 +3,6 @@ consoleHide();
 
 consoleNames = ["ConsoleA", "1", "ConsoleC__Long", "ConsoleD", "ConsoleE"];
 maximumLengthName = "MaximumLength"
-parkYourself = "consolePark();scriptResult('');";
 shrinkYourself = "consoleName('2');scriptResult('');";
 growYourself = "consoleName('" + maximumLengthName + "');scriptResult('');";
 restoreName = "consoleName(\"" + consoleNames[consoleNames.length-1] + "\");scriptResult('');";
@@ -17,8 +16,7 @@ for (i = 0; i < consoleNames.length; i++){
 	console = consoleNames[i];
 	if (consoleExists(console)) consoleClose(console);
 	consoleAdd(console);
-	consoleLoad(console, parkYourself);
-	consoleRun(console);
+	consolePark(console);
 	}
 onSeconds(step1, 1);
 

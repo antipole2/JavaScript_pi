@@ -30,6 +30,7 @@
 #include <bitset>
 #include "buildConfig.h"
 #include "consolePositioning.h"
+#include <wx/event.h>
 
 #define DUK_DUMP true
 #if DUK_DUMP
@@ -42,6 +43,8 @@ MAYBE_DUK_DUMP
 using namespace std;
 typedef wxString jsFunctionNameString_t;
 typedef wxString messageNameString_t;
+
+extern JavaScript_pi *pJavaScript_pi;
 
 class MessagePair  // holds OPCN messages seen, together with JS callback function name, if to be called back
     {
@@ -228,7 +231,7 @@ public:
     void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
-    void OnSize(wxSizeEvent& event);
+
 #ifdef SOCKETS
 	DECLARE_EVENT_TABLE()
 #endif	// SOCKETS
@@ -238,17 +241,19 @@ public:
 #endif	// IPC
 
 private:
+    bool		m_parked;		// true if this console parked
+    wxPoint		m_parkedPosition;	// if parked, position relative to frame
     void OnClose( wxCloseEvent& event );
     
 public:
     Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxSize consoleSize = wxSize(738,800),
     	wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false,
-    	wxString welcome = wxEmptyString): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+    	wxString welcome = wxEmptyString, bool parked = false): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
-        extern JavaScript_pi *pJavaScript_pi;
         Console *pConsole;
         wxPoint checkPointOnScreen(wxPoint point);
+        wxPoint screenToFrame(wxPoint);
         TRACE(3, "Constructing console " + consoleName);
    
         // hook this new console onto end of chain of consoles
@@ -259,6 +264,8 @@ public:
             pConsole->mpNextConsole = this; // add us
             }
         mConsoleName = consoleName;
+        m_parked = parked;
+        if (parked) m_parkedPosition = screenToFrame(consolePosition);	// if parked, restore position relative to frame
         consoleInit();        
         Move(wxPoint(checkPointOnScreen(consolePosition)));
         mDialog.position = checkPointOnScreen(dialogPosition);
@@ -271,7 +278,9 @@ public:
         mBrief.theBrief = wxEmptyString;
         mBrief.reply = false;
         mBrief.briefingConsoleName = wxEmptyString;
-        setMinWidth();
+        setConsoleMinSize();
+        m_parked = parked;
+        if (m_parked) m_parkedPosition = screenToFrame(consolePosition);
         // output pane set up
         m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
         m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
@@ -313,14 +322,12 @@ public:
             m_Script->AddText(welcome); // some initial script
             }
         m_Output->AppendText(welcome);
-        this->setMinWidth();
         this->SetSize(consoleSize);
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         Hide();   // we hide console now but this may be changed later
         }
     
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
-        extern JavaScript_pi *pJavaScript_pi;
         Console *pConsole, *pPrevConsole;
         TRACE(3,"Unhooking console " + this->mConsoleName);
 
@@ -907,13 +914,64 @@ public:
         newAction.timeToCall = timeToCall;
         mTimes.Add(newAction);
         }
+        
+    void setConsoleMinSize(){
+    	wxSize minSize, size;
+    	minSize.x = CONSOLE_STUB + (CONSOLE_CHAR_WIDTH * (mConsoleName.Length()));
+    	minSize.y = CONSOLE_MIN_HEIGHT;
+    	SetMinSize(minSize);
+    	// make sure is no smaller than new min size
+    	size = GetSize();
+    	if (size.x < minSize.x) size.x = minSize.x;
+    	if (size.y < minSize.y) size.y = minSize.y;
+    	SetSize(size);    	
+    	}
+    	
+    void park(){	// park this console
+    	wxPoint screenToFrame(wxPoint pos);
+    	wxPoint frameToScreen(wxPoint pos);
+
+        int rightMost {0};    // most right hand edge of a parked console relative to frame
+        bool foundParked {false};
+        TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
+        	mConsoleName, GetMinSize().x, GetMinSize().y));
+ 
+		SetSize(GetMinSize());
+    	if (isParked()) return;	// was already parked
+    	// find horizontal place available avoiding other parked consoles
+    	for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){
+    		// for each console
+    		int rhe;	// right hand edge within frame
+            if (pC == this) continue;	// omit ourselves console from check
+            if (!pC->isParked()) continue;	// ignore non-parked consoles
+            // this one is parked
+            foundParked = true;
+            wxPoint pCFramePos = screenToFrame(pC->GetPosition());	// position of this console in frame
+            rhe = pCFramePos.x + pC->GetSize().x;
+            if (rhe > rightMost) rightMost = rhe;
+            }
+        int newX = (foundParked) ? (rightMost + PARK_SEP): PARK_FIRST_X;	// horizontal place for new parking
+		m_parkedPosition = wxPoint(newX, PARK_LEVEL);	// relative to frame
+        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
+        Move(frameToScreen(m_parkedPosition));
+        m_parked = true;
+    	}
+    	
+    bool isParked(){ //	returns true if console is parked
+        wxPoint screenToFrame(wxPoint pos);
+        
+    	if (!m_parked) return false;
+    	wxPoint posNow = screenToFrame(GetPosition());	// pos rel to frame
+    	if ((posNow.x == m_parkedPosition.x)  && (posNow.y == m_parkedPosition.y)) return true; // still parked
+    	m_parked = false;	// has been moved
+    	return false;
+    	}
     
     void destroyConsole(){
         Destroy();
     };
     
     void bin(){  // move console to bin
-        extern JavaScript_pi *pJavaScript_pi;
         Console *pConsole, *pFreedConsole;
         TRACE(4, "bin() " + this->mConsoleName + " being binned");
         pFreedConsole = this->clearAndUnhook();
@@ -932,6 +990,7 @@ public:
     wxString consoleDump(){    // returns string being dump of selected information from console structure
         wxString ptrToString(Console* address);
         wxString statusesToString(status_t mStatus);
+        wxPoint screenToFrame(wxPoint);
         int i, count;
         wxString dump {""};
         dump += "Console name:\t\t" + mConsoleName + "\n";
@@ -946,7 +1005,12 @@ public:
         dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
-        dump += "auto_run:\t\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
+        dump += "auto_run:\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
+        wxPoint screenPosition = GetPosition();
+        wxPoint framePosition = screenToFrame(screenPosition);
+        dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tframe x:%i y:%i\n", screenPosition.x, screenPosition.y, framePosition.x, framePosition.y );
+        dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
+        dump += "isParked():\t\t\t" + (isParked() ?  _("true"):_("false")) + "\n";       
         dump += _("Messages callback table\n");
         count =(int)this->mMessages.GetCount();
         if (count == 0) dump += _("\t(empty)\n");
@@ -1014,25 +1078,6 @@ public:
             return result;
         }
     }
-    
-    void setMinWidth(){ // set the minimum width for console
-    	// if new width > old, grow
-    	// if was minimized and new width < old, shrink
-    	wxSize oldSize = this->GetSize();
-    	bool wasMinimized = (oldSize.y <= CONSOLE_MIN_HEIGHT+1);	// allow for rounding error
-        int minWidth = CONSOLE_STUB + mConsoleName.Length() * CONSOLE_CHAR_WIDTH;
-        wxSize newMinSize = wxSize(minWidth, CONSOLE_MIN_HEIGHT);
-        this->SetMinSize(newMinSize);
-        if (wasMinimized) this->SetSize(newMinSize);
-        else {
-			wxSize size = this->GetSize();
-			if (size.x < newMinSize.x){
-				size.x = newMinSize.x;
-				this->SetSize(size);
-				}
-			}
-        TRACE(28, wxString::Format("setMinWidth %s was minimised: %s\nNew min size to X:%i  Y:%i", this->mConsoleName, wasMinimized?"true":"false", newMinSize.x, newMinSize.y));
-        }
         
 #ifdef SOCKETS
 	void onSocketEvent(wxSocketEvent& event){  // here when any socket event

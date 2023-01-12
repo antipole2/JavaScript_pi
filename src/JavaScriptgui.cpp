@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Oct 26 2018)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -88,6 +88,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	m_Script->SetViewWhiteSpace( false );
 	m_Script->SetMarginWidth( 2, 0 );
 	m_Script->SetIndentationGuides( true );
+	m_Script->SetReadOnly( false );
 	m_Script->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
 	m_Script->SetMarginMask( 1, wxSTC_MASK_FOLDERS );
 	m_Script->SetMarginWidth( 1, 16);
@@ -155,6 +156,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	m_Output->SetViewWhiteSpace( false );
 	m_Output->SetMarginWidth( 2, 0 );
 	m_Output->SetIndentationGuides( true );
+	m_Output->SetReadOnly( false );
 	m_Output->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
 	m_Output->SetMarginMask( 1, wxSTC_MASK_FOLDERS );
 	m_Output->SetMarginWidth( 1, 16);

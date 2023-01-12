@@ -55,6 +55,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             this throw true try typeof\
             var void\
             while";
+        // The following are unsupported or reserved for developer use and lexed orange
         wxString keywordsUnsupported = "abstract\
             byte\
             char class\
@@ -74,6 +75,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             yield\
             JS_duk_dump\
             consoleDump\
+            consoleDetails\
             JS_throw_test\
             JS_mainThread";
     wxString extensionNames = "print printRed printOrange printGreen printBlue printUnderlined printLog\

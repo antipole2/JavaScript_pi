@@ -27,22 +27,22 @@ These constants are platform dependent
 See the Technical Guide for instructions for configuring for a given platform
 */
 #ifdef __WXMSW__
-#define CONSOLE_MIN_HEIGHT 13
+#define CONSOLE_MIN_HEIGHT 20
 #define CONSOLE_STUB 50
-#define CONSOLE_CHAR_WIDTH 10
-#define PARK_FRAME_HEIGHT 10
-#define PARK_CILL 2
+#define CONSOLE_CHAR_WIDTH 11.62
+#define PARK_LEVEL 25
 #define PARK_FIRST_X 70
 #define PARK_SEP 8
+
 #else
 //includes MacOS
-#define CONSOLE_MIN_HEIGHT 20
-#define CONSOLE_STUB 73
-#define CONSOLE_CHAR_WIDTH 10	
-#define PARK_FRAME_HEIGHT 22
-#define PARK_CILL 1
-#define PARK_FIRST_X 70
-#define PARK_SEP 9
+#define CONSOLE_MIN_HEIGHT 29
+#define CONSOLE_STUB 82
+#define CONSOLE_CHAR_WIDTH 11.62
+#define PARK_LEVEL 25
+#define PARK_FIRST_X 3
+#define PARK_SEP 6.0
+
 #endif
 
 #endif		// consolePositioning_h

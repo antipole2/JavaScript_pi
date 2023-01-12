@@ -25,6 +25,65 @@ extern Console* pConsoleBeingTimed;
 void throwErrorByCtx(duk_context *ctx, wxString message);
 Console* findConsoleByName(wxString name);
 
+duk_ret_t console_get_details(duk_context *ctx){
+	// return structure giving details of Console or parent frame
+	// if 2nd present and is true, minimise minSize, else set as normal
+	wxSize size, minSize, clientSize;
+	wxPoint pos;
+	wxPoint screenToFrame(wxPoint);
+	
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	if ((nargs != 1) && (nargs != 2)) throwErrorByCtx(ctx, "consoleGetDetails number of args not 1 or 2");
+	wxString name = duk_get_string(ctx, 0);
+	Console* pConsole = findConsoleByName(name);
+	if (!pConsole) throwErrorByCtx(ctx, "consoleDetails console " + name + " does not exist");
+	pos = screenToFrame(pConsole->GetPosition());
+	size = pConsole->GetSize();
+	minSize = pConsole->GetMinSize();
+	clientSize = pConsole->GetClientSize();
+	name = pConsole->mConsoleName;
+	if (nargs == 2){
+		if (duk_get_boolean(ctx, 1)){	// set minSize small
+			pConsole->SetMinSize(wxSize(1,1));
+			minSize = pConsole->GetMinSize();
+			}
+		else pConsole->setConsoleMinSize();
+		minSize = pConsole->GetMinSize();
+		duk_pop(ctx);	//pop off arg 2
+		}
+	duk_pop(ctx);	//pop off arg 1
+    
+	// indentation here shows stack depth
+    duk_push_object(ctx); // construct the details object
+        duk_push_string(ctx, name);
+    		duk_put_prop_literal(ctx, -2, "name");
+	    duk_push_object(ctx); // construct the position object
+		    duk_push_int(ctx, pos.x);
+		    	duk_put_prop_literal(ctx, -2, "x");
+		    duk_push_int(ctx, pos.y);
+		    	duk_put_prop_literal(ctx, -2, "y");
+		    duk_put_prop_literal(ctx, -2, "position");
+		duk_push_object(ctx); // construct the size object
+		    duk_push_int(ctx, size.x);
+		    	duk_put_prop_literal(ctx, -2, "x");
+		    duk_push_int(ctx, size.y);
+		    	duk_put_prop_literal(ctx, -2, "y");
+		    duk_put_prop_literal(ctx, -2, "size");
+		duk_push_object(ctx); // construct the minSize object
+		    duk_push_int(ctx, minSize.x);
+		    	duk_put_prop_literal(ctx, -2, "x");
+		    duk_push_int(ctx, minSize.y);
+		    	duk_put_prop_literal(ctx, -2, "y");
+		    duk_put_prop_literal(ctx, -2, "minSize");
+		duk_push_object(ctx); // construct the clientSize object
+		    duk_push_int(ctx, clientSize.x);
+		    	duk_put_prop_literal(ctx, -2, "x");
+		    duk_push_int(ctx, clientSize.y);
+		    	duk_put_prop_literal(ctx, -2, "y");
+		    duk_put_prop_literal(ctx, -2, "clientSize");		    		    
+	return 1;
+	};
+	
 duk_ret_t console_exists(duk_context *ctx){
     //test if console exists
     duk_require_string(ctx, 0);
@@ -278,6 +337,10 @@ void register_console(duk_context *ctx){
 
     duk_push_string(ctx, "onConsoleResult");
     duk_push_c_function(ctx, onConsoleResult, DUK_VARARGS /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "consoleDetails");
+    duk_push_c_function(ctx, console_get_details, DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     };
 

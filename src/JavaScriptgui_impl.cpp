@@ -158,7 +158,7 @@ void Console::OnClearOutput( wxCommandEvent& event ){
     }
 
 void Console::OnRun( wxCommandEvent& event ) {
-#ifdef TRACE_YES
+#if TRACE_YES
     extern JavaScript_pi *pJavaScript_pi;
     if (!pJavaScript_pi->mTraceLevelStated)
         message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));

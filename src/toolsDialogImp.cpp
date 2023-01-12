@@ -60,22 +60,24 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         }
     outcome = checkConsoleName(newConsoleName, nullptr);
     if (outcome != ""){
-        m_ConsolesMessage->AppendText("This name is already taken");
+        m_ConsolesMessage->AppendText(outcome);
         return;
         }
     pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
-    pConsole->setMinWidth();
+    pConsole->setConsoleMinSize();
     setConsoleChoices();    // update
     pConsole->Show();
     m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
     }
 
 void ToolsClass::onChangeName( wxCommandEvent& event ){
-    wxString oldConsoleName, newConsoleName;
+    wxString oldConsoleName, newConsoleName, outcome;
     wxSize minSize, oldSize, newSize;
+    wxString checkConsoleName(wxString name, Console* pConsole);
+    Console* findConsoleByName(wxString name);
     Console *pConsole;
  
     this->m_ConsolesMessage->Clear();
@@ -89,22 +91,20 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
         m_ConsolesMessage->AppendText("Must specify a new name");
         return;
         }
-    //check for existing console with this name
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        if (newConsoleName == pConsole->mConsoleName){
-            m_ConsolesMessage->AppendText("This name is already taken");
-            return;
-            }
+    outcome = checkConsoleName(newConsoleName, nullptr);
+    if (outcome != ""){
+        m_ConsolesMessage->AppendText(outcome);
+        return;
         }
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        if (pConsole->mConsoleName == oldConsoleName){
-            pConsole->mConsoleName = newConsoleName;
-            break;
-            }
-        }
-    m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
+    pConsole = findConsoleByName(oldConsoleName);
+    if (pConsole == nullptr){
+    	m_ConsolesMessage->AppendText("Change name error - cannot find old console");
+    	return;} 
     pConsole->SetLabel(newConsoleName);
-    pConsole->setMinWidth();
+    pConsole->mConsoleName = newConsoleName;
+    pConsole->setConsoleMinSize();
+    if (pConsole->isParked()) SetSize(GetMinSize());	// shrink it
+    m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }
 
