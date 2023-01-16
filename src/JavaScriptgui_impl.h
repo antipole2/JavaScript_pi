@@ -228,6 +228,7 @@ public:
     void OnAutoRun(wxCommandEvent& event);
     void OnClearOutput( wxCommandEvent& event );
     void OnTools( wxCommandEvent& event );
+    void OnPark( wxCommandEvent& event );
     void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
@@ -299,6 +300,7 @@ public:
         m_Script->SetWrapMode(wxSTC_WRAP_WORD);
         m_Script->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
         m_Script->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+        
 
         auto_run->Hide();
         if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
@@ -917,13 +919,18 @@ public:
         
     void setConsoleMinSize(){
     	wxSize minSize, size;
-    	minSize.x = CONSOLE_STUB + (CONSOLE_CHAR_WIDTH * (mConsoleName.Length()));
-    	minSize.y = CONSOLE_MIN_HEIGHT;
+    	wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, mConsoleName);
+    	wxSize textSize = staticText->GetSize();
+    	delete staticText;
+    	minSize.x = pJavaScript_pi->m_parkingStub + textSize.x;
+    	minSize.y = pJavaScript_pi->m_parkingMinHeight;
+    	TRACE(4, wxString::Format("setConsoleMinSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
     	SetMinSize(minSize);
     	// make sure is no smaller than new min size
     	size = GetSize();
     	if (size.x < minSize.x) size.x = minSize.x;
     	if (size.y < minSize.y) size.y = minSize.y;
+    	 
     	SetSize(size);    	
     	}
     	
@@ -950,8 +957,8 @@ public:
             rhe = pCFramePos.x + pC->GetSize().x;
             if (rhe > rightMost) rightMost = rhe;
             }
-        int newX = (foundParked) ? (rightMost + PARK_SEP): PARK_FIRST_X;	// horizontal place for new parking
-		m_parkedPosition = wxPoint(newX, PARK_LEVEL);	// relative to frame
+        int newX = (foundParked) ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking
+		m_parkedPosition = wxPoint(newX, pJavaScript_pi->m_parkingLevel);	// relative to frame
         TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
         Move(frameToScreen(m_parkedPosition));
         m_parked = true;
@@ -962,7 +969,7 @@ public:
         
     	if (!m_parked) return false;
     	wxPoint posNow = screenToFrame(GetPosition());	// pos rel to frame
-    	if ((posNow.x == m_parkedPosition.x)  && (posNow.y == m_parkedPosition.y)) return true; // still parked
+    	if ((abs(posNow.y - m_parkedPosition.y) < 4)) return true; // still parked (allowing small margin for error )
     	m_parked = false;	// has been moved
     	return false;
     	}

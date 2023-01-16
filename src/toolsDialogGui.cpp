@@ -280,6 +280,95 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Message->SetSizer( MessageSizer );
 	Message->Layout();
 	m_notebook->AddPage( Message, wxT("Message"), false );
+	Parking = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
+	Parking->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	Parking->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
+
+	wxBoxSizer* ParkingTopSizer1;
+	ParkingTopSizer1 = new wxBoxSizer( wxVERTICAL );
+
+	ParkingTopSizer1->SetMinSize( wxSize( -1,250 ) );
+	wxStaticBoxSizer* parkingAdviceSizer1;
+	parkingAdviceSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
+
+	m_buttonAdvice = new wxStaticText( parkingAdviceSizer1->GetStaticBox(), wxID_ANY, wxT("Configure custome parking details\nChanges will be preserved on normal  plugin/OpenCPN deactivation"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonAdvice->Wrap( -1 );
+	m_buttonAdvice->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
+	m_buttonAdvice->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
+
+	parkingAdviceSizer1->Add( m_buttonAdvice, 0, wxALL, 0 );
+
+
+	ParkingTopSizer1->Add( parkingAdviceSizer1, 0, 0, 5 );
+
+	wxStaticBoxSizer* RevertTopSizer1;
+	RevertTopSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+
+	m_revertPrompt = new wxStaticText( RevertTopSizer1->GetStaticBox(), wxID_ANY, wxT("Revert to platform defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_revertPrompt->Wrap( -1 );
+	m_revertPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
+
+	RevertTopSizer1->Add( m_revertPrompt, 0, wxALL, 5 );
+
+
+	RevertTopSizer1->Add( 28, 0, 1, wxEXPAND, 5 );
+
+	m_parking_revert_button = new wxButton( RevertTopSizer1->GetStaticBox(), wxID_ANY, wxT("Revert"), wxDefaultPosition, wxDefaultSize, 0 );
+	RevertTopSizer1->Add( m_parking_revert_button, 0, wxALL, 5 );
+
+
+	ParkingTopSizer1->Add( RevertTopSizer1, 0, wxEXPAND, 5 );
+
+	wxStaticBoxSizer* CustomTopSizer1;
+	CustomTopSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+
+	m_customPrompt = new wxStaticText( CustomTopSizer1->GetStaticBox(), wxID_ANY, wxT("Customise parking settings"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_customPrompt->Wrap( -1 );
+	m_customPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
+
+	CustomTopSizer1->Add( m_customPrompt, 0, wxALL, 5 );
+
+
+	CustomTopSizer1->Add( 40, 0, 1, wxEXPAND, 5 );
+
+	m_customiseButton = new wxButton( CustomTopSizer1->GetStaticBox(), wxID_ANY, wxT("Start"), wxDefaultPosition, wxDefaultSize, 0 );
+	CustomTopSizer1->Add( m_customiseButton, 0, wxALL, 5 );
+
+
+	ParkingTopSizer1->Add( CustomTopSizer1, 0, wxEXPAND, 0 );
+
+	wxStaticBoxSizer* RevealTopSizer;
+	RevealTopSizer = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+
+	m_revealPrompt = new wxStaticText( RevealTopSizer->GetStaticBox(), wxID_ANY, wxT("Show parameters for consolePositioning.h"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_revealPrompt->Wrap( -1 );
+	m_revealPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
+
+	RevealTopSizer->Add( m_revealPrompt, 0, wxALL, 5 );
+
+
+	RevealTopSizer->Add( 40, 0, 1, wxEXPAND, 5 );
+
+	m_revealButton = new wxButton( RevealTopSizer->GetStaticBox(), wxID_ANY, wxT("Reveal"), wxDefaultPosition, wxDefaultSize, 0 );
+	RevealTopSizer->Add( m_revealButton, 0, wxALL, 5 );
+
+
+	ParkingTopSizer1->Add( RevealTopSizer, 0, wxEXPAND, 5 );
+
+	wxStaticBoxSizer* ConsolesMessageSizer1;
+	ConsolesMessageSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
+
+	ConsolesMessageSizer1->SetMinSize( wxSize( -1,135 ) );
+	m_parkingMessage = new wxTextCtrl( ConsolesMessageSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 700,250 ), wxTE_MULTILINE|wxTE_READONLY );
+	ConsolesMessageSizer1->Add( m_parkingMessage, 0, wxALL, 5 );
+
+
+	ParkingTopSizer1->Add( ConsolesMessageSizer1, 1, wxEXPAND, 5 );
+
+
+	Parking->SetSizer( ParkingTopSizer1 );
+	Parking->Layout();
+	m_notebook->AddPage( Parking, wxT("Parking"), true );
 	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
 	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
@@ -369,6 +458,9 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	mDirectoryChangeButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
+	m_parking_revert_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingRevert ), NULL, this );
+	m_customiseButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingCustomise ), NULL, this );
+	m_revealButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingReveal ), NULL, this );
 	m_dumpButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onDump ), NULL, this );
 	m_cleanButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onClean ), NULL, this );
 }
@@ -383,6 +475,9 @@ ToolsClassBase::~ToolsClassBase()
 	mDirectoryChangeButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
+	m_parking_revert_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingRevert ), NULL, this );
+	m_customiseButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingCustomise ), NULL, this );
+	m_revealButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingReveal ), NULL, this );
 	m_dumpButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onDump ), NULL, this );
 	m_cleanButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onClean ), NULL, this );
 

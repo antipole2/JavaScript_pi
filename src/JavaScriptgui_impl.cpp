@@ -138,6 +138,7 @@ void Console::OnSave( wxCommandEvent& event ) {
     }
 
 void Console::OnCopyAll(wxCommandEvent& event) {
+	TRACE(4, "OnCopyAll");
     int currentPosition = m_Script->GetCurrentPos();
     m_Script->SelectAll();
     m_Script->Copy();
@@ -185,6 +186,11 @@ void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
             }
         }
     else this->m_autoRun = false;
+    }
+    
+void Console::OnPark( wxCommandEvent& event ){
+	TRACE(4, "OnPark");
+    park();
     }
 
 void Console::OnClose(wxCloseEvent& event) {

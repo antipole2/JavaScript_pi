@@ -34,12 +34,17 @@ void ToolsClass::onClose( wxCloseEvent& event ){
     this->Destroy();
  */
     this->Hide();
+    cleanupParking();
+    m_parkingMessage->Clear();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     // The different pages need to be different sizes - this does it
     int pageNumber;
 
+    cleanupParking();
+    m_parkingMessage->Clear();
+    m_customiseButton->SetLabel("Start");
     pageNumber = event.GetSelection();
     resizeDialogue(pageNumber);
     wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
@@ -222,7 +227,114 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     stringWindow->SetSize(500, 500);
     stringWindow->Show();
     }
+    
 
+Console* pTestConsole1 = nullptr;
+Console* pTestConsole2 = nullptr;
+
+void ToolsClass::cleanupParking(){
+    m_customiseButton->SetLabel("Start");
+	if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
+	if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
+    }
+    
+void ToolsClass::onParkingRevert(wxCommandEvent& event){
+	// revert parking parameters to platform default
+	pJavaScript_pi->m_parkingBespoke = false;
+	pJavaScript_pi->m_parkingMinHeight = CONSOLE_MIN_HEIGHT;
+	pJavaScript_pi->m_parkingStub = CONSOLE_STUB;
+	pJavaScript_pi->m_parkingLevel = PARK_LEVEL;
+	pJavaScript_pi->m_parkFirstX = PARK_FIRST_X;
+	pJavaScript_pi->m_parkSep = PARK_SEP;
+	m_parkingMessage->SetValue("Parking parameters reset to platform defaults");
+	cleanupParking();
+	pJavaScript_pi->SaveConfig();
+	}
+
+void ToolsClass::onParkingCustomise(wxCommandEvent& event){
+	// customise parking parameters
+	void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour);
+	wxPoint screenToFrame(wxPoint);
+	m_parkingMessage->Clear();
+	wxString label = m_customiseButton->GetLabel();
+	TRACE(4, wxString::Format("In onParking with button %s", label));
+	if (label == "Start"){
+		// check if have parked consoles
+		int x, y;
+		Console* pConsole = pJavaScript_pi->mpFirstConsole;
+		int numberParked = 0;
+		do {
+			if (pConsole->isParked()){
+				if (numberParked == 0) m_parkingMessage->SetValue("Unpark the parked console(s)\n");
+				m_parkingMessage->AppendText(wxString::Format("%s\n", pConsole->mConsoleName));
+				numberParked++;
+				}
+			}	while (pConsole = pConsole->mpNextConsole);
+		if (numberParked > 0){
+			m_parkingMessage->AppendText("and then try again");
+			return;
+			}
+		// create fist test console
+		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M",wxPoint(250,250), wxSize(700,300));
+		pTestConsole1->GetPosition(&x, &y);
+		pTestConsole1->SetPosition(wxPoint(x, y));
+		pTestConsole1->SetMinSize(wxSize(1,1));
+		pTestConsole1->SetBackgroundColour(*wxBLUE);
+		pTestConsole1->Show();
+		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM",wxPoint(300,600), wxSize(700,300));
+		pTestConsole2->GetPosition(&x, &y);
+		pTestConsole2->SetPosition(wxPoint(x, y));
+		pTestConsole2->SetMinSize(wxSize(1,1));
+		pTestConsole2->SetBackgroundColour(*wxGREEN);
+		pTestConsole2->Show();
+		m_parkingMessage->SetValue("Minimize the blue console M so that it has the minimum height and is just wide enough to see its name\n");
+		m_parkingMessage->AppendText("Then move it into the desired left most parking position\n\n");
+		m_parkingMessage->AppendText("Next minimize the green console MMMMMMMMMMMMMM so that it has minimum height and is just wide enough to see its name\n");
+		m_parkingMessage->AppendText("Then move it into the first parking position just to the right of M\n\n");
+		m_parkingMessage->AppendText("Then click Next");
+		m_customiseButton->SetLabel("Next");
+		}
+	else if ((label == "Next") || (label == "Retry")){
+		TRACE(4, "onParking next");
+		// now for the calculation
+		wxSize c1Size = pTestConsole1->GetSize();
+		wxSize c2Size = pTestConsole2->GetSize();
+		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
+		wxPoint c2Pos = screenToFrame(pTestConsole2->GetPosition());
+		m_customiseButton->SetLabel("Retry");	// in case we have a problem
+		if ((c1Size.y > 40) || (c2Size.y > 40)){
+			m_parkingMessage->SetValue("You have not minimised the consoles\nDo so and try again");
+			return;
+			}
+		if (abs(c1Pos.y - c2Pos.y) > 3){
+			m_parkingMessage->SetValue("Both consoles should be at the same level.\nAdjust and try again");
+			return;
+			}
+		if ((c1Pos.x + c1Size.x) > c2Pos.x){
+			m_parkingMessage->SetValue("Consoles overlap.\nAdjust and try again");
+			return;
+			}
+		pJavaScript_pi->m_parkingMinHeight = (c1Size.y + c2Size.y)/2;	// take average
+		wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, pTestConsole1->mConsoleName);
+    	wxSize nameSize = staticText->GetSize();
+    	delete staticText;
+		pJavaScript_pi->m_parkingStub = c1Size.x - nameSize.x;
+		pJavaScript_pi->m_parkingLevel = (c1Pos.y + c2Pos.y)/2;
+		pJavaScript_pi->m_parkFirstX = c1Pos.x;
+		pJavaScript_pi->m_parkSep = c2Pos.x - (c1Pos.x + c1Size.x);
+		pJavaScript_pi->m_parkingBespoke = true;
+		pJavaScript_pi->SaveConfig();
+		m_parkingMessage->SetValue("Custom parking parameters set and saved");		
+		}
+	}
+	
+void ToolsClass::onParkingReveal(wxCommandEvent& event) {
+		m_parkingMessage->SetValue(pJavaScript_pi->m_parkingBespoke?"Bespoke settings\n\n":"Default settings\n\n");
+		m_parkingMessage->AppendText(wxString::Format(
+			"#define CONSOLE_MIN_HEIGHT %i\n#define CONSOLE_STUB %i\n#define PARK_LEVEL %i\n#define PARK_FIRST_X %i\n#define PARK_SEP %i",
+			pJavaScript_pi->m_parkingMinHeight, pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));			
+		}
+	
 void displayTools(wxWindow* parent){ // this used for testing in harness only
     ToolsClass *pToolsDialog = new ToolsClass(parent);
 

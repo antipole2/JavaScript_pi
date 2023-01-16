@@ -33,8 +33,13 @@ public:
     void onClean( wxCommandEvent& event );
     void onClose( wxCloseEvent& event );
     void setConsoleChoices();
+    void onParkingRevert(wxCommandEvent& event);
+    void onParkingCustomise(wxCommandEvent& event);
+    void onParkingReveal(wxCommandEvent& event);
+    void cleanupParking();
     
-    ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE )
+    ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString,
+    	const wxPoint& pos = wxPoint(1000,400), const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE )
         :ToolsClassBase(parent, id, title, pos, size, style)
         {
         
@@ -48,7 +53,8 @@ public:
         validator = (wxTextValidator*)m_changedName->GetValidator();
         validator->AddCharIncludes("_");
 #endif
-        this->resizeDialogue(0); // we open on first page
+        m_notebook->SetSelection(0);	//start on first page
+        this->resizeDialogue(0);
         }
 
     void resizeDialogue(int pageNumber){
@@ -59,7 +65,8 @@ public:
         page->GetSize(&page_x, &page_y);
         TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
         this->SetSize(600, page_y);
-        }
+        }        
+ 
     };
 
 #endif /* ToolsDialog_h */

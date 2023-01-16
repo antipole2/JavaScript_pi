@@ -302,6 +302,17 @@ bool JavaScript_pi::LoadConfig(void)
             TRACE(2, "Loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
+            
+            // load parking config - platform defaults if none
+            m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
+            m_parkingMinHeight = pConf->Read("ParkingMinHeight", CONSOLE_MIN_HEIGHT);
+            m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
+            m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
+            m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
+            m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
+            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingMinHeight:%i, ParkingStub:%i ",
+            	(m_parkingBespoke?"true":"false"), m_parkingMinHeight, m_parkingStub ));
+            
             // create consoles as in config file
             mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
@@ -408,6 +419,16 @@ bool JavaScript_pi::SaveConfig(void)
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
+            
+        //save custom parking config, if any
+        if (m_parkingBespoke){
+        	pConf->Write (nameColon + _T ( "ParkingBespoke" ),   1 );
+        	pConf->Write (nameColon + _T ( "ParkingMinHeight" ),   m_parkingMinHeight );
+        	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub );
+         	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel );
+         	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX );
+         	pConf->Write (nameColon + _T ( "ParkingSep" ),   m_parkSep );  	
+        	}
 
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
         	wxPoint screenToFrame(wxPoint);

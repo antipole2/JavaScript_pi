@@ -75,19 +75,21 @@ wxString js_formOutput(duk_context *ctx){
         switch (duk_int_t type = duk_get_type(ctx, i)){
             case DUK_TYPE_STRING:
             case DUK_TYPE_NUMBER:
-                output = output + duk_to_string(ctx,i);  // mangles º character on Windows!
+                output += duk_to_string(ctx,i);  // mangles º character on Windows!
                 break;
             case DUK_TYPE_BOOLEAN:
-                output = output + ((duk_to_boolean(ctx,i) == 1) ? "true":"false");
+                output += ((duk_to_boolean(ctx,i) == 1) ? "true":"false");
                 break;
             case DUK_TYPE_OBJECT:
                 duk_json_encode(ctx, i);
-                output = output + duk_to_string(ctx,i);
+                output += duk_to_string(ctx,i);
                 break;
+            case DUK_TYPE_NULL:
+				break;
             case DUK_TYPE_UNDEFINED:
-                findConsoleByCtx(ctx)->throw_error(ctx, "print - arg " + to_string(i) + " is undefined");
+                findConsoleByCtx(ctx)->throw_error(ctx, "output - arg " + to_string(i) + " is undefined");
             default:
-                findConsoleByCtx(ctx)->throw_error(ctx, "print - arg " + to_string(i) + " of unexpected type " + to_string(type));
+                findConsoleByCtx(ctx)->throw_error(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
         }
     }
 #ifdef __WXMSW__
@@ -97,6 +99,18 @@ wxString js_formOutput(duk_context *ctx){
     return(output);
 }
 
+void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour){
+	// Append coloured text to window
+	int long beforeLength, afterLength;
+	beforeLength = window->GetTextLength(); // where we are before adding text
+	window->AppendText(text);
+	afterLength = window->GetTextLength(); // where we are after adding text
+	window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
+	window->SetStyling((int)(afterLength-beforeLength), colour);
+	TRACE(24, wxString::Format("Styled text '%s' colour %i  start %li  end %li  length %i", text, colour,
+		beforeLength, afterLength, (int)(afterLength-beforeLength)));
+	}
+
 duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on stack in colour
     wxStyledTextCtrl* output_window;
     int long beforeLength, afterLength;
@@ -104,13 +118,9 @@ duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on
     
     pConsole->Show(); // make sure console is visible
     output_window = pConsole->m_Output;
-    beforeLength = output_window->GetTextLength(); // where we are before adding text
-    output_window->AppendText(js_formOutput(ctx));
-    afterLength = output_window->GetTextLength(); // where we are after adding text
-    output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
-    output_window->SetStyling((int)(afterLength-beforeLength), colour);
+    appendStyledText(js_formOutput(ctx),output_window, colour);
     limitOutput(output_window);
-    return (0);
+    return(0);
 }
 
 void onDismissAlert(wxCommandEvent & event){

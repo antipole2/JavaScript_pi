@@ -59,6 +59,15 @@ class ToolsClassBase : public wxDialog
 		wxStaticText* m_MessageIDText1;
 		wxButton* m_receiveMessageButton;
 		wxStaticText* m_MessageText11;
+		wxPanel* Parking;
+		wxStaticText* m_buttonAdvice;
+		wxStaticText* m_revertPrompt;
+		wxButton* m_parking_revert_button;
+		wxStaticText* m_customPrompt;
+		wxButton* m_customiseButton;
+		wxStaticText* m_revealPrompt;
+		wxButton* m_revealButton;
+		wxTextCtrl* m_parkingMessage;
 		wxPanel* Diagnostics;
 		wxStaticText* m_diagnosticAdvice;
 		wxStaticText* m_dumpPrompt;
@@ -75,6 +84,9 @@ class ToolsClassBase : public wxDialog
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveNMEAmessage( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveMessage( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onParkingRevert( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onParkingCustomise( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onParkingReveal( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onDump( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onClean( wxCommandEvent& event ) { event.Skip(); }
 

@@ -55,7 +55,14 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	bSizer10->Add( 0, 0, 1, 0, 0 );
 
-	tools_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxSize( 38,-1 ), wxBORDER_NONE );
+	park_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("P"), wxDefaultPosition, wxSize( 25,25 ), 0|wxBORDER_DEFAULT );
+	park_button->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+	park_button->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNHIGHLIGHT ) );
+	park_button->SetBackgroundColour( wxColour( 0, 0, 255 ) );
+
+	bSizer10->Add( park_button, 0, wxALL, 5 );
+
+	tools_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxSize( 50,-1 ), 0 );
 	tools_button->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
 	bSizer10->Add( tools_button, 0, wxALL, 5 );
@@ -204,6 +211,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	// Connect Events
 	this->Connect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console::OnActivate ) );
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( m_Console::OnClose ) );
+	this->Connect( wxEVT_MOVE, wxMoveEventHandler( m_Console::OnMove ) );
 	m_splitter->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -230,6 +238,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	save_as_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSaveAs ), NULL, this );
 	run_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnRun ), NULL, this );
 	auto_run->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
+	park_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnPark ), NULL, this );
 	tools_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
 	m_Script->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -277,6 +286,7 @@ m_Console::~m_Console()
 	// Disconnect Events
 	this->Disconnect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console::OnActivate ) );
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( m_Console::OnClose ) );
+	this->Disconnect( wxEVT_MOVE, wxMoveEventHandler( m_Console::OnMove ) );
 	m_splitter->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -303,6 +313,7 @@ m_Console::~m_Console()
 	save_as_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSaveAs ), NULL, this );
 	run_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnRun ), NULL, this );
 	auto_run->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
+	park_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnPark ), NULL, this );
 	tools_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
 	m_Script->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );

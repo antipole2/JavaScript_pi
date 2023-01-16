@@ -29,19 +29,18 @@ See the Technical Guide for instructions for configuring for a given platform
 #ifdef __WXMSW__
 #define CONSOLE_MIN_HEIGHT 20
 #define CONSOLE_STUB 50
-#define CONSOLE_CHAR_WIDTH 11.62
+
 #define PARK_LEVEL 25
 #define PARK_FIRST_X 70
 #define PARK_SEP 8
 
 #else
 //includes MacOS
-#define CONSOLE_MIN_HEIGHT 29
-#define CONSOLE_STUB 82
-#define CONSOLE_CHAR_WIDTH 11.62
-#define PARK_LEVEL 25
-#define PARK_FIRST_X 3
-#define PARK_SEP 6.0
+#define CONSOLE_MIN_HEIGHT 29L
+#define CONSOLE_STUB 77L
+#define PARK_LEVEL 25L
+#define PARK_FIRST_X 3L
+#define PARK_SEP 6L
 
 #endif
 

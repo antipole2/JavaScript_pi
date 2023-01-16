@@ -23,6 +23,7 @@
 #include "toolsDialogImp.h"
 #include <bitset>
 #include "config.h"
+#include "consolePositioning.h"
 
 enum FileOptions{
     DONT_CARE,
@@ -97,6 +98,7 @@ public:
     void SetPositionFixEx              (PlugIn_Position_Fix_Ex &pfix);
     void SetActiveLegInfo   ( Plugin_Active_Leg_Info &leg_info);
     void OnJavaScriptConsoleClose   ();
+    bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
@@ -114,6 +116,14 @@ public:
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
     Position        mCursorPosition;     // latest cursor position
     
+    // console parking
+    bool			m_parkingBespoke {true};	// true if using bespoke parking parameters
+    int				m_parkingMinHeight {CONSOLE_MIN_HEIGHT};	// minimim height of console
+    int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length
+    int				m_parkingLevel {PARK_LEVEL};			// level below frame of parking
+    int				m_parkFirstX {PARK_FIRST_X};			// inset of first park place from left edge of frame
+    int				m_parkSep {PARK_SEP};					// separation between parked consoles
+    
     wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of a script
     int				nextID = 1;		// used to generate unique IDs
@@ -124,7 +134,6 @@ private:
     wxBitmap        m_panelBitmap;
     bool            m_bJavaScriptShowIcon;
     bool            LoadConfig(void);
-    bool            SaveConfig(void);
     };
 
 #endif  // JavaScript_pi_h

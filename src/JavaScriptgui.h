@@ -45,6 +45,7 @@ class m_Console : public wxDialog
 		wxButton* load_button;
 		wxButton* save_button;
 		wxButton* save_as_button;
+		wxButton* park_button;
 		wxButton* tools_button;
 		wxStaticLine* m_staticline1;
 		wxPanel* m_outputSizer;
@@ -54,6 +55,7 @@ class m_Console : public wxDialog
 		// Virtual event handlers, override them in your derived class
 		virtual void OnActivate( wxActivateEvent& event ) { event.Skip(); }
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+		virtual void OnMove( wxMoveEvent& event ) { event.Skip(); }
 		virtual void onMouse( wxMouseEvent& event ) { event.Skip(); }
 		virtual void OnClearScript( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnCopyAll( wxCommandEvent& event ) { event.Skip(); }
@@ -62,6 +64,7 @@ class m_Console : public wxDialog
 		virtual void OnSaveAs( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnRun( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnAutoRun( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnPark( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnTools( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnClearOutput( wxCommandEvent& event ) { event.Skip(); }
 
