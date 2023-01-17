@@ -6,3 +6,4 @@ po/*.pot
 cache
 plugins
 *DS_Store
+.DS_Store
