@@ -931,7 +931,11 @@ public:
     	if (size.x < minSize.x) size.x = minSize.x;
     	if (size.y < minSize.y) size.y = minSize.y;
     	 
-    	SetSize(size);    	
+#ifdef __LINUX__ 		// Linux cannot handle SetSize() if window not yet fully formed
+		SetClientSize(size);	// can use this instead
+#else
+    	SetSize(size);
+#endif   	
     	}
     	
     void park(){	// park this console
@@ -943,7 +947,13 @@ public:
         TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
         	mConsoleName, GetMinSize().x, GetMinSize().y));
  
-		SetSize(GetMinSize());
+		wxSize size = GetMinSize();
+#ifdef __LINUX__ 		// Linux cannot handle SetSize() if window not yet fully formed
+		SetClientSize(size);	// can use this instead
+#else
+    	SetSize(size);
+#endif		
+
     	if (isParked()) return;	// was already parked
     	// find horizontal place available avoiding other parked consoles
     	for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){

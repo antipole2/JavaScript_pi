@@ -17,10 +17,8 @@
 /* herewith constants used when handling minimised or parked consoles
 CONSOLE_MIN_HEIGHT	Minimum height of a console
 CONSOLE_STUB		Space to be left for things other than console name
-CONSOLE_CHAR_WIDTH	Width to allow for average 
-PARK_FRAME_HEIGHT	Height of canvas window top frame			
-PARK_CILL			Space between bottom of minimised console and bottom of canvas top bar
-PARK_FIRST_X		Indent of first parked console from left-hand edge of canvas window
+PARK_LEVEL			Level at which to park consoles in distance down in frame
+PARK_FIRST_X		Indent of first parked console from left-hand edge of frame
 PARK_SEP			Horizontal separation of parked consoles
 
 These constants are platform dependent
@@ -29,7 +27,6 @@ See the Technical Guide for instructions for configuring for a given platform
 #ifdef __WXMSW__
 #define CONSOLE_MIN_HEIGHT 20
 #define CONSOLE_STUB 50
-
 #define PARK_LEVEL 25
 #define PARK_FIRST_X 70
 #define PARK_SEP 8

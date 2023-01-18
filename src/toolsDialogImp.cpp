@@ -107,8 +107,17 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     	return;} 
     pConsole->SetLabel(newConsoleName);
     pConsole->mConsoleName = newConsoleName;
+    TRACE(17, wxString::Format("onChangeName for parked console %s size was x:%i y:%i", oldConsoleName, GetSize().x, GetSize().y ));
     pConsole->setConsoleMinSize();
-    if (pConsole->isParked()) SetSize(GetMinSize());	// shrink it
+    if (pConsole->isParked()){	// shrink it
+    	wxSize size = pConsole->GetMinSize();
+    	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
+#ifdef __LINUX__ 		// Linux cannot handle SetSize() if window not yet fully formed
+		pConsole->SetClientSize(size);	// can use this instead
+#else
+    	pConsole->SetSize(size);
+#endif
+    	}
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }
