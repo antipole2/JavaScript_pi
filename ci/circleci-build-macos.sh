@@ -54,6 +54,7 @@ cmake \
   -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx315_opencpn50_macos1010" \
   -DCMAKE_INSTALL_PREFIX= \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.10 \
+  -DCMAKE_OSX_ARCHITECTURES=x86_64 \
   ..
 
 if [[ -z "$CI" ]]; then
