@@ -100,7 +100,7 @@ https://github.com/antipole2/JavaScript_pi[Github Repository]
 
 For discussion on applications of the plugin, use the forum thread.
 
-For problems with the plugin or feature requests, please https://opencpn.org/flyspray/index.php?project=97&do=index&switch=1[submit on Flyspray here].
+For problems with the plugin or feature requests, please https://github.com/antipole2/JavaScript_pi/issues[raise an issue here].
 
 == FAQs
 
@@ -118,8 +118,9 @@ See the plugin user guide.
 *Can it do this or that?*
 
 Read the user guide which documents the APIs that allow a script to interact with OpenCPN.
+Have a look at the library of sample scripts, which may help you see how to do what you want.
 If you cannot find what you need, ask in the plugin forum.
 
 *It cannot do what I need - can that be added?*
 
-If you have confirmed the plugin cannot do something you would like it to, https://opencpn.org/flyspray/index.php?project=97&do=index&switch=1[submit an enhancement request on FlySpray].
+If you have confirmed the plugin cannot do something you would like it to, https://github.com/antipole2/JavaScript_pi/issues[submit an enhancement request here].
