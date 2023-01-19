@@ -279,9 +279,9 @@ public:
         mBrief.theBrief = wxEmptyString;
         mBrief.reply = false;
         mBrief.briefingConsoleName = wxEmptyString;
-        setConsoleMinSize();
-        m_parked = parked;
-        if (m_parked) m_parkedPosition = screenToFrame(consolePosition);
+//-        setConsoleMinSize();
+//-        m_parked = parked;
+//-        if (m_parked) m_parkedPosition = screenToFrame(consolePosition);
         // output pane set up
         m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
         m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
@@ -326,7 +326,7 @@ public:
         m_Output->AppendText(welcome);
         this->SetSize(consoleSize);
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
-        Hide();   // we hide console now but this may be changed later
+//-        Hide();   // we hide console now but this may be changed later
         }
     
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
@@ -922,7 +922,7 @@ public:
     	wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, mConsoleName);
     	wxSize textSize = staticText->GetSize();
     	delete staticText;
-    	minSize.x = pJavaScript_pi->m_parkingStub + textSize.x;
+    	minSize.x = pJavaScript_pi->m_parkingStub + textSize.x + 3;	// added 3 to be on safe side
     	minSize.y = pJavaScript_pi->m_parkingMinHeight;
     	TRACE(4, wxString::Format("setConsoleMinSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
     	SetMinSize(minSize);
@@ -931,11 +931,11 @@ public:
     	if (size.x < minSize.x) size.x = minSize.x;
     	if (size.y < minSize.y) size.y = minSize.y;
     	 
-#ifdef __LINUX__ 		// Linux cannot handle SetSize() if window not yet fully formed
-		SetClientSize(size);	// can use this instead
-#else
+//- #if defined (__LINUX__)		// Linux cannot handle SetSize() if window not yet fully formed
+//- 		SetClientSize(size);	// can use this instead
+ //-#else
     	SetSize(size);
-#endif   	
+//-#endif   	
     	}
     	
     void park(){	// park this console
@@ -948,11 +948,11 @@ public:
         	mConsoleName, GetMinSize().x, GetMinSize().y));
  
 		wxSize size = GetMinSize();
-#ifdef __LINUX__ 		// Linux cannot handle SetSize() if window not yet fully formed
-		SetClientSize(size);	// can use this instead
-#else
+//-#if defined (__LINUX__) 		// Linux cannot handle SetSize() if window not yet fully formed
+//-		SetClientSize(size);	// can use this instead
+//-#else
     	SetSize(size);
-#endif		
+//-#endif		
 
     	if (isParked()) return;	// was already parked
     	// find horizontal place available avoiding other parked consoles
@@ -1026,6 +1026,9 @@ public:
         wxPoint screenPosition = GetPosition();
         wxPoint framePosition = screenToFrame(screenPosition);
         dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tframe x:%i y:%i\n", screenPosition.x, screenPosition.y, framePosition.x, framePosition.y );
+        wxSize size = GetSize();
+        wxSize minSize = GetMinSize();
+        dump += wxString::Format("Size():\t\t\t\tx:%i y:%i\tMinSize() x:%i y:%i\n", size.x, size.y, minSize.x, minSize.y );
         dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
         dump += "isParked():\t\t\t" + (isParked() ?  _("true"):_("false")) + "\n";       
         dump += _("Messages callback table\n");

@@ -162,6 +162,7 @@ duk_ret_t console_add(duk_context *ctx){
     if (outcome !="") throwErrorByCtx(ctx, outcome);
     pConsole = new Console(pJavaScript_pi->m_parent_window, name);
     pConsole->CenterOnScreen();
+    pConsole->setConsoleMinSize();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;

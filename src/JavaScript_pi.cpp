@@ -295,6 +295,7 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
+            mpFirstConsole->setConsoleMinSize();
             mpFirstConsole->m_Output->AppendText(welcome);
             mpFirstConsole->Hide();
             }
@@ -317,8 +318,9 @@ bool JavaScript_pi::LoadConfig(void)
             mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configured
-                new Console(m_parent_window, "JavaScript", wxPoint(300,20), wxSize(738,800), wxPoint(150, 100),
+                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20), wxSize(738,800), wxPoint(150, 100),
                 	wxPoint(90, 20), wxEmptyString, false, welcome);
+                newConsole->setConsoleMinSize();
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
@@ -350,7 +352,11 @@ bool JavaScript_pi::LoadConfig(void)
                     alertPosition = frameToScreen(alertPosition);
                     // take care of no console size
                     if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
-                    new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
+                    Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
+                    newConsole->setConsoleMinSize();
+                    if (parked) newConsole->park();
+//-                    newConsole->m_parked = parked;
+//-                    if (parked) newConsole->m_parkedPosition = screenToFrame(consolePosition);
                     }
                 }
             }

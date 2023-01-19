@@ -68,7 +68,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         m_ConsolesMessage->AppendText(outcome);
         return;
         }
-    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName, wxDefaultPosition,wxSize(738,800),wxDefaultPosition, wxDefaultPosition);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -112,11 +112,11 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     if (pConsole->isParked()){	// shrink it
     	wxSize size = pConsole->GetMinSize();
     	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
-#ifdef __LINUX__ 		// Linux cannot handle SetSize() if window not yet fully formed
-		pConsole->SetClientSize(size);	// can use this instead
-#else
+//-#if defined (__LINUX__) 		// Linux cannot handle SetSize() if window not yet fully formed
+//-		pConsole->SetClientSize(size);	// can use this instead
+//-#else
     	pConsole->SetSize(size);
-#endif
+//-#endif
     	}
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
