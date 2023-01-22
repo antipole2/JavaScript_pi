@@ -46,5 +46,5 @@
     #define TRACE(L,A) ((void)0)
 #endif  // TRACE_LEVEL
 
-#endif // trace_h 
+#endif // trace_h
 
