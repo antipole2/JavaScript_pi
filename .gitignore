@@ -7,3 +7,5 @@ cache
 plugins
 *DS_Store
 .DS_Store
+.DS_Store
+Plugin.cmake
