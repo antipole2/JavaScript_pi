@@ -17,8 +17,6 @@
 #include "JavaScriptgui_impl.h"
 #include "wx/dirdlg.h"
 
-//- extern JavaScript_pi *pJavaScript_pi;
-
 Console* pTestConsole1 = nullptr;
 Console* pTestConsole2 = nullptr;
 
@@ -48,14 +46,8 @@ void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     // The different pages need to be different sizes - this does it
     int pageNumber;
 
-//-    cleanupParking();
-//-    m_parkingMessage->Clear();
-//-    m_customiseButton->SetLabel("Start");
     pageNumber = event.GetSelection();
     setupPage(pageNumber);
-//-    resizeDialogue(pageNumber);
-//-    wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
-//-    mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
     }
     
 void ToolsClass::cleanupParking(){
@@ -145,11 +137,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     if (pConsole->isParked()){	// shrink it
     	wxSize size = pConsole->GetMinSize();
     	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
-//-#if defined (__LINUX__) 		// Linux cannot handle SetSize() if window not yet fully formed
-//-		pConsole->SetClientSize(size);	// can use this instead
-//-#else
     	pConsole->SetSize(size);
-//-#endif
     	}
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
@@ -270,12 +258,6 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     stringWindow->Show();
     }
     
-
-//-Console* pTestConsole1 = nullptr;
-//-Console* pTestConsole2 = nullptr;
-
-
-    
 void ToolsClass::onParkingRevert(wxCommandEvent& event){
 	// revert parking parameters to platform default
 	pJavaScript_pi->m_parkingBespoke = false;
@@ -308,16 +290,6 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 				numberParked++;
 				}
 			}
-/* //-			
-		while (pConsole != nullptr) {
-			if (pConsole->isParked()){
-				if (numberParked == 0) m_parkingMessage->SetValue("Unpark the parked console(s)\n");
-				m_parkingMessage->AppendText(wxString::Format("%s\n", pConsole->mConsoleName));
-				numberParked++;
-				}
-			
-			}	while (pConsole = pConsole->mpNextConsole);
-*/
 		if (numberParked > 0){
 			m_parkingMessage->AppendText("and then try again");
 			return;

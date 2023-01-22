@@ -280,9 +280,7 @@ public:
         mBrief.theBrief = wxEmptyString;
         mBrief.reply = false;
         mBrief.briefingConsoleName = wxEmptyString;
-//-        setConsoleMinSize();
-//-        m_parked = parked;
-//-        if (m_parked) m_parkedPosition = screenToFrame(consolePosition);
+
         // output pane set up
         m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
         m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
@@ -327,7 +325,6 @@ public:
         m_Output->AppendText(welcome);
         this->SetSize(consoleSize);
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
-//-        Hide();   // we hide console now but this may be changed later
         }
     
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
@@ -617,7 +614,7 @@ public:
         
         mStatus.set(reason);
         TRACE(4, wxString::Format("%s->wrapUpWorks() with status %d and now %s\n%s",mConsoleName, reason, statusesToString(mStatus), dukDump()));
-#if TRACE_LEVEL>0
+#if TRACE_YES
         {wxString dump {""};
             if (mBrief.hasBrief || mBrief.reply){
                 dump += "mBrief\n";
@@ -935,12 +932,7 @@ public:
     	size = GetSize();
     	if (size.x < minSize.x) size.x = minSize.x;
     	if (size.y < minSize.y) size.y = minSize.y;
-    	 
-//- #if defined (__LINUX__)		// Linux cannot handle SetSize() if window not yet fully formed
-//- 		SetClientSize(size);	// can use this instead
- //-#else
-    	SetSize(size);
-//-#endif   	
+    	SetSize(size); 	
     	}
     	
     void park(){	// park this console
@@ -950,15 +942,9 @@ public:
         int rightMost {0};    // most right hand edge of a parked console relative to frame
         bool foundParked {false};
         TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
-        	mConsoleName, GetMinSize().x, GetMinSize().y));
- 
+        	mConsoleName, GetMinSize().x, GetMinSize().y)); 
 		wxSize size = GetMinSize();
-//-#if defined (__LINUX__) 		// Linux cannot handle SetSize() if window not yet fully formed
-//-		SetClientSize(size);	// can use this instead
-//-#else
-    	SetSize(size);
-//-#endif		
-
+    	SetSize(size);	
     	if (isParked()) return;	// was already parked
     	// find horizontal place available avoiding other parked consoles
     	for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){

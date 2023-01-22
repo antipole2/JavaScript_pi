@@ -366,8 +366,6 @@ bool JavaScript_pi::LoadConfig(void)
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
                     if (parked) newConsole->park();
-//-                    newConsole->m_parked = parked;
-//-                    if (parked) newConsole->m_parkedPosition = screenToFrame(consolePosition);
                     }
                 }
             }

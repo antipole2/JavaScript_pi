@@ -121,7 +121,6 @@ void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour){
 
 duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on stack in colour
     wxStyledTextCtrl* output_window;
-//-    int long beforeLength, afterLength;
     Console *pConsole = findConsoleByCtx(ctx);
     
     pConsole->Show(); // make sure console is visible

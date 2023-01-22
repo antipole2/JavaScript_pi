@@ -31,7 +31,7 @@ See the Technical Guide for instructions for configuring for a given platform
 #define PARK_FIRST_X 70L
 #define PARK_SEP 8L
 
-#elseif defined(__LINUX__)
+#elif defined(__LINUX__)
 #define CONSOLE_MIN_HEIGHT 20L
 #define CONSOLE_STUB 79L
 #define PARK_LEVEL 48L
