@@ -25,6 +25,8 @@
 #include <wx/statbox.h>
 #include <wx/choice.h>
 #include <wx/panel.h>
+#include <wx/hyperlink.h>
+#include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
 
@@ -68,6 +70,20 @@ class ToolsClassBase : public wxDialog
 		wxStaticText* m_revealPrompt;
 		wxButton* m_revealButton;
 		wxTextCtrl* m_parkingMessage;
+		wxPanel* Help;
+		wxStaticText* HelpTopText1;
+		wxHyperlinkCtrl* m_hyperlink1;
+		wxHyperlinkCtrl* m_hyperlink11;
+		wxStaticText* HelpTopText11;
+		wxHyperlinkCtrl* m_hyperlink5;
+		wxStaticText* HelpTopText111;
+		wxHyperlinkCtrl* m_hyperlink511;
+		wxStaticText* HelpTopText1111;
+		wxHyperlinkCtrl* m_hyperlink10;
+		wxStaticLine* m_staticline1;
+		wxStaticText* HelpTopText11111;
+		wxHyperlinkCtrl* m_hyperlink101;
+		wxHyperlinkCtrl* m_hyperlink1011;
 		wxPanel* Diagnostics;
 		wxStaticText* m_diagnosticAdvice;
 		wxStaticText* m_dumpPrompt;

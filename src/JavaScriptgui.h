@@ -47,6 +47,7 @@ class m_Console : public wxDialog
 		wxButton* save_as_button;
 		wxButton* park_button;
 		wxButton* tools_button;
+		wxButton* Help;
 		wxStaticLine* m_staticline1;
 		wxPanel* m_outputSizer;
 		wxStaticLine* m_staticline2;
@@ -66,6 +67,7 @@ class m_Console : public wxDialog
 		virtual void OnAutoRun( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnPark( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnTools( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnHelp( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnClearOutput( wxCommandEvent& event ) { event.Skip(); }
 
 
@@ -76,7 +78,7 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 738,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMINIMIZE_BOX|wxRESIZE_BORDER );
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 844,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMINIMIZE_BOX|wxRESIZE_BORDER );
 
 		~m_Console();
 

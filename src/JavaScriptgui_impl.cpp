@@ -222,9 +222,16 @@ void Console::OnClose(wxCloseEvent& event) {
 static wxString dummyMessage, message_id;
 wxDialog* dialog;
 
+void Console::OnHelp( wxCommandEvent& event){
+    extern JavaScript_pi *pJavaScript_pi;
+    
+    pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, -1);
+    return;
+    }
+
 void Console::OnTools( wxCommandEvent& event){
     extern JavaScript_pi *pJavaScript_pi;
     
-    pJavaScript_pi->ShowPreferencesDialog(pJavaScript_pi->m_parent_window);
+    pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, 0);
     return;
     }

@@ -100,6 +100,7 @@ public:
     void OnJavaScriptConsoleClose   ();
     bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
+    void ShowTools (wxWindow* m_parent_window, int page);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
@@ -115,6 +116,7 @@ public:
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
     Position        mCursorPosition;     // latest cursor position
+    bool			m_showHelp {false};		// show help during first showing of consoles
     
     // console parking
     bool			m_parkingBespoke {true};	// true if using bespoke parking parameters

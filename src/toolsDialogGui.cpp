@@ -16,11 +16,11 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* TopSizer;
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
-	TopSizer->SetMinSize( wxSize( 620,600 ) );
+	TopSizer->SetMinSize( wxSize( 620,650 ) );
 	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,190 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,190 ), 0 );
+	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,200 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Consoles->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Consoles->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -291,7 +291,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* parkingAdviceSizer1;
 	parkingAdviceSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
-	m_buttonAdvice = new wxStaticText( parkingAdviceSizer1->GetStaticBox(), wxID_ANY, wxT("Configure custome parking details\nChanges will be preserved on normal  plugin/OpenCPN deactivation"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonAdvice = new wxStaticText( parkingAdviceSizer1->GetStaticBox(), wxID_ANY, wxT("Configure custom parking details\nChanges will be preserved on normal  plugin/OpenCPN deactivation"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonAdvice->Wrap( -1 );
 	m_buttonAdvice->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	m_buttonAdvice->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
@@ -368,7 +368,106 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	Parking->SetSizer( ParkingTopSizer1 );
 	Parking->Layout();
-	m_notebook->AddPage( Parking, wxT("Parking"), true );
+	m_notebook->AddPage( Parking, wxT("Parking"), false );
+	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), 0 );
+	Help->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
+
+	wxBoxSizer* HelpSizer1;
+	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
+
+	HelpSizer1->SetMinSize( wxSize( -1,650 ) );
+	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin, which you can download from the following links.  Please consult this before raising queries.\n\nIf reading on a mobile device, you may find the .epub format more convenient as you can bookmark pages and keep track of where you have got to."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText1->Wrap( 550 );
+	HelpSizer1->Add( HelpTopText1, 0, wxALL, 5 );
+
+	wxStaticBoxSizer* sbSizer24;
+	sbSizer24 = new wxStaticBoxSizer( new wxStaticBox( Help, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+
+
+	sbSizer24->Add( 0, 0, 1, wxEXPAND, 0 );
+
+	m_hyperlink1 = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
+	sbSizer24->Add( m_hyperlink1, 0, wxALL, 5 );
+
+
+	sbSizer24->Add( 0, 0, 1, 0, 5 );
+
+	m_hyperlink11 = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
+	sbSizer24->Add( m_hyperlink11, 0, wxALL, 5 );
+
+
+	sbSizer24->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	HelpSizer1->Add( sbSizer24, 0, wxEXPAND, 0 );
+
+
+	HelpSizer1->Add( 0, 25, 0, 0, 0 );
+
+	HelpTopText11 = new wxStaticText( Help, wxID_ANY, wxT("There is a library of sample scripts available.  These can be used ‘as is’ or adapted  as rquired. They are also useful examples of how to achive various tasks."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText11->Wrap( 550 );
+	HelpSizer1->Add( HelpTopText11, 0, wxALL, 5 );
+
+	m_hyperlink5 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("The shared library"), wxT("https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	HelpSizer1->Add( m_hyperlink5, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+
+	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
+
+	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("You can discuss the plugin and its applications in the JavaScript pugin topic in the OpenCPN forum.  (NB The early posts in this topic concern long obsolete versions of the plugin.) Please do not raise questions already addressed in the User Guide."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText111->Wrap( 550 );
+	HelpSizer1->Add( HelpTopText111, 0, wxALL, 5 );
+
+	m_hyperlink511 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Plugin topic in OpenCPN forum"), wxT("https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	HelpSizer1->Add( m_hyperlink511, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+
+	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
+
+	HelpTopText1111 = new wxStaticText( Help, wxID_ANY, wxT("Technical problems can be raised in the plugin issues here."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText1111->Wrap( 550 );
+	HelpSizer1->Add( HelpTopText1111, 0, wxALL, 5 );
+
+	m_hyperlink10 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Plugin issues"), wxT("https://github.com/antipole2/JavaScript_pi/issues"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	HelpSizer1->Add( m_hyperlink10, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+
+	HelpSizer1->Add( 0, 15, 1, wxEXPAND, 5 );
+
+	m_staticline1 = new wxStaticLine( Help, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxLI_HORIZONTAL );
+	m_staticline1->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	HelpSizer1->Add( m_staticline1, 0, wxEXPAND | wxALL, 5 );
+
+	HelpTopText11111 = new wxStaticText( Help, wxID_ANY, wxT("There is also a Technical Guide for those needing to understand the workings of the plugin or maintain it.  This is not needed or helpful for using the plugin or writing scripts."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText11111->Wrap( 550 );
+	HelpSizer1->Add( HelpTopText11111, 0, wxALL, 5 );
+
+	wxStaticBoxSizer* sbSizer33;
+	sbSizer33 = new wxStaticBoxSizer( new wxStaticBox( Help, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+
+
+	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_hyperlink101 = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	sbSizer33->Add( m_hyperlink101, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+
+	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_hyperlink1011 = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	sbSizer33->Add( m_hyperlink1011, 0, wxALL, 5 );
+
+
+	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	HelpSizer1->Add( sbSizer33, 1, wxEXPAND, 5 );
+
+
+	Help->SetSizer( HelpSizer1 );
+	Help->Layout();
+	m_notebook->AddPage( Help, wxT("Help"), true );
 	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
 	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
@@ -380,7 +479,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* diagnosticAdviceSizer;
 	diagnosticAdviceSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
-	m_diagnosticAdvice = new wxStaticText( diagnosticAdviceSizer->GetStaticBox(), wxID_ANY, wxT("For help using these functions, see the section ‘Preferences panel diagnostics tab’  in the plugin technical guide."), wxDefaultPosition, wxDefaultSize, 0 );
+	m_diagnosticAdvice = new wxStaticText( diagnosticAdviceSizer->GetStaticBox(), wxID_ANY, wxT("For help using these functions, see the section ‘Tools panel diagnostics tab’  in the plugin technical guide."), wxDefaultPosition, wxDefaultSize, 0 );
 	m_diagnosticAdvice->Wrap( -1 );
 	m_diagnosticAdvice->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	m_diagnosticAdvice->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
@@ -436,7 +535,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	cleanSizer->Add( CharsTopSizer, 0, wxEXPAND, 0 );
 
 
-	DiagnosticsTpSizer->Add( cleanSizer, 1, wxEXPAND|wxFIXED_MINSIZE, 5 );
+	DiagnosticsTpSizer->Add( cleanSizer, 0, wxEXPAND|wxFIXED_MINSIZE, 5 );
 
 
 	Diagnostics->SetSizer( DiagnosticsTpSizer );

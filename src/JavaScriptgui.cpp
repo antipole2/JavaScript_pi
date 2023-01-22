@@ -67,6 +67,11 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	bSizer10->Add( tools_button, 0, wxALL, 5 );
 
+	Help = new wxButton( m_scriptSizer, wxID_ANY, wxT("?"), wxDefaultPosition, wxSize( 18,18 ), wxBORDER_NONE );
+	Help->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
+
+	bSizer10->Add( Help, 0, wxALL, 5 );
+
 
 	bSizer3->Add( bSizer10, 0, wxEXPAND, 5 );
 
@@ -87,8 +92,8 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	m_Script = new wxStyledTextCtrl( m_scriptSizer, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, wxEmptyString );
 	m_Script->SetUseTabs( true );
-	m_Script->SetTabWidth( 5 );
-	m_Script->SetIndent( 5 );
+	m_Script->SetTabWidth( 35 );
+	m_Script->SetIndent( 35 );
 	m_Script->SetTabIndents( true );
 	m_Script->SetBackSpaceUnIndents( true );
 	m_Script->SetViewEOL( false );
@@ -240,6 +245,7 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	auto_run->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
 	park_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnPark ), NULL, this );
 	tools_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
+	Help->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnHelp ), NULL, this );
 	m_Script->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -315,6 +321,7 @@ m_Console::~m_Console()
 	auto_run->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
 	park_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnPark ), NULL, this );
 	tools_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
+	Help->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnHelp ), NULL, this );
 	m_Script->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_Script->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );

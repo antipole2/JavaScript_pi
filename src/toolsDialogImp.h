@@ -37,35 +37,30 @@ public:
     void onParkingCustomise(wxCommandEvent& event);
     void onParkingReveal(wxCommandEvent& event);
     void cleanupParking();
-    
+    void setupPage(int pageNumber);
+	
     ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString,
-    	const wxPoint& pos = wxPoint(1000,400), const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE )
+    	const wxPoint& pos = wxPoint(1000,400), const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE)
         :ToolsClassBase(parent, id, title, pos, size, style)
         {
         
         // adding extra _ to list of valid chars via wxFormBuilder does not work.  Bug in wxWidgets?
         // so we will do it this way
-        // this not yet available in wxWidgets as used by Windows and Linux so only for Apple for now
-#ifdef __APPLE__
+        // this only available in wxWidgets 3.1.3 and later
+//-#if (WXMAJOR_VERSION >= 3)
+//-#if (WXMINOR_VERSION >=1) 
+//-#if (WXRELEASE_NUMBER >= 3)
+#if (wxVERSION_NUMBER >= 3103)
+//#ifdef __APPLE__
         wxTextValidator* validator;
         validator = (wxTextValidator*)m_newConsoleName->GetValidator();
         validator->AddCharIncludes("_");   
         validator = (wxTextValidator*)m_changedName->GetValidator();
         validator->AddCharIncludes("_");
 #endif
-        m_notebook->SetSelection(0);	//start on first page
-        this->resizeDialogue(0);
-        }
-
-    void resizeDialogue(int pageNumber){
-        wxWindow *page;
-        int page_x, page_y;
-        page = this->m_notebook->GetPage(pageNumber);
-        page->Fit();
-        page->GetSize(&page_x, &page_y);
-        TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
-        this->SetSize(600, page_y);
-        }        
+        m_notebook->SetSelection(0);	//start on required page
+        };
+        
  
     };
 

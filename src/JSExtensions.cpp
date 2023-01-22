@@ -59,7 +59,11 @@ void limitOutput(wxStyledTextCtrl* pText){
 		if (newlinePos != wxSTC_INVALID_POSITION) pText->DeleteRange(0, newlinePos+1);
 		// now we will insert a coloured noe at the start
 		pText->InsertText(0, deleted);
-		pText->StartStyling(0,0);	// 2nd parameter included Linux still using wxWidgets v3.0.2
+#if (wxVERSION_NUMBER < 3100)
+        pText->StartStyling(0,255);   // 2nd parameter included Linux still using wxWidgets v3.0.2
+#else
+		pText->StartStyling(0);
+#endif
 		pText->SetStyling(deleted.Length(), STYLE_BLUE);
 		}
 	pText->ScrollToEnd();
@@ -105,7 +109,11 @@ void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour){
 	beforeLength = window->GetTextLength(); // where we are before adding text
 	window->AppendText(text);
 	afterLength = window->GetTextLength(); // where we are after adding text
-	window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
+#if (wxVERSION_NUMBER < 3100)
+    window->StartStyling((int)beforeLength,255);   // 2nd parameter included Linux still using wxWidgets v3.0.2
+#else
+    window->StartStyling((int)beforeLength);
+#endif
 	window->SetStyling((int)(afterLength-beforeLength), colour);
 	TRACE(24, wxString::Format("Styled text '%s' colour %i  start %li  end %li  length %i", text, colour,
 		beforeLength, afterLength, (int)(afterLength-beforeLength)));
@@ -113,7 +121,7 @@ void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour){
 
 duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on stack in colour
     wxStyledTextCtrl* output_window;
-    int long beforeLength, afterLength;
+//-    int long beforeLength, afterLength;
     Console *pConsole = findConsoleByCtx(ctx);
     
     pConsole->Show(); // make sure console is visible

@@ -98,6 +98,7 @@ int JavaScript_pi::Init(void)
     TRACE(1,"JavaScript_pi->Init() entered");
     AddLocaleCatalog( _T("opencpn-JavaScript_pi") );
 
+    pTools = nullptr;
     mpFirstConsole = nullptr;
     mpBin = nullptr;
 
@@ -142,15 +143,15 @@ bool JavaScript_pi::DeInit(void) {
     Console *pConsole;
 
     wxLogMessage("JavaScript_pi->DeInit() entered");
-     mTimer.Stop();
-     mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
+    mTimer.Stop();
+    mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
 
     SaveConfig();
 
-    if (pTools) {
+    if (pTools != nullptr) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
-        pTools->Hide();
-        pTools->Destroy();
+ //       pTools->Close();
+ //       pTools->Destroy();
         delete pTools;
         pTools = nullptr;
         }
@@ -169,8 +170,9 @@ bool JavaScript_pi::DeInit(void) {
 #endif
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
-        pConsole = NULL;
+        pConsole = nullptr;
         }
+    mpFirstConsole = nullptr;	// guard against doing deinit again
 
     while (mpBin) {    // also any in the bin
         TRACE(3,"JavaScript plugin DeInit deleting console " + mpBin->mConsoleName + " from bin");
@@ -233,7 +235,8 @@ wxString JavaScript_pi::GetShortDescription()
 wxString JavaScript_pi::GetLongDescription()
 {
     return "Run JavaScripts and interact with OpenCPN\n\
-Details and user guide here: https://github.com/antipole2/JavaScript_pi/releases";
+See User Guide at https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html\n\
+and fuller details in the plugin Help ";
 }
 
 int JavaScript_pi::GetToolbarToolCount(void)
@@ -258,7 +261,10 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     TRACE(2,"JavaScript_pi->OnToolbarToolCallback() entered");
 
     mShowingConsoles = !mShowingConsoles;   // toggle console display state
-
+	if (mShowingConsoles & m_showHelp){
+			ShowTools(m_parent_window, -1);	// show them the help page
+			m_showHelp = false;
+			}
     Console *m_pConsole = mpFirstConsole;
     for (m_pConsole = mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (mShowingConsoles)   m_pConsole->Show();
@@ -276,9 +282,9 @@ bool JavaScript_pi::LoadConfig(void)
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     wxString fileNames;
 #ifndef IN_HARNESS
-    if(pConf)
-    {
-    	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME) + wxString(USERGUIDES);
+	m_showHelp = false;
+    if(pConf){
+    	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME);
         pConf->SetPath (configSection);
         bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         if (!configUptoDate){	// configuration may be pre-v0.5
@@ -297,9 +303,13 @@ bool JavaScript_pi::LoadConfig(void)
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
             mpFirstConsole->setConsoleMinSize();
             mpFirstConsole->m_Output->AppendText(welcome);
-            mpFirstConsole->Hide();
+            m_showHelp = true;
             }
         else {
+        	if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){ // updated
+				welcome = wxString(PLUGIN_UPDATE_WELCOME);
+				m_showHelp = true;
+				}
             TRACE(2, "Loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
@@ -325,8 +335,9 @@ bool JavaScript_pi::LoadConfig(void)
             else {
                 wxStringTokenizer tkz(consoles, ":");
                 wxString welcome = wxEmptyString;
-                if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR)))
-                    welcome = wxString(PLUGIN_UPDATE_WELCOME) + wxString(USERGUIDES);
+                if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){
+                    welcome = wxString(PLUGIN_UPDATE_WELCOME);
+                    }
                 while ( tkz.HasMoreTokens() ){
                     wxPoint consolePosition, dialogPosition, alertPosition;
                     wxSize  consoleSize;
@@ -718,11 +729,49 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     }
 
 #include "toolsDialogImp.h"
-void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
-    if (pTools == nullptr) {  // do not yet have a preferences dialogue
+#include "wx/display.h"
+	
+void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window){
+	TRACE(60, "ShowPreferencesDialog invoked ");
+	ShowTools(m_parent_window, -1);
+	}
+
+
+void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
+	// if page == -1, show Help
+	TRACE(60, wxString::Format("entered ShowTools page: %i", page));
+
+    if (pTools == nullptr) {  // do not yet have a tools dialogue
+    	int x, y;
         pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
+        // position it top right in display
+        wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
+        wxDisplay display(wxDisplay::GetFromWindow(frame));
+		wxRect screen = display.GetClientArea();
+        wxSize toolsSize = pTools->GetSize();
+        
+/*       just played with this - not working
+        if (toolsSize.y > screen.height){ // too tall for this display
+        	toolsSize.y = screen.height;
+        	pTools->SetSize(wxSize(toolsSize));
+        	}
+*/        	
+        x = screen.x + screen.width - toolsSize.x;
+        y = screen.y;
+        pTools->SetPosition(wxPoint(x,y));
         }
-    pTools->setConsoleChoices();
     pTools->Show();
-    pTools->Raise();
+    if (page == -1){
+    	// need to determin which page is Help
+    	int i;
+		int count = pJavaScript_pi->pTools->m_notebook->GetPageCount();
+		for (i = 0; i < count; i++){
+			TRACE(60, wxString::Format("Show Tools count: %i, i: %i, GetPageText: %s", count, i, pJavaScript_pi->pTools->m_notebook->GetPageText(i)));
+			if (pJavaScript_pi->pTools->m_notebook->GetPageText(i) == "Help") break;
+			}
+		page = i;
+		}   
+    pTools->setupPage(page);
+    return;
     };
+

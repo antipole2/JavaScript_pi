@@ -17,7 +17,10 @@
 #include "JavaScriptgui_impl.h"
 #include "wx/dirdlg.h"
 
-extern JavaScript_pi *pJavaScript_pi;
+//- extern JavaScript_pi *pJavaScript_pi;
+
+Console* pTestConsole1 = nullptr;
+Console* pTestConsole2 = nullptr;
 
 void ToolsClass::setConsoleChoices(){
     Console *pConsole;
@@ -28,6 +31,7 @@ void ToolsClass::setConsoleChoices(){
     }
 
 void ToolsClass::onClose( wxCloseEvent& event ){
+    extern JavaScript_pi* pJavaScript_pi;
 /*
     *pPointerToThisInJavaScript_pi = nullptr;
     TRACE(4, "In Tools close");
@@ -35,6 +39,8 @@ void ToolsClass::onClose( wxCloseEvent& event ){
  */
     this->Hide();
     cleanupParking();
+    Destroy();
+    pJavaScript_pi->pTools = nullptr;
     m_parkingMessage->Clear();
     }
 
@@ -42,14 +48,41 @@ void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     // The different pages need to be different sizes - this does it
     int pageNumber;
 
-    cleanupParking();
-    m_parkingMessage->Clear();
-    m_customiseButton->SetLabel("Start");
+//-    cleanupParking();
+//-    m_parkingMessage->Clear();
+//-    m_customiseButton->SetLabel("Start");
     pageNumber = event.GetSelection();
-    resizeDialogue(pageNumber);
-    wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
-    mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
+    setupPage(pageNumber);
+//-    resizeDialogue(pageNumber);
+//-    wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
+//-    mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
     }
+    
+void ToolsClass::cleanupParking(){
+		m_customiseButton->SetLabel("Start");
+		if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
+		if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
+		}
+
+void ToolsClass::setupPage(int pageNumber){	// display this page of tools
+    	extern JavaScript_pi* pJavaScript_pi;
+        wxWindow *page;
+        int page_x, page_y;
+        setConsoleChoices();
+        cleanupParking();
+        m_parkingMessage->Clear();
+        m_customiseButton->SetLabel("Start");
+        wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
+    	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
+		m_notebook->ChangeSelection(pageNumber);
+        page = m_notebook->GetPage(pageNumber);
+        page->Fit();
+        Show();
+        Raise();
+        page->GetSize(&page_x, &page_y);
+        TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
+        this->SetSize(600, page_y);
+        }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
     wxString newConsoleName, outcome;
@@ -163,7 +196,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
 
-    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER));
+    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
@@ -238,14 +271,10 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     }
     
 
-Console* pTestConsole1 = nullptr;
-Console* pTestConsole2 = nullptr;
+//-Console* pTestConsole1 = nullptr;
+//-Console* pTestConsole2 = nullptr;
 
-void ToolsClass::cleanupParking(){
-    m_customiseButton->SetLabel("Start");
-	if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
-	if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
-    }
+
     
 void ToolsClass::onParkingRevert(wxCommandEvent& event){
 	// revert parking parameters to platform default
@@ -270,15 +299,25 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	if (label == "Start"){
 		// check if have parked consoles
 		int x, y;
-		Console* pConsole = pJavaScript_pi->mpFirstConsole;
+		Console* pConsole;
 		int numberParked = 0;
-		do {
+		for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){// for each console
 			if (pConsole->isParked()){
 				if (numberParked == 0) m_parkingMessage->SetValue("Unpark the parked console(s)\n");
 				m_parkingMessage->AppendText(wxString::Format("%s\n", pConsole->mConsoleName));
 				numberParked++;
 				}
+			}
+/* //-			
+		while (pConsole != nullptr) {
+			if (pConsole->isParked()){
+				if (numberParked == 0) m_parkingMessage->SetValue("Unpark the parked console(s)\n");
+				m_parkingMessage->AppendText(wxString::Format("%s\n", pConsole->mConsoleName));
+				numberParked++;
+				}
+			
 			}	while (pConsole = pConsole->mpNextConsole);
+*/
 		if (numberParked > 0){
 			m_parkingMessage->AppendText("and then try again");
 			return;
@@ -340,7 +379,7 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 void ToolsClass::onParkingReveal(wxCommandEvent& event) {
 		m_parkingMessage->SetValue(pJavaScript_pi->m_parkingBespoke?"Bespoke settings\n\n":"Default settings\n\n");
 		m_parkingMessage->AppendText(wxString::Format(
-			"#define CONSOLE_MIN_HEIGHT %i\n#define CONSOLE_STUB %i\n#define PARK_LEVEL %i\n#define PARK_FIRST_X %i\n#define PARK_SEP %i",
+			"#define CONSOLE_MIN_HEIGHT %iL\n#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
 			pJavaScript_pi->m_parkingMinHeight, pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));			
 		}
 	

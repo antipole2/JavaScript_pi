@@ -228,6 +228,7 @@ public:
     void OnAutoRun(wxCommandEvent& event);
     void OnClearOutput( wxCommandEvent& event );
     void OnTools( wxCommandEvent& event );
+    void OnHelp( wxCommandEvent& event );
     void OnPark( wxCommandEvent& event );
     void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
@@ -822,7 +823,11 @@ public:
         output_window->AppendText(message);
         output_window->AppendText("\n");
         int long afterLength = output_window->GetTextLength(); // where we are after adding text
-        output_window->StartStyling((int)beforeLength,0);   // 2nd parameter included Linux still using wxWidgets v3.0.2
+#if (wxVERSION_NUMBER < 3100)
+        output_window->StartStyling((int)beforeLength,255);   // 2nd parameter included Linux still using wxWidgets v3.0.2
+#else
+		 output_window->StartStyling((int)beforeLength);
+#endif
         output_window->SetStyling((int)(afterLength-beforeLength-1), style);
 		limitOutput(output_window);
         }
