@@ -438,6 +438,7 @@ else printGreen("Track was deleted\n");
 if (errorCount == 0){
 	printGreen("\n** End of tests - no errors found **\n");
 	scriptResult("No errors found");
+//printBlue("About to wraup up\n", consoleDump(), "\n");
 	}
 else {
 	printRed("\n** Tests ended after ", errorCount, (errorCount==1)?" error\n":" errors\n");

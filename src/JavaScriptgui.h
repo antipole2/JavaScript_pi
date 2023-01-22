@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Oct 26 2018)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -9,12 +9,12 @@
 
 #include <wx/artprov.h>
 #include <wx/xrc/xmlres.h>
+#include <wx/button.h>
 #include <wx/string.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
 #include <wx/gdicmn.h>
-#include <wx/button.h>
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
@@ -38,22 +38,25 @@ class m_Console : public wxDialog
 	private:
 
 	protected:
-		wxSplitterWindow* m_splitter1;
-		wxPanel* m_panel1;
+		wxSplitterWindow* m_splitter;
+		wxPanel* m_scriptSizer;
 		wxButton* m_clearScript;
 		wxButton* copy_button;
 		wxButton* load_button;
 		wxButton* save_button;
 		wxButton* save_as_button;
+		wxButton* park_button;
 		wxButton* tools_button;
+		wxButton* Help;
 		wxStaticLine* m_staticline1;
-		wxPanel* m_panel2;
+		wxPanel* m_outputSizer;
 		wxStaticLine* m_staticline2;
 		wxButton* m_clearOutput;
 
-		// Virtual event handlers, overide them in your derived class
+		// Virtual event handlers, override them in your derived class
 		virtual void OnActivate( wxActivateEvent& event ) { event.Skip(); }
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+		virtual void OnMove( wxMoveEvent& event ) { event.Skip(); }
 		virtual void onMouse( wxMouseEvent& event ) { event.Skip(); }
 		virtual void OnClearScript( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnCopyAll( wxCommandEvent& event ) { event.Skip(); }
@@ -62,7 +65,9 @@ class m_Console : public wxDialog
 		virtual void OnSaveAs( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnRun( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnAutoRun( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnPark( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnTools( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnHelp( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnClearOutput( wxCommandEvent& event ) { event.Skip(); }
 
 
@@ -73,13 +78,14 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 738,741 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 844,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMINIMIZE_BOX|wxRESIZE_BORDER );
+
 		~m_Console();
 
-		void m_splitter1OnIdle( wxIdleEvent& )
+		void m_splitterOnIdle( wxIdleEvent& )
 		{
-			m_splitter1->SetSashPosition( 600 );
-			m_splitter1->Disconnect( wxEVT_IDLE, wxIdleEventHandler( m_Console::m_splitter1OnIdle ), NULL, this );
+			m_splitter->SetSashPosition( 600 );
+			m_splitter->Disconnect( wxEVT_IDLE, wxIdleEventHandler( m_Console::m_splitterOnIdle ), NULL, this );
 		}
 
 };

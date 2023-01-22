@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -15,6 +15,7 @@
 #define JavaScript_pi_h
 
 #include "version.h"
+#include "buildConfig.h"
 #include "wx/wx.h"
 #include <wx/fileconf.h>
 #include "ocpn_plugin.h" //Required for OCPN plugin functions
@@ -22,14 +23,31 @@
 #include "toolsDialogImp.h"
 #include <bitset>
 #include "config.h"
+#include "consolePositioning.h"
 
-enum Options{
+enum FileOptions{
     DONT_CARE,
     MUST_EXIST,
     MUST_NOT_EXIST
 };
 
-typedef  std::bitset<8> status_t;
+// declare completion states
+// These must agree with statusesToString() in functions.cpp
+enum Completions {
+    HAD_ERROR,  // avoid 'ERROR' - conflicts with "ERROR" defined in "wingdi.h", a Windows file
+    TIMEOUT,
+    DONE,
+    INEXIT,
+    STOPPED,
+    MORETODO,
+    INMAIN,
+    TOCHAIN,
+    CLOSED,
+    CLOSING,    // needing to stop but unable to release ctx yet
+    Completions_count
+    };
+
+typedef  std::bitset<Completions_count> status_t;
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
@@ -38,6 +56,11 @@ typedef  std::bitset<8> status_t;
  #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
 
 class Console;
+
+class Position {
+public:
+    double lat; double lon;
+    };
 
 class JavaScript_pi : public opencpn_plugin_117
 {
@@ -62,6 +85,8 @@ public:
 //  The required override PlugIn Methods
     int GetToolbarToolCount(void);
     void OnToolbarToolCallback(int id);
+    void OnContextMenuItemCallback(int id);
+    void SetCursorLatLon(double lat, double lon);
 
 //  Optional plugin overrides
     void SetColorScheme(PI_ColorScheme cs);
@@ -73,8 +98,12 @@ public:
     void SetPositionFixEx              (PlugIn_Position_Fix_Ex &pfix);
     void SetActiveLegInfo   ( Plugin_Active_Leg_Info &leg_info);
     void OnJavaScriptConsoleClose   ();
+    bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
+    void ShowTools (wxWindow* m_parent_window, int page);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
+    wxArrayString recentFiles;	// array of recent file strings
+    wxSortedArrayString favouriteFiles; //array of favourite file strings
 
     Console         *mpFirstConsole;   // pointer to the first console
     Console*        mpBin;      // the bin for consoles to be deleted
@@ -86,8 +115,20 @@ public:
     wxString        mCurrentDirectory;
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
+    Position        mCursorPosition;     // latest cursor position
+    bool			m_showHelp {false};		// show help during first showing of consoles
+    
+    // console parking
+    bool			m_parkingBespoke {true};	// true if using bespoke parking parameters
+    int				m_parkingMinHeight {CONSOLE_MIN_HEIGHT};	// minimim height of console
+    int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length
+    int				m_parkingLevel {PARK_LEVEL};			// level below frame of parking
+    int				m_parkFirstX {PARK_FIRST_X};			// inset of first park place from left edge of frame
+    int				m_parkSep {PARK_SEP};					// separation between parked consoles
+    
     wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of a script
+    int				nextID = 1;		// used to generate unique IDs
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
 	bool			m_bShowJavaScript;
 
@@ -95,7 +136,6 @@ private:
     wxBitmap        m_panelBitmap;
     bool            m_bJavaScriptShowIcon;
     bool            LoadConfig(void);
-    bool            SaveConfig(void);
     };
 
 #endif  // JavaScript_pi_h

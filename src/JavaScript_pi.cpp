@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -41,19 +41,13 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
     delete p;
 }
 
-//---------------------------------------------------------------------------------------------------------
+#define FS ";"	// character to use as file separator in recents and favourites in .in file
+
+//----------------------------------------------------------------------------------------
 //
 //    JavaScript PlugIn Implementation
 //
-//---------------------------------------------------------------------------------------------------------
-
-#include "icons.h"
-
-//---------------------------------------------------------------------------------------------------------
-//
-//          PlugIn initialization and de-init
-//
-//---------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
@@ -104,6 +98,7 @@ int JavaScript_pi::Init(void)
     TRACE(1,"JavaScript_pi->Init() entered");
     AddLocaleCatalog( _T("opencpn-JavaScript_pi") );
 
+    pTools = nullptr;
     mpFirstConsole = nullptr;
     mpBin = nullptr;
 
@@ -133,6 +128,7 @@ int JavaScript_pi::Init(void)
     TRACE(1,"JavaScript_pi->Init() returning");
 
     return (WANTS_TOOLBAR_CALLBACK |
+            WANTS_CURSOR_LATLON |
             WANTS_CONFIG             |
             WANTS_PLUGIN_MESSAGING |
             WANTS_NMEA_SENTENCES |
@@ -147,15 +143,15 @@ bool JavaScript_pi::DeInit(void) {
     Console *pConsole;
 
     wxLogMessage("JavaScript_pi->DeInit() entered");
-     mTimer.Stop();
-     mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
+    mTimer.Stop();
+    mTimer.Unbind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
 
     SaveConfig();
 
-    if (pTools) {
+    if (pTools != nullptr) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
-        pTools->Hide();
-        pTools->Destroy();
+ //       pTools->Close();
+ //       pTools->Destroy();
         delete pTools;
         pTools = nullptr;
         }
@@ -163,29 +159,29 @@ bool JavaScript_pi::DeInit(void) {
     while (mpFirstConsole) {    // close all remaining consoles
         TRACE(3,"JavaScript plugin DeInit closing console " + mpFirstConsole->mConsoleName);
         pConsole = mpFirstConsole;
-        if (pConsole->m_exitFunction != wxEmptyString){
-            // there is an onExit function to run
-            duk_int_t outcome;
-            TRACE(4, "Deinit running onExit function for console " + pConsole->mConsoleName);
-            outcome = duk_get_global_string(pConsole->mpCtx, pConsole->m_exitFunction.c_str()); // make sure function exists
-            if (outcome) duk_pcall(pConsole->mpCtx, 0); // only call it if it exists and no arguments
-            // don't bother checking for errors - we will not be around to do anything with them
-            }
         // purge stuff out of this one - we do not use wrapUp() because that might do all sorts of other things
         if (pConsole->mpCtx != nullptr) duk_destroy_heap(pConsole->mpCtx);
         pConsole->mMessages.Clear();
-//        while (pConsole->mTimes.GetCount() > 0) pConsole->mTimes.RemoveAt(0);  Not needed?
         pConsole->mTimes.Clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
+#ifdef SOCKETS
+		pConsole->clearSockets();
+#endif
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
         delete pConsole;
-        pConsole = NULL;
+        pConsole = nullptr;
         }
+    mpFirstConsole = nullptr;	// guard against doing deinit again
 
     while (mpBin) {    // also any in the bin
         TRACE(3,"JavaScript plugin DeInit deleting console " + mpBin->mConsoleName + " from bin");
         pConsole = mpBin;
+        if (pConsole->mpCtx != nullptr) { // deferred heap distruction
+            duk_destroy_heap(pConsole->mpCtx);
+            pConsole->mpCtx = nullptr;  // don't need this but...
+            TRACE(3,"JavaScript plugin deinit destroying console" + pConsole->mConsoleName + " ctx while emtying bin");
+            }
         mpBin = pConsole->mpNextConsole; // take first off chain
         delete pConsole;
         pConsole = NULL;
@@ -194,15 +190,7 @@ bool JavaScript_pi::DeInit(void) {
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
     RequestRefresh(m_parent_window); // refresh main window
     wxLogMessage("JavaScript completed deinit");
-    TRACE(1,"JavaScript_pi->DeInit() returning");
-
-/*    delete mpFirstConsole;
-    mpFirstConsole = nullptr;
-	
-    delete mpBin;
-	mpBin = nullptr;
- */
-    
+    TRACE(1,"JavaScript_pi->DeInit() returning");    
     return true;
     }
 
@@ -247,7 +235,8 @@ wxString JavaScript_pi::GetShortDescription()
 wxString JavaScript_pi::GetLongDescription()
 {
     return "Run JavaScripts and interact with OpenCPN\n\
-Details and user guide here: https://github.com/antipole2/JavaScript_pi/releases";
+See User Guide at https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html\n\
+and fuller details in the plugin Help ";
 }
 
 int JavaScript_pi::GetToolbarToolCount(void)
@@ -272,7 +261,10 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
     TRACE(2,"JavaScript_pi->OnToolbarToolCallback() entered");
 
     mShowingConsoles = !mShowingConsoles;   // toggle console display state
-
+	if (mShowingConsoles & m_showHelp){
+			ShowTools(m_parent_window, -1);	// show them the help page
+			m_showHelp = false;
+			}
     Console *m_pConsole = mpFirstConsole;
     for (m_pConsole = mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (mShowingConsoles)   m_pConsole->Show();
@@ -288,9 +280,11 @@ bool JavaScript_pi::LoadConfig(void)
 {
     void JSlexit(wxStyledTextCtrl* pane);
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
+    wxString fileNames;
 #ifndef IN_HARNESS
-    if(pConf)
-    {
+	m_showHelp = false;
+    if(pConf){
+    	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME);
         pConf->SetPath (configSection);
         bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         if (!configUptoDate){	// configuration may be pre-v0.5
@@ -307,44 +301,92 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
-            mpFirstConsole->m_Output->AppendText(wxString(PLUGIN_FIRST_TIME_WELCOME) + wxString(USERGUIDES));
-            mpFirstConsole->Hide();
+            mpFirstConsole->setConsoleMinSize();
+            mpFirstConsole->m_Output->AppendText(welcome);
+            m_showHelp = true;
             }
         else {
+        	if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){ // updated
+				welcome = wxString(PLUGIN_UPDATE_WELCOME);
+				m_showHelp = true;
+				}
             TRACE(2, "Loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
+            
+            // load parking config - platform defaults if none
+            m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
+            m_parkingMinHeight = pConf->Read("ParkingMinHeight", CONSOLE_MIN_HEIGHT);
+            m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
+            m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
+            m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
+            m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
+            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingMinHeight:%i, ParkingStub:%i ",
+            	(m_parkingBespoke?"true":"false"), m_parkingMinHeight, m_parkingStub ));
+            
             // create consoles as in config file
+            mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
-            if (consoles == wxEmptyString){ // no consoles configued
-                new Console(m_parent_window, "JavaScript");
+            if (consoles == wxEmptyString){ // no consoles configured
+                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20), wxSize(738,800), wxPoint(150, 100),
+                	wxPoint(90, 20), wxEmptyString, false, welcome);
+                newConsole->setConsoleMinSize();
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
                 wxString welcome = wxEmptyString;
-                if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR)))
-                    welcome = wxString(PLUGIN_UPDATE_WELCOME) + wxString(USERGUIDES);
-                mpFirstConsole = nullptr;
+                if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){
+                    welcome = wxString(PLUGIN_UPDATE_WELCOME);
+                    }
                 while ( tkz.HasMoreTokens() ){
                     wxPoint consolePosition, dialogPosition, alertPosition;
+                    wxSize  consoleSize;
                     wxString fileString;
-                    bool autoRun;
+                    bool autoRun, parked;
+                    wxPoint frameToScreen(wxPoint);
 
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
+                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
+                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
                     alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
-                    new Console(m_parent_window, name, consolePosition, dialogPosition, alertPosition, fileString, autoRun, welcome);
+                    parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
+                    // from V2 positions have been saved relative to frame
+                    consolePosition = frameToScreen(consolePosition);
+                    dialogPosition = frameToScreen(dialogPosition);
+                    alertPosition = frameToScreen(alertPosition);
+                    // take care of no console size
+                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
+                    Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
+                    newConsole->setConsoleMinSize();
+                    if (parked) newConsole->park();
                     }
                 }
             }
+        fileNames = pConf->Read ( _T ( "Recents" ), _T("") );
+        if (fileNames != wxEmptyString){	// we have some recent file names
+        	wxStringTokenizer tkz(fileNames, FS);
+        	while ( tkz.HasMoreTokens() ){
+        		wxString name = tkz.GetNextToken();
+        		recentFiles.Add(name);
+        		}
+        	}
+        fileNames = pConf->Read ( _T ( "Favourites" ), _T("") );
+        if (fileNames != wxEmptyString){    // we have some favourite file names
+            wxStringTokenizer tkz(fileNames, FS);
+            while ( tkz.HasMoreTokens() ){
+                wxString name = tkz.GetNextToken();
+                favouriteFiles.Add(name);
+                }
+            }
         if (!configUptoDate){	// read config was from old place
-        	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// dlete the old one
+        	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// delete the old one
         	pConf->SetPath (configSection);	// the new grouping
         	pConf->Flush();	// make sure it gets into new location
         	}    
@@ -372,17 +414,56 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
+        
+        // now to save the recent files list - if any
+        if (recentFiles.GetCount() > 0){
+			wxString recents;
+			for (int i = 0; i < recentFiles.GetCount(); i++){
+				recents += recentFiles.Item(i) + ";";        	
+				}
+			recents = recents.BeforeLast(wxString(";").Last());	// drop last :
+			pConf->Write (_T ("Recents"),  recents);
+			}
+        
+        // and the favourite files list - if any
+        if (favouriteFiles.GetCount() > 0){
+            wxString favourites;
+            for (int i = 0; i < favouriteFiles.GetCount(); i++){
+                favourites += favouriteFiles.Item(i) + FS;
+                }
+            favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
+            pConf->Write (_T ("Favourites"),  favourites);
+            }
+            
+        //save custom parking config, if any
+        if (m_parkingBespoke){
+        	pConf->Write (nameColon + _T ( "ParkingBespoke" ),   1 );
+        	pConf->Write (nameColon + _T ( "ParkingMinHeight" ),   m_parkingMinHeight );
+        	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub );
+         	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel );
+         	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX );
+         	pConf->Write (nameColon + _T ( "ParkingSep" ),   m_parkSep );  	
+        	}
+
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        	wxPoint screenToFrame(wxPoint);
+        	// v2 positions now saved relative to frame
             name = pConsole->mConsoleName;
             nameColon = name + ":";
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
-            wxPoint p = pConsole->GetPosition();
-            pConf->Write (nameColon + _T ( "ConsolePosX" ),   p.x );
-            pConf->Write (nameColon + _T ( "ConsolePosY" ),   p.y );
-            pConf->Write (nameColon + _T ( "DialogPosX" ),   pConsole->mDialog.position.x );
-            pConf->Write (nameColon + _T ( "DialogPosY" ),   pConsole->mDialog.position.y);
-            pConf->Write (nameColon + _T ( "AlertPosX" ),   pConsole->mAlert.position.x );
-            pConf->Write (nameColon + _T ( "AlertPosY" ),   pConsole->mAlert.position.y);
+            wxPoint consolePosition = screenToFrame(pConsole->GetPosition());
+            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);
+            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);
+            wxSize  consoleSize = pConsole->GetSize();            
+            pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
+            pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
+            pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );
+            pConf->Write (nameColon + _T ( "ConsoleSizeX" ),   consoleSize.x );
+            pConf->Write (nameColon + _T ( "ConsoleSizeY" ),   consoleSize.y );
+            pConf->Write (nameColon + _T ( "DialogPosX" ),   dialogPosition.x );
+            pConf->Write (nameColon + _T ( "DialogPosY" ),   dialogPosition.y);
+            pConf->Write (nameColon + _T ( "AlertPosX" ),   alertPosition.x );
+            pConf->Write (nameColon + _T ( "AlertPosY" ),  alertPosition.y);
             pConf->Write (nameColon + _T ( "AutoRun" ),   (pConsole->auto_run->GetValue())?"1":"0");
             pConf->Write (nameColon + _T ("LoadFile"),  pConsole->m_fileStringBox->GetValue());
             }
@@ -398,7 +479,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     wxString thisFunction, checksum, correctChecksum;
     size_t starPos;
     bool OK {false};
-    status_t outcome;;
+    Completions outcome;
     duk_context *ctx;
     wxUniChar star = '*';
     Console *m_pConsole;
@@ -413,8 +494,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
             }
         };
     bool haveDoneChecksum = false;
-    // work through all consoles
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
         if (!haveDoneChecksum){ // only do this once, avoiding repeat for each console
@@ -444,12 +524,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
         duk_push_boolean(ctx, OK);
         duk_put_prop_literal(ctx, -2, "OK");
         outcome = m_pConsole->executeFunction(thisFunction);
-        if (outcome == HAD_ERROR) {
-            m_pConsole->wrapUp(HAD_ERROR);
-            }
-        else if ((outcome == DONE)||(outcome == STOPPED)) {
-            m_pConsole->wrapUp(DONE);
-            }
+        m_pConsole->wrapUp(outcome);
         }   // end for this console
     }
 
@@ -458,18 +533,19 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
     m_positionFix = pfix;
 }
 
+void JavaScript_pi::SetCursorLatLon(double lat, double lon){
+    mCursorPosition.lat = lat;
+    mCursorPosition.lon = lon;
+    }
+
 void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
 {
     wxString thisFunction;
-    size_t starPos;
-    bool OK {false};
-    status_t outcome;;
     duk_context *ctx;
     Console *m_pConsole;
     void JSduk_start_exec_timeout(Console);
     void  JSduk_clear_exec_timeout(Console);
-    // work through all consoles
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
         thisFunction = m_pConsole->m_activeLegFunction;  // function to be called - if any
@@ -487,20 +563,15 @@ void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
         duk_put_prop_literal(ctx, -2, "xte");
         duk_push_boolean(ctx, leg_info.arrival);
         duk_put_prop_literal(ctx, -2, "arrived");
-        outcome = m_pConsole->executeFunction(thisFunction);
-        if (outcome == HAD_ERROR) {
-            m_pConsole->wrapUp(HAD_ERROR);
-            }
-        else if ((outcome == DONE)||(outcome == STOPPED)) {
-            m_pConsole->wrapUp(DONE);
-            }
+        Completions outcome = m_pConsole->executeFunction(thisFunction);
+        if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
         }   // end for this console
 }
 
 void JavaScript_pi::OnTimer(wxTimerEvent& ){
+    // This is the regular timer tick through which all timed functions are implemented
     Console* pConsole;
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){	// for each console
         // look out to see if we need to automatically run this console
         if (pConsole->mWaitingToRun){
             TRACE(3, "About to auto-run console " + pConsole->mConsoleName);
@@ -515,19 +586,18 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
         if (!pConsole->mTimerActionBusy){  // only look at timers if not already working on a timer - to stop recursion
             if (!pConsole->mTimes.IsEmpty()){
                 int count;
-                TRACE(3, "Looking at timers for console " + pConsole->mConsoleName);
+                TRACE(8, "Looking at timers for console " + pConsole->mConsoleName);
                 pConsole->mTimerActionBusy = true;  // There is at least one timer running - stop being called again until we are done
                 count = (int)pConsole->mTimes.GetCount();
                  for (int i = 0; i < count; i++){
-                    if (pConsole->mTimes[i].timeToCall <= wxDateTime::Now()){
-                        // this one due
+                    if (pConsole->mTimes[i].timeToCall <= wxDateTime::Now()){  // this one due
                         wxString argument;
                         jsFunctionNameString_t thisFunction;
                         duk_context *ctx = pConsole->mpCtx;
                         thisFunction = pConsole->mTimes[i].functionName;
                         argument = pConsole->mTimes[i].argument;
-                        pConsole->mTimes.RemoveAt(i);
-                        count--; i--;
+                        pConsole->mTimes.RemoveAt(i);	// remove timer to stop it firing again
+                        count--; i--;	// adjust because have removed item
                         if (thisFunction != wxEmptyString){  //only if have valid function
                             Completions  outcome;
                             if (pConsole->mJSrunning){
@@ -537,7 +607,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
 
                             duk_push_string(ctx, argument.c_str());
                             outcome = pConsole->executeFunction(thisFunction);
-                            if (outcome == MORE) continue;
+                            if (outcome == MORETODO) continue;
                             else {
                                 i = 99999;  // this will stop us looking for further timers on this console
                                 pConsole->wrapUp(outcome);
@@ -549,31 +619,86 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
             }
         pConsole->mTimerActionBusy = false;
         }
-    while (mpBin) {    // empty the bin if anything in it
-        Console* pConsole;
-        TRACE(3,"JavaScript plugin deleting console " + mpBin->mConsoleName + " from bin");
-        pConsole = mpBin;
-        mpBin = pConsole->mpNextConsole; // take first off chain
-        pConsole->Destroy();
+
+    Console* pLater = nullptr;  // the linked list of consoles whose deletion is to be deferred
+    while (mpBin) {    // empty the bin if anything in it that can go
+        Console* pThisConsole = mpBin;
+        mpBin = pThisConsole->mpNextConsole; // take first off chain
+        if (pThisConsole->isBusy()){  // this console's messageBox not yet dismissed
+            TRACE(8,"JavaScript plugin console " + pThisConsole->mConsoleName + " deletion from bin deferred");
+            // push it onto the do later chain
+            pThisConsole->mpNextConsole = (pLater == nullptr) ? nullptr : pLater;
+            pLater = pThisConsole;
+            }
+        else {
+            if (pThisConsole->mpCtx != nullptr) { // deferred heap distruction
+                duk_destroy_heap(pThisConsole->mpCtx);
+                pThisConsole->mpCtx = nullptr;  // don't need this but...
+                TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emtying bin");
+                }
+            TRACE(3,"JavaScript plugin deleting console " + pThisConsole->mConsoleName + " from bin");
+            pThisConsole->Destroy();
+            }
+        }
+    mpBin = pLater; // try later
+    }
+
+void JavaScript_pi::OnContextMenuItemCallback(int menuID){
+    Console* pConsole;
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        if (!pConsole->isWaiting()) continue;  // ignore if we are not waiting on something
+        if (!pConsole->mMenus.IsEmpty()){
+            int count;
+            TRACE(3, "Looking at menus for console " + pConsole->mConsoleName);
+            count = (int)pConsole->mMenus.GetCount();
+             for (int i = 0; i < count; i++){
+                if (pConsole->mMenus[i].menuID == menuID){
+                    // it's for this one
+                    wxString argument;
+                    jsFunctionNameString_t thisFunction;
+                    duk_context *ctx = pConsole->mpCtx;
+                    thisFunction = pConsole->mMenus[i].functionName;
+                    argument = pConsole->mMenus[i].argument;
+                    RemoveCanvasContextMenuItem(pConsole->mMenus[i].menuID);
+                    pConsole->mMenus.RemoveAt(i);
+                    count--; i--;
+                    if (thisFunction != wxEmptyString){  //only if have valid function
+                        if (pConsole->mJSrunning){
+                            pConsole->message(STYLE_RED, "Menu callback while JS active - ignored\n");
+                            return;
+                            }
+                        // we return a position, supplemented with the info from when it was set up.
+						duk_push_object(ctx);
+						duk_push_number(ctx, mCursorPosition.lat);
+						duk_put_prop_literal(ctx, -2, "latitude");
+						duk_push_number(ctx, mCursorPosition.lon);
+						duk_put_prop_literal(ctx, -2, "longitude");
+						duk_push_string(ctx, argument.c_str());
+						duk_put_prop_literal(ctx, -2, "info");                       	
+                        Completions outcome = pConsole->executeFunction(thisFunction);
+                        pConsole->wrapUp(outcome);
+                        return;
+                        }
+                    }
+                }
+            }
         }
     }
 
 void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_body) {
     // message received but we use this regular event to also do many things
     int index;
-    int outcome;
+    Completions outcome;
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
     wxString statusesToString(status_t mStatus);
     TRACE(5,"Entered SetPlugin Message message_id: " + message_id + " message:" + message_body);
     if (message_id == "OpenCPN Config"){
-//    if (message_id.Cmp("OpenCPN Config")){
         // capture this while we can
         TRACE(4, "Captured openCPNConfig");
         openCPNConfig = message_body;
         };
-    // work through all consoles
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         jsFunctionNameString_t thisFunction;
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         duk_context *ctx = m_pConsole->mpCtx;
@@ -596,25 +721,55 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
             TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));
-            if (outcome == HAD_ERROR){
-                m_pConsole->wrapUp(HAD_ERROR);
-                }
-            else if ((outcome == DONE)||(outcome == STOPPED)) {
-                m_pConsole->wrapUp(DONE);
-                }
+            m_pConsole->wrapUp(outcome);
             }
         }
     }
 
 #include "toolsDialogImp.h"
-//void JavaScript_pi::ShowToolsDialog(wxWindow *m_parent_window ){
-void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window ){
-    if (pTools == nullptr) {  // do not yet have a preferences dialogue
+#include "wx/display.h"
+	
+void JavaScript_pi::ShowPreferencesDialog(wxWindow *m_parent_window){
+	TRACE(60, "ShowPreferencesDialog invoked ");
+	ShowTools(m_parent_window, -1);
+	}
+
+
+void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
+	// if page == -1, show Help
+	TRACE(60, wxString::Format("entered ShowTools page: %i", page));
+
+    if (pTools == nullptr) {  // do not yet have a tools dialogue
+    	int x, y;
         pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
-        // next a horrible kludge.  Cannot get a reference to this plugin to compile in the
-        // tools distructor, so will store its address in the preference for later access.
-//        pTools->pPointerToThisInJavaScript_pi = &this->pTools;  // yuck!
+        // position it top right in display
+        wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
+        wxDisplay display(wxDisplay::GetFromWindow(frame));
+		wxRect screen = display.GetClientArea();
+        wxSize toolsSize = pTools->GetSize();
+        
+/*       just played with this - not working
+        if (toolsSize.y > screen.height){ // too tall for this display
+        	toolsSize.y = screen.height;
+        	pTools->SetSize(wxSize(toolsSize));
+        	}
+*/        	
+        x = screen.x + screen.width - toolsSize.x;
+        y = screen.y;
+        pTools->SetPosition(wxPoint(x,y));
         }
     pTools->Show();
-
+    if (page == -1){
+    	// need to determin which page is Help
+    	int i;
+		int count = pJavaScript_pi->pTools->m_notebook->GetPageCount();
+		for (i = 0; i < count; i++){
+			TRACE(60, wxString::Format("Show Tools count: %i, i: %i, GetPageText: %s", count, i, pJavaScript_pi->pTools->m_notebook->GetPageText(i)));
+			if (pJavaScript_pi->pTools->m_notebook->GetPageText(i) == "Help") break;
+			}
+		page = i;
+		}   
+    pTools->setupPage(page);
+    return;
     };
+

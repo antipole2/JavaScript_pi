@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,25 +17,38 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/wx.h>
 #include <wx/arrimpl.cpp>
+#include <wx/button.h>
 #include "ocpn_plugin.h"
 #include "trace.h"
 #include <wx/event.h>
-
+#include "wx/window.h"
 
 #define FAIL(X) do { error = X; goto failed; } while(0)
 
 extern JavaScript_pi *pJavaScript_pi;
+
+void updateRecentFiles(wxString fileString){
+    //  Updates the array of recent file names
+    const int maxFiles {10}; // maximum number of recents to save
+    if (pJavaScript_pi->favouriteFiles.Index(fileString) == wxNOT_FOUND){  // not in favourites, so revise recents
+        pJavaScript_pi->recentFiles.Remove(fileString); // remove any existing matching entry
+        pJavaScript_pi->recentFiles.Insert(fileString, 0);  // insert this one as the first
+        int newCount = pJavaScript_pi->recentFiles.GetCount();
+        // trim list if over maximum
+        if (newCount > maxFiles) pJavaScript_pi->recentFiles.RemoveAt(maxFiles, newCount-maxFiles);
+        }
+    }
 
 int messageComp(MessagePair** arg1, MessagePair** arg2) {   // used when sorting messages
     return (strcmp((*arg1)->messageName, (*arg2)->messageName));}
 
 WX_DEFINE_OBJARRAY(MessagesArray);
 WX_DEFINE_OBJARRAY(TimesArray);
-WX_DEFINE_OBJARRAY(ConsoleCallbackArray);
-// WX_DEFINE_OBJARRAY(DialogActionsArray);
-
-// wxString stopLabel="Stop";
-// wxString runLabel="Run";
+WX_DEFINE_OBJARRAY(MenusArray);
+#ifdef SOCKETS
+WX_DEFINE_OBJARRAY(SocketRecordsArray);
+#endif
+WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
 void Console::OnActivate(wxActivateEvent& event){
     wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
@@ -44,43 +57,41 @@ void Console::OnActivate(wxActivateEvent& event){
     pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not force to stay there
     };
 
-
-void Console::OnLoad( wxCommandEvent& event )
-{
-    int response = wxID_CANCEL;
- //   wxArrayString file_array;
-    wxString filename;
+void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
+    wxString fileString;
     wxTextFile ourFile;
     wxString lineOfData, script;
-    wxDialog query;
     wxString JScleanString(wxString line);
+    wxString chooseFileString(Console*);
+    wxString chooseLoadFile(Console*);
     
-    wxFileDialog openConsole( this, _( "File to load" ), wxT ( "" ), wxT ( "" ),
-                             wxT ( "*.js" ),
-                             wxFD_OPEN);
-    response = openConsole.ShowModal();
-    if( response == wxID_OK ) {
-        mFileString = openConsole.GetPath();
-        ourFile.Open(mFileString);
+    fileString = chooseFileString(this);
+    if (fileString == "**cancel**"){
+        TRACE(3, "Load cancelled");
+        return;
+        }
+    if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
+    if (fileString != wxEmptyString){   // only if something now chosen
+        bool OK = ourFile.Open(fileString);
+        if (!OK){ // can't read file - it may have gone away
+            message(STYLE_RED, "File '" + fileString + "' not found or unreadable");
+            pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
+            return;
+            }
         m_Script->ClearAll();   // clear old content
         for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
             script += lineOfData + "\n";
             }
         script = JScleanString(script);
         m_Script->AppendText(script);
-        m_fileStringBox->SetValue(wxString(mFileString));
+        m_fileStringBox->SetValue(wxString(fileString));
         auto_run->Show();
         auto_run->SetValue(false);
-        return;
+        updateRecentFiles(fileString);
+        }
     }
-    else if(response == wxID_CANCEL){
-        TRACE(3, "Load cancelled");
-        return;
-    }
-}
 
-void Console::OnSaveAs( wxCommandEvent& event )
-{
+void Console::OnSaveAs( wxCommandEvent& event ) {
     int response = wxID_CANCEL;
     wxArrayString file_array;
     wxString filename, filePath;
@@ -94,27 +105,19 @@ void Console::OnSaveAs( wxCommandEvent& event )
     response = SaveAsConsole.ShowModal();
     if( response == wxID_OK ) {
         filePath = SaveAsConsole.GetPath();
-/*
-        if (!filePath.EndsWith(".js")){
-            filePath += ".js";
-            message(STYLE_ORANGE, "OnSaveAs - file name must end with .js - not saved");
-            return;
-        }
- */
         if (!filePath.EndsWith(".js")) filePath += ".js";
         m_Script->SaveFile(filePath, wxTEXT_TYPE_ANY);
         m_fileStringBox->SetValue(wxString(filePath));
         auto_run->Show();
+        updateRecentFiles(filePath);
         return;
     }
     else if(response == wxID_CANCEL){
-        // cout  << "Save cancelled\n";
         return;
+        }
     }
-}
 
-void Console::OnSave( wxCommandEvent& event )
-{
+void Console::OnSave( wxCommandEvent& event ) {
     wxArrayString file_array;
     wxString filename;
     wxTextFile ourFile;
@@ -122,23 +125,25 @@ void Console::OnSave( wxCommandEvent& event )
     wxDialog query;
     
     mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") & wxFileExists(   mFileString))
-    {  // Have a 'current' file, so can just save to it
+    if ((   mFileString != "") & wxFileExists(   mFileString)) {
+        // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
         auto_run->Show();
+        updateRecentFiles(mFileString);
         return;
-    }
+        }
     else OnSaveAs(event);  // No previous save, so do Save As
     return;
-}
+    }
 
 void Console::OnCopyAll(wxCommandEvent& event) {
+	TRACE(4, "OnCopyAll");
     int currentPosition = m_Script->GetCurrentPos();
     m_Script->SelectAll();
     m_Script->Copy();
     m_Script->GotoPos(currentPosition);
-}
+    }
 
 void Console::OnClearScript( wxCommandEvent& event ){
     m_Script->ClearAll();
@@ -147,24 +152,24 @@ void Console::OnClearScript( wxCommandEvent& event ){
     mFileString = wxEmptyString;
     auto_run->SetValue(false);
     auto_run->Hide();
-}
+    }
 
 void Console::OnClearOutput( wxCommandEvent& event ){
     m_Output->ClearAll();
-}
+    }
 
-void Console::OnRun( wxCommandEvent& event )
-{
-#if TRACE_LEVEL > 0
+void Console::OnRun( wxCommandEvent& event ) {
+#if TRACE_YES
     extern JavaScript_pi *pJavaScript_pi;
     if (!pJavaScript_pi->mTraceLevelStated)
-        message(STYLE_ORANGE, wxString::Format("Trace level is %d",TRACE_LEVEL));
+        message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
     clearBrief();
-    mConsoleCallbacksAwaited = 0;
+    mConsoleRepliesAwaited = 0;
+    TRACE(0, "------------------ Run console " + mConsoleName);
     doRunCommand(mBrief);
-}
+    }
 
 void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     if (this->auto_run->GetValue()){
@@ -182,9 +187,13 @@ void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
         }
     else this->m_autoRun = false;
     }
+    
+void Console::OnPark( wxCommandEvent& event ){
+	TRACE(4, "OnPark");
+    park();
+    }
 
-void Console::OnClose(wxCloseEvent& event)
-{
+void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
 
@@ -201,24 +210,28 @@ void Console::OnClose(wxCloseEvent& event)
             event.Veto(true);
             return;
             }
-        TRACE(3, "Binning console " + this->mConsoleName);
-        this->bin();
-//        this->clearAndUnhook();
-//        this->Destroy();
-        return;
         }
-    TRACE(3, "Destroying console " + this->mConsoleName);
-    this->Destroy();
-    //RequestRefresh(pJavaScript_pi->m_parent_window);
- }
+	this->bin();
+	// take care to remove from tools, if we have them open
+    ToolsClass *pTools = pJavaScript_pi->pTools;
+    if (pTools != nullptr) pTools->setConsoleChoices();
+	TRACE(3, "Binning console " + this->mConsoleName);
+	return;
+    }
 
 static wxString dummyMessage, message_id;
 wxDialog* dialog;
 
-void Console::OnTools( wxCommandEvent& event){
-//void createDialog();
+void Console::OnHelp( wxCommandEvent& event){
     extern JavaScript_pi *pJavaScript_pi;
     
-    pJavaScript_pi->ShowPreferencesDialog(pJavaScript_pi->m_parent_window);
+    pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, -1);
+    return;
+    }
+
+void Console::OnTools( wxCommandEvent& event){
+    extern JavaScript_pi *pJavaScript_pi;
+    
+    pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, 0);
     return;
     }

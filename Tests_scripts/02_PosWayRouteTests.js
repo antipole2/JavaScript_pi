@@ -100,7 +100,7 @@ print("Present time: ", presentTime, "\n");
 try {config = OCPNgetPluginConfig();}
 catch(err){thow("This test script not for JavaScript plugin versions before v0.3");}
 if (config.inHarness) throw("This tester script cannot be run in the harness");
-print("JavaScript plugin v", config.versionMajor, ".", config.versionMinor, " Patch ", config.patch, " ", config.comment, "\n");
+print("JavaScript plugin v", config.PluginVersionMajor, ".", config.PluginVersionMinor, " Patch ", config.patch, " ", config.comment, "\n");
 
 // 1: Position
 print("\n*** Position tests ***\n");

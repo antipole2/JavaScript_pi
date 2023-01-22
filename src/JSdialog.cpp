@@ -47,7 +47,6 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         }
     functionName = pConsole->mDialog.functionName;
     pConsole->mDialog.functionName = wxEmptyString;   // clear out so we do not use again
-    pConsole->mDialog.position = window->GetPosition();   // remember where it is
     if ( window->Validate() && window->TransferDataFromWindow() ){
         window->Show(false);
         // now to build the returned object
@@ -133,13 +132,10 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         duk_put_prop_string(ctx, -2, "label");
         duk_put_prop_index(ctx, -2, i); // i will have been left one greater than length of array so this extends it
         pConsole->clearDialog();
- //       window->Destroy();
- //       delete window;
- //       window = nullptr;
         TRACE(4,pConsole->mConsoleName + " Done on button processing - to call function " + functionName);
         result = pConsole->executeFunction(functionName);
         TRACE(4,pConsole->mConsoleName + " Button processing - back from function");
-        if (result != MORE) pConsole->wrapUp(result);
+        if (result != MORETODO) pConsole->wrapUp(result);
         }
     else pConsole->throw_error(ctx, "JavaScript onDialogue data validation failed");
     }

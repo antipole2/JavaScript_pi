@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -16,6 +16,7 @@
 #include <wx/wxprec.h>
 #include "duktape.h"
 #include "JavaScriptgui_impl.h"
+#include <wx/msgdlg.h>
 
 extern JavaScript_pi *pJavaScript_pi;
 
@@ -97,27 +98,19 @@ Console* pConsoleBeingTimed {nullptr};  // no other way of finding which console
 
 duk_bool_t JSduk_timeout_check(void *udata) {
     (void) udata;  /* not needed */
-    if (pConsoleBeingTimed == nullptr) return 0; // nothing being timed
     
-#ifdef TIMEOUT_DUMP    // for diagnostics
-        wxString buffer;
-#if IN_HARNESS
-        fprintf(stderr, "exec timeout check %ld: now=%lld, allocate=%ld, end=%lld, left=%lld\n",
-                (long) pJS_control.m_timeout_check_counter, wxGetUTCTimeMillis(), pJS_control.m_time_to_allocate, pJS_control.m_pcall_endtime, pJS_control.m_pcall_endtime-wxGetUTCTimeMillis());
-        fflush(stderr);
-#else
-        buffer.Printf("exec timeout check %ld: backingOut=%s, now=%lld, allocate=%ld, end=%lld, left=%lld\n",
-                      (long) pJS_control.m_timeout_check_counter, pJS_control.m_backingOut?"true":"false", wxGetUTCTimeMillis(), pJS_control.m_time_to_allocate, pJS_control.m_pcall_endtime, pJS_control.m_pcall_endtime-wxGetUTCTimeMillis());
-        JS_control.m_pJSconsole->m_Output->AppendText(buffer);
-#endif // IN_HARNESS
-        }
-#endif   // TIMEOUT_DUMP
+    	TRACE(50, wxString::Format( "exec timeout check %ld: now=%lld, allocate=%ld, end=%lld, left=%lld\nstatus=%s\n",
+        (long) pConsoleBeingTimed->m_timeout_check_counter, wxGetUTCTimeMillis(), pConsoleBeingTimed->m_time_to_allocate,
+        
+        pConsoleBeingTimed->m_pcall_endtime, pConsoleBeingTimed->m_pcall_endtime-wxGetUTCTimeMillis(), pConsoleBeingTimed->consoleDump()));
 
+    if (pConsoleBeingTimed == nullptr) return 0; // nothing being timed
+	if (pConsoleBeingTimed->mStatus.test(TIMEOUT)) return 1;	// already backing out    
     if (pConsoleBeingTimed->m_pcall_endtime == 0) return(0); // we are not timing at this moment
     pConsoleBeingTimed->m_timeout_check_counter++;
     if (wxGetUTCTimeMillis() > pConsoleBeingTimed->m_pcall_endtime) {
-        if (!pConsoleBeingTimed->m_backingOut){ // just starting to back out
-            pConsoleBeingTimed->m_backingOut = true; // so we do not clear more than once
+		if (!pConsoleBeingTimed->mStatus.test(TIMEOUT)){
+            pConsoleBeingTimed->mStatus.set(TIMEOUT);
             pConsoleBeingTimed->m_result = wxEmptyString;    // supress result
             }
         return 1;
@@ -135,16 +128,17 @@ wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the 
 
 Console *findConsoleByCtx(duk_context *ctx){
     // given a duktape context, return pointer to the console
-    // for now we only have one console
     void throwErrorByCtx(duk_context *ctx, wxString message);
     Console *m_pConsole;
     
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
         if (m_pConsole->mpCtx == ctx) return m_pConsole;
         }
-    // failed to match - emit an error message to first console
-    throwErrorByCtx(ctx, "findConsoleByCtx logic error - failed to match ctx");
-    return m_pConsole;  // This to keep compiler happy
+    // failed to match - emit an error message
+    wxMessageBox( wxT("findConsoleByCtx failed to match console"), wxT("JavaScript_pi program error"), wxICON_ERROR);
+    return nullptr;
+    // or maybe we will return the first console anyway
+    return pJavaScript_pi->mpFirstConsole;
 }
 
 void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw error message
@@ -171,7 +165,7 @@ void windowTrace(int level, wxString text){
     // implements tracing to a separate window
     if (!traceTextCtrl){
         // the first time to trace
-        int traceWindowWidth {240};
+        int traceWindowWidth {600};
         wxPoint position;
         position.y = 100;
         position.x = pJavaScript_pi->m_display_width-traceWindowWidth;
@@ -232,14 +226,59 @@ Console* findConsoleByName(wxString name){
 
 wxString statusesToString(status_t mStatus){
     // returns the statuses in status as string
-    return
-       (mStatus.test(CLOSE)?_("CLOSE "):_("")) +
-           (mStatus.test(DONE)?_("DONE "):_("")) +
-           (mStatus.test(HAD_ERROR)?_("HAD_ERROR "):_("")) +
-           (mStatus.test(MORE)?_("MORE "):_("")) +
-           (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
-           (mStatus.test(TOCHAIN)?_("TOCHAIN "):_(""));
+    // statuses defined in JavaScript_pi.h
+    wxString result =
+       (
+        (mStatus.test(HAD_ERROR)?_("HAD_ERROR "):_("")) +
+        (mStatus.test(TIMEOUT)?_("TIMEOUT "):_("")) +
+        (mStatus.test(DONE)?_("DONE "):_("")) +
+        (mStatus.test(INEXIT)?_("INEXIT "):_("")) +        
+        (mStatus.test(STOPPED)?_("STOPPED "):_("")) +
+        (mStatus.test(MORETODO)?_("MORETODO "):_("")) +
+        (mStatus.test(INMAIN)?_("INMAIN "):_("")) +
+        (mStatus.test(TOCHAIN)?_("TOCHAIN "):_("")) +
+        (mStatus.test(CLOSED)?_("CLOSED "):_("")) +
+        (mStatus.test(CLOSING)?_("CLOSING "):_(""))
+        );
+    if (result == wxEmptyString) result = "(no status)";
+    return result;
     }
+
+wxString checkConsoleName(wxString newName, Console* pConsole){
+    // validate proposed name - alphanumeric  or '_' and not more than 14 chars
+    // checks if name already taken but does not check pConsole to allow keeping same name
+    // returns error message or empty string if OK
+    if ((newName.Length() > 14) || (newName.Length() < 1)) return("New console name must be 1-14 chars");
+    wxString::const_iterator i;
+    for (i = newName.begin(); i != newName.end(); ++i) {
+        wxUniChar code = *i;
+        if (((code  < 48) || (code >  122) || ((code > 57) && (code <65)) || ((code >90) && (code < 97)))
+            && (code != 95))
+        return("consoleName new name must only be alphanumeric or _");
+    }
+    //check for existing console with this name
+    for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
+        if (pCon == pConsole) continue;    // don't check this console to allow repeated renaming
+        if (newName == pCon->mConsoleName) return("New console name " + newName + " already taken by another console");
+        }
+    return(wxEmptyString);
+    }
+    
+wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
+	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
+	wxPoint framePos = frame->GetPosition();	// screen position of frame
+	pos.x -= framePos.x;
+	pos.y -= framePos.y;
+	return pos;
+	}
+	
+wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
+	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
+	wxPoint framePos = frame->GetPosition();	// screen position of frame
+	pos.x += framePos.x;
+	pos.y += framePos.y;
+	return pos;
+	}
 
 #include "wx/regex.h"
 // The following could be Duktape release dependent
@@ -279,35 +318,9 @@ wxString formErrorMessage(duk_context *ctx){
             }
         }
     else message = error;   // only the error itself available
+    duk_pop(ctx);   // the error text/object
     return message;
 }
-
-#if 0
-wxRegEx trace("at ([^ \[]*).*:([0-9]*)\).*");   // picks out error trace
-wxString errorTrace(wxString stack){
-//    int count = trace.GetMatchCount();
-//    size_t start, len;
- //   trace.GetMatch(&start, &len, count);
-    wxString result = wxEmptyString;
-    wxString processed = stack;
-    while(trace.Matches(processed)){
-        trace.GetMatch(&start, &len, 0);
-        TRACE(4, "X: " + processed.Mid(start + len));
-        TRACE(4, "Whole match: " + trace.GetMatch(processed, 0));
-        TRACE(4, "Match 1: " + trace.GetMatch(processed, 1));
-        TRACE(4, "Match 2: " + trace.GetMatch(processed, 2));
-        TRACE(4, "Match 3: " + trace.GetMatch(processed, 3));
-        TRACE(4, "Match 4: " + trace.GetMatch(processed, 4));
- /*
-        for (int i = 0; i < count; i++){
-            result = trace.GetMatch(processed, i);
-            TRACE(4, "errorTrace: " + result);
-            }
-  */
-        }
-    return result;
-    }
-#endif
     
 //#if DUKDUMP
 wxString dukdump_to_string(duk_context* ctx){

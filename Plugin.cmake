@@ -34,8 +34,8 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 # -------  Plugin setup --------
 #
 set(PKG_NAME JavaScript_pi)
-set(PKG_VERSION  1.1.0)
-set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
+set(PKG_VERSION  2.0.0)
+set(PKG_PRERELEASE "alpha")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME javascript) # As of GetCommonName() in plugin API
@@ -52,30 +52,36 @@ set(PKG_HOMEPAGE https://github.com/Antipole2/JavaScript_pi)
 set(PKG_INFO_URL https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html)
 
 SET(SRC
-    src/version.h
-    src/trace.h
-    src/JavaScript_pi.h
-    src/JavaScript_pi.cpp
-    src/icons.h
+	src/bitmaps.cpp
+	src/consolePositioning.h
+    src/duk_config.h
+    src/duktape.cpp
+    src/duktape.h
+    src/fileOrganiser.cpp    
+    src/functions.cpp
     src/icons.cpp
-    src/JavaScriptgui.h
-    src/JavaScriptgui.cpp
+    src/icons.h
+    src/ipc.cpp
+    src/JavaScript_pi.cpp
+    src/JavaScript_pi.h
     src/JavaScriptgui_impl.cpp
     src/JavaScriptgui_impl.h
+    src/JavaScriptgui.cpp
+    src/JavaScriptgui.h
+    src/JSdialog.cpp
     src/JSExtensions.cpp
+    src/JSlexer.cpp
+    src/menus.cpp
     src/ocpn_duk.h
     src/OPCNapis.cpp
-    src/duk_config.h
-    src/duktape.h
-    src/duktape.cpp
-    src/JSlexer.cpp
-    src/JSdialog.cpp
-    src/functions.cpp
     src/optional.cpp
-    src/toolsDialogGui.h
+    src/sockets.cpp
     src/toolsDialogGui.cpp
-    src/toolsDialogImp.h
+    src/toolsDialogGui.h
     src/toolsDialogImp.cpp
+    src/toolsDialogImp.h
+    src/trace.h
+    src/version.h
     )
 
 set(PKG_API_LIB api-17)  #  A directory in libs/ e. g., api-17 or api-16

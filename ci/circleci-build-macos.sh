@@ -47,13 +47,14 @@ tar -C /tmp -xJf /tmp/wx315_opencpn50_macos1010.tar.xz
 
 # Build and package
 cd build-osx
-# build types: Release | RelWithDebInfo
+# build types: Release | RelWithDebInfo | Debug
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DwxWidgets_CONFIG_EXECUTABLE=/tmp/wx315_opencpn50_macos1010/bin/wx-config \
   -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx315_opencpn50_macos1010" \
   -DCMAKE_INSTALL_PREFIX= \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.10 \
+  -DCMAKE_OSX_ARCHITECTURES=x86_64 \
   ..
 
 if [[ -z "$CI" ]]; then

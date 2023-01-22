@@ -1,6 +1,6 @@
 require("Consoles");
 
-name = "x5b79l8q^bui";
+name = "azbycxdveu";
 if (!consoleExists(name)) consoleAdd(name);
 consoleLoad(name, "82_chain_with_brief.js");
 onConsoleResult(name, done);

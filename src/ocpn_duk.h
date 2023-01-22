@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2021 by Tony Voss
+* Copyright Ⓒ 2023 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -11,6 +11,7 @@
 * https://www.gnu.org/licenses/gpl-3.0.en.html
 ***************************************************************************
 */
+// no longer reuired
 #if 0
 #ifndef OCPN_DUK_H
 #define OCPN_DUK_H

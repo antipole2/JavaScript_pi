@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright (C) 2021 by Tony Voss
+* Copyright (C) 2022 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,7 +17,6 @@
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
 #include <wx/listimpl.cpp>
-
 #include <stdarg.h>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
@@ -46,6 +45,7 @@ wxString getNames[] = {
 Console *findConsoleByCtx(duk_context *ctx);
 wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
 void throwErrorByCtx(duk_context *ctx, wxString message);
+extern JavaScript_pi *pJavaScript_pi;
 
 
 wxString getContextDump(duk_context *ctx){ // return duktape context dump as string
@@ -321,6 +321,7 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
 static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onMessageName within onExit function");
     if (nargs > 2) throwErrorByCtx(ctx, "OCPNonMessageName bad call");
     if (nargs == 0) { // empty call - cancel any waiting callback
         size_t messageCount = pConsole->mMessages.GetCount();
@@ -351,6 +352,7 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
 static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonNMEAsentence within onExit function");
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_NMEAmessageFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
@@ -372,6 +374,7 @@ static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonActiveLeg within onExit function");
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_activeLegFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
@@ -390,8 +393,50 @@ static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg mess
     return 0;  // returns no arg
     }
 
-static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation data and constructs navigation object
+static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context menu
     extern JavaScript_pi *pJavaScript_pi;
+    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    duk_ret_t result = 0;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    MenuActions menuAction;
+    wxString argument = wxEmptyString;
+    wxString menuName;
+    int menuCount;
+    wxMenu dummy_menu;
+    Console *pConsole = findConsoleByCtx(ctx);
+    
+    if (nargs == 0) { // empty call - cancel all menus
+        pConsole->clearMenus();
+        pConsole->mWaitingCached = false;   // force full isWaiting check
+        return(result);
+        }
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonContextMenu within onExit function");
+    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "OCPNonContextMenu first argument must be function");
+    menuCount = pConsole->mMenus.GetCount();
+    if (menuCount >= MAX_MENUS){
+        pConsole->throw_error(ctx, "OCPNonContextMenu already have maximum menus outstanding");
+        }
+    if ((nargs < 2) || (nargs > 3)){
+        pConsole->throw_error(ctx, "OCPNonContextMenu requires two or three arguments");
+        }
+    menuAction.functionName = extractFunctionName(ctx, 0);
+    if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
+    menuName = wxString(duk_to_string(ctx,1));
+    // check menuName not already in use
+    for (int i = 0; i < menuCount; i++){
+         if (pConsole->mMenus[i].menuName == menuName)
+             pConsole->throw_error(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
+        }
+    menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
+    menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
+    menuAction.menuName = menuName;
+    menuAction.argument = argument;
+    pConsole->mMenus.Add(menuAction);  // add this menu to array
+    pConsole->mWaitingCached = pConsole->mWaiting = true;
+    return(result);
+    }
+
+static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation data and constructs navigation object
     // ****  Indenting here shows stack depth - do not re-indent this section ****
     duk_push_object(ctx);
         duk_push_number(ctx, pJavaScript_pi->m_positionFix.FixTime);
@@ -418,7 +463,6 @@ static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation da
 }
 
 static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation data and constructs navigation object Signak K formatted
-    extern JavaScript_pi *pJavaScript_pi;
     wxString thisTime = wxDateTime(pJavaScript_pi->m_positionFix.FixTime).FormatISOCombined().c_str();
 
     // ****  Indenting here shows stack depth - do not re-indent this section ****
@@ -483,7 +527,6 @@ static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation d
 }
 
 /* static duk_ret_t getActiveLeg(duk_context *ctx) {  // gets active leg data and constructs object
-    extern JavaScript_pi *pJavaScript_pi;
     // ****  Indenting here shows stack depth - do not re-indent this section ****
     duk_push_object(ctx);
         duk_push_string(ctx, pJavaScript_pi->Plugin_Active_Leg_Info.wp_name);
@@ -525,6 +568,9 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
         if (starPos != wxNOT_FOUND){ // yes there is one
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
+        if ((sentence[0] != '$') || (sentence[6] != ',')) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $.....,");
+//      Following length limit not implemented  as OCPN allows higher number and useful
+//      if (sentence.Length() > 77) throwErrorByCtx(ctx, wxString::Format("OCPNpushNMEA sentence > 77 chars - is %d",sentence.Length()));
         wxString Checksum = ComputeChecksum(sentence);
         sentence = sentence.Append("*");
         sentence = sentence.Append(Checksum);
@@ -640,7 +686,6 @@ p_route->pWaypointList->clear();
 
 void clearWaypointsOutofTrack(PlugIn_Track *p_track){
 // For a track structure, clear out the waypoints
-PlugIn_Waypoint *p_waypoint;
 /*
 wxPlugin_WaypointListNode *linknode = p_track->pWaypointList->GetFirst();
     for (unsigned int i = 0; linknode; linknode = linknode->GetNext(), i++){
@@ -697,17 +742,9 @@ static duk_ret_t getSingleWaypoint(duk_context *ctx) {
 
 static duk_ret_t addSingleWaypoint(duk_context *ctx) {
     PlugIn_Waypoint_Ex *p_waypoint;
-    bool permanent = true;  // permanent waypoint by default
     bool result;
     wxString GUID;
-    duk_idx_t nargs;
     duk_require_object(ctx,0);
-    nargs = duk_get_top(ctx);   // number of arguments in call
-    if (nargs == 2) {
-        duk_require_boolean(ctx,1);
-        permanent = duk_get_boolean(ctx, 1);   // decide on permanency
-        duk_pop(ctx);
-        }
     p_waypoint = js_duk_to_opcn_waypoint(ctx);  // construct the opcn waypoint
     result = AddSingleWaypointEx(p_waypoint);
     if (!result){ // waypoint already exists?
@@ -718,7 +755,7 @@ static duk_ret_t addSingleWaypoint(duk_context *ctx) {
     p_waypoint->m_HyperlinkList->DeleteContents(true);
     p_waypoint->m_HyperlinkList->clear();
     return(1);  // returns result
-}
+    }
 
 static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     PlugIn_Waypoint_Ex *p_waypoint;
@@ -734,7 +771,7 @@ static duk_ret_t updateSingleWaypoint(duk_context *ctx) {
     p_waypoint->m_HyperlinkList->clear();
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);
-}
+    }
 
 static duk_ret_t deleteSingleWaypoint(duk_context *ctx) {  // given a GUID, deletes waypoint
     wxString GUID;
@@ -814,16 +851,9 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
 static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
     PlugIn_Route_Ex *p_route;
 
-    bool permanent = true;  // permanent by default
+//    bool permanent = true;  // permanent by default
     bool result;
-    duk_idx_t nargs;
     duk_require_object(ctx,0);
-    nargs = duk_get_top(ctx);   // number of arguments in call
-    if (nargs == 2) {
-        duk_require_boolean(ctx,1);
-        permanent = duk_get_boolean(ctx, 1);   // decide on permanency
-        duk_pop(ctx);
-        }
     p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
     result = AddPlugInRouteEx(p_route);
     if (!result){
@@ -855,13 +885,7 @@ static duk_ret_t deleteRoute(duk_context *ctx) {  // given a GUID, deletes route
         }
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);
-}
-
-#define TRACKS
-#ifdef IN_HARNESS
-#undef TRACKS   // no support in the harness for tracks at this time, so don't compile
-#endif
-#ifdef TRACKS
+    }
 
 static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     wxArrayString guidArray;
@@ -882,10 +906,8 @@ static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     }
     
 static duk_ret_t getTrackByGUID(duk_context *ctx) {
-    bool result;
     wxString GUID;
     std::unique_ptr<PlugIn_Track> p_track;
-    Plugin_Hyperlink *p_hyperlink = new Plugin_Hyperlink();
     PlugIn_Waypoint *p_waypoint = new PlugIn_Waypoint();
 
     GUID = duk_get_string(ctx, 0);
@@ -936,56 +958,63 @@ static duk_ret_t addTrack(duk_context *ctx) { // add the track to OpenCPN
     // now track safely stored in OpenCPN, clean up - lists data not otherwise released
     clearWaypointsOutofTrack(p_track);
     return(1);
-}
+    }
 
 static duk_ret_t updateTrack(duk_context *ctx) { // update the track in OpenCPN
     PlugIn_Track *p_track;
-    bool result;
-    duk_idx_t nargs;
 
     p_track = js_duk_to_opcn_track(ctx, false);
     duk_push_boolean(ctx, UpdatePlugInTrack(p_track));  // result will be returned
     clearWaypointsOutofTrack(p_track);
     return(1);
-}
+    }
 
 static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     wxString GUID;
-    bool outcome;
-
     GUID = wxString(duk_to_string(ctx,0));
     if (!DeletePlugInTrack(GUID)) {
         throwErrorByCtx(ctx, "OCPNdeleteTrack called with non-existant GUID " + GUID);
         }
-    duk_push_boolean(ctx, outcome);
-    return(1);  // returns boolean result
-}
-#endif
+    return(0);  // returns boolean result
+    }
 
-#ifdef OMIT
-static duk_ret_t jump_to_position(duk_context *ctx) { // jump to position
+static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
     duk_double_t lat, lon, scale;
+    wxWindow *canvas;
     MAYBE_DUK_DUMP
     lat = duk_get_number(ctx, -3);
     lon = duk_get_number(ctx, -2);
-    scale = duk_get_number(ctx, -1);
-    JumpToPosition(lat, lon, scale);
+    scale = 1/duk_get_number(ctx, -1);
+//    scale = GetNativeScale();
+    canvas = GetCanvasUnderMouse();
+    CanvasJumpToPosition(canvas, lat, lon, scale);
     duk_pop_3(ctx);
     return(0);  // no arguments returned
 }
-#endif
+
 
 static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configuration object
     // ****  Indenting here shows stack depth - do not re-indent this section ****
+#include <wx/versioninfo.h>
     duk_push_object(ctx);
         duk_push_int(ctx, PLUGIN_VERSION_MAJOR);
-            duk_put_prop_literal(ctx, -2, "versionMajor");
+            duk_put_prop_literal(ctx, -2, "PluginVersionMajor");
         duk_push_int(ctx, PLUGIN_VERSION_MINOR);
-            duk_put_prop_literal(ctx, -2, "versionMinor");
-        duk_push_string(ctx, PLUGIN_VERSION_COMMENT);
-            duk_put_prop_literal(ctx, -2, "comment");
+            duk_put_prop_literal(ctx, -2, "PluginVersionMinor");
         duk_push_int(ctx, PLUGIN_VERSION_PATCH);
             duk_put_prop_literal(ctx, -2, "patch");
+        duk_push_string(ctx, PLUGIN_VERSION_COMMENT);
+            duk_put_prop_literal(ctx, -2, "comment");
+        duk_push_int(ctx, API_VERSION_MAJOR);
+        	duk_put_prop_literal(ctx, -2, "ApiMajor");
+		duk_push_int(ctx, API_VERSION_MINOR);
+        	duk_put_prop_literal(ctx, -2, "ApiMinor");
+        wxVersionInfo info = wxGetLibraryVersionInfo();
+        duk_push_string(ctx, info.GetVersionString());
+            duk_put_prop_literal(ctx, -2, "wxWidgets");
+        duk_push_int(ctx, DUK_VERSION);
+        	duk_put_prop_literal(ctx, -2, "DuktapeVersion");
+
 #ifdef IN_HARNESS
         duk_push_boolean(ctx, true);
 #else
@@ -995,9 +1024,18 @@ static duk_ret_t getPluginConfig(duk_context *ctx) {  // gets plugin configurati
     return 1;  // returns one arg
 }
 
+static duk_ret_t getCursorPosition(duk_context *ctx) {  // gets cursor position
+    // ****  Indenting here shows stack depth - do not re-indent this section ****
+    duk_push_object(ctx);
+    duk_push_number(ctx, pJavaScript_pi->mCursorPosition.lat);
+            duk_put_prop_literal(ctx, -2, "latitude");
+    duk_push_number(ctx, pJavaScript_pi->mCursorPosition.lon);
+            duk_put_prop_literal(ctx, -2, "longitude");
+    return 1;  // returns one arg
+    }
+
 static duk_ret_t getOCPNconfig(duk_context *ctx) {  // gets OCPN configuration as JSON
     // json = OCPNgetOCPNconfig()
-    extern JavaScript_pi* pJavaScript_pi;
     if (pJavaScript_pi->openCPNConfig == wxEmptyString) throwErrorByCtx(ctx, "OCPNgetOCPNconfig  no config available");
     duk_push_string(ctx, pJavaScript_pi->openCPNConfig);
     return 1;
@@ -1101,7 +1139,6 @@ static duk_ret_t getVectorPP(duk_context *ctx) {
 static duk_ret_t getPositionPV(duk_context *ctx) {
         // get position after position moved by vector
         double fromLat, fromLon, toLat, toLon, bearing, distance;
-        duk_idx_t obj_idx;
         duk_idx_t pos_idx {0};
         duk_idx_t vector_idx {1};
 
@@ -1157,6 +1194,17 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
         duk_push_number(ctx, distance);
         return 1;
         }
+
+// wxString soundFile = wxString("/Applications/OpenCPN.app/Contents/SharedSupport/sounds/beep_ssl.wav");
+static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
+    wxString* directory = GetpSharedDataLocation();
+    wxString soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
+        bool OK = false;
+        OK = PlugInPlaySoundEx(soundFile);
+        duk_push_boolean(ctx, OK);
+        duk_ret_t result = 1;
+        return (result);
+        }
     
 // ÑÑÑÑÑÑ API registrations follow
 
@@ -1197,7 +1245,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNonActiveLeg");
     duk_push_c_function(ctx, onActiveLeg, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-        
+    
+    duk_push_string(ctx, "OCPNonContextMenu");
+    duk_push_c_function(ctx, onContextMenu, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     duk_push_string(ctx, "OCPNgetARPgpx");
     duk_push_c_function(ctx, getARPgpx, 0 /* no args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -1278,7 +1330,9 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, OCPNrefreshCanvas, 0);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
-#ifdef TRACKS
+    duk_push_string(ctx, "OCPNcentreCanvas");
+    duk_push_c_function(ctx, OCPNcentreCanvas, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNgetTrackGUIDs");
     duk_push_c_function(ctx, getTrackGUIDs, 0 /* 0 args */);
@@ -1299,13 +1353,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNdeleteTrack");
     duk_push_c_function(ctx, deleteTrack, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-#endif
-
-#ifdef OMIT
-    duk_push_string(ctx, "OCPNjumpToPosition");
-    duk_push_c_function(ctx, jump_to_position, 3);  // 3 arguments
+    
+    duk_push_string(ctx, "OCPNgetCursorPosition");
+    duk_push_c_function(ctx, getCursorPosition, 0);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-#endif
     
     duk_push_string(ctx, "OCPNgetPluginConfig");
     duk_push_c_function(ctx, getPluginConfig, 1);
@@ -1314,10 +1365,13 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNgetOCPNconfig");
     duk_push_c_function(ctx, getOCPNconfig, 0);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
     
     duk_push_string(ctx, "OCPNgetAISTargets");
     duk_push_c_function(ctx, getAISTargetsArray, 0);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNsoundAlarm");
+    duk_push_c_function(ctx, playSound, 1 /* 1 arg */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_pop(ctx);
