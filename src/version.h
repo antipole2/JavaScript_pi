@@ -21,5 +21,6 @@
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\nSee the Help panel right for documentation.\n\
 Changes are highlighted in the User Guide and listed in its Appendix A"
 
+
 #endif		// version_h
 
