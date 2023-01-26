@@ -92,7 +92,7 @@ https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_
 There is also a https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_technical_guide.pdf[technical guide] for those wanting to undestand the internal functioning of the plugin or maintain it.
 This is not relevant for plugin users.
 
-https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html[Cruisers Forum Thread]
+https://www.cruisersforum.com/forums/f134/javascript-plugin-v2-thread-after-25-jan-23-a-272422.html[Cruisers Forum Thread]
 
 https://github.com/antipole2/JavaScript_pi[Github Repository]
 
