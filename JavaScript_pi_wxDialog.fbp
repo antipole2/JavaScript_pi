@@ -935,7 +935,7 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
@@ -1010,11 +1010,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxBoxSizer" expanded="0">
+                                        <object class="wxBoxSizer" expanded="1">
                                             <property name="minimum_size"></property>
                                             <property name="name">bSizer8</property>
                                             <property name="orient">wxVERTICAL</property>
@@ -1075,7 +1075,7 @@
                                                     <property name="size"></property>
                                                     <property name="subclass">; ; forward_declare</property>
                                                     <property name="tab_indents">1</property>
-                                                    <property name="tab_width">35</property>
+                                                    <property name="tab_width">5</property>
                                                     <property name="toolbar_pane">0</property>
                                                     <property name="tooltip"></property>
                                                     <property name="use_tabs">1</property>

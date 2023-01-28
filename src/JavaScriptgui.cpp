@@ -92,8 +92,8 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	m_Script = new wxStyledTextCtrl( m_scriptSizer, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, wxEmptyString );
 	m_Script->SetUseTabs( true );
-	m_Script->SetTabWidth( 35 );
-	m_Script->SetIndent( 35 );
+	m_Script->SetTabWidth( 5 );
+	m_Script->SetIndent( 5 );
 	m_Script->SetTabIndents( true );
 	m_Script->SetBackSpaceUnIndents( true );
 	m_Script->SetViewEOL( false );
