@@ -235,7 +235,7 @@ wxString JavaScript_pi::GetShortDescription()
 wxString JavaScript_pi::GetLongDescription()
 {
     return "Run JavaScripts and interact with OpenCPN\n\
-See User Guide at https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html\n\
+See User Guide at https://opencpn-manuals.github.io/main/javascript/index.html\n\
 and fuller details in the plugin Help ";
 }
 

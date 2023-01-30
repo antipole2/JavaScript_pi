@@ -34,7 +34,7 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 # -------  Plugin setup --------
 #
 set(PKG_NAME JavaScript_pi)
-set(PKG_VERSION  2.0.0)
+set(PKG_VERSION  2.0.1)
 set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
@@ -49,7 +49,7 @@ See help menu ? for documentation details
 set(PKG_AUTHOR "Tony Voss")
 set(PKG_IS_OPEN_SOURCE "yes")
 set(PKG_HOMEPAGE https://github.com/Antipole2/JavaScript_pi)
-set(PKG_INFO_URL https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html)
+set(PKG_INFO_URL https://opencpn-manuals.github.io/main/javascript/index.html)
 
 SET(SRC
 	src/bitmaps.cpp

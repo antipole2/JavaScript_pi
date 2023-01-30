@@ -133,7 +133,7 @@ testWaypoint.rangeRingSpace = 0.2;
 testWaypoint.rangeRingColour = "#ffDd22";
 testWaypoint.creationTimestamp += 1000;
 testWaypoint.hyperlinkList = [{"description":"OpenCPNupdated","link":"https://opencpn.org","type":"Type1"},
-	{"description":"JavaScript user guide updated","link":"https://opencpn-manuals.github.io/plugins/javascript/0.1/index.html", "type":"Type2"}];
+	{"description":"JavaScript user guide updated","link":"https://opencpn-manuals.github.io/main/javascript/index.html", "type":"Type2"}];
 
 try {OCPNupdateSingleWaypoint(testWaypoint);}
 catch (error) {
