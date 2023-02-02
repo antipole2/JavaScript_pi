@@ -2,8 +2,7 @@ build
 build-*
 !build-deps
 po/*.pot
+.DS_Store
 *humbs.db
 cache
 plugins
-*DS_Store
-Plugin.cmake
