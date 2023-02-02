@@ -16,6 +16,8 @@ set -xe
 # Load local environment if it exists i. e., this is a local build
 if [ -f ~/.config/local-build.rc ]; then source ~/.config/local-build.rc; fi
 
+git submodule update --init opencpn-libs
+
 # Set up build directory
 if [ -n "$TRAVIS_BUILD_DIR" ]; then cd $TRAVIS_BUILD_DIR; fi
 rm -rf build-osx  && mkdir build-osx
@@ -39,6 +41,8 @@ for pkg in $(sed '/#/d' < $here/../build-deps/macos-deps);  do
     brew link --overwrite $pkg || brew install $pkg
 done
 
+export OPENSSL_ROOT_DIR='/usr/local/opt/openssl'
+
 # Install the pre-built wxWidgets package
 
 wget -q https://download.opencpn.org/s/MCiRiq4fJcKD56r/download \
@@ -47,14 +51,12 @@ tar -C /tmp -xJf /tmp/wx315_opencpn50_macos1010.tar.xz
 
 # Build and package
 cd build-osx
-# build types: Release | RelWithDebInfo | Debug
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DwxWidgets_CONFIG_EXECUTABLE=/tmp/wx315_opencpn50_macos1010/bin/wx-config \
   -DwxWidgets_CONFIG_OPTIONS="--prefix=/tmp/wx315_opencpn50_macos1010" \
   -DCMAKE_INSTALL_PREFIX= \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=10.10 \
-  -DCMAKE_OSX_ARCHITECTURES=x86_64 \
   ..
 
 if [[ -z "$CI" ]]; then
