@@ -52,7 +52,7 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p)
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
-:opencpn_plugin_117	 (ppimgr)  // was 16
+:opencpn_plugin_118	 (ppimgr)  // was 17
 {
 #ifndef IN_HARNESS
     // Create the PlugIn icons
@@ -93,6 +93,7 @@ int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
     
+    wxLogMessage("JavaScript_pi->Init() entered");
     m_parent_window = GetOCPNCanvasWindow();
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");

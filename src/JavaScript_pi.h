@@ -25,6 +25,8 @@
 #include "config.h"
 #include "consolePositioning.h"
 
+//x #define API_VERSION (API_VERSION_MAJOR*100 + API_VERSION_MINOR)
+
 enum FileOptions{
     DONT_CARE,
     MUST_EXIST,
@@ -62,7 +64,7 @@ public:
     double lat; double lon;
     };
 
-class JavaScript_pi : public opencpn_plugin_117
+class JavaScript_pi : public opencpn_plugin_118
 {
 public:
     JavaScript_pi(void *ppimgr);

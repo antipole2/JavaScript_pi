@@ -668,6 +668,21 @@ static duk_ret_t getGUID(duk_context *ctx) {  // get GUID as per option
     return(1);
     }
  */
+ 
+OBJECT_LAYER_REQ determinGUIDtype(duk_context *ctx){
+	// for all getGUID array calls,  determine which are to be fetched
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	if (nargs == 0) return(OBJECTS_NO_LAYERS);
+	if (nargs != 1) throwErrorByCtx(ctx, "OCPNgetGUIDs called with more than 1 arg");
+	int guidSelection = duk_get_number(ctx, 0);	// the argument
+	duk_pop(ctx);
+	switch (guidSelection){
+		case -1:	return OBJECTS_ALL;
+		case 0:		return OBJECTS_NO_LAYERS;
+		case 1:		return OBJECTS_ONLY_LAYERS;
+		default:	throwErrorByCtx(ctx, "OCPNgetGUIDs called with invalid arg");
+		}
+	}
 
 void clearWaypointsOutofRoute(PlugIn_Route_Ex *p_route){
 // For a route structure, clear out the waypoints
@@ -704,7 +719,7 @@ static duk_ret_t getWaypointGUIDs(duk_context *ctx){ // get waypoing GUID array
     int i;
     size_t count;
     
-    guidArray = GetWaypointGUIDArray();
+    guidArray = GetWaypointGUIDArray(/*determinGUIDtype(ctx)*/);
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
@@ -793,7 +808,7 @@ static duk_ret_t getRouteGUIDs(duk_context *ctx){ // get routes GUID array
     int i;
     size_t count;
     
-    guidArray = GetRouteGUIDArray();
+    guidArray = GetRouteGUIDArray(/*determinGUIDtype(ctx)*/);
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
@@ -893,7 +908,7 @@ static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     int i;
     size_t count;
     
-    guidArray = GetTrackGUIDArray();
+    guidArray = GetTrackGUIDArray(/*determinGUIDtype(ctx)*/);
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
@@ -1267,7 +1282,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetWaypointGUIDs");
-    duk_push_c_function(ctx, getWaypointGUIDs, 0 /* 0 args */);
+    duk_push_c_function(ctx, getWaypointGUIDs, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetActiveWaypointGUID");
@@ -1303,7 +1318,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetRouteGUIDs");
-    duk_push_c_function(ctx, getRouteGUIDs, 0 /* 0 args */);
+    duk_push_c_function(ctx, getRouteGUIDs, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNgetActiveRouteGUID");
@@ -1335,7 +1350,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNgetTrackGUIDs");
-    duk_push_c_function(ctx, getTrackGUIDs, 0 /* 0 args */);
+    duk_push_c_function(ctx, getTrackGUIDs, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetTrack");
