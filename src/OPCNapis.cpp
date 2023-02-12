@@ -1205,6 +1205,11 @@ static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
         duk_ret_t result = 1;
         return (result);
         }
+        
+static duk_ret_t isOnline(duk_context *ctx) {   // check if online
+	duk_push_boolean(ctx, OCPN_isOnline());
+	return 1;
+	}
     
 // ÑÑÑÑÑÑ API registrations follow
 
@@ -1372,6 +1377,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     
     duk_push_string(ctx, "OCPNsoundAlarm");
     duk_push_c_function(ctx, playSound, 1 /* 1 arg */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNisOnline");
+    duk_push_c_function(ctx, isOnline, 0 /* 0 arg */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_pop(ctx);

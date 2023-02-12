@@ -113,7 +113,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     this->m_ConsolesMessage->Clear();
     newConsoleName = this->m_changedName->GetValue();
     oldConsoleName = m_oldNames->GetStringSelection();
-    if (oldConsoleName == newConsoleName){
+    if (oldConsoleName.IsSameAs(newConsoleName, false)){ // Check with case insenstive
         m_ConsolesMessage->AppendText("New name same as old name");
         return;
         }

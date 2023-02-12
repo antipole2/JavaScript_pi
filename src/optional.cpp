@@ -191,9 +191,10 @@ duk_ret_t console_close(duk_context* ctx){
 
 duk_ret_t console_load(duk_context* ctx){
     // consoleLoad(consoleName,  script) into console
-    wxString fileString, lineOfFile, consoleName;
-    wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
-    wxTextFile inputFile;
+    wxString fileString, script, consoleName, outcome;
+    wxString getTextFile(wxString fileString, wxString* fetched);
+	wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options);
+    wxString JScleanString(wxString given);
     Console* pConsole;
     
     duk_require_string(ctx, 0);
@@ -207,14 +208,14 @@ duk_ret_t console_load(duk_context* ctx){
         pConsole->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " cannot load into own console");
     if (pConsole->mpCtx) pConsoleBeingTimed->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
     if (fileString.EndsWith(".js")){   // we are to try and load a file
-        wxFileName filePath = resolveFileName(pConsoleBeingTimed, wxString(fileString), MUST_EXIST);
-        fileString = filePath.GetFullPath();
-        inputFile.Open(fileString);
+        outcome = resolveFileName(fileString, &fileString, MUST_EXIST);
+        if (outcome != wxEmptyString) throwErrorByCtx(ctx, outcome);
+        outcome = getTextFile( fileString, &script);
+        if (outcome != wxEmptyString)  throwErrorByCtx(ctx, outcome);
+        script = JScleanString(script);
         pConsole->m_Script->ClearAll();
-        for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
-            pConsole->m_Script->AppendText(lineOfFile + "\n");
-            }
-        pConsole->m_fileStringBox->SetValue(wxString(fileString));
+        pConsole->m_Script->AppendText(	script + "\n");
+        pConsole->m_fileStringBox->SetValue(fileString);
         pConsole->auto_run->Show();
         }
     else {

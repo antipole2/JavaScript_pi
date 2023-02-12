@@ -129,6 +129,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetPositionPV\
             OCPNgetGCdistance\
             OCPNsoundAlarm\
+            OCPNisOnline\
             consoleExists\
             consoleBusy\
             consoleClearOutput\

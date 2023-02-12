@@ -16,11 +16,12 @@
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
 #include "ocpn_duk.h"
-#include <wx/url.h>
 #include <string>
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/event.h>
+#include <wx/textfile.h>
+#include <wx/file.h>
 
 /*  On hold for now - cannot find a way of handling the variable arguments
  // sprintf function
@@ -46,6 +47,8 @@ extern JavaScript_pi *pJavaScript_pi;
 Console* findConsoleByCtx(duk_context *ctx);
 Console* findConsoleByName(wxString name);
 void throwErrorByCtx(duk_context *ctx, wxString message);
+wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options);
+wxString getTextFile(wxString fileString, wxString* text);
 
 void limitOutput(wxStyledTextCtrl* pText){
 	// given output text area, ensure does not exceed size limit and scroll to end
@@ -369,36 +372,16 @@ static duk_ret_t duk_format(duk_context *ctx) {   // format text
 static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     // read in a text file
     extern JavaScript_pi* pJavaScript_pi;
-    wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
-    wxString fileNameGiven, fileString, lineOfFile, text;
-    wxFileName filePath;
-    wxTextFile inputFile;
+    wxString filePath, fileString, lineOfFile, text, result;
     wxString JScleanString(wxString line);
     Console *pConsole = findConsoleByCtx(ctx);
     
-    fileNameGiven = duk_to_string(ctx,0);
+    filePath = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
-    if ((fileNameGiven.substr(0, 6) == "https:")|| (fileNameGiven.substr(0, 5) == "http:")){
-    	// its a URL - let's try and get it
-    	if (!OCPN_isOnline()) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " failed - not on-line");
-    	wxURI url(fileNameGiven);
-		wxString tmp_file = wxFileName::CreateTempFileName("");
-		_OCPN_DLStatus ret = OCPN_downloadFile(url.BuildURI(), tmp_file,
-		"", "", wxNullBitmap, pConsole,
-		OCPN_DLDS_ELAPSED_TIME | OCPN_DLDS_ESTIMATED_TIME | OCPN_DLDS_REMAINING_TIME | OCPN_DLDS_SPEED | OCPN_DLDS_SIZE | OCPN_DLDS_CAN_PAUSE | OCPN_DLDS_CAN_ABORT | OCPN_DLDS_AUTO_CLOSE,
-		10);
-		if (ret == OCPN_DL_ABORTED) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " download aborted");
-		if (ret == OCPN_DL_FAILED) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " failed - invalid URL?");
-		fileString = tmp_file;
-    	}
-    else {
-		filePath = resolveFileName(pConsole, wxFileName(fileNameGiven), MUST_EXIST);
-		fileString = filePath.GetFullPath();
-		}
-	inputFile.Open(fileString);
-	for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
-		text += lineOfFile + "\n";
-		}
+    result = resolveFileName(filePath, &filePath, MUST_EXIST);
+    if (result != wxEmptyString) pConsole->throw_error(ctx, result);
+    result = getTextFile(filePath, &text);
+    if (result != wxEmptyString) pConsole->throw_error(ctx, result);
     text = JScleanString(text);
     duk_push_string(ctx, text);
     return 1;
@@ -407,58 +390,46 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
 static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
     // write a text file
     extern JavaScript_pi* pJavaScript_pi;
-    wxString fileNameGiven, text;
+    wxString fileNameGiven,fileString, outcome, text;
     wxFileName filePath;
     wxTextFile outputFile;
-    int access;
     Console *pConsole = findConsoleByCtx(ctx);
     
     text = duk_to_string(ctx, 0);
     fileNameGiven = duk_to_string(ctx,1);
-    access = duk_to_int(ctx, 2);
+    int mode = (FileOptions)duk_to_int(ctx, 2);
+    duk_pop_3(ctx);  // finished with arguments
 
-    if ((access < 0) || (access > 2)) pConsole->throw_error(ctx, "writeTextFile " + filePath.GetFullPath() + "access type invalid");
-    filePath = wxFileName(fileNameGiven);
-    if (!filePath.IsAbsolute()){
-        // relative  - so will prepend current working directory and do again
-        fileNameGiven = pJavaScript_pi->mCurrentDirectory + wxFILE_SEP_PATH + fileNameGiven;
-        filePath = wxFileName(fileNameGiven);
-        }
-    if (!filePath.IsOk()) pConsole->throw_error(ctx, "writeTextFile " + filePath.GetFullPath() + " does not make sense");
-    if (!filePath.FileExists())
-        outputFile.Create(fileNameGiven);
-    else if(access == 0)
-            pConsole->throw_error(ctx, "writeTextFile " + filePath.GetFullPath() + " already exists");
-    else outputFile.Open(fileNameGiven);
-    if (access == 1) outputFile.Clear();
+    if ((mode < 0) || (mode > 2)) pConsole->throw_error(ctx, "writeTextFile " + filePath.GetFullPath() + "access invalid mode");
+    FileOptions option = (mode == 0)? MUST_NOT_EXIST : DONT_CARE;
+    outcome = resolveFileName(fileNameGiven, &fileString, option);
+    if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
+    outputFile.Open(fileString);
+    if (mode == 1) outputFile.Clear();
     outputFile.AddLine(text);
     outputFile.Write();
-    duk_pop_3(ctx);  // finished with that
     return 0;
     };
 
 duk_ret_t duk_require(duk_context *ctx){ // the module search function
-    wxString fileNameGiven, fileString, lineOfData, script;
+    wxString fileNameGiven, fileString, script, outcome, resolved;
     wxFileName filePath;
-    wxTextFile inputFile;
+//    wxTextFile inputFile;
 //    wxFileName homeDirectory;
     wxString JScleanString(wxString line);
     bool loadComponent(duk_context *ctx, wxString name);
-    wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
     Console *pConsole = findConsoleByCtx(ctx);
     
     if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "require within onExit function");
     fileNameGiven = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
     filePath = wxFileName(fileNameGiven);
-    if ((filePath.GetDirCount() == 0) && !filePath.HasExt()){
-        // simple file name
-
+    if ((filePath.GetDirCount() == 0) && !filePath.HasExt()){ // simple file name
         if (loadComponent(ctx, fileNameGiven)) {
             // above we will have loaded a C++ component if it matches
             return 1;
             }
-        else {  // we will look for it in the build-in scripts
+        else {  // we will look for it in the built-in scripts
             // this updated for ocpn v5.5
             fileString = GetPluginDataDir("JavaScript_pi");
             filePath.SetPath(fileString);
@@ -470,16 +441,14 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
                 }
             if (!filePath.IsFileReadable()) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
             // ready to go
+            resolved = filePath.GetFullPath();
             }
         }
     else{   // not a built-in or library script - we will hunt for it
-        filePath = resolveFileName(pConsole, filePath, MUST_EXIST);
+        outcome = resolveFileName(fileNameGiven, &resolved, MUST_EXIST);
+        if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
         }
-    fileString = filePath.GetFullPath();
-    inputFile.Open(fileString);
-    for (lineOfData = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfData = inputFile.GetNextLine()){
-        script += lineOfData + "\n";
-        }
+    outcome = getTextFile(resolved, &script);
     script = JScleanString(script);
     duk_push_string(ctx, script);
     duk_push_string(ctx, "anything"); // the name here is irrelevant
@@ -534,7 +503,7 @@ static duk_ret_t duk_timeAlloc(duk_context *ctx) {   // time allocation
     pConsole->m_pcall_endtime = wxGetUTCTimeMillis() + pConsole->m_time_to_allocate;  // grant more time
     duk_push_number(ctx, timeLeft.GetValue());   // will return time that was left
     return (1);
-}
+	}
 
 static duk_ret_t duk_stopScript(duk_context *ctx) {
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
@@ -637,9 +606,7 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
 
 duk_ret_t chain_script(duk_context* ctx){
     // consoleChain(fileString,  brief)
-    wxString getTextFile(Console* pConsole, wxString fileString);
-    wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
-    wxString fileString, script, brief;
+    wxString fileString, script, brief, outcome;
     bool haveBrief {false};
     Console* pConsole = findConsoleByCtx(ctx);
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
@@ -647,8 +614,8 @@ duk_ret_t chain_script(duk_context* ctx){
     duk_require_string(ctx, 0);
     fileString = wxString(duk_get_string(ctx, 0));
     // the file string is relative - maybe. Ensure is absolute for record
-    wxFileName filePath = resolveFileName(pConsole, wxString(fileString), MUST_EXIST);
-    fileString = filePath.GetFullPath();
+    outcome = resolveFileName(fileString, &fileString, MUST_EXIST);
+//x    fileString = filePath.GetFullPath();
     if (nargs>1){
         duk_require_string(ctx, 1);
         brief = wxString(duk_get_string(ctx, 1));
@@ -657,7 +624,8 @@ duk_ret_t chain_script(duk_context* ctx){
         }
     duk_pop(ctx);
     
-    script = getTextFile(pConsole, fileString);
+    outcome = getTextFile(fileString, &script);
+    if(outcome != wxEmptyString) pConsole->throw_error(ctx, _("getBrief found no brief"));
     pConsole->m_Script->SetValue(script);
     pConsole->m_fileStringBox->SetValue(fileString);
     pConsole->auto_run->Show();
