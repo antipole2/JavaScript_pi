@@ -25,17 +25,16 @@
 #include "config.h"
 #include "consolePositioning.h"
 
-//x #define API_VERSION (API_VERSION_MAJOR*100 + API_VERSION_MINOR)
 
-enum FileOptions{
+typedef enum FileOptions{
     DONT_CARE,
     MUST_EXIST,
     MUST_NOT_EXIST
-};
+} FileOptions;
 
 // declare completion states
 // These must agree with statusesToString() in functions.cpp
-enum Completions {
+typedef enum Completions {
     HAD_ERROR,  // avoid 'ERROR' - conflicts with "ERROR" defined in "wingdi.h", a Windows file
     TIMEOUT,
     DONE,
@@ -47,7 +46,7 @@ enum Completions {
     CLOSED,
     CLOSING,    // needing to stop but unable to release ctx yet
     Completions_count
-    };
+    } Completions;
 
 typedef  std::bitset<Completions_count> status_t;
 

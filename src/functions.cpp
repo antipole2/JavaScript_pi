@@ -17,6 +17,7 @@
 #include "duktape.h"
 #include "JavaScriptgui_impl.h"
 #include <wx/msgdlg.h>
+#include <wx/url.h>
 
 extern JavaScript_pi *pJavaScript_pi;
 
@@ -181,38 +182,64 @@ void windowTrace(int level, wxString text){
     }
 #endif  // TRACE_TO_WINDOW
 
-wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options){
-    // if the given filePath is relative, makes it absolute by the current directory
-    // throws error if it is badly formed
-    // if option is MUST_EXIST, checks it does and throws an error  if it does not exist or is not readable
-
-    if (!filePath.IsAbsolute()){
-        // relative  - so will prepend current working directory and do again
+wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options){
+	// if fileString is URL does not change anything
+    // if fileString is relative, makes it absolute by the current directory
+    // if it is badly formed or other error returns error message else empty string
+    // checks existence according to options
+	if ((inputName.substr(0, 6) == "https:")|| (inputName.substr(0, 5) == "http:")){ 	// If URL, don't do anything
+		*pResolvedFileString = inputName;
+		return(wxEmptyString);
+		}
+		
+	wxFileName filePath = wxFileName(inputName);
+    if (!filePath.IsAbsolute()){ // relative  - so will prepend current working directory and do again
         filePath.MakeAbsolute(pJavaScript_pi->mCurrentDirectory);
         }
-    if (!filePath.IsOk()) pConsole->throw_error(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " does not make sense");
-    if (options == MUST_EXIST){
-        wxString fullName = filePath.GetFullPath();
-        if (!filePath.FileExists())
-                pConsole->throw_error(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " not found");
-        }
-    return filePath;
+    if (!filePath.IsOk()) return("File path " + filePath.GetFullPath() + " does not make sense");
+    wxString fullPath = filePath.GetFullPath();
+    switch (options) {
+    	case MUST_EXIST:
+    		if (!filePath.FileExists())
+                return ("File " + fullPath + " not found");
+            break;
+        case MUST_NOT_EXIST:
+        	if (filePath.FileExists())
+                return ("File " + fullPath + " already exists");
+    	}    
+    *pResolvedFileString = fullPath;
+    return wxEmptyString;
     };
 
-wxString getTextFile(Console* pConsole, wxString fileString){
-    // return contents of a text file that must exist
+wxString getTextFile(/* Console* pConsole,*/ wxString fileString, wxString* pText){
+    // gets contents of a text file
+    // if error, returns message, else empty string
     wxFileName filePath;
-    wxFileName resolveFileName(Console* pConsole, wxFileName filePath, int options);
-    wxTextFile inputFile;
-    wxString lineOfFile;
-    wxString result {wxEmptyString};
-    filePath = resolveFileName(pConsole, fileString, MUST_EXIST);
-    fileString = filePath.GetFullPath();
-    inputFile.Open(fileString);
-    for (lineOfFile = inputFile.GetFirstLine(); !inputFile.Eof(); lineOfFile = inputFile.GetNextLine()){
-        result += lineOfFile + "\n";
-        }
-    return result;
+    wxString tmp_file_name = wxEmptyString;
+    wxString fileStringCopy = fileString;	// for later error messages
+	if ((fileString.substr(0, 6) == "https:")|| (fileString.substr(0, 5) == "http:")){
+		TRACE(64, "Trying for URL: " + fileString);
+		// its a URL - let's try and get it
+		if (!OCPN_isOnline()) return("readTextFile " + filePath.GetFullPath() + " failed - not on-line");
+		wxURI url(fileString);
+		wxString tmp_file_name = wxFileName::CreateTempFileName("");
+		_OCPN_DLStatus ret = OCPN_downloadFile(url.BuildURI(), tmp_file_name,
+		"", "", wxNullBitmap, pJavaScript_pi->m_parent_window,
+		OCPN_DLDS_ELAPSED_TIME | OCPN_DLDS_ESTIMATED_TIME | OCPN_DLDS_REMAINING_TIME | OCPN_DLDS_SPEED | OCPN_DLDS_SIZE | OCPN_DLDS_CAN_PAUSE | OCPN_DLDS_CAN_ABORT | OCPN_DLDS_AUTO_CLOSE,
+		10);
+		if (ret == OCPN_DL_ABORTED) return( "readTextFile " + filePath.GetFullPath() + " download aborted");
+		if (ret == OCPN_DL_FAILED) return("readTextFile " + filePath.GetFullPath() + " failed - invalid URL?");
+		fileString = tmp_file_name;
+		}
+    wxFile inputFile;
+    if (!inputFile.Exists(fileString)) return("readTextFile " + fileStringCopy + " not found");
+    bool ok = inputFile.Open(fileString);
+    if (!ok) return(wxString::Format("readTextFile %s cannot be opened - error code %d", fileStringCopy, inputFile.GetLastError()));
+	ok = inputFile.ReadAll(pText);
+	if (tmp_file_name != wxEmptyString) wxRemoveFile(tmp_file_name);	// if created one
+    if (!ok) return(wxString::Format("readTextFile %s cannot read file - error code %d", fileStringCopy, inputFile.GetLastError()));
+    if (*pText == wxEmptyString) return("readTextFile " + fileStringCopy + " is empty");
+    return wxEmptyString;
     }
 
 Console* findConsoleByName(wxString name){
@@ -220,7 +247,7 @@ Console* findConsoleByName(wxString name){
     Console* pConsole;
     pConsole = pJavaScript_pi->mpFirstConsole;
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole; pConsole = pConsole->mpNextConsole)
-    if (pConsole->mConsoleName == name) return pConsole;
+    if (pConsole->mConsoleName.IsSameAs(name, false)) return pConsole;
     return nullptr;
     }
 
@@ -256,10 +283,10 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
             && (code != 95))
         return("consoleName new name must only be alphanumeric or _");
     }
-    //check for existing console with this name
+    //check for existing console with this name (ignoring case)
     for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
         if (pCon == pConsole) continue;    // don't check this console to allow repeated renaming
-        if (newName == pCon->mConsoleName) return("New console name " + newName + " already taken by another console");
+        if (newName.IsSameAs(pCon->mConsoleName, false)) return("New console name " + newName + " already taken by another console");
         }
     return(wxEmptyString);
     }
