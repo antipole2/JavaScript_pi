@@ -80,7 +80,6 @@ SET(SRC
     src/toolsDialogGui.h
     src/toolsDialogImp.cpp
     src/toolsDialogImp.h
-    src/drivers.cpp
     src/trace.h
     src/version.h
     )

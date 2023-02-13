@@ -90,7 +90,7 @@ void register_drivers(duk_context *ctx){
     duk_push_c_function(ctx, getDriverHandles, 0 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
-    duk_push_string(ctx, "OCPNgetDriverAttrbutes");
+    duk_push_string(ctx, "OCPNgetDriverAttributes");
     duk_push_c_function(ctx, getDriverAttributes, 1 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
