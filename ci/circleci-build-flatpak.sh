@@ -44,7 +44,11 @@ if [ -n "$CI" ]; then
     wget -q -O - https://dl.google.com/linux/linux_signing_key.pub \
         | sudo apt-key add -
 
-    # Install flatpak and flatpak-builder
+    # Use updated flatpak (#457)
+    sudo add-apt-repository -y ppa:alexlarsson/flatpak
+    sudo apt update
+
+    # Install or update flatpak and flatpak-builder
     sudo apt install flatpak flatpak-builder
 fi
 
