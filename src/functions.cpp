@@ -206,6 +206,7 @@ wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, File
         case MUST_NOT_EXIST:
         	if (filePath.FileExists())
                 return ("File " + fullPath + " already exists");
+        case DONT_CARE:
     	}    
     *pResolvedFileString = fullPath;
     return wxEmptyString;
