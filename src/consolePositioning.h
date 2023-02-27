@@ -42,9 +42,9 @@ See the Technical Guide for instructions for configuring for a given platform
 //includes MacOS
 #define CONSOLE_MIN_HEIGHT 29L
 #define CONSOLE_STUB 77L
-#define PARK_LEVEL 25L
-#define PARK_FIRST_X 3L
-#define PARK_SEP 6L
+#define PARK_LEVEL 1L
+#define PARK_FIRST_X 66L
+#define PARK_SEP 65L
 
 #endif
 

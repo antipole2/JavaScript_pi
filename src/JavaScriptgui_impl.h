@@ -924,7 +924,7 @@ public:
     	wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, mConsoleName);
     	wxSize textSize = staticText->GetSize();
     	delete staticText;
-    	minSize.x = pJavaScript_pi->m_parkingStub + textSize.x + 3;	// added 3 to be on safe side
+    	minSize.x = pJavaScript_pi->m_parkingStub + textSize.x + 6;	// added 6 to be on safe side
     	minSize.y = pJavaScript_pi->m_parkingMinHeight;
     	TRACE(4, wxString::Format("setConsoleMinSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
     	SetMinSize(minSize);
