@@ -1,29 +1,39 @@
-3.1.4 June 29, 2022.
-* Probably last release in the 3.1 series
+3.2.3-beta1 Feb 14, 2023
+* ci: debian, armhf builds: Fix handling of CLOUDSMITH_BETA_REPO 
+  environment variable (#498)
+* macos: Install built wxWidgets in local project dir (#495).
+* Update opencpn-libs, handle missing ocpn-api link target (opencpn-libs#9).
+* update-templates: Handle wxWidgets 3.2 in build-deps/control (#490).
+* ci: debian-build-docker, -armhf: Clean up directory permissions (#492).
 
-3.1.4-beta3 June 29, 2022
-* More Flatpak FTBFS fixes for manifest comment lines.
+3.2.2 Jan 16, 2023
+* ci: flatpak: Update google packages signing key (#487)
+* ci: android: Handle missing google packages signing key (#487)
+* Context menu only appears when dialog started (#488)
 
-3.1.4-beta2 June 29, 2022
-* Fix a bug when configuring Flatpak manifests causing FTBFS errors.
-* Flatpak manifest: Handle @include in comments when configuring.
+3.2.1  Dec 18, 2022
+* New release afrter some release problems of the 3.2.0 tag
 
-3.1.4-beta1 June 13, 2022
-* Fix bad bugs in Flatpak builds resulting in empty tarball (#453, 454).
-* Drop focal-wx31 build.
-* Add a debian-arm64 build (bullseye/11 only).
-* Add @include, @app\_id and @plugin\_name support in flatpak .yaml mainfest.
-* opencpn-libs: Several new libraries, wxcurl update.
-* opencpn-libs: flatpak yaml snippets added for use via @include.
-* Don't restore drone.yml in update-templates (#443).
-
-3.1.3 May 11, 2022
-* Add a build for new Ubuntu LTS Jammy (22.04)
-* Fix correct target ubuntu (not ubuntu-gtk3) for 22.04+ versions.
-* opencpn-libs: plugingl: Incorporate changes from o-charts\_pi affecting
-  Android builds.
-
-3.1.2 April 29, 2022
+3.2.0  Dec 18, 2022
+* Drop all ubuntu builds according to OpenCPN#2502.
+* Update builds according to OpenCPN#2797:
+  + Update windows build to use wxwidgets 3.2, new ABI msvc-wx32
+  + Update macos to build for 10.10 on 13.4.1 using wxwidgets3.2,
+    new ABI darwin-wx32
+  + Update flatpak to runtime 22.08 and wxwidgets 3.2
+  + New debian wxwidgets 3.2 builds for bookworm and bullseye, new
+    ABI debian-wx32.
+* Updates to opencpn-libs, notably a new api-18 exposing new
+  communication interfaces.
+* Windows build refactored with a ci/appveyor.bat script which can
+  be run in local builds.
+* Remove still more wxWidgets 3.1.5 builds (#444)
+* update-templates: Remove .drone.yml (#443)
+* Drop the __OCPN__ANDROID__ symbol, use __ANDROID__ instead.
+* Fix bad bug when copying results in Flatpak resulting in empty
+  Flatpak plugin tarballs (#453, 454).
+* Drop the buggy and superfluous symbols ANDROID and ARMHF; use
+  __ANDROID__, __arm__ and __aarch64__ instead  (#451).
 * AndroidLibs: Update downloaded library hash (#446).
 * update-templates: Don't access non-existing Flatpak/wx31.patch
 * opencpn-libs: fixes to mute some warnings in plugin\_gl
