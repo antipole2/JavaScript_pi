@@ -93,7 +93,7 @@ int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
     
-    m_parent_window = GetOCPNCanvasWindow();
+    m_parent_window = GetOCPNCanvasWindow()->GetParent();
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");
     AddLocaleCatalog( _T("opencpn-JavaScript_pi") );
