@@ -293,18 +293,22 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
     }
     
 wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
+/*	With v2.0.3 we change to parking on screen positions so do nothing
 	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
 	wxPoint framePos = frame->GetPosition();	// screen position of frame
 	pos.x -= framePos.x;
 	pos.y -= framePos.y;
+*/
 	return pos;
 	}
 	
 wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
+/*	With v2.0.3 we change to parking on screen positions so do nothing
 	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
-	wxPoint framePos = frame->GetPosition();	// screen position of frame
+	wxPoint framePos = frame->GetPosition();	// screen position of frame 
 	pos.x += framePos.x;
 	pos.y += framePos.y;
+*/
 	return pos;
 	}
 
