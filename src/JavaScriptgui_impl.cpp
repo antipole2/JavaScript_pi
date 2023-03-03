@@ -50,12 +50,13 @@ WX_DEFINE_OBJARRAY(SocketRecordsArray);
 #endif
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
-void Console::OnActivate(wxActivateEvent& event){
+ void Console::OnActivate(wxActivateEvent& event){
     wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
     long int style = pConsole->GetWindowStyle();
     if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
-    pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not force to stay there
+//  pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
     };
+
 
 void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString fileString;

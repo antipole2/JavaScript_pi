@@ -17,8 +17,8 @@
 /* herewith constants used when handling minimised or parked consoles
 CONSOLE_MIN_HEIGHT	Minimum height of a console
 CONSOLE_STUB		Space to be left for things other than console name
-PARK_LEVEL			Level at which to park consoles in distance down in frame
-PARK_FIRST_X		Indent of first parked console from left-hand edge of frame
+PARK_LEVEL			Level at which to park consoles in distance down on screen
+PARK_FIRST_X		Indent of first parked console from left-hand edge of screen
 PARK_SEP			Horizontal separation of parked consoles
 
 These constants are platform dependent
@@ -40,12 +40,11 @@ See the Technical Guide for instructions for configuring for a given platform
 
 #else
 //includes MacOS
-#define CONSOLE_MIN_HEIGHT 29L
-#define CONSOLE_STUB 77L
-#define PARK_LEVEL 25L
-#define PARK_FIRST_X 3L
-#define PARK_SEP 6L
-
+#define CONSOLE_MIN_HEIGHT 23L
+#define CONSOLE_STUB 79L
+#define PARK_LEVEL 23L
+#define PARK_FIRST_X 40L
+#define PARK_SEP 2L
 #endif
 
 #endif		// consolePositioning_h
