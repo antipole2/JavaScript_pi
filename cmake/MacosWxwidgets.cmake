@@ -83,7 +83,7 @@ execute_process(
       --prefix=${cache_dir}
  WORKING_DIRECTORY ${wxwidgets_src_dir}
 )
-math(_nproc ${OCPN_NPROC} * 2)    # Assuming two threads/cpu
+math(_nproc ${OPCN_NPROC} * 2)    # Assuming two threads/cpu
 execute_process(
   COMMAND make -j${_nproc}
   WORKING_DIRECTORY ${wxwidgets_src_dir}
@@ -92,7 +92,6 @@ execute_process(
   COMMAND sudo make install
   WORKING_DIRECTORY ${wxwidgets_src_dir}
 )
-
 
 set(wx_config ${cache_dir}/lib/wx/config/osx_cocoa-unicode-3.2)
 if (NOT EXISTS ${wx_config})
