@@ -25,19 +25,18 @@ These constants are platform dependent
 See the Technical Guide for instructions for configuring for a given platform
 */
 #ifdef __WXMSW__
-#define CONSOLE_MIN_HEIGHT 20L
-#define CONSOLE_STUB 50L
-#define PARK_LEVEL 25L
-#define PARK_FIRST_X 70L
-#define PARK_SEP 8L
+#define CONSOLE_MIN_HEIGHT 39L
+#define CONSOLE_STUB 63L
+#define PARK_LEVEL 35L
+#define PARK_FIRST_X 85L
+#define PARK_SEP 2L
 
 #elif defined(__LINUX__)
-#define CONSOLE_MIN_HEIGHT 20L
-#define CONSOLE_STUB 79L
-#define PARK_LEVEL 48L
-#define PARK_FIRST_X 66L
-#define PARK_SEP 21L
-
+#define CONSOLE_MIN_HEIGHT 38L
+#define CONSOLE_STUB 45L
+#define PARK_LEVEL 27L
+#define PARK_FIRST_X 100L
+#define PARK_SEP 20L
 #else
 //includes MacOS
 #define CONSOLE_MIN_HEIGHT 23L

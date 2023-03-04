@@ -719,7 +719,7 @@ static duk_ret_t getWaypointGUIDs(duk_context *ctx){ // get waypoing GUID array
     int i;
     size_t count;
     
-    guidArray = GetWaypointGUIDArray(/*determinGUIDtype(ctx)*/);
+    guidArray = GetWaypointGUIDArray(determinGUIDtype(ctx));
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
@@ -808,7 +808,7 @@ static duk_ret_t getRouteGUIDs(duk_context *ctx){ // get routes GUID array
     int i;
     size_t count;
     
-    guidArray = GetRouteGUIDArray(/*determinGUIDtype(ctx)*/);
+    guidArray = GetRouteGUIDArray(determinGUIDtype(ctx));
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
@@ -908,7 +908,7 @@ static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     int i;
     size_t count;
     
-    guidArray = GetTrackGUIDArray(/*determinGUIDtype(ctx)*/);
+    guidArray = GetTrackGUIDArray(determinGUIDtype(ctx));
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
