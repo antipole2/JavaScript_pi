@@ -44,25 +44,26 @@ duk_ret_t getDriverHandles(duk_context* ctx){
 	return 1;
 	}
 	
+//std::unordered_map<std::string, std::string> attributes;
 duk_ret_t getDriverAttributes(duk_context* ctx){
 	// OCPNgetDriverAttributes(driverHandle)
-	std::unordered_map<std::string, std::string> attributeMap;
-	std::unordered_map<std::string, std::string> :: iterator i;
 	DriverHandle handle;
 	
-	duk_require_number(ctx, 0);
+	duk_require_string(ctx, 0);
 	handle = duk_get_string(ctx, 0);
 	duk_pop(ctx);		
-	attributeMap = GetAttributes(handle);
+	std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);
 	duk_push_object(ctx);
-	for (i = attributeMap.begin(); i != attributeMap.end(); i++){
-		duk_push_string(ctx, i->first.c_str());
-		duk_push_string(ctx, i->second.c_str());
-		duk_put_prop(ctx, -2);
+
+	for (auto it = attributes.begin(); it != attributes.end(); it++){
+		duk_push_string(ctx, it->first.c_str());
+		duk_push_string(ctx, it->second.c_str());
+		duk_put_prop(ctx, -3);
 		}
 	return 1;			
 	}
 
+/*
 duk_ret_t writeDriver(duk_context* ctx){
 	// OCPNwriteDriver(driverHandle, payload)
 	driverHandle handle;
@@ -81,7 +82,7 @@ duk_ret_t writeDriver(duk_context* ctx){
 	if (result == RESULT_COMM_NO_ERROR) return 0;
 	else throwErrorByCtx(ctx, wxString("OCPNWriteDriver ", errorStrings[result]));	
 	}
-
+*/
 
 void register_drivers(duk_context *ctx){
     duk_push_global_object(ctx);
@@ -94,9 +95,11 @@ void register_drivers(duk_context *ctx){
     duk_push_c_function(ctx, getDriverAttributes, 1 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
+#if 0
     duk_push_string(ctx, "OCPNwriteDriver");
     duk_push_c_function(ctx, writeDriver, 2 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+#endif
 
     };
 
