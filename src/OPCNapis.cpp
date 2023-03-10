@@ -568,7 +568,7 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
         if (starPos != wxNOT_FOUND){ // yes there is one
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
-        if ((sentence[0] != '$') || (sentence[6] != ',')) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $.....,");
+        if (!((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ','))) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $....., or !.....,");
 //      Following length limit not implemented  as OCPN allows higher number and useful
 //      if (sentence.Length() > 77) throwErrorByCtx(ctx, wxString::Format("OCPNpushNMEA sentence > 77 chars - is %d",sentence.Length()));
         wxString Checksum = ComputeChecksum(sentence);
@@ -1211,7 +1211,7 @@ static duk_ret_t isOnline(duk_context *ctx) {   // check if online
 	return 1;
 	}
     
-// ÑÑÑÑÑÑ API registrations follow
+// Ã‘Ã‘Ã‘Ã‘Ã‘Ã‘ API registrations follow
 
 void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_idx_t duk_push_c_function(duk_context *ctx, duk_c_function func, duk_idx_t nargs);
