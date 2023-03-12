@@ -568,9 +568,8 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
         if (starPos != wxNOT_FOUND){ // yes there is one
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
-        if ((sentence[0] != '$') || (sentence[6] != ',')) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $.....,");
-//      Following length limit not implemented  as OCPN allows higher number and useful
-//      if (sentence.Length() > 77) throwErrorByCtx(ctx, wxString::Format("OCPNpushNMEA sentence > 77 chars - is %d",sentence.Length()));
+        if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
+    		throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $....., or !.....,");
         wxString Checksum = ComputeChecksum(sentence);
         sentence = sentence.Append("*");
         sentence = sentence.Append(Checksum);
@@ -681,6 +680,7 @@ OBJECT_LAYER_REQ determinGUIDtype(duk_context *ctx){
 		case 0:		return OBJECTS_NO_LAYERS;
 		case 1:		return OBJECTS_ONLY_LAYERS;
 		default:	throwErrorByCtx(ctx, "OCPNgetGUIDs called with invalid arg");
+					return OBJECTS_ALL;	// not reachable but avoids compiler warning
 		}
 	}
 

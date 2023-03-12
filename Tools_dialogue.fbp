@@ -19,7 +19,7 @@
         <property name="internationalize">0</property>
         <property name="name">JavaScrip_pi tools</property>
         <property name="namespace"></property>
-        <property name="path">/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/src</property>
+        <property name="path">/Users/Tony/JavaScript/JavaScript_pi/src</property>
         <property name="precompiled_header"></property>
         <property name="relative_path">1</property>
         <property name="skip_lua_events">1</property>
@@ -48,7 +48,7 @@
             <property name="name">ToolsClassBase</property>
             <property name="pos"></property>
             <property name="size">-1,-1</property>
-            <property name="style">wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP</property>
+            <property name="style">wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxSTAY_ON_TOP</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">JavaScript tools</property>
             <property name="tooltip"></property>
