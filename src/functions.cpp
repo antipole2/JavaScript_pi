@@ -212,7 +212,7 @@ wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, File
     return wxEmptyString;
     };
 
-wxString getTextFile(/* Console* pConsole,*/ wxString fileString, wxString* pText){
+wxString getTextFile(wxString fileString, wxString* pText){
     // gets contents of a text file
     // if error, returns message, else empty string
     wxFileName filePath;
