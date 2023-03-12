@@ -39,9 +39,8 @@ public:
     void cleanupParking();
     void setupPage(int pageNumber);
 	
-    ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString,
-    	const wxPoint& pos = wxPoint(1000,400), const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE)
-        :ToolsClassBase(parent, id, title, pos, size, style)
+    ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY)
+        :ToolsClassBase(parent, id)
         {        
         // adding extra _ to list of valid chars via wxFormBuilder does not work.  Bug in wxWidgets?
         // so we will do it this way

@@ -118,7 +118,7 @@ class ToolsClassBase : public wxDialog
 		wxString mNewNameInput;
 		wxString m_changedNameInput;
 
-		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript tools"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP );
+		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript tools"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxSTAY_ON_TOP );
 
 		~ToolsClassBase();
 
