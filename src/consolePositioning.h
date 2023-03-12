@@ -37,6 +37,7 @@ See the Technical Guide for instructions for configuring for a given platform
 #define PARK_LEVEL 27L
 #define PARK_FIRST_X 100L
 #define PARK_SEP 20L
+
 #else
 //includes MacOS
 #define CONSOLE_MIN_HEIGHT 23L
