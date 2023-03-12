@@ -627,46 +627,6 @@ static duk_ret_t getNewGUID(duk_context *ctx) {  // get new GUID
     duk_push_string(ctx, GetNewGUID());
     return(1);  // returns 1 string
     }
-
-/* not using this at present
-static duk_ret_t getGUID(duk_context *ctx) {  // get GUID as per option
-    wxArrayString guidArray;
-    duk_idx_t arr_idx;
-    wxString result;
-    int i;
-    size_t count;
-    
-    int option = duk_to_int(ctx, 0);
-    duk_pop(ctx);
-    switch (option){
-        case NEW: duk_push_string(ctx, GetNewGUID());
-            break;
-        case WAYPOINTS_ARRAY:
-            guidArray = GetWaypointGUIDArray();
-            arr_idx = duk_push_array(ctx);
-            if (!guidArray.IsEmpty()){
-                count = guidArray.GetCount();
-                for (i = 0; i < count; i++){
-                    duk_push_string(ctx, guidArray[i]);
-                    duk_put_prop_index(ctx, arr_idx, i);
-                    }
-                }
-            break;
-        case WAYPOINT_SELECTED:
-            result = GetSelectedWaypointGUID_Plugin();
-            if (result == wxEmptyString) duk_push_string(ctx, result);
-            else duk_push_boolean(ctx, false);
-            break;
-        case ROUTE_SELECTED:
-            result = GetSelectedRouteGUID_Plugin();
-            if (result == wxEmptyString) duk_push_string(ctx, result);
-            else duk_push_boolean(ctx, false);
-            break;
-        default: throwErrorByCtx(ctx, "OCPNgetGUID error: called with invalid argument");
-            }
-    return(1);
-    }
- */
  
 OBJECT_LAYER_REQ determinGUIDtype(duk_context *ctx){
 	// for all getGUID array calls,  determine which are to be fetched
