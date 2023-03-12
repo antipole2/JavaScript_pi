@@ -742,19 +742,12 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
 
     if (pTools == nullptr) {  // do not yet have a tools dialogue
     	int x, y;
-        pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
+        pTools = new ToolsClass(m_parent_window, wxID_ANY /*, "JavaScript Tools" */);
         // position it top right in display
         wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
         wxDisplay display(wxDisplay::GetFromWindow(frame));
 		wxRect screen = display.GetClientArea();
-        wxSize toolsSize = pTools->GetSize();
-        
-/*       just played with this - not working
-        if (toolsSize.y > screen.height){ // too tall for this display
-        	toolsSize.y = screen.height;
-        	pTools->SetSize(wxSize(toolsSize));
-        	}
-*/        	
+        wxSize toolsSize = pTools->GetSize();      	
         x = screen.x + screen.width - toolsSize.x;
         y = screen.y;
         pTools->SetPosition(wxPoint(x,y));
