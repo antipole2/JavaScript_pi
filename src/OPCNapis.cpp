@@ -553,7 +553,6 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
              unsigned char calculated_checksum = 0;
              for(wxString::const_iterator i = sentence.begin()+1; i != sentence.end() && *i != '*'; ++i)
                  calculated_checksum ^= static_cast<unsigned char> (*i);
-
             return( wxString::Format("%02X", calculated_checksum) );
         }
     };
