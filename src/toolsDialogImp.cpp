@@ -73,7 +73,6 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         Raise();
         page->GetSize(&page_x, &page_y);
         TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
-//        this->SetSize(600, page_y);
 		this->SetSize(page_x, page_y);
         }        
 
