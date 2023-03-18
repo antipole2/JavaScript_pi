@@ -315,13 +315,15 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             
+            double scale = m_parent_window->GetDPIScaleFactor();
             // load parking config - platform defaults if none
+            // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
             m_parkingMinHeight = pConf->Read("ParkingMinHeight", CONSOLE_MIN_HEIGHT);
             m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
             m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
             m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
-            m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
+            m_parkSep = pConf->Read("ParkingSep", PARK_SEP) * scale;
             TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingMinHeight:%i, ParkingStub:%i ",
             	(m_parkingBespoke?"true":"false"), m_parkingMinHeight, m_parkingStub ));
             
@@ -329,8 +331,8 @@ bool JavaScript_pi::LoadConfig(void)
             mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configured
-                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20), wxSize(738,800), wxPoint(150, 100),
-                	wxPoint(90, 20), wxEmptyString, false, welcome);
+                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20),
+                	wxSize(738,800), wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
                 newConsole->setConsoleMinSize();
                 }
             else {
@@ -351,19 +353,16 @@ bool JavaScript_pi::LoadConfig(void)
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
                     consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
                     consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
-                    dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
-                    dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
-                    alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
-                    alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
+                    dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L ) * scale;
+                    dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L ) * scale;
+                    alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L ) * scale;
+                    alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L ) * scale;
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
-                    // from V2 positions have been saved relative to frame
-                    consolePosition = frameToScreen(consolePosition);
-                    dialogPosition = frameToScreen(dialogPosition);
-                    alertPosition = frameToScreen(alertPosition);
                     // take care of no console size
                     if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
+                    // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
                     if (parked) newConsole->park();
@@ -435,15 +434,16 @@ bool JavaScript_pi::SaveConfig(void)
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
+ //        double scale = m_parent_window->GetDPIScaleFactor();	// we will save config in DIP
             
         //save custom parking config, if any
         if (m_parkingBespoke){
         	pConf->Write (nameColon + _T ( "ParkingBespoke" ),   1 );
-        	pConf->Write (nameColon + _T ( "ParkingMinHeight" ),   m_parkingMinHeight );
-        	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub );
-         	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel );
-         	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX );
-         	pConf->Write (nameColon + _T ( "ParkingSep" ),   m_parkSep );  	
+        	pConf->Write (nameColon + _T ( "ParkingMinHeight" ),   m_parkingMinHeight);
+        	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub);
+         	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel);
+         	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX);
+         	pConf->Write (nameColon + _T ( "ParkingSep" ),   m_parkSep);  	
         	}
 
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
@@ -451,11 +451,12 @@ bool JavaScript_pi::SaveConfig(void)
         	// v2 positions now saved relative to frame
             name = pConsole->mConsoleName;
             nameColon = name + ":";
+            // will save in DIP
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
-            wxPoint consolePosition = screenToFrame(pConsole->GetPosition());
-            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);
-            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);
-            wxSize  consoleSize = pConsole->GetSize();            
+            wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
+            wxPoint dialogPosition = m_parent_window->ToDIP(screenToFrame(pConsole->mDialog.position));
+            wxPoint alertPosition = m_parent_window->ToDIP(screenToFrame(pConsole->mAlert.position));
+            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );

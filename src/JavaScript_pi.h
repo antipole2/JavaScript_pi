@@ -119,7 +119,7 @@ public:
     Position        mCursorPosition;     // latest cursor position
     bool			m_showHelp {false};		// show help during first showing of consoles
     
-    // console parking
+    // console parking all stored in DIP units
     bool			m_parkingBespoke {true};	// true if using bespoke parking parameters
     int				m_parkingMinHeight {CONSOLE_MIN_HEIGHT};	// minimim height of console
     int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length

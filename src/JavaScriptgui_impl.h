@@ -149,7 +149,7 @@ class DialogAction // hold details of open dialogue
 public:
     jsFunctionNameString_t functionName;    // function to be called when dialogue acted on
     wxDialog    *pdialog;    // points to open dialog else nullptr
-    wxPoint     position = wxPoint(wxDefaultPosition);
+    wxPoint     position = wxPoint(wxDefaultPosition);	// in DIP
     std::vector<dialogElement> dialogElementsArray;// will be an array of dialogue elements
     };
 
@@ -157,7 +157,7 @@ class AlertDetails // holds details of open dialogue
     {
 public:
     wxDialog    *palert;    // points to open alert else nullptr
-    wxPoint     position = wxPoint(wxDefaultPosition);
+    wxPoint     position = wxPoint(wxDefaultPosition);	// in DIP
     wxString    alertText;  // the currently displayed text
     };
 
@@ -244,13 +244,18 @@ public:
 
 private:
     bool		m_parked;		// true if this console parked
-    wxPoint		m_parkedPosition;	// if parked, position relative to frame
+    wxPoint		m_parkedPosition;	// if parked, parked position
     void OnClose( wxCloseEvent& event );
     
 public:
-    Console(wxWindow *parent, wxString consoleName, wxPoint consolePosition = wxPoint(300,20), wxSize consoleSize = wxSize(738,800),
-    	wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString, bool autoRun = false,
-    	wxString welcome = wxEmptyString, bool parked = false): m_Console(parent, wxID_ANY, consoleName, consolePosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
+    Console(wxWindow *parent, wxString consoleName,
+    		wxPoint consolePosition = pJavaScript_pi->m_parent_window->ToDIP(wxPoint(300,100)),
+    		wxSize consoleSize = pJavaScript_pi->m_parent_window->ToDIP(wxSize(738,800)),
+    		wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString,
+    		bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
+    		: m_Console(parent, wxID_ANY, consoleName, FromDIP(consolePosition), FromDIP(consoleSize),
+    		wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
         Console *pConsole;
@@ -266,13 +271,14 @@ public:
             pConsole->mpNextConsole = this; // add us
             }
         mConsoleName = consoleName;
+        consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
         m_parked = parked;
-        if (parked) m_parkedPosition = screenToFrame(consolePosition);	// if parked, restore position relative to frame
+        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position relative to frame
         consoleInit();        
-        Move(wxPoint(checkPointOnScreen(consolePosition)));
-        mDialog.position = checkPointOnScreen(dialogPosition);
+        Move(FromDIP(consolePosition));
+        mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
         mDialog.pdialog = nullptr;
-        mAlert.position = checkPointOnScreen(alertPosition);
+        mAlert.position = ToDIP(checkPointOnScreen(FromDIP(alertPosition)));
         mAlert.palert = nullptr;
         m_fileStringBox->SetValue(fileString);
         auto_run->SetValue(autoRun);
@@ -353,39 +359,39 @@ public:
         return this;
     }
     
-    void clearBrief(){  // initialise brief by clearing it down
-        mBrief.hasBrief = mBrief.fresh = mBrief.reply = false;
-        mConsoleRepliesAwaited = 0;
-        }
-    
- 
- void consoleInit(){	// Initialises console, clearing out settings
-	mpCtx = nullptr;
-	mRunningMain = false;
-	mStatus = 0;
-	mWaitingCached = false;
-	m_explicitResult = false;
-	m_result = wxEmptyString;
-	m_hadError = false;
-	m_time_to_allocate = 1000;   //default time allocation (msecs)
-	mTimerActionBusy = false;
-	mDialog.pdialog = nullptr;
-	mDialog.functionName = wxEmptyString;
-	mAlert.palert = nullptr;
-	mAlert.alertText = wxEmptyString;
-	mpMessageDialog = nullptr;
-	mConsoleRepliesAwaited = 0;
-	m_exitFunction = wxEmptyString;
-	#ifdef SOCKETS
-		clearSockets();
-	#endif
-	mscriptToBeRun = false;
-    run_button->SetLabel("Run");
-	if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
-		mAlert.position.y = 150;
+	void clearBrief(){  // initialise brief by clearing it down
+		mBrief.hasBrief = mBrief.fresh = mBrief.reply = false;
+		mConsoleRepliesAwaited = 0;
 		}
-	return;
-	}
+	
+ 
+	 void consoleInit(){	// Initialises console, clearing out settings
+		mpCtx = nullptr;
+		mRunningMain = false;
+		mStatus = 0;
+		mWaitingCached = false;
+		m_explicitResult = false;
+		m_result = wxEmptyString;
+		m_hadError = false;
+		m_time_to_allocate = 1000;   //default time allocation (msecs)
+		mTimerActionBusy = false;
+		mDialog.pdialog = nullptr;
+		mDialog.functionName = wxEmptyString;
+		mAlert.palert = nullptr;
+		mAlert.alertText = wxEmptyString;
+		mpMessageDialog = nullptr;
+		mConsoleRepliesAwaited = 0;
+		m_exitFunction = wxEmptyString;
+		#ifdef SOCKETS
+			clearSockets();
+		#endif
+		mscriptToBeRun = false;
+		run_button->SetLabel("Run");
+		if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
+			mAlert.position.y = 150;
+			}
+		return;
+		}
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
@@ -718,7 +724,7 @@ public:
     void clearAlert(){  // clears away any alert dialogue
         TRACE(4,this->mConsoleName + "->clearAlert()  " + ((this->mAlert.palert == nullptr)?"(None)":"Alert exists"));
         if (mAlert.palert != nullptr){ // only if have an alert displayed
-            mAlert.position = mAlert.palert->GetPosition(); // remember alert position
+            mAlert.position = ToDIP(mAlert.palert->GetPosition()); // remember alert position in DIP
             mAlert.palert->Close();
             mAlert.palert->Destroy();
             delete mAlert.palert;
@@ -731,7 +737,7 @@ public:
     void clearDialog(){ // clear away any open dialogue
         TRACE(4,this->mConsoleName + "->clearDialog()  " + ((this->mDialog.pdialog == nullptr)?"(None)":"Dialog exists"));
         if (mDialog.pdialog != nullptr){
-            mDialog.position = mDialog.pdialog->GetPosition();   // remember where it is
+            mDialog.position = ToDIP(mDialog.pdialog->GetPosition());   // remember where it is in DIP
             mDialog.dialogElementsArray.clear();
             mDialog.pdialog->Close();
             mDialog.pdialog->Destroy();
@@ -809,12 +815,7 @@ public:
         void limitOutput(wxStyledTextCtrl* pText);
         TRACE(5,mConsoleName + "->message() " + message);
         Show(); // make sure console is visible
-        // make sure it is big enough to see the output
-        wxSize consoleSize = this->GetSize();
-        if ((consoleSize.x < 200)|| (consoleSize.y < 400)) {
-            consoleSize = wxSize(680,700);
-            this->SetSize(consoleSize);
-            }
+    	makeBigEnough();
         wxStyledTextCtrl* output_window = m_Output;
         int long beforeLength = output_window->GetTextLength(); // where we are before adding text
         output_window->AppendText(message);
@@ -828,6 +829,14 @@ public:
         output_window->SetStyling((int)(afterLength-beforeLength-1), style);
 		limitOutput(output_window);
         }
+        
+    void makeBigEnough(){	// ensure console at least minimum size
+    	wxSize consoleSize = ToDIP(this->GetSize());	// using DIP size here
+        if ((consoleSize.x < 200)|| (consoleSize.y < 400)){
+        	consoleSize = FromDIP(wxSize(680,700));		// back to actual size
+        	this->SetSize(consoleSize);
+        	}
+    	}
     
     void display_error(duk_context *ctx, wxString message){
         // display an error NOT from running script
@@ -920,12 +929,13 @@ public:
         }
         
     void setConsoleMinSize(){
+    	// all in physical size here
+    	double scale = this->GetDPIScaleFactor();
     	wxSize minSize, size;
-    	wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, mConsoleName);
-    	wxSize textSize = staticText->GetSize();
-    	delete staticText;
-    	minSize.x = pJavaScript_pi->m_parkingStub + textSize.x + 6;	// added 6 to be on safe side
-    	minSize.y = pJavaScript_pi->m_parkingMinHeight;
+    	
+    	wxSize textSize = this->GetTextExtent(mConsoleName);
+    	minSize.x = pJavaScript_pi->m_parkingStub*scale + textSize.x + 3*scale;	// added 3 to be on safe side
+    	minSize.y = pJavaScript_pi->m_parkingMinHeight*scale;
     	TRACE(4, wxString::Format("setConsoleMinSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
     	SetMinSize(minSize);
     	// make sure is no smaller than new min size
@@ -957,11 +967,12 @@ public:
             wxPoint pCFramePos = screenToFrame(pC->GetPosition());	// position of this console in frame
             rhe = pCFramePos.x + pC->GetSize().x;
             if (rhe > rightMost) rightMost = rhe;
-            }
-        int newX = (foundParked) ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking
-		m_parkedPosition = wxPoint(newX, pJavaScript_pi->m_parkingLevel);	// relative to frame
+            }   
+    	int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
+		m_parkedPosition = wxPoint(newX, pJavaScript_pi->m_parkingLevel);	// temp in actual px
+		Move(frameToScreen(m_parkedPosition));
         TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
-        Move(frameToScreen(m_parkedPosition));
+		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
         m_parked = true;
     	}
     	
@@ -970,6 +981,7 @@ public:
         
     	if (!m_parked) return false;
     	wxPoint posNow = screenToFrame(GetPosition());	// pos rel to frame
+    	posNow = ToDIP(posNow);	// stored position in DIP
     	if ((abs(posNow.y - m_parkedPosition.y) < 4)) return true; // still parked (allowing small margin for error )
     	m_parked = false;	// has been moved
     	return false;

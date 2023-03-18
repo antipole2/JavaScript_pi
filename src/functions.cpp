@@ -18,6 +18,7 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/msgdlg.h>
 #include <wx/url.h>
+#include "trace.h"
 
 extern JavaScript_pi *pJavaScript_pi;
 
@@ -120,10 +121,9 @@ duk_bool_t JSduk_timeout_check(void *udata) {
 }
 
 wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the screen
-    wxPoint defaultPosition = wxPoint(wxDefaultPosition);
-    
-    if ((point.x < 0 || point.x > pJavaScript_pi->m_display_width)) point.x = defaultPosition.x;
-    if ((point.y < 0 || point.y > pJavaScript_pi->m_display_height)) point.y = defaultPosition.y;
+	// NB This works in Logical Pixels, not DIP    
+    if ((point.x < 0 || point.x > pJavaScript_pi->m_display_width)) point.x = wxDefaultPosition.x;
+    if ((point.y < 0 || point.y > pJavaScript_pi->m_display_height)) point.y = wxDefaultPosition.y;
     return point;
     }
 
@@ -149,9 +149,8 @@ void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw er
 
 #include "wx/tokenzr.h"
 wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
-    // extract function name from call on stack
-    // This does not work if in method in class not substantiated, so is here
-    
+    // extract function name from call on JS stack
+    // This does not work if in method in class not substantiated, so is here    
     wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), " (");
     if (tokens.GetNextToken() != "function") {
         throwErrorByCtx(ctx, "on.. error: must supply function name");

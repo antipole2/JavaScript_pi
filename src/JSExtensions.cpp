@@ -172,8 +172,8 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
         pConsole->mAlert.palert->Close();
         pConsole->mAlert.palert->Destroy();
         }
-    alert = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->mAlert.position, wxDefaultSize,
-                         wxCAPTION | wxSTAY_ON_TOP | wxBORDER_RAISED);
+    alert = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->FromDIP(pConsole->mAlert.position),
+    	wxDefaultSize, wxCAPTION | wxSTAY_ON_TOP | wxBORDER_RAISED);
     alert->SetBackgroundColour(*wxYELLOW);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     alert->SetSizer(boxSizer);
@@ -209,12 +209,7 @@ static duk_ret_t duk_print(duk_context *ctx) {   // print
     duk_ret_t result = 0;
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->Show(); // make sure console is visible
-    // make sure it is big enough to see the output
-    wxSize consoleSize = pConsole->GetSize();
-    if ((consoleSize.x < 200)|| (consoleSize.y < 400)) {
-        consoleSize = wxSize(680,700);
-        pConsole->SetSize(consoleSize);
-        }
+    pConsole->makeBigEnough();
     pConsole->m_Output->AppendText(js_formOutput(ctx));
     limitOutput(pConsole->m_Output);
     return (result);

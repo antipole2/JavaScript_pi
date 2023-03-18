@@ -178,8 +178,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     duk_require_function(ctx, -2);  // first arugment must be function
     
     // ready to create new dialogue
-    dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue", pConsole->mDialog.position, wxDefaultSize,
-            wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+    dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
+    	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize, wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls

@@ -73,7 +73,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         Raise();
         page->GetSize(&page_x, &page_y);
         TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
-		this->SetSize(page_x, page_y);
+		this->SetSize(600 * wxWindow::GetDPIScaleFactor(), page_y);	// allow for screen resolution
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
@@ -93,7 +93,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         m_ConsolesMessage->AppendText(outcome);
         return;
         }
-    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName, wxDefaultPosition,wxSize(738,800),wxDefaultPosition, wxDefaultPosition);
+    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -184,9 +184,10 @@ void ToolsClass::onDump( wxCommandEvent& event ){
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
 
-    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
+    dump += (wxString::Format("\JavaScript tools window DPI scaling factor %f\n", GetDPIScaleFactor()));
+    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
     wxString svg {"Not using svg"};
@@ -216,7 +217,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
         }
     dump += ("\nEnd of dump\n");
     dumpTextCtrl->AppendText(dump);
-    dumpWindow->SetSize(600, 900);
+    dumpWindow->SetSize(FromDIP(wxSize(600, 900)));
     dumpWindow->Show();
     }
 
@@ -256,7 +257,7 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     dumpTextCtrl->AppendText(JS_dumpString("\nRaw", text));
     text = JScleanString(text);
     dumpTextCtrl->AppendText(JS_dumpString("\nCleaned", text));
-    stringWindow->SetSize(500, 500);
+    stringWindow->SetSize(FromDIP(wxSize(500, 500)));
     stringWindow->Show();
     }
     
@@ -297,13 +298,13 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 			return;
 			}
 		// create fist test console
-		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M",wxPoint(250,250), wxSize(700,300));
+		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M",FromDIP(wxPoint(250,250)), FromDIP(wxSize(700,300)));
 		pTestConsole1->GetPosition(&x, &y);
 		pTestConsole1->SetPosition(wxPoint(x, y));
 		pTestConsole1->SetMinSize(wxSize(1,1));
 		pTestConsole1->SetBackgroundColour(*wxBLUE);
 		pTestConsole1->Show();
-		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM",wxPoint(300,600), wxSize(700,300));
+		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM",FromDIP(wxPoint(300,600)), FromDIP(wxSize(700,300)));
 		pTestConsole2->GetPosition(&x, &y);
 		pTestConsole2->SetPosition(wxPoint(x, y));
 		pTestConsole2->SetMinSize(wxSize(1,1));
@@ -319,16 +320,17 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	else if ((label == "Next") || (label == "Retry")){
 		TRACE(4, "onParking next");
 		// now for the calculation
+		double scale = wxWindow::GetDPIScaleFactor();	// for DIP corrections
 		wxSize c1Size = pTestConsole1->GetSize();
 		wxSize c2Size = pTestConsole2->GetSize();
 		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
 		wxPoint c2Pos = screenToFrame(pTestConsole2->GetPosition());
 		m_customiseButton->SetLabel("Retry");	// in case we have a problem
-		if ((c1Size.y > 40) || (c2Size.y > 40)){
+		if ((c1Size.y > 40*scale) || (c2Size.y > 40*scale)){
 			m_parkingMessage->SetValue("You have not minimised the consoles\nDo so and try again");
 			return;
 			}
-		if (abs(c1Pos.y - c2Pos.y) > 3){
+		if (abs(c1Pos.y - c2Pos.y) > 3*scale){
 			m_parkingMessage->SetValue("Both consoles should be at the same level.\nAdjust and try again");
 			return;
 			}
@@ -336,17 +338,21 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 			m_parkingMessage->SetValue("Consoles overlap.\nAdjust and try again");
 			return;
 			}
-		pJavaScript_pi->m_parkingMinHeight = (c1Size.y + c2Size.y)/2;	// take average
-		wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, pTestConsole1->mConsoleName);
-    	wxSize nameSize = staticText->GetSize();
-    	delete staticText;
-		pJavaScript_pi->m_parkingStub = c1Size.x - nameSize.x;
-		pJavaScript_pi->m_parkingLevel = (c1Pos.y + c2Pos.y)/2;
-		pJavaScript_pi->m_parkFirstX = c1Pos.x;
-		pJavaScript_pi->m_parkSep = c2Pos.x - (c1Pos.x + c1Size.x);
+		pJavaScript_pi->m_parkingMinHeight = ((c1Size.y + c2Size.y)/2)/scale;	// take average
+		wxString label = pTestConsole2->GetLabel();
+		wxSize labelSize = pTestConsole2->GetTextExtent(label);
+		pJavaScript_pi->m_parkingStub = (c2Size.x - labelSize.x)/scale;
+		pJavaScript_pi->m_parkingLevel = ((c1Pos.y + c2Pos.y)/2)/scale;
+		pJavaScript_pi->m_parkFirstX = c1Pos.x/scale;
+		pJavaScript_pi->m_parkSep = (c2Pos.x - (c1Pos.x + c1Size.x))/scale;
 		pJavaScript_pi->m_parkingBespoke = true;
 		pJavaScript_pi->SaveConfig();
-		m_parkingMessage->SetValue("Custom parking parameters set and saved");		
+		m_parkingMessage->SetValue("Custom parking parameters set and saved");
+		m_customiseButton->SetLabel("Finish");		
+		}
+	else if (label == "Finish") {
+		cleanupParking();
+		m_customiseButton->SetLabel("Start");
 		}
 	}
 	
@@ -354,7 +360,8 @@ void ToolsClass::onParkingReveal(wxCommandEvent& event) {
 		m_parkingMessage->SetValue(pJavaScript_pi->m_parkingBespoke?"Bespoke settings\n\n":"Default settings\n\n");
 		m_parkingMessage->AppendText(wxString::Format(
 			"#define CONSOLE_MIN_HEIGHT %iL\n#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
-			pJavaScript_pi->m_parkingMinHeight, pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));			
+			pJavaScript_pi->m_parkingMinHeight, pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));	
+		m_parkingMessage->AppendText("\n\nThe above are all in DIP pixels");			
 		}
 	
 void displayTools(wxWindow* parent){ // this used for testing in harness only

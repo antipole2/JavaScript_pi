@@ -23,6 +23,7 @@ PARK_SEP			Horizontal separation of parked consoles
 
 These constants are platform dependent
 See the Technical Guide for instructions for configuring for a given platform
+THese positions and sizes are all in DIP
 */
 #ifdef __WXMSW__
 #define CONSOLE_MIN_HEIGHT 39L
