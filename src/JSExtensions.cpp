@@ -281,8 +281,7 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     else buttonType = ok;
     if (nargs > 2) caption = duk_get_string(ctx, 2);
     duk_pop_n(ctx, nargs);
-    // we attach this dialogue to the canvas window so console not forced to front on dismiss
-	wxDialog *dialog = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+	wxDialog *dialog = new wxDialog(pConsole, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls

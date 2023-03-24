@@ -30,7 +30,6 @@
 #include <bitset>
 #include "buildConfig.h"
 #include "consolePositioning.h"
-#include "scaling.h"
 #include <wx/event.h>
 
 #define DUK_DUMP true
@@ -40,8 +39,6 @@
 #define ERROR_DUMP {message(STYLE_ORANGE, _(""), _("error dump\n")+(duk_is_error(ctx, -1)?(_("Error object with " )+duk_safe_to_string(ctx, -1)+_("\n")):_("No error object\n")));}\
 MAYBE_DUK_DUMP
 #endif  //  DUK_DUMP
-
-//wxPoint test = FromDIP(200,100);
 
 using namespace std;
 typedef wxString jsFunctionNameString_t;
@@ -253,11 +250,11 @@ private:
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
     Console(wxWindow *parent, wxString consoleName,
-    		wxPoint consolePosition = wxPoint(300,100),
-    		wxSize consoleSize = wxSize(738,800),
+    		wxPoint consolePosition = pJavaScript_pi->m_parent_window->ToDIP(wxPoint(300,100)),
+    		wxSize consoleSize = pJavaScript_pi->m_parent_window->ToDIP(wxSize(738,800)),
     		wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString,
     		bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
-    		: m_Console(parent, wxID_ANY, consoleName, consolePosition, consoleSize,
+    		: m_Console(parent, wxID_ANY, consoleName, FromDIP(consolePosition), FromDIP(consoleSize),
     		wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
@@ -933,7 +930,7 @@ public:
         
     void setConsoleMinSize(){
     	// all in physical size here
-    	double scale = SCALE(this);
+    	double scale = this->GetDPIScaleFactor();
     	wxSize minSize, size;
     	
     	wxSize textSize = this->GetTextExtent(mConsoleName);
@@ -974,7 +971,7 @@ public:
     	int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
 		m_parkedPosition = wxPoint(newX, pJavaScript_pi->m_parkingLevel);	// temp in actual px
 		Move(frameToScreen(m_parkedPosition));
-        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i screen", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
+        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
 		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
         m_parked = true;
     	}

@@ -160,12 +160,7 @@ duk_ret_t console_add(duk_context *ctx){
     duk_pop(ctx);
     outcome = checkConsoleName(name, nullptr);
     if (outcome !="") throwErrorByCtx(ctx, outcome);
-		pConsole = new Console(pJavaScript_pi->m_parent_window, "JavaScript",
-			pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
-			pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
-			pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
-			pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
-			wxEmptyString, false, wxEmptyString);
+    pConsole = new Console(pJavaScript_pi->m_parent_window, name);
     pConsole->CenterOnScreen();
     pConsole->setConsoleMinSize();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly

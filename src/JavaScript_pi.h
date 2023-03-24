@@ -25,6 +25,7 @@
 #include "config.h"
 #include "consolePositioning.h"
 
+
 typedef enum FileOptions{
     DONT_CARE,
     MUST_EXIST,

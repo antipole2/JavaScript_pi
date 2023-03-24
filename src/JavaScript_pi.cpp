@@ -25,7 +25,6 @@
 #include "trace.h"
 #include "wx/tokenzr.h"
 #include "wx/stdpaths.h"
-#include "scaling.h"
 
 int messageIndex(MessagesArray&, messageNameString_t);
 wxString configSection = ("/PlugIns/JavaScript_pi");
@@ -152,8 +151,8 @@ bool JavaScript_pi::DeInit(void) {
 
     if (pTools != nullptr) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
-        pTools->Close();
-        pTools->Destroy();
+ //       pTools->Close();
+ //       pTools->Destroy();
         delete pTools;
         pTools = nullptr;
         }
@@ -302,12 +301,7 @@ bool JavaScript_pi::LoadConfig(void)
             pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
-            mpFirstConsole = new Console(m_parent_window, "JavaScript",
-            	m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
-            	m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
-            	m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
-            	m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
-            	wxEmptyString, false, welcome);
+            mpFirstConsole = new Console(m_parent_window, "JavaScript");
             mpFirstConsole->setConsoleMinSize();
             mpFirstConsole->m_Output->AppendText(welcome);
             m_showHelp = true;
@@ -321,7 +315,7 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             
-            double scale = SCALE(m_parent_window);
+            double scale = m_parent_window->GetDPIScaleFactor();
             // load parking config - platform defaults if none
             // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
@@ -337,13 +331,9 @@ bool JavaScript_pi::LoadConfig(void)
             mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configured
-                Console* newConsole = new Console(m_parent_window, "JavaScript",
-            	m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
-            	m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
-            	m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
-            	m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
-            	wxEmptyString, false, welcome);
-            	newConsole->setConsoleMinSize();
+                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20),
+                	wxSize(738,800), wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
+                newConsole->setConsoleMinSize();
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
@@ -371,12 +361,9 @@ bool JavaScript_pi::LoadConfig(void)
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
                     // take care of no console size
-                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(NEW_CONSOLE_SIZE);
-                    // from V2.1 positions have been saved relative to screen
-                    Console* newConsole = new Console(m_parent_window , name,
-                    	m_parent_window->FromDIP(consolePosition), m_parent_window->FromDIP(consoleSize),
-                    	m_parent_window->FromDIP(dialogPosition), m_parent_window->FromDIP(alertPosition),
-                    	fileString, autoRun,  welcome, parked);
+                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
+                    // from V2 positions have been saved relative to frame
+                    Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
                     if (parked) newConsole->park();
                     }
@@ -447,6 +434,7 @@ bool JavaScript_pi::SaveConfig(void)
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
+ //        double scale = m_parent_window->GetDPIScaleFactor();	// we will save config in DIP
             
         //save custom parking config, if any
         if (m_parkingBespoke){
