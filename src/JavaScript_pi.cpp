@@ -315,7 +315,6 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             
-            double scale = m_parent_window->GetDPIScaleFactor();
             // load parking config - platform defaults if none
             // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
@@ -323,7 +322,7 @@ bool JavaScript_pi::LoadConfig(void)
             m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
             m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
             m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
-            m_parkSep = pConf->Read("ParkingSep", PARK_SEP) * scale;
+            m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
             TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingMinHeight:%i, ParkingStub:%i ",
             	(m_parkingBespoke?"true":"false"), m_parkingMinHeight, m_parkingStub ));
             
@@ -353,10 +352,10 @@ bool JavaScript_pi::LoadConfig(void)
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
                     consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
                     consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
-                    dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L ) * scale;
-                    dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L ) * scale;
-                    alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L ) * scale;
-                    alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L ) * scale;
+                    dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
+                    dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
+                    alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
+                    alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;

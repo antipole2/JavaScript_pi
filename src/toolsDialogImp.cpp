@@ -71,7 +71,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         Show();
         Raise();
         wxSize pageSize = ToDIP(page->GetSize());
-        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", page_x, page_y));
+        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageSize.x, pageSize.y));
         pageSize.x = 600;	// force width
 		this->SetSize(FromDIP(pageSize));	// allow for screen resolution
         }        
@@ -93,12 +93,15 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         m_ConsolesMessage->AppendText(outcome);
         return;
         }
-	pConsole = new Console(pJavaScript_pi->m_parent_window, "JavaScript",
+	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+/*
+//x 	,
 		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
 		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
 		pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
 		pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
 		wxEmptyString, false, wxEmptyString);
+*/
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -183,15 +186,21 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     wxTextCtrl *dumpTextCtrl;
     extern JavaScript_pi *pJavaScript_pi;
     wxString dump {wxEmptyString};
-    
-    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
+    // position dump window just to left of tools - calculate in DIP
+    wxPoint toolsPosition = ToDIP(GetPosition());
+    wxSize toolsSize = ToDIP(GetSize());
+    wxPoint dumpPosition = toolsPosition;
+    dumpPosition.x -= toolsSize.x;	// shift left to be on left of tools
+    dumpPosition.y = toolsPosition.y;	// and at same height
+    dumpPosition = FromDIP(dumpPosition);
+    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", dumpPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP | wxRESIZE_BORDER);
     dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
 
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
-    dump += (wxString::Format("\JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
+    dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));

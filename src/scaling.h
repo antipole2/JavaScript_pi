@@ -16,7 +16,7 @@
 
 // defaults in DIP
 #define NEW_CONSOLE_POSITION	wxPoint(300,100)
-#define NEW_CONSOLE_SIZE		wxSize(738,800)
+#define NEW_CONSOLE_SIZE		wxSize(738,600)
 #define DEFAULT_DIALOG_POSITION	wxPoint(150,100)
 #define DEFAULT_ALERT_POSITION	wxPoint(90,20)
 

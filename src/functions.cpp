@@ -158,6 +158,7 @@ wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
     return (tokens.GetNextToken());
     }
 
+#if TRACE_YES
 #if TRACE_TO_WINDOW 
 wxWindow *traceWindow;
 wxTextCtrl *traceTextCtrl {nullptr};
@@ -165,11 +166,10 @@ void windowTrace(int level, wxString text){
     // implements tracing to a separate window
     if (!traceTextCtrl){
         // the first time to trace
-        int traceWindowWidth {600};
-        wxPoint position;
-        position.y = 100;
-        position.x = pJavaScript_pi->m_display_width-traceWindowWidth;
-        traceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, wxSize(traceWindowWidth, 600), wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
+        wxPoint position = pJavaScript_pi->m_parent_window->FromDIP(wxPoint(800, 100));
+        wxSize size = pJavaScript_pi->m_parent_window->FromDIP(wxSize(300, 200));
+         traceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
+         	wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP|wxRESIZE_BORDER);
         traceTextCtrl = new wxTextCtrl(traceWindow, wxID_NEW,
                               wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                               wxTE_MULTILINE);
@@ -180,6 +180,7 @@ void windowTrace(int level, wxString text){
     return;
     }
 #endif  // TRACE_TO_WINDOW
+endif#	// TRACE_YES
 
 wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options){
 	// if fileString is URL does not change anything
@@ -302,7 +303,8 @@ wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
 	}
 	
 wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
-/*	With v2.0.3 we change to parking on screen positions so do nothing
+/*	With v2.0.3 we change to 
+ing on screen positions so do nothing
 	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
 	wxPoint framePos = frame->GetPosition();	// screen position of frame 
 	pos.x += framePos.x;

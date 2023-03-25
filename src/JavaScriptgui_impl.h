@@ -25,6 +25,7 @@
 #include "ocpn_plugin.h"
 #include "JavaScript_pi.h"
 #include "JavaScriptgui.h"
+#include "scaling.h"
 #include "trace.h"
 #include <vector>
 #include <bitset>
@@ -250,11 +251,12 @@ private:
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
     Console(wxWindow *parent, wxString consoleName,
-    		wxPoint consolePosition = pJavaScript_pi->m_parent_window->ToDIP(wxPoint(300,100)),
-    		wxSize consoleSize = pJavaScript_pi->m_parent_window->ToDIP(wxSize(738,800)),
-    		wxPoint dialogPosition = wxPoint(150, 100), wxPoint alertPosition = wxPoint(90, 20), wxString fileString = wxEmptyString,
-    		bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
-    		: m_Console(parent, wxID_ANY, consoleName, FromDIP(consolePosition), FromDIP(consoleSize),
+    		wxPoint consolePosition = pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
+    		wxSize consoleSize = pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
+    		wxPoint dialogPosition = pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
+    		wxPoint alertPosition = pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
+    		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
+    		: m_Console(parent, wxID_ANY, consoleName, consolePosition, consoleSize,
     		wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
         {
         void JSlexit(wxStyledTextCtrl* pane);
@@ -929,8 +931,8 @@ public:
         }
         
     void setConsoleMinSize(){
-    	// all in physical size here
-    	double scale = this->GetDPIScaleFactor();
+    	// store parameters in DIP but minSize set in physical size here
+    	double scale = SCALE(this);
     	wxSize minSize, size;
     	
     	wxSize textSize = this->GetTextExtent(mConsoleName);

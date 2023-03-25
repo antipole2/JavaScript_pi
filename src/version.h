@@ -14,8 +14,8 @@
 #ifndef version_h
 #define version_h
 
-#define     PLUGIN_VERSION_DATE "2023:03:18"
-#define     PLUGIN_VERSION_COMMENT "Build n"
+#define     PLUGIN_VERSION_DATE "2023:03:25"
+#define     PLUGIN_VERSION_COMMENT "Build p"
 
 // #define     USERGUIDES "\nhttps://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.pdf\nor\nhttps://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.epub\n\n"
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
