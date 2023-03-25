@@ -180,7 +180,7 @@ void windowTrace(int level, wxString text){
     return;
     }
 #endif  // TRACE_TO_WINDOW
-endif#	// TRACE_YES
+#endif	// TRACE_YES
 
 wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options){
 	// if fileString is URL does not change anything
