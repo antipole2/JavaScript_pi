@@ -59,7 +59,6 @@ void ToolsClass::cleanupParking(){
 void ToolsClass::setupPage(int pageNumber){	// display this page of tools
     	extern JavaScript_pi* pJavaScript_pi;
         wxWindow *page;
-        int page_x, page_y;
         setConsoleChoices();
         cleanupParking();
         m_parkingMessage->Clear();
@@ -71,9 +70,10 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         page->Fit();
         Show();
         Raise();
-        page->GetSize(&page_x, &page_y);
-        TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
-		this->SetSize(600 * wxWindow::GetDPIScaleFactor(), page_y);	// allow for screen resolution
+        wxSize pageSize = ToDIP(page->GetSize());
+        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageSize.x, pageSize.y));
+        pageSize.x = 600;	// force width
+		this->SetSize(FromDIP(pageSize));	// allow for screen resolution
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
@@ -93,7 +93,15 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         m_ConsolesMessage->AppendText(outcome);
         return;
         }
-    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+/*
+//x 	,
+		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
+		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
+		pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
+		pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
+		wxEmptyString, false, wxEmptyString);
+*/
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -178,15 +186,21 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     wxTextCtrl *dumpTextCtrl;
     extern JavaScript_pi *pJavaScript_pi;
     wxString dump {wxEmptyString};
-    
-    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
+    // position dump window just to left of tools - calculate in DIP
+    wxPoint toolsPosition = ToDIP(GetPosition());
+    wxSize toolsSize = ToDIP(GetSize());
+    wxPoint dumpPosition = toolsPosition;
+    dumpPosition.x -= toolsSize.x;	// shift left to be on left of tools
+    dumpPosition.y = toolsPosition.y;	// and at same height
+    dumpPosition = FromDIP(dumpPosition);
+    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", dumpPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP | wxRESIZE_BORDER);
     dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
 
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
-    dump += (wxString::Format("\JavaScript tools window DPI scaling factor %f\n", GetDPIScaleFactor()));
+    dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
@@ -320,7 +334,7 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	else if ((label == "Next") || (label == "Retry")){
 		TRACE(4, "onParking next");
 		// now for the calculation
-		double scale = wxWindow::GetDPIScaleFactor();	// for DIP corrections
+		double scale = SCALE(this);	// for DIP corrections
 		wxSize c1Size = pTestConsole1->GetSize();
 		wxSize c2Size = pTestConsole2->GetSize();
 		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
