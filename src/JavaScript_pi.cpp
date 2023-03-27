@@ -108,7 +108,7 @@ int JavaScript_pi::Init(void)
 
     //    And load the configuration items
     LoadConfig();
-    mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
+//    mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
 
     //    This PlugIn needs a toolbar icon, so request its insertion
     if(m_bJavaScriptShowIcon){
@@ -122,6 +122,14 @@ int JavaScript_pi::Init(void)
                                            CONSOLE_POSITION, 0, this);
 #endif // JavaScript_USE_SVG
     }
+    
+    // we have taking the present show/hide state from the config file
+    if (mShowingConsoles){	// need to show Now    
+    	mShowingConsoles = false;	// pretend not showing
+    	OnToolbarToolCallback(0);	// and toggle the state
+    	}
+
+    
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
     mTimer.Start(1000);
@@ -259,8 +267,8 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
 {
     void JSlexit(wxStyledTextCtrl* pane);
     void fatal_error_handler(void *udata, const char *msg);
-    TRACE(2,"JavaScript_pi->OnToolbarToolCallback() entered");
 
+    TRACE(34,wxString::Format("JavaScript_pi->OnToolbarToolCallback() entered with mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
     mShowingConsoles = !mShowingConsoles;   // toggle console display state
 	if (mShowingConsoles & m_showHelp){
 			ShowTools(m_parent_window, -1);	// show them the help page
@@ -314,6 +322,9 @@ bool JavaScript_pi::LoadConfig(void)
             TRACE(2, "Loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
+            mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
+            TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
+
             
             // load parking config - platform defaults if none
             // saved and default values are in DIP
@@ -413,6 +424,7 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
+        pConf->Write ( _T ( "ShowingConsoles" ), mShowingConsoles?"1":"0" );
         
         // now to save the recent files list - if any
         if (recentFiles.GetCount() > 0){
