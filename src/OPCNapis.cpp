@@ -165,6 +165,12 @@ PlugIn_Route_Ex * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
     duk_get_prop_string(ctx, -1, "to");
         p_route->m_EndString = duk_to_string(ctx, -1);
         duk_pop(ctx);
+    duk_get_prop_string(ctx, -1, "description");
+        p_route->m_Description = duk_to_string(ctx, -1);
+        duk_pop(ctx);
+    duk_get_prop_string(ctx, -1, "isVisible");
+        p_route->m_isVisible = duk_to_boolean(ctx, -1);
+        duk_pop(ctx); 
     ret = duk_get_prop_string(ctx, -1, "GUID");
         p_route->m_GUID = duk_to_string(ctx, -1);
         if (ret == 0 || wxIsEmpty(p_route->m_GUID) || createGUID) {
@@ -801,15 +807,19 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     // extra indentation here shows stack depth - do not reformat!
     duk_push_object(ctx); // construct the route object
     duk_push_string(ctx, p_route->m_NameString);
-        duk_put_prop_literal(ctx, -2, "name");
+        duk_put_prop_literal(ctx, -2, "name");        
     duk_push_string(ctx, p_route->m_StartString);
         duk_put_prop_literal(ctx, -2, "from");
     duk_push_string(ctx, p_route->m_EndString);
         duk_put_prop_literal(ctx, -2, "to");
+    duk_push_string(ctx, p_route->m_Description);
+        duk_put_prop_literal(ctx, -2, "description");
     duk_push_string(ctx, p_route->m_GUID);
         duk_put_prop_literal(ctx, -2, "GUID");
     duk_push_boolean(ctx, p_route->m_isActive);
-	    duk_put_prop_literal(ctx, -2, "isActive");
+	    duk_put_prop_literal(ctx, -2, "isActive");	    
+	duk_push_boolean(ctx, p_route->m_isVisible);
+	    duk_put_prop_literal(ctx, -2, "isVisible");   
     duk_idx_t arr_idx = duk_push_array(ctx); // the waypoint array
     if (p_route->pWaypointList ){  // only attempt this if waypoint list of not empty
         wxPlugin_WaypointExListNode *linknode = p_route->pWaypointList->GetFirst();
