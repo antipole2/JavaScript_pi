@@ -268,7 +268,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	MessageBodySizer1->Add( m_MessageText11, 0, wxALL, 5 );
 
-	m_MessageBody = new wxTextCtrl( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("“Latitude” : 61.234,\n“Longitude\" : -1.234"), wxDefaultPosition, wxSize( 580,250 ), wxTE_MULTILINE|wxTE_WORDWRAP|wxVSCROLL );
+	m_MessageBody = new wxTextCtrl( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("\"Latitude\" : 61.234,\n\"Longitude\" : -1.234"), wxDefaultPosition, wxSize( 580,250 ), wxTE_MULTILINE|wxTE_WORDWRAP|wxVSCROLL );
 	m_MessageBody->SetMinSize( wxSize( 580,200 ) );
 
 	MessageBodySizer1->Add( m_MessageBody, 0, wxALL, 5 );

@@ -19,7 +19,7 @@
         <property name="internationalize">0</property>
         <property name="name">JavaScrip_pi tools</property>
         <property name="namespace"></property>
-        <property name="path">/Users/Tony/JavaScript/JavaScript_pi/src</property>
+        <property name="path">/Users/Tony/JavaScript_pi/src</property>
         <property name="precompiled_header"></property>
         <property name="relative_path">1</property>
         <property name="skip_lua_events">1</property>
@@ -1969,7 +1969,7 @@
                                                     <property name="validator_style">wxFILTER_ALPHANUMERIC</property>
                                                     <property name="validator_type">wxDefaultValidator</property>
                                                     <property name="validator_variable"></property>
-                                                    <property name="value">“Latitude” : 61.234,&#x0A;“Longitude&quot; : -1.234</property>
+                                                    <property name="value">&quot;Latitude&quot; : 61.234,&#x0A;&quot;Longitude&quot; : -1.234</property>
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style">wxVSCROLL</property>

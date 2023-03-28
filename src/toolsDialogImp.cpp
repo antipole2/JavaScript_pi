@@ -192,7 +192,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     wxPoint dumpPosition = toolsPosition;
     dumpPosition.x -= toolsSize.x;	// shift left to be on left of tools
     dumpPosition.y = toolsPosition.y;	// and at same height
-    dumpPosition = FromDIP(dumpPosition);
+    dumpPosition = FromDIP(dumpPosition); 
     dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", dumpPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP | wxRESIZE_BORDER);
     dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
@@ -220,13 +220,13 @@ void ToolsClass::onDump( wxCommandEvent& event ){
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
     dump += "pJavaScript_pi->mpFirstConsole\t" + ptrToString(pJavaScript_pi->mpFirstConsole) + "\n";
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += ("\n————————————Console " + pConsole->mConsoleName + "————————————\n");
+        dump += ("\n----------Console " + pConsole->mConsoleName + "----------\n");
         dump += (pConsole->consoleDump());
         }
     dump += "\n----------------------------------------------------\n";
     dump += "\npJavaScript_pi->mpBin\t\t" + ptrToString(pJavaScript_pi->mpBin) + "\n";
     for (pConsole = pJavaScript_pi->mpBin; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += ("\n————————————Console in bin " + pConsole->mConsoleName + "————————————\n");
+        dump += ("\n----------Console in bin " + pConsole->mConsoleName + "----------\n");
         dump += (pConsole->consoleDump());
         }
     dump += ("\nEnd of dump\n");
