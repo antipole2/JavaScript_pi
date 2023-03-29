@@ -180,6 +180,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     // ready to create new dialogue
     dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
     	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize, wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+    double scle = SCALE(dialog);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls
@@ -193,8 +194,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         anElement.stringValue = wxEmptyString;
         anElement.textValue = wxEmptyString;
         anElement.numberValue = 0;
-        anElement.width = 100;  // default size
-        anElement.height = 22;  // default height for field
+        anElement.width = 100*scale;  // default size
+        anElement.height = 22*scale;  // default height for field
         anElement.multiLine = false;
         anElement.suffix = wxEmptyString;
         anElement.itemID = 0;
@@ -283,7 +284,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             anElement.suffix = suffix;
             anElement.itemID = wxNewId();
             wxBoxSizer* fieldBox = new wxBoxSizer(wxHORIZONTAL);
-            boxSizer->Add(fieldBox, 0, wxGROW|wxALL, 5);
+            boxSizer->Add(fieldBox, 0, wxGROW|wxALL, 5*scale);
             wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
@@ -396,7 +397,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_get_prop_literal(ctx, -1, "width")){
                 anElement.width = duk_get_number(ctx, -1);
                 }
-            else anElement.width = 300;
+            else anElement.width = 300*scale;
             duk_pop(ctx);
             
             anElement.itemID = wxNewId();
@@ -413,7 +414,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             duk_pop(ctx);
 
             sliderBox->Add(slider, 0, wxGROW|wxALL, 0);
-            boxSizer->Add(sliderBox,  0, wxGROW|wxALL, 5);
+            boxSizer->Add(sliderBox,  0, wxGROW|wxALL, 5*scale);
             duk_pop(ctx);
             }
         else if (elementType == "spinner"){
@@ -441,7 +442,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_get_prop_literal(ctx, -1, "width")){
                 anElement.width = duk_get_number(ctx, -1);
                 }
-            else anElement.width = 300;
+            else anElement.width = 300*scale;
             duk_pop(ctx);
 
             anElement.itemID = wxNewId();
@@ -458,7 +459,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             duk_pop(ctx);
 
             spinnerBox->Add(spinner, 0, wxGROW|wxALL, 0);
-            boxSizer->Add(spinnerBox,  0, wxGROW|wxALL, 5);
+            boxSizer->Add(spinnerBox,  0, wxGROW|wxALL, 5*scale);
             duk_pop(ctx);
             }
         else if (elementType == "choice"){
@@ -483,8 +484,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     anElement.itemID = wxNewId();
                     wxBoxSizer* choiceBox = new wxBoxSizer(wxVERTICAL);
                     boxSizer->Add(choiceBox);
-                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, wxSize(maxChars*9+45, listLength*22), strings, wxCB_DROPDOWN);
-                    choiceBox->Add(choice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+//                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, wxSize(maxChars*9+45, listLength*22), strings, wxCB_DROPDOWN);
+                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition,
+                    wxDefaultSize, strings, wxCB_DROPDOWN);
+                    choiceBox->Add(choice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
                     duk_pop(ctx);
                     }
                 }
@@ -516,7 +519,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                         }
                     duk_pop_2(ctx);
                     anElement.itemID = wxNewId();
-                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxSize(maxChars*10+45, numberOfButtons*23+14), strings, 1, wxRA_SPECIFY_COLS);
+                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaukltSize /*wxSize(maxChars*10*scale+45*scale, numberOfButtons*23*scale+14*scale) */, strings, 1, wxRA_SPECIFY_COLS);
                     boxSizer->Add(radioBox, 0, wxHORIZONTAL|wxALL, 2);
                     anElement.label = label;
                     }
@@ -525,7 +528,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         else if (elementType == "hLine"){
             anElement.type = elementType;
             wxStaticLine* line = new wxStaticLine ( dialog, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-            boxSizer->Add(line, 0, wxGROW|wxALL, 5);
+            boxSizer->Add(line, 0, wxGROW|wxALL, 5*scale);
             duk_pop(ctx);
             }
         else if (elementType == "button"){
@@ -567,7 +570,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 else defaultButton = false;
                 anElement.itemID = wxNewId();
                 button = new jsButton ( pConsole, dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
-                buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+                buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
                 if (defaultButton) button->SetDefault();
                 duk_pop_2(ctx);     // pop off the text string and the element
                  }
@@ -581,9 +584,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     if (!hadButton) {
         // caller has not upplied a button - create a default one
         wxBoxSizer* buttonBox = new wxBoxSizer(wxHORIZONTAL);
-        boxSizer->Add(buttonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+        boxSizer->Add(buttonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5*scale);
         jsButton* button = new jsButton ( pConsole, dialog, wxNewId(), "OK", wxDefaultPosition, wxDefaultSize, 0 );
-        buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+        buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
         }
     dialog->Bind(wxEVT_BUTTON, &onButton, wxID_ANY);
     pConsole->mDialog.functionName = extractFunctionName(ctx, 0);
