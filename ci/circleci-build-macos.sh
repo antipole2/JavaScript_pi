@@ -48,7 +48,7 @@ done
 
 export OPENSSL_ROOT_DIR='/usr/local/opt/openssl'
 
-# Build and package - Debug or Release
+# Build and package
 cd build-osx
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
