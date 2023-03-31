@@ -181,7 +181,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
     	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize,
     	wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
-    double scle = SCALE(dialog);
+    double scale = SCALE(dialog);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls
@@ -529,7 +529,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                         }
                     duk_pop_2(ctx);
                     anElement.itemID = wxNewId();
-                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaukltSize /*wxSize(maxChars*10*scale+45*scale, numberOfButtons*23*scale+14*scale) */, strings, 1, wxRA_SPECIFY_COLS);
+                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaultSize /*wxSize(maxChars*10*scale+45*scale, numberOfButtons*23*scale+14*scale) */, strings, 1, wxRA_SPECIFY_COLS);
                     boxSizer->Add(radioBox, 0, wxHORIZONTAL|wxALL, 2);
                     anElement.label = label;
                     }
