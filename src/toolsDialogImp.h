@@ -19,6 +19,7 @@
 #include "wx/window.h"
 #include "toolsDialogGui.h"
 #include "trace.h"
+#include "scaling.h"
 
 class ToolsClass: public ToolsClassBase {
 public:
@@ -92,8 +93,8 @@ public:
 		size.x *= scale;
 		m_MessageID->SetSize(size);
 
-		size = m_messageBody->GetSize();
-		m_messageBody->SetSize(FromDIP(size));
+		size = m_MessageBody->GetSize();
+		m_MessageBody->SetSize(FromDIP(size));
 
 		size = m_parkingMessage->GetSize();
 		m_parkingMessage->SetSize(FromDIP(size));
