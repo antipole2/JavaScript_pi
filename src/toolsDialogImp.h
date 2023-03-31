@@ -55,7 +55,58 @@ public:
         m_notebook->SetSelection(0);	//start on required page
         };
         
- 
-    };
+	void fixForScreenRes(){	// fix up sizes according to screen resolution
+		double scale = SCALE(this);
+		if (scale == 1) return;	// nothing to do
+		wxSize size;
+
+		size = m_newConsoleName->GetSize();
+		size.x *= scale;
+		m_newConsoleName->SetSize(size);
+
+		size = m_oldNames->GetSize();
+		size.x *= scale;
+		m_oldNames->SetSize(size);
+
+		size = m_changedName->GetSize();
+		size.x *= scale;
+		m_changedName->SetSize(size);
+
+		size = m_newConsoleName->GetSize();
+		size.x *= scale;
+		m_newConsoleName->SetSize(size);
+
+		size = mCurrentDirectory->GetSize();
+		size.x *= scale;
+		mCurrentDirectory->SetSize(size);
+
+		size = m_newConsoleName->GetSize();
+		size.x *= scale;
+		m_newConsoleName->SetSize(size);
+
+		size = m_NMEAmessage->GetSize();
+		size.x *= scale;
+		m_NMEAmessage->SetSize(size);
+
+		size = m_MessageID->GetSize();
+		size.x *= scale;
+		m_MessageID->SetSize(size);
+
+		size = m_messageBody->GetSize();
+		m_messageBody->SetSize(FromDIP(size));
+
+		size = m_parkingMessage->GetSize();
+		m_parkingMessage->SetSize(FromDIP(size));
+
+		// NB The wrap with overides that set in wxForBuilder as there is no way of getting the value set
+		HelpTopText1->Wrap( 550*scale );
+		HelpTopText11->Wrap( 550*scale );
+		HelpTopText111->Wrap( 550*scale );
+		HelpTopText1111->Wrap( 550*scale );
+		HelpTopText11111->Wrap( 550*scale );
+
+		}
+    	    
+	};
 
 #endif /* ToolsDialog_h */

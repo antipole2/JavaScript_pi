@@ -411,6 +411,7 @@ bool JavaScript_pi::SaveConfig(void)
 {
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     Console *pConsole;
+    wxPoint screenToFrame(wxPoint pos);
 
     TRACE(3,"JavaScript_pi->SaveConfig() entered");
 
@@ -465,8 +466,8 @@ bool JavaScript_pi::SaveConfig(void)
             // will save in DIP
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
             wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
-            wxPoint dialogPosition = m_parent_window->screenToFrame(pConsole->mDialog.position);	// already DIP
-            wxPoint alertPosition = m_parent_window->screenToFrame(pConsole->mAlert.position);	// already DIP
+            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
+            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
             wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
