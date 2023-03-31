@@ -380,7 +380,7 @@ void ToolsClass::onParkingReveal(wxCommandEvent& event) {
 	
 void displayTools(wxWindow* parent){ // this used for testing in harness only
     ToolsClass *pToolsDialog = new ToolsClass(parent);
-	pToolsDialog->fixForScreenRes()
+	pToolsDialog->fixForScreenRes();
     pToolsDialog->Fit();
     pToolsDialog->Show();
     }
