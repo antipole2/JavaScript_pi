@@ -245,7 +245,7 @@ public:
 
 private:
     bool		m_parked;		// true if this console parked
-    wxPoint		m_parkedPosition;	// if parked, parked position
+    wxPoint		m_parkedPosition;	// if parked, parked position in DIP
     void OnClose( wxCloseEvent& event );
     
 public:
@@ -277,7 +277,7 @@ public:
         mConsoleName = consoleName;
         consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
         m_parked = parked;
-        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position relative to frame
+        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
         consoleInit();        
         Move(FromDIP(consolePosition));
         mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
@@ -1031,11 +1031,13 @@ public:
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
         dump += "auto_run:\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
         wxPoint screenPosition = GetPosition();
-        wxPoint framePosition = screenToFrame(screenPosition);
-        dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tframe x:%i y:%i\n", screenPosition.x, screenPosition.y, framePosition.x, framePosition.y );
+        wxPoint DIPposition = ToDIP(screenPosition);
+        dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tDIP x:%i y:%i\n", screenPosition.x, screenPosition.y, DIPposition.x, DIPposition.y );
         wxSize size = GetSize();
+        wxSize DIPsize = ToDIP(size)
         wxSize minSize = GetMinSize();
-        dump += wxString::Format("Size():\t\t\t\tx:%i y:%i\tMinSize() x:%i y:%i\n", size.x, size.y, minSize.x, minSize.y );
+        dump += wxString::Format("Size():\t\t\t\tx:%i y:%i\tDIP\tx:%i y:%i\tMinSize() x:%i y:%i\n",
+        	size.x, size.y,DIPsize.x, DIPsize.y, minSize.x, minSize.y );
         dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
         dump += "isParked():\t\t\t" + (isParked() ?  _("true"):_("false")) + "\n";       
         dump += _("Messages callback table\n");

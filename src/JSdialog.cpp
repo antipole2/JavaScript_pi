@@ -179,7 +179,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     
     // ready to create new dialogue
     dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
-    	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize, wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+    	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize,
+    	wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     double scle = SCALE(dialog);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
@@ -288,7 +289,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
-            textCtrl = new wxTextCtrl ( dialog, anElement.itemID, "", wxDefaultPosition, wxSize(anElement.width,  anElement.height /* 6+fontSize */), anElement.multiLine);
+            textCtrl = new wxTextCtrl ( dialog, anElement.itemID, "", wxDefaultPosition, wxSize(anElement.width,
+            	anElement.height /* 6+fontSize */), anElement.multiLine);
             fieldBox->Add(textCtrl, 0, wxGROW|wxALL, 0);
             textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &pConsole->mDialog.dialogElementsArray[i].textValue));
             staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
@@ -358,12 +360,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     // add label if we have one
                     if (duk_get_prop_literal(ctx, -1, "label")){
                         anElement.label = getStringFromDuk(ctx);
-                        wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+                        wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition,
+                        	wxDefaultSize, wxALIGN_LEFT );
                         checkListBoxBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                         }
                     duk_pop(ctx);
                     
-                    wxCheckListBox *checkListBox =  new wxCheckListBox(dialog, anElement.itemID, wxDefaultPosition, wxSize(maxChars*9+45, listLength*22), strings, wxLB_EXTENDED);
+                    wxCheckListBox *checkListBox =  new wxCheckListBox(dialog, anElement.itemID, wxDefaultPosition,
+                    	wxSize(maxChars*9+45, listLength*22), strings, wxLB_EXTENDED);
                     checkListBoxBox->Add(checkListBox, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
                     checkListBox->SetFont(font);
                     checkListBox->Fit();
@@ -378,7 +382,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             // range attribute
             if (!duk_get_prop_literal(ctx, -1, "range"))
                 pConsole->throw_error(ctx, "onDialog error: slider requires range");
-            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)) pConsole->throw_error(ctx, "onDialog error: slider requires range with 2 values");
+            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2))
+            	pConsole->throw_error(ctx, "onDialog error: slider requires range with 2 values");
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -402,12 +407,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             
             anElement.itemID = wxNewId();
             wxBoxSizer* sliderBox = new wxBoxSizer(wxVERTICAL);
-            wxSlider *slider = new wxSlider(dialog, anElement.itemID, anElement.numberValue, start, end, wxDefaultPosition, wxSize(anElement.width,-1), wxSL_HORIZONTAL|wxSL_AUTOTICKS|wxSL_LABELS);
+            wxSlider *slider = new wxSlider(dialog, anElement.itemID, anElement.numberValue, start, end, wxDefaultPosition,
+            	wxSize(anElement.width,-1), wxSL_HORIZONTAL|wxSL_AUTOTICKS|wxSL_LABELS);
 
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
                 anElement.label = getStringFromDuk(ctx);
-                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize,
+                	wxALIGN_LEFT );
                 label->SetFont(font);
                 sliderBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                 }
@@ -423,7 +430,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             // range attribute
             if (!duk_get_prop_literal(ctx, -1, "range"))
                 pConsole->throw_error(ctx, "onDialog error: spinner requires range");
-            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)) pConsole->throw_error(ctx, "onDialog error: spinner requires range with 2 values");
+            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2))
+            	pConsole->throw_error(ctx, "onDialog error: spinner requires range with 2 values");
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -447,12 +455,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
 
             anElement.itemID = wxNewId();
             wxBoxSizer* spinnerBox = new wxBoxSizer(wxVERTICAL);
-            wxSpinCtrl *spinner = new wxSpinCtrl(dialog, anElement.itemID, wxEmptyString, wxDefaultPosition, wxSize(anElement.width, 22), wxSP_ARROW_KEYS, start, end, anElement.numberValue);
+            wxSpinCtrl *spinner = new wxSpinCtrl(dialog, anElement.itemID, wxEmptyString, wxDefaultPosition,
+            	wxSize(anElement.width, 22), wxSP_ARROW_KEYS, start, end, anElement.numberValue);
 
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
                 anElement.label = getStringFromDuk(ctx);
-                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+                wxStaticText* label = new wxStaticText( dialog, wxID_STATIC, anElement.label, wxDefaultPosition,
+                	wxDefaultSize, wxALIGN_LEFT );
                 label->SetFont(font);
                 spinnerBox->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
                 }

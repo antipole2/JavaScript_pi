@@ -465,8 +465,8 @@ bool JavaScript_pi::SaveConfig(void)
             // will save in DIP
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
             wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
-            wxPoint dialogPosition = m_parent_window->ToDIP(screenToFrame(pConsole->mDialog.position));
-            wxPoint alertPosition = m_parent_window->ToDIP(screenToFrame(pConsole->mAlert.position));
+            wxPoint dialogPosition = m_parent_window->screenToFrame(pConsole->mDialog.position);	// already DIP
+            wxPoint alertPosition = m_parent_window->screenToFrame(pConsole->mAlert.position);	// already DIP
             wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
@@ -755,6 +755,7 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
     if (pTools == nullptr) {  // do not yet have a tools dialogue
     	int x, y;
         pTools = new ToolsClass(m_parent_window, wxID_ANY /*, "JavaScript Tools" */);
+        pTools->fixForScreenRes();
         // position it top right in display
         wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
         wxDisplay display(wxDisplay::GetFromWindow(frame));

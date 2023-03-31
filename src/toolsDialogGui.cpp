@@ -48,8 +48,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_newConsoleName->SetMaxLength( 14 );
 	#endif
 	m_newConsoleName->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
-	m_newConsoleName->SetMinSize( wxSize( 120,-1 ) );
-	m_newConsoleName->SetMaxSize( wxSize( 110,-1 ) );
 
 	m_newConsoleName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC, &mNewNameInput ) );
 
@@ -74,10 +72,8 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesRenameSizer->Add( m_rename_prompt, 0, wxALL, 5 );
 
 	wxArrayString m_oldNamesChoices;
-	m_oldNames = new wxChoice( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_oldNamesChoices, wxCB_SORT );
+	m_oldNames = new wxChoice( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxSize( 130,-1 ), m_oldNamesChoices, wxCB_SORT );
 	m_oldNames->SetSelection( 0 );
-	m_oldNames->SetMinSize( wxSize( 130,-1 ) );
-
 	ConsolesRenameSizer->Add( m_oldNames, 0, wxALL, 5 );
 
 	m_staticText15 = new wxStaticText( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxT("to"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -97,7 +93,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	#endif
 	m_changedName->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	m_changedName->SetMinSize( wxSize( 120,-1 ) );
-	m_changedName->SetMaxSize( wxSize( 110,-1 ) );
 
 	m_changedName->SetValidator( wxTextValidator( wxFILTER_ALPHANUMERIC, &m_changedNameInput ) );
 
@@ -165,13 +160,12 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	bSizer11->Add( 12, 0, 0, wxEXPAND, 5 );
 
-	mCurrentDirectoryString = new wxStaticText( Directory, wxID_ANY, wxT("Will be directory string"), wxDefaultPosition, wxDefaultSize, 0 );
+	mCurrentDirectoryString = new wxStaticText( Directory, wxID_ANY, wxT("Will be directory string"), wxDefaultPosition, wxSize( 560,-1 ), 0 );
 	mCurrentDirectoryString->Wrap( -1 );
 	mCurrentDirectoryString->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNTEXT ) );
 	mCurrentDirectoryString->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	mCurrentDirectoryString->SetMinSize( wxSize( -1,100 ) );
 
-	bSizer11->Add( mCurrentDirectoryString, 0, wxALL, 5 );
+	bSizer11->Add( mCurrentDirectoryString, 0, wxALL|wxEXPAND, 5 );
 
 
 	DirectorySizer1->Add( bSizer11, 0, wxEXPAND, 5 );
@@ -201,8 +195,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	NMEASizer1->Add( m_NMEAMessageText, 0, wxALL, 5 );
 
 	m_NMEAmessage = new wxTextCtrl( NMEASizer1->GetStaticBox(), wxID_ANY, wxT("$GPRMC,152912,A,5041.0535,N,00205.3070,W,0.06,0,070600,,,A,V*3D"), wxDefaultPosition, wxSize( 540,-1 ), 0 );
-	m_NMEAmessage->SetMaxSize( wxSize( 580,-1 ) );
-
 	NMEASizer1->Add( m_NMEAmessage, 0, wxALL, 5 );
 
 
@@ -244,9 +236,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	MessageIDSizer->Add( m_MessageIDText1, 0, wxALL, 5 );
 
-	m_MessageID = new wxTextCtrl( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("EXAMPLE_MESSAGE_ID"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_MessageID->SetMinSize( wxSize( 300,-1 ) );
-
+	m_MessageID = new wxTextCtrl( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("EXAMPLE_MESSAGE_ID"), wxDefaultPosition, wxSize( 300,-1 ), 0 );
 	MessageIDSizer->Add( m_MessageID, 0, wxALL, 5 );
 
 
@@ -269,8 +259,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	MessageBodySizer1->Add( m_MessageText11, 0, wxALL, 5 );
 
 	m_MessageBody = new wxTextCtrl( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("\"Latitude\" : 61.234,\n\"Longitude\" : -1.234"), wxDefaultPosition, wxSize( 580,250 ), wxTE_MULTILINE|wxTE_WORDWRAP|wxVSCROLL );
-	m_MessageBody->SetMinSize( wxSize( 580,200 ) );
-
 	MessageBodySizer1->Add( m_MessageBody, 0, wxALL, 5 );
 
 
@@ -375,7 +363,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* HelpSizer1;
 	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
 
-	HelpSizer1->SetMinSize( wxSize( -1,650 ) );
 	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin, which you can download from the following links.  Please consult this before raising queries.\n\nIf reading on a mobile device, you may find the .epub format more convenient as you can bookmark pages and keep track of where you have got to."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText1, 0, wxALL, 5 );
@@ -510,10 +497,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* cleanSizer;
 	cleanSizer = new wxBoxSizer( wxVERTICAL );
 
-	cleanSizer->SetMinSize( wxSize( -1,150 ) );
-	m_charsToClean = new wxTextCtrl( Diagnostics, wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 450,-1 ), 0 );
-	m_charsToClean->SetMinSize( wxSize( 500,-1 ) );
-
+	m_charsToClean = new wxTextCtrl( Diagnostics, wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
 	cleanSizer->Add( m_charsToClean, 0, wxALL, 5 );
 
 	wxStaticBoxSizer* CharsTopSizer;

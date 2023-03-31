@@ -175,7 +175,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <object class="wxBoxSizer" expanded="1">
+                                <object class="wxBoxSizer" expanded="0">
                                     <property name="minimum_size">-1,100</property>
                                     <property name="name">ConsolesSizer</property>
                                     <property name="orient">wxVERTICAL</property>
@@ -287,11 +287,11 @@
                                                     <property name="id">wxID_ANY</property>
                                                     <property name="max_size"></property>
                                                     <property name="maximize_button">0</property>
-                                                    <property name="maximum_size">110,-1</property>
+                                                    <property name="maximum_size">-1,-1</property>
                                                     <property name="maxlength">14</property>
                                                     <property name="min_size">-1,-1</property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">120,-1</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">0</property>
                                                     <property name="name">m_newConsoleName</property>
                                                     <property name="pane_border">0</property>
@@ -514,7 +514,7 @@
                                                     <property name="maximum_size"></property>
                                                     <property name="min_size"></property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">130,-1</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">1</property>
                                                     <property name="name">m_oldNames</property>
                                                     <property name="pane_border">1</property>
@@ -526,7 +526,7 @@
                                                     <property name="resize">Resizable</property>
                                                     <property name="selection">0</property>
                                                     <property name="show">1</property>
-                                                    <property name="size"></property>
+                                                    <property name="size">130,-1</property>
                                                     <property name="style">wxCB_SORT</property>
                                                     <property name="subclass">; ; forward_declare</property>
                                                     <property name="toolbar_pane">0</property>
@@ -635,7 +635,7 @@
                                                     <property name="id">wxID_ANY</property>
                                                     <property name="max_size"></property>
                                                     <property name="maximize_button">0</property>
-                                                    <property name="maximum_size">110,-1</property>
+                                                    <property name="maximum_size">-1,-1</property>
                                                     <property name="maxlength">14</property>
                                                     <property name="min_size">-1,-1</property>
                                                     <property name="minimize_button">0</property>
@@ -836,7 +836,7 @@
                             <property name="bitmap"></property>
                             <property name="label">Directory</property>
                             <property name="select">0</property>
-                            <object class="wxPanel" expanded="0">
+                            <object class="wxPanel" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1072,7 +1072,7 @@
                                             </object>
                                             <object class="sizeritem" expanded="0">
                                                 <property name="border">5</property>
-                                                <property name="flag">wxALL</property>
+                                                <property name="flag">wxALL|wxEXPAND</property>
                                                 <property name="proportion">0</property>
                                                 <object class="wxStaticText" expanded="0">
                                                     <property name="BottomDockable">1</property>
@@ -1109,7 +1109,7 @@
                                                     <property name="maximum_size"></property>
                                                     <property name="min_size"></property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">-1,100</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">1</property>
                                                     <property name="name">mCurrentDirectoryString</property>
                                                     <property name="pane_border">1</property>
@@ -1120,7 +1120,7 @@
                                                     <property name="pos"></property>
                                                     <property name="resize">Resizable</property>
                                                     <property name="show">1</property>
-                                                    <property name="size"></property>
+                                                    <property name="size">560,-1</property>
                                                     <property name="style"></property>
                                                     <property name="subclass">; ; forward_declare</property>
                                                     <property name="toolbar_pane">0</property>
@@ -1140,7 +1140,7 @@
                             <property name="bitmap"></property>
                             <property name="label">NMEA</property>
                             <property name="select">0</property>
-                            <object class="wxPanel" expanded="0">
+                            <object class="wxPanel" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1191,7 +1191,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size"></property>
                                     <property name="name">NMEASizer</property>
                                     <property name="orient">wxVERTICAL</property>
@@ -1364,7 +1364,7 @@
                                                     <property name="id">wxID_ANY</property>
                                                     <property name="max_size"></property>
                                                     <property name="maximize_button">0</property>
-                                                    <property name="maximum_size">580,-1</property>
+                                                    <property name="maximum_size">-1,-1</property>
                                                     <property name="maxlength"></property>
                                                     <property name="min_size">-1,-1</property>
                                                     <property name="minimize_button">0</property>
@@ -1396,11 +1396,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
-                                        <object class="wxBoxSizer" expanded="0">
+                                        <object class="wxBoxSizer" expanded="1">
                                             <property name="minimum_size"></property>
                                             <property name="name">bNMEAbuttonBoxSizer</property>
                                             <property name="orient">wxHORIZONTAL</property>
@@ -1498,7 +1498,7 @@
                             <property name="bitmap"></property>
                             <property name="label">Message</property>
                             <property name="select">0</property>
-                            <object class="wxPanel" expanded="0">
+                            <object class="wxPanel" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1549,7 +1549,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size">-1,-1</property>
                                     <property name="name">MessageSizer</property>
                                     <property name="orient">wxVERTICAL</property>
@@ -1615,11 +1615,11 @@
                                             <property name="wrap">-1</property>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag"></property>
                                         <property name="proportion">0</property>
-                                        <object class="wxStaticBoxSizer" expanded="0">
+                                        <object class="wxStaticBoxSizer" expanded="1">
                                             <property name="id">wxID_ANY</property>
                                             <property name="label"></property>
                                             <property name="minimum_size">-1,-1</property>
@@ -1726,7 +1726,7 @@
                                                     <property name="maxlength"></property>
                                                     <property name="min_size">-1,-1</property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">300,-1</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">0</property>
                                                     <property name="name">m_MessageID</property>
                                                     <property name="pane_border">0</property>
@@ -1737,7 +1737,7 @@
                                                     <property name="pos"></property>
                                                     <property name="resize">Resizable</property>
                                                     <property name="show">1</property>
-                                                    <property name="size"></property>
+                                                    <property name="size">300,-1</property>
                                                     <property name="style"></property>
                                                     <property name="subclass">; ; forward_declare</property>
                                                     <property name="toolbar_pane">0</property>
@@ -1949,7 +1949,7 @@
                                                     <property name="maxlength"></property>
                                                     <property name="min_size">-1,-1</property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">580,200</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">0</property>
                                                     <property name="name">m_MessageBody</property>
                                                     <property name="pane_border">0</property>
@@ -2119,7 +2119,7 @@
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
-                                        <object class="wxStaticBoxSizer" expanded="0">
+                                        <object class="wxStaticBoxSizer" expanded="1">
                                             <property name="id">wxID_ANY</property>
                                             <property name="label"></property>
                                             <property name="minimum_size"></property>
@@ -2729,7 +2729,7 @@
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
                                 <object class="wxBoxSizer" expanded="1">
-                                    <property name="minimum_size">-1,650</property>
+                                    <property name="minimum_size">-1,-1</property>
                                     <property name="name">HelpSizer1</property>
                                     <property name="orient">wxVERTICAL</property>
                                     <property name="permission">none</property>
@@ -3967,7 +3967,7 @@
                                         <property name="flag">wxEXPAND|wxFIXED_MINSIZE</property>
                                         <property name="proportion">0</property>
                                         <object class="wxBoxSizer" expanded="1">
-                                            <property name="minimum_size">-1,150</property>
+                                            <property name="minimum_size">-1,-1</property>
                                             <property name="name">cleanSizer</property>
                                             <property name="orient">wxVERTICAL</property>
                                             <property name="permission">none</property>
@@ -4009,7 +4009,7 @@
                                                     <property name="maxlength"></property>
                                                     <property name="min_size"></property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">500,-1</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">1</property>
                                                     <property name="name">m_charsToClean</property>
                                                     <property name="pane_border">1</property>
@@ -4020,7 +4020,7 @@
                                                     <property name="pos"></property>
                                                     <property name="resize">Resizable</property>
                                                     <property name="show">1</property>
-                                                    <property name="size">450,-1</property>
+                                                    <property name="size">550,-1</property>
                                                     <property name="style"></property>
                                                     <property name="subclass">; ; forward_declare</property>
                                                     <property name="toolbar_pane">0</property>
