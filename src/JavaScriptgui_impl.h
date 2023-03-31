@@ -1034,7 +1034,7 @@ public:
         wxPoint DIPposition = ToDIP(screenPosition);
         dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tDIP x:%i y:%i\n", screenPosition.x, screenPosition.y, DIPposition.x, DIPposition.y );
         wxSize size = GetSize();
-        wxSize DIPsize = ToDIP(size)
+        wxSize DIPsize = ToDIP(size);
         wxSize minSize = GetMinSize();
         dump += wxString::Format("Size():\t\t\t\tx:%i y:%i\tDIP\tx:%i y:%i\tMinSize() x:%i y:%i\n",
         	size.x, size.y,DIPsize.x, DIPsize.y, minSize.x, minSize.y );
