@@ -60,7 +60,7 @@ public:
 		double scale = SCALE(this);
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
-		wxBoxSizer sizer;
+		wxBoxSizer* sizer;
 		
 		sizer = this->GetSizer();
 		size = sizer->GetMinSize();
