@@ -60,11 +60,12 @@ public:
 		double scale = SCALE(this);
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
-		wxBoxSizer* sizer;
+		wxBoxSizer sizer;
 		
-		sizer = this->GetSize();
-		size = TopSizer->GetMinSize();
+		sizer = this->GetSizer();
+		size = sizer->GetMinSize();
 		sizer->SetMinSize(FromDIP(size));
+		this->SetSizer(sizer);
 
 		// Consoles tab
 		size = Consoles->GetSize();
@@ -78,8 +79,9 @@ public:
 		size = m_ConsolesMessage->GetMinSize();
 		m_ConsolesMessage->SetMinSize(FromDIP(size));
 		sizer = Consoles->GetSizer();
-		size = GetSize(sizer);
-		sizer->SetSize(fromDIP(size));
+		size = GetMinSize(sizer);
+		sizer->SetMinSize(FromDIP(size));
+		Consoles->SetSizer(sizer);
 
 		// Directory tab
 		size = mCurrentDirectory->GetSize();
