@@ -48,7 +48,7 @@
             <property name="name">m_Console</property>
             <property name="pos"></property>
             <property name="size">844,2000</property>
-            <property name="style">wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxSTAY_ON_TOP</property>
+            <property name="style">wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">JavaScript</property>
             <property name="tooltip"></property>

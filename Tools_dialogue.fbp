@@ -58,7 +58,7 @@
             <property name="window_style"></property>
             <event name="OnClose">onClose</event>
             <object class="wxBoxSizer" expanded="1">
-                <property name="minimum_size">620,650</property>
+                <property name="minimum_size">-1,-1</property>
                 <property name="name">TopSizer</property>
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">none</property>
@@ -639,7 +639,7 @@
                                                     <property name="maxlength">14</property>
                                                     <property name="min_size">-1,-1</property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">120,-1</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">0</property>
                                                     <property name="name">m_changedName</property>
                                                     <property name="pane_border">0</property>
@@ -758,7 +758,7 @@
                                         <object class="wxStaticBoxSizer" expanded="0">
                                             <property name="id">wxID_ANY</property>
                                             <property name="label"></property>
-                                            <property name="minimum_size">-1,135</property>
+                                            <property name="minimum_size">-1,-1</property>
                                             <property name="name">ConsolesMessageSizer</property>
                                             <property name="orient">wxVERTICAL</property>
                                             <property name="parent">1</property>
@@ -801,7 +801,7 @@
                                                     <property name="maxlength"></property>
                                                     <property name="min_size"></property>
                                                     <property name="minimize_button">0</property>
-                                                    <property name="minimum_size">550,30</property>
+                                                    <property name="minimum_size">-1,-1</property>
                                                     <property name="moveable">1</property>
                                                     <property name="name">m_ConsolesMessage</property>
                                                     <property name="pane_border">1</property>
@@ -887,12 +887,12 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size">-1,-1</property>
                                     <property name="name">DirectorySizer1</property>
                                     <property name="orient">wxVERTICAL</property>
                                     <property name="permission">none</property>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
@@ -1051,11 +1051,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
-                                        <object class="wxBoxSizer" expanded="0">
+                                        <object class="wxBoxSizer" expanded="1">
                                             <property name="minimum_size"></property>
                                             <property name="name">bSizer11</property>
                                             <property name="orient">wxHORIZONTAL</property>
@@ -1845,7 +1845,7 @@
                                         <object class="wxStaticBoxSizer" expanded="0">
                                             <property name="id">wxID_ANY</property>
                                             <property name="label"></property>
-                                            <property name="minimum_size">-1,250</property>
+                                            <property name="minimum_size">-1,-1</property>
                                             <property name="name">MessageBodySizer1</property>
                                             <property name="orient">wxVERTICAL</property>
                                             <property name="parent">1</property>
