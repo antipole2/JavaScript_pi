@@ -219,6 +219,8 @@ public:
     wxFileName  mCurrentFile;
     bool        m_autoRun;      // true if script to be auto run after activation of plugin
     bool        mWaitingToRun {false};  // true if an auto-run script has been loaded but not yet run
+    
+    bool		m_parked;		// true if this console parked
 
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
@@ -244,7 +246,6 @@ public:
 #endif	// IPC
 
 private:
-    bool		m_parked;		// true if this console parked
     wxPoint		m_parkedPosition;	// if parked, parked position in DIP
     void OnClose( wxCloseEvent& event );
     
