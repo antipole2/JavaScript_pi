@@ -500,7 +500,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     boxSizer->Add(choiceBox);
                     wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, wxSize((maxChars*9+45)*scale, listLength*22*scale), strings, wxCB_DROPDOWN);
 //                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition,
-                    wxDefaultSize, strings, wxCB_DROPDOWN);
+//                    wxDefaultSize, strings, wxCB_DROPDOWN);
                     choiceBox->Add(choice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
                     duk_pop(ctx);
                     }
