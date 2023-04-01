@@ -266,10 +266,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_get_prop_literal(ctx, -1, "width")){
                 anElement.width = duk_get_number(ctx, -1);
                 }
+            else anElement.width = 100;
+            anElement.width *= scale;
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "height")){
                 anElement.height = duk_get_number(ctx, -1);
                 }
+            else anElement.height = 22;
+            anElement.height *= scale;
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "multiLine")){
                 anElement.multiLine = duk_get_boolean(ctx, -1)?(wxTE_MULTILINE | wxTE_BESTWRAP):0;
@@ -367,7 +371,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     duk_pop(ctx);
                     
                     wxCheckListBox *checkListBox =  new wxCheckListBox(dialog, anElement.itemID, wxDefaultPosition,
-                    	wxSize(maxChars*9+45, listLength*22), strings, wxLB_EXTENDED);
+                    	wxSize((maxChars*9+45)*scale, listLength*22*scale), strings, wxLB_EXTENDED);
                     checkListBoxBox->Add(checkListBox, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
                     checkListBox->SetFont(font);
                     checkListBox->Fit();
@@ -456,7 +460,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             anElement.itemID = wxNewId();
             wxBoxSizer* spinnerBox = new wxBoxSizer(wxVERTICAL);
             wxSpinCtrl *spinner = new wxSpinCtrl(dialog, anElement.itemID, wxEmptyString, wxDefaultPosition,
-            	wxSize(anElement.width, 22), wxSP_ARROW_KEYS, start, end, anElement.numberValue);
+            	wxSize(anElement.width, 22*scale), wxSP_ARROW_KEYS, start, end, anElement.numberValue);
 
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
@@ -494,8 +498,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     anElement.itemID = wxNewId();
                     wxBoxSizer* choiceBox = new wxBoxSizer(wxVERTICAL);
                     boxSizer->Add(choiceBox);
-//                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, wxSize(maxChars*9+45, listLength*22), strings, wxCB_DROPDOWN);
-                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition,
+                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, wxSize((maxChars*9+45)*scale, listLength*22*scale), strings, wxCB_DROPDOWN);
+//                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition,
                     wxDefaultSize, strings, wxCB_DROPDOWN);
                     choiceBox->Add(choice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
                     duk_pop(ctx);

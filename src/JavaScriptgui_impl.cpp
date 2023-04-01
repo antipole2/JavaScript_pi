@@ -166,6 +166,12 @@ void Console::OnRun( wxCommandEvent& event ) {
         message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
+	if (m_Script->IsEmpty()) {
+		message(STYLE_RED, "No script to run");
+		return;
+		}
+	wxString script = m_Script->GetText();
+	if (script == wxEmptyString)
     clearBrief();
     mConsoleRepliesAwaited = 0;
     TRACE(0, "------------------ Run console " + mConsoleName);

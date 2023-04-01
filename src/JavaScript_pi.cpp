@@ -375,7 +375,16 @@ bool JavaScript_pi::LoadConfig(void)
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
-                    if (parked) newConsole->park();
+                    // constructor should have position console but does not seem to work on Hi Res display so force it
+                    newConsole->SetPosition(newConsole->FromDIP(consolePosition));
+                    if (parked){ // cannot use newConsole->park() because that will take short cut
+                    	newConsole->SetSize(newConsole->GetMinSize());
+                    	newConsole->m_parked = true;
+                    	}
+                    else {
+                    	newConsole->SetSize(newConsole->FromDIP(consoleSize));
+                    	newConsole->m_parked = false;
+                    	}
                     }
                 }
             }

@@ -60,30 +60,29 @@ public:
 		double scale = SCALE(this);
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
+		
+		size = TopSizer->GetMinSize();
+		TopSizer->SetMinSize(FromDIP(size));
 
+		// Consoles tab
+		size = Consoles->GetSize();
+		Consoles->SetSize(FromDIP(size));
 		size = m_newConsoleName->GetSize();
-		size.x *= scale;
-		m_newConsoleName->SetSize(size);
-
+		m_newConsoleName->SetSize(FromDIP(size));
+		size = m_newConsoleName->GetMaxLength()
+		m_newConsoleName->SetMaxLength(FromDIP(size));	
 		size = m_oldNames->GetSize();
-		size.x *= scale;
-		m_oldNames->SetSize(size);
-
+		m_oldNames->SetSize(FromDIP(size));
 		size = m_changedName->GetSize();
-		size.x *= scale;
-		m_changedName->SetSize(size);
+		m_changedName->SetSize(FromDIP(size));		
+		size = ConsolesMessageSizer->GetSize();
+		ConsolesMessageSizer->SetSize( FromDIP(size));
+		size = m_ConsolesMessage->GetMinSize();
+		m_ConsolesMessage->SetMinSize(FromDIP(size));
 
-		size = m_newConsoleName->GetSize();
-		size.x *= scale;
-		m_newConsoleName->SetSize(size);
-
+		// Directory tab
 		size = mCurrentDirectory->GetSize();
-		size.x *= scale;
-		mCurrentDirectory->SetSize(size);
-
-		size = m_newConsoleName->GetSize();
-		size.x *= scale;
-		m_newConsoleName->SetSize(size);
+		mCurrentDirectory->SetSize(FromDIP(size));
 
 		size = m_NMEAmessage->GetSize();
 		size.x *= scale;
