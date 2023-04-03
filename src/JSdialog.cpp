@@ -266,13 +266,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_get_prop_literal(ctx, -1, "width")){
                 anElement.width = duk_get_number(ctx, -1);
                 }
-            else anElement.width = 100;
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "height")){
                 anElement.height = duk_get_number(ctx, -1);
                 }
-            else anElement.height = 22;
-            anElement.height *= scale;
             duk_pop(ctx);
             if (duk_get_prop_literal(ctx, -1, "multiLine")){
                 anElement.multiLine = duk_get_boolean(ctx, -1)?(wxTE_MULTILINE | wxTE_BESTWRAP):0;
@@ -293,7 +290,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
             textCtrl = new wxTextCtrl ( dialog, anElement.itemID, "", wxDefaultPosition, pConsole->FromDIP(wxSize(anElement.width,
-            	anElement.height /* 6+fontSize */)), anElement.multiLine);
+            	anElement.height)), anElement.multiLine);
             fieldBox->Add(textCtrl, 0, wxGROW|wxALL, 0);
             textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &pConsole->mDialog.dialogElementsArray[i].textValue));
             staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
