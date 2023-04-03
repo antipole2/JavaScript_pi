@@ -62,7 +62,7 @@ public:
 		wxSize size;
 		wxSizer* sizer;
 		
-		m_notebook->SetSize(FromDIP(m_notebook->GetSize());
+		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
 		
 /*
 		sizer = this->GetSizer();
