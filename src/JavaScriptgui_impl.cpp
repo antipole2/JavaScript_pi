@@ -54,7 +54,7 @@ WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
     wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
     long int style = pConsole->GetWindowStyle();
     if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
-//  pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
+	pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
     };
 
 
