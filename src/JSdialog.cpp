@@ -459,7 +459,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             anElement.itemID = wxNewId();
             wxBoxSizer* spinnerBox = new wxBoxSizer(wxVERTICAL);
             wxSpinCtrl *spinner = new wxSpinCtrl(dialog, anElement.itemID, wxEmptyString, wxDefaultPosition,
-            	pConsole->FropmDIP(wxSize(anElement.width, 22)), wxSP_ARROW_KEYS, start, end, anElement.numberValue);
+            	pConsole->FromDIP(wxSize(anElement.width, 22)), wxSP_ARROW_KEYS, start, end, anElement.numberValue);
 
             // add label if we have one
             if (duk_get_prop_literal(ctx, -1, "label")){
@@ -497,7 +497,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     anElement.itemID = wxNewId();
                     wxBoxSizer* choiceBox = new wxBoxSizer(wxVERTICAL);
                     boxSizer->Add(choiceBox);
-                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, pConsole->FromDIP(wxSize((maxChars*9+45), listLength*22), strings, wxCB_DROPDOWN);
+                    wxChoice *choice =  new wxChoice(dialog, anElement.itemID, wxDefaultPosition, pConsole->FromDIP(wxSize((maxChars*9+45), listLength*22)), strings, wxCB_DROPDOWN);
 //                    wxChoice *choice =  new wxChoice(dialog, anEle)ment.itemID, wxDefaultPosition,
 //                    wxDefaultSize, strings, wxCB_DROPDOWN);
                     choiceBox->Add(choice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
