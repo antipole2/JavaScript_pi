@@ -361,8 +361,8 @@ bool JavaScript_pi::LoadConfig(void)
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
-                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
-                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
+                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
+                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
@@ -370,19 +370,18 @@ bool JavaScript_pi::LoadConfig(void)
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
-                    // take care of no console size
-                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
+
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
                     // constructor should have position console but does not seem to work on Hi Res display so force it
-                    newConsole->SetPosition(newConsole->FromDIP(consolePosition));
+                    //newConsole->SetPosition(newConsole->FromDIP(consolePosition));
                     if (parked){ // cannot use newConsole->park() because that will take short cut
-                    	newConsole->SetSize(newConsole->GetMinSize());
+                    	//newConsole->SetSize(newConsole->GetMinSize());
                     	newConsole->m_parked = true;
                     	}
                     else {
-                    	newConsole->SetSize(newConsole->FromDIP(consoleSize));
+                    	//newConsole->SetSize(newConsole->FromDIP(consoleSize));
                     	newConsole->m_parked = false;
                     	}
                     }

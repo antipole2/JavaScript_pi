@@ -62,31 +62,33 @@ public:
 		wxSize size;
 		wxSizer* sizer;
 		
+		m_notebook->SetSize(FromDIP(m_notebook->GetSize());
+		
+/*
 		sizer = this->GetSizer();
 		size = sizer->GetMinSize();
 		sizer->SetMinSize(FromDIP(size));
 		this->SetSizer(sizer);
+*/
 
 		// Consoles tab
-		size = Consoles->GetSize();
-		Consoles->SetSize(FromDIP(size));
-		size = m_newConsoleName->GetSize();
-		m_newConsoleName->SetSize(FromDIP(size));
-		size = m_oldNames->GetSize();
-		m_oldNames->SetSize(FromDIP(size));
-		size = m_changedName->GetSize();
-		m_changedName->SetSize(FromDIP(size));		
-		size = m_ConsolesMessage->GetMinSize();
-		m_ConsolesMessage->SetMinSize(FromDIP(size));
+		Consoles->SetSize(FromDIP(Consoles->GetSize()));
+		m_newConsoleName->SetSize(FromDIP(m_newConsoleName->GetSize()));
+		m_oldNames->SetSize(FromDIP(m_oldNames->GetSize()));
+		m_changedName->SetSize(FromDIP(m_changedName->GetSize()));		
+		m_ConsolesMessage->SetSize(FromDIP(m_ConsolesMessage->GetSize()));
+/*
 		sizer = Consoles->GetSizer();
 		size = sizer->GetMinSize();
 		sizer->SetMinSize(FromDIP(size));
 		Consoles->SetSizer(sizer);
+*/
 
 		// Directory tab
-		size = mCurrentDirectory->GetSize();
-		mCurrentDirectory->SetSize(FromDIP(size));
+		Directory->SetSize(FromDIP(Directory->GetSize()));
+		mCurrentDirectory->SetSize(FromDIP(mCurrentDirectory->GetSize()));
 
+		// NMEA tab
 		size = m_NMEAmessage->GetSize();
 		size.x *= scale;
 		m_NMEAmessage->SetSize(size);
