@@ -19,7 +19,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,260 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), 0 );
+	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,280 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Consoles->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Consoles->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -105,7 +105,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesSizer->Add( ConsolesRenameSizer, 0, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* ConsolesMessageSizer;
-	ConsolesMessageSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxVERTICAL );
+	ConsolesMessageSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
 	m_ConsolesMessage = new wxTextCtrl( ConsolesMessageSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 550,-1 ), 0|wxBORDER_NONE );
 	m_ConsolesMessage->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
@@ -118,17 +118,17 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesSizer->Add( ConsolesMessageSizer, 0, wxEXPAND, 0 );
 
 	wxStaticBoxSizer* sbSizer18;
-	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxT("label") ), wxVERTICAL );
+	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxT("label") ), wxHORIZONTAL );
 
 	m_keepOnTop = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Keep consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_keepOnTop->SetValue(true);
+	m_keepOnTop->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 	m_keepOnTop->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNTEXT ) );
 	m_keepOnTop->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	sbSizer18->Add( m_keepOnTop, 0, wxALL, 5 );
+	sbSizer18->Add( m_keepOnTop, 0, wxALIGN_TOP|wxALL, 5 );
 
 
-	ConsolesSizer->Add( sbSizer18, 1, wxEXPAND, 5 );
+	ConsolesSizer->Add( sbSizer18, 1, wxALIGN_TOP|wxEXPAND, 0 );
 
 
 	Consoles->SetSizer( ConsolesSizer );
