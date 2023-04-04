@@ -94,6 +94,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         return;
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+	pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
 /*
 //x 	,
 		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
@@ -153,6 +154,9 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     
 void ToolsClass::onKeepOnTop(wxCommandEvent& event) {
 	pJavaScript_pi->m_keepConsolesOnTop = m_keepOnTop->GetValue();
+	for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+		pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
+        }
 	}   
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
@@ -215,7 +219,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-	dump += "pJavaScript_pi->m_keepOnTop\t\t" + (pJavaScript_pi->m_keepConsolesOnTop ? _("True"):_("False"));
+	dump += "pJavaScript_pi->m_keepOnTop\t\t" + (pJavaScript_pi->m_keepConsolesOnTop ? _("true"):_("false")) + "\n";
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
