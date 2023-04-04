@@ -65,6 +65,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         m_customiseButton->SetLabel("Start");
         wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
     	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
+    	m_keepOnTop->SetValue(pJavaScript_pi->m_keepConsolesOnTop);
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
         page->Fit();

@@ -855,7 +855,7 @@
                                                     <property name="aui_position"></property>
                                                     <property name="aui_row"></property>
                                                     <property name="best_size"></property>
-                                                    <property name="bg">wxSYS_COLOUR_WINDOW</property>
+                                                    <property name="bg">wxSYS_COLOUR_ACTIVECAPTION</property>
                                                     <property name="caption"></property>
                                                     <property name="caption_visible">1</property>
                                                     <property name="center_pane">0</property>
@@ -868,7 +868,7 @@
                                                     <property name="dock_fixed">0</property>
                                                     <property name="docking">Left</property>
                                                     <property name="enabled">1</property>
-                                                    <property name="fg">wxSYS_COLOUR_BTNTEXT</property>
+                                                    <property name="fg">wxSYS_COLOUR_WINDOW</property>
                                                     <property name="floatable">1</property>
                                                     <property name="font">,90,400,-1,70,0</property>
                                                     <property name="gripper">0</property>
