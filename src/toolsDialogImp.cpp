@@ -153,6 +153,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     }
     
 void ToolsClass::onKeepOnTop(wxCommandEvent& event) {
+    Console *pConsole;
 	pJavaScript_pi->m_keepConsolesOnTop = m_keepOnTop->GetValue();
 	for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
 		pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
