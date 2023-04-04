@@ -27,7 +27,7 @@ public:
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
     void onChangeName( wxCommandEvent& event );
-    void onKeeoOnTop( wxCommandEvent& event );
+    void onKeepOnTop( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
     void onRecieveMessage( wxCommandEvent& event );
     void onChangeDirectory( wxCommandEvent& event );
@@ -61,7 +61,7 @@ public:
 		double scale = SCALE(this);
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
-		wxSizer* sizer;
+//		wxSizer* sizer;
 		
 		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
 		
