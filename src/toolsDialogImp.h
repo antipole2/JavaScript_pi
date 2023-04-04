@@ -27,6 +27,7 @@ public:
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
     void onChangeName( wxCommandEvent& event );
+    void onKeeoOnTop( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
     void onRecieveMessage( wxCommandEvent& event );
     void onChangeDirectory( wxCommandEvent& event );
@@ -77,6 +78,7 @@ public:
 		m_oldNames->SetSize(FromDIP(m_oldNames->GetSize()));
 		m_changedName->SetSize(FromDIP(m_changedName->GetSize()));		
 		m_ConsolesMessage->SetSize(FromDIP(m_ConsolesMessage->GetSize()));
+		Consoles->Layout();
 /*
 		sizer = Consoles->GetSizer();
 		size = sizer->GetMinSize();
@@ -87,7 +89,8 @@ public:
 		// Directory tab
 		Directory->SetSize(FromDIP(Directory->GetSize()));
 		mCurrentDirectory->SetSize(FromDIP(mCurrentDirectory->GetSize()));
-
+		Directory->Layout();
+		
 		// NMEA tab
 		size = m_NMEAmessage->GetSize();
 		size.x *= scale;

@@ -150,6 +150,10 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }
+    
+void ToolsClass::onKeepOnTop(wxCommandEvent& event) {
+	pJavaScript_pi->m_keepConsolesOnTop = m_keepOnTop->GetValue();
+	}   
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
 void ToolsClass::onRecieveNMEAmessage(wxCommandEvent& event ){
@@ -211,7 +215,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-
+	dump += "m_keepOnTop\t\t\t" + "pJavaScript_pi->m_keepOnTop" ? "True":"False";
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");

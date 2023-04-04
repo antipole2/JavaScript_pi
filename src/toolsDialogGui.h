@@ -24,6 +24,7 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/choice.h>
+#include <wx/checkbox.h>
 #include <wx/panel.h>
 #include <wx/hyperlink.h>
 #include <wx/statline.h>
@@ -49,6 +50,7 @@ class ToolsClassBase : public wxDialog
 		wxStaticText* m_staticText15;
 		wxTextCtrl* m_changedName;
 		wxTextCtrl* m_ConsolesMessage;
+		wxCheckBox* m_keepOnTop;
 		wxPanel* Directory;
 		wxStaticText* mCurrentDirectory;
 		wxStaticText* mCurrentDirectoryString;
@@ -97,6 +99,7 @@ class ToolsClassBase : public wxDialog
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onKeepOnTop( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveNMEAmessage( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveMessage( wxCommandEvent& event ) { event.Skip(); }
