@@ -1014,9 +1014,9 @@ public:
     
     void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
     	long styles = pConsole->GetWindowStyle();
-		if (yes) style = style | wxKEEP_ON_TOP;
-		else style = style ^ wxKEEP_ON_TOP;
-		pConsole->SetWindowStyle(style);
+		if (yes) styles = style | wxKEEP_ON_TOP;
+		else styles = styles ^ wxKEEP_ON_TOP;
+		pConsole->SetWindowStyle(styles);
     }
     
     wxString consoleDump(){    // returns string being dump of selected information from console structure
