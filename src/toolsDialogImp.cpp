@@ -215,7 +215,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-	dump += "pJavaScript_pi->m_keepOnTop\t\t" + (pJavaScript_pi->m_keepOnTop ? "True":"False");
+	dump += "pJavaScript_pi->m_keepOnTop\t\t" + (pJavaScript_pi->m_keepConsolesOnTop ? "True":"False");
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
