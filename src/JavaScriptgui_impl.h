@@ -1014,8 +1014,8 @@ public:
     
     void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
     	long styles = GetWindowStyle();
-		if (yes) styles = style | wxSTAY_ON_TOP;
-		else styles = styles ^ wxSTAY_ON_TOP;
+		if (yes) styles |= wxSTAY_ON_TOP;
+		else styles ^= wxSTAY_ON_TOP;
 		SetWindowStyle(styles);
     }
     
