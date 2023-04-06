@@ -1012,6 +1012,13 @@ public:
         pFreedConsole->Hide();
     }
     
+    void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
+    	long styles = GetWindowStyle();
+		if (yes) styles |= wxSTAY_ON_TOP;
+		else styles ^= wxSTAY_ON_TOP;
+		SetWindowStyle(styles);
+    }
+    
     wxString consoleDump(){    // returns string being dump of selected information from console structure
         wxString ptrToString(Console* address);
         wxString statusesToString(status_t mStatus);

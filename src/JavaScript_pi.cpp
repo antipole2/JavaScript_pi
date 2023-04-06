@@ -311,6 +311,7 @@ bool JavaScript_pi::LoadConfig(void)
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
             mpFirstConsole->setConsoleMinSize();
+            mpFirstConsole->keepOnTop(true);
             mpFirstConsole->m_Output->AppendText(welcome);
             m_showHelp = true;
             }
@@ -324,8 +325,7 @@ bool JavaScript_pi::LoadConfig(void)
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
             TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
-
-            
+            m_keepConsolesOnTop = (pConf->Read ( _T ( "KeepOnTop" ), "0" ) == "0")?false:true;
             // load parking config - platform defaults if none
             // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
@@ -361,8 +361,8 @@ bool JavaScript_pi::LoadConfig(void)
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
-                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
-                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
+                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
+                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
@@ -370,19 +370,19 @@ bool JavaScript_pi::LoadConfig(void)
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
-                    // take care of no console size
-                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
+
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
+                    newConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
                     // constructor should have position console but does not seem to work on Hi Res display so force it
-                    newConsole->SetPosition(newConsole->FromDIP(consolePosition));
+                    //newConsole->SetPosition(newConsole->FromDIP(consolePosition));
                     if (parked){ // cannot use newConsole->park() because that will take short cut
-                    	newConsole->SetSize(newConsole->GetMinSize());
+                    	//newConsole->SetSize(newConsole->GetMinSize());
                     	newConsole->m_parked = true;
                     	}
                     else {
-                    	newConsole->SetSize(newConsole->FromDIP(consoleSize));
+                    	//newConsole->SetSize(newConsole->FromDIP(consoleSize));
                     	newConsole->m_parked = false;
                     	}
                     }
@@ -435,6 +435,7 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
         pConf->Write ( _T ( "ShowingConsoles" ), mShowingConsoles?"1":"0" );
+        pConf->Write ( _T ( "KeepOnTop" ), m_keepConsolesOnTop?"1":"0" );
         
         // now to save the recent files list - if any
         if (recentFiles.GetCount() > 0){

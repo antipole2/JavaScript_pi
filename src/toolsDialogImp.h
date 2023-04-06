@@ -27,6 +27,7 @@ public:
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
     void onChangeName( wxCommandEvent& event );
+    void onKeepOnTop( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
     void onRecieveMessage( wxCommandEvent& event );
     void onChangeDirectory( wxCommandEvent& event );
@@ -60,33 +61,37 @@ public:
 		double scale = SCALE(this);
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
-		wxSizer* sizer;
+//		wxSizer* sizer;
 		
+		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
+		
+/*
 		sizer = this->GetSizer();
 		size = sizer->GetMinSize();
 		sizer->SetMinSize(FromDIP(size));
 		this->SetSizer(sizer);
+*/
 
 		// Consoles tab
-		size = Consoles->GetSize();
-		Consoles->SetSize(FromDIP(size));
-		size = m_newConsoleName->GetSize();
-		m_newConsoleName->SetSize(FromDIP(size));
-		size = m_oldNames->GetSize();
-		m_oldNames->SetSize(FromDIP(size));
-		size = m_changedName->GetSize();
-		m_changedName->SetSize(FromDIP(size));		
-		size = m_ConsolesMessage->GetMinSize();
-		m_ConsolesMessage->SetMinSize(FromDIP(size));
+		Consoles->SetSize(FromDIP(Consoles->GetSize()));
+		m_newConsoleName->SetSize(FromDIP(m_newConsoleName->GetSize()));
+		m_oldNames->SetSize(FromDIP(m_oldNames->GetSize()));
+		m_changedName->SetSize(FromDIP(m_changedName->GetSize()));		
+		m_ConsolesMessage->SetSize(FromDIP(m_ConsolesMessage->GetSize()));
+		Consoles->Layout();
+/*
 		sizer = Consoles->GetSizer();
 		size = sizer->GetMinSize();
 		sizer->SetMinSize(FromDIP(size));
 		Consoles->SetSizer(sizer);
+*/
 
 		// Directory tab
-		size = mCurrentDirectory->GetSize();
-		mCurrentDirectory->SetSize(FromDIP(size));
-
+		Directory->SetSize(FromDIP(Directory->GetSize()));
+		mCurrentDirectory->SetSize(FromDIP(mCurrentDirectory->GetSize()));
+		Directory->Layout();
+		
+		// NMEA tab
 		size = m_NMEAmessage->GetSize();
 		size.x *= scale;
 		m_NMEAmessage->SetSize(size);

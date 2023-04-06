@@ -65,6 +65,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         m_customiseButton->SetLabel("Start");
         wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
     	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
+    	m_keepOnTop->SetValue(pJavaScript_pi->m_keepConsolesOnTop);
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
         page->Fit();
@@ -94,6 +95,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         return;
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
+	pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
 /*
 //x 	,
 		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
@@ -150,6 +152,14 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }
+    
+void ToolsClass::onKeepOnTop(wxCommandEvent& event) {
+    Console *pConsole;
+	pJavaScript_pi->m_keepConsolesOnTop = m_keepOnTop->GetValue();
+	for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+		pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
+        }
+	}   
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
 void ToolsClass::onRecieveNMEAmessage(wxCommandEvent& event ){
@@ -211,7 +221,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-
+	dump += "pJavaScript_pi->m_keepOnTop\t\t" + (pJavaScript_pi->m_keepConsolesOnTop ? _("true"):_("false")) + "\n";
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
