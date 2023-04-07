@@ -266,8 +266,8 @@ public:
         Console *pConsole;
         wxPoint checkPointOnScreen(wxPoint point);
         wxPoint screenToFrame(wxPoint);
-        TRACE(3, "Constructing console " + consoleName);
-   
+        TRACE(67, wxString::Format("Constructing for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+
         // hook this new console onto end of chain of consoles
         pConsole = pJavaScript_pi->mpFirstConsole;
         if (pConsole == nullptr) pJavaScript_pi->mpFirstConsole = this;   // is first and only
@@ -277,9 +277,13 @@ public:
             }
         mConsoleName = consoleName;
         consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
+        TRACE(67, wxString::Format("After checkPointOnScreen for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+
         m_parked = parked;
         if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
-        consoleInit();        
+        consoleInit();
+        TRACE(67, wxString::Format("Constructor moving %s to DIP position x:%d y:%d", consoleName, consolePosition.x, consolePosition.y));
+                
         Move(FromDIP(consolePosition));
         mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
         mDialog.pdialog = nullptr;

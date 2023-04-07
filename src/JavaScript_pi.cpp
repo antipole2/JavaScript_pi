@@ -291,6 +291,7 @@ bool JavaScript_pi::LoadConfig(void)
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     wxString fileNames;
 #ifndef IN_HARNESS
+	TRACE(67, wxString::Format("Screen size width:%d height:%d", m_display_width, m_display_height));
 	m_showHelp = false;
     if(pConf){
     	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME);
@@ -370,7 +371,7 @@ bool JavaScript_pi::LoadConfig(void)
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
-
+                    TRACE(67, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setConsoleMinSize();
