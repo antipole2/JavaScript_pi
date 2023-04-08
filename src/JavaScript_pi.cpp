@@ -159,9 +159,8 @@ bool JavaScript_pi::DeInit(void) {
 
     if (pTools != nullptr) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
- //       pTools->Close();
- //       pTools->Destroy();
-        delete pTools;
+        try{ delete pTools;}
+        catch (int i){;}
         pTools = nullptr;
         }
 
@@ -311,7 +310,7 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
-            mpFirstConsole->setConsoleMinSize();
+            mpFirstConsole->setConsoleMinClientSize();
             mpFirstConsole->keepOnTop(true);
             mpFirstConsole->m_Output->AppendText(welcome);
             m_showHelp = true;
@@ -325,18 +324,18 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
+//			mShowingConsoles = false;	// force this - not really good to open automatically
             TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
             m_keepConsolesOnTop = (pConf->Read ( _T ( "KeepOnTop" ), "0" ) == "0")?false:true;
             // load parking config - platform defaults if none
             // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
-            m_parkingMinHeight = pConf->Read("ParkingMinHeight", CONSOLE_MIN_HEIGHT);
             m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
             m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
             m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
             m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
-            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingMinHeight:%i, ParkingStub:%i ",
-            	(m_parkingBespoke?"true":"false"), m_parkingMinHeight, m_parkingStub ));
+            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingStub:%i ",
+            	(m_parkingBespoke?"true":"false"), m_parkingStub ));
             
             // create consoles as in config file
             mpFirstConsole = nullptr;	//start with no consoles
@@ -344,7 +343,7 @@ bool JavaScript_pi::LoadConfig(void)
             if (consoles == wxEmptyString){ // no consoles configured
                 Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20),
                 	wxSize(738,800), wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
-                newConsole->setConsoleMinSize();
+                newConsole->setConsoleMinClientSize();
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
@@ -374,18 +373,22 @@ bool JavaScript_pi::LoadConfig(void)
                     TRACE(67, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
-                    newConsole->setConsoleMinSize();
+//                    newConsole->setConsoleMinClientSize();
                     newConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
+/*
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     //newConsole->SetPosition(newConsole->FromDIP(consolePosition));
                     if (parked){ // cannot use newConsole->park() because that will take short cut
-                    	//newConsole->SetSize(newConsole->GetMinSize());
+//                    	wxSize clientSize = newConsole->GetClientSize();
+//                    	clientSize.y = 0;
+//                    	newConsole->SetSize(newConsole->GetMinSize());
                     	newConsole->m_parked = true;
                     	}
                     else {
                     	//newConsole->SetSize(newConsole->FromDIP(consoleSize));
                     	newConsole->m_parked = false;
                     	}
+*/
                     }
                 }
             }
@@ -462,7 +465,6 @@ bool JavaScript_pi::SaveConfig(void)
         //save custom parking config, if any
         if (m_parkingBespoke){
         	pConf->Write (nameColon + _T ( "ParkingBespoke" ),   1 );
-        	pConf->Write (nameColon + _T ( "ParkingMinHeight" ),   m_parkingMinHeight);
         	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub);
          	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel);
          	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX);
@@ -479,7 +481,7 @@ bool JavaScript_pi::SaveConfig(void)
             wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
             wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
             wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
-            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
+            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetClientSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );

@@ -121,9 +121,11 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxT("label") ), wxHORIZONTAL );
 
 	m_keepOnTop = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Keep consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_keepOnTop->SetValue(true);
 	m_keepOnTop->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 	m_keepOnTop->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	m_keepOnTop->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
+	m_keepOnTop->Hide();
 
 	sbSizer18->Add( m_keepOnTop, 0, wxALIGN_TOP|wxALL, 5 );
 
