@@ -61,7 +61,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         m_customiseButton->SetLabel("Start");
         wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
     	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
-#if 1
+#ifdef __DARWIN__
 		m_keepOnTop->Show();	
     	m_keepOnTop->SetValue(pJavaScript_pi->m_keepConsolesOnTop);
 #endif

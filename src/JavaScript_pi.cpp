@@ -375,9 +375,11 @@ bool JavaScript_pi::LoadConfig(void)
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
 //                    newConsole->setConsoleMinClientSize();
                     newConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
-/*
                     // constructor should have position console but does not seem to work on Hi Res display so force it
-                    //newConsole->SetPosition(newConsole->FromDIP(consolePosition));
+                    newConsole->Move(newConsole->FromDIP(consolePosition));
+                    TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
+                    
+/*
                     if (parked){ // cannot use newConsole->park() because that will take short cut
 //                    	wxSize clientSize = newConsole->GetClientSize();
 //                    	clientSize.y = 0;

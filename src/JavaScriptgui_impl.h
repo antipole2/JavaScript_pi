@@ -1026,7 +1026,7 @@ public:
     }
     
     void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
-#if 1
+#ifdef __DARWIN__
     	long styles = GetWindowStyle();
 		if (yes) styles |= wxSTAY_ON_TOP;
 		else styles ^= wxSTAY_ON_TOP;
