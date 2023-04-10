@@ -159,7 +159,10 @@ bool JavaScript_pi::DeInit(void) {
 
     if (pTools != nullptr) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
-        try{ delete pTools;}
+        try{
+//        	pTools->Destroy();
+        	delete pTools;
+        	}
         catch (int i){;}
         pTools = nullptr;
         }
@@ -177,6 +180,7 @@ bool JavaScript_pi::DeInit(void) {
 		pConsole->clearSockets();
 #endif
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
+//        pConsole->Destroy();
         delete pConsole;
         pConsole = nullptr;
         }
@@ -191,6 +195,7 @@ bool JavaScript_pi::DeInit(void) {
             TRACE(3,"JavaScript plugin deinit destroying console" + pConsole->mConsoleName + " ctx while emtying bin");
             }
         mpBin = pConsole->mpNextConsole; // take first off chain
+//        pConsole->Destroy();
         delete pConsole;
         pConsole = NULL;
         }
@@ -289,7 +294,6 @@ bool JavaScript_pi::LoadConfig(void)
     void JSlexit(wxStyledTextCtrl* pane);
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     wxString fileNames;
-#ifndef IN_HARNESS
 	TRACE(67, wxString::Format("Screen size width:%d height:%d", m_display_width, m_display_height));
 	m_showHelp = false;
     if(pConf){
@@ -326,7 +330,11 @@ bool JavaScript_pi::LoadConfig(void)
             mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
 //			mShowingConsoles = false;	// force this - not really good to open automatically
             TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
+#ifdef __DARWIN__
             m_keepConsolesOnTop = (pConf->Read ( _T ( "KeepOnTop" ), "0" ) == "0")?false:true;
+#else
+			m_keepConsolesOnTop = false;
+#endif
             // load parking config - platform defaults if none
             // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
@@ -418,7 +426,6 @@ bool JavaScript_pi::LoadConfig(void)
         return true;
     }
     else
-#endif
         return false;
 }
 
@@ -663,10 +670,13 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
             if (pThisConsole->mpCtx != nullptr) { // deferred heap distruction
                 duk_destroy_heap(pThisConsole->mpCtx);
                 pThisConsole->mpCtx = nullptr;  // don't need this but...
-                TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emtying bin");
+                TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emptying bin");
                 }
             TRACE(3,"JavaScript plugin deleting console " + pThisConsole->mConsoleName + " from bin");
+//            pThisConsole->Close(true);
             pThisConsole->Destroy();
+//			delete pThisConsole;
+
             }
         }
     mpBin = pLater; // try later

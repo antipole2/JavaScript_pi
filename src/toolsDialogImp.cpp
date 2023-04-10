@@ -31,11 +31,9 @@ void ToolsClass::setConsoleChoices(){
 void ToolsClass::onClose( wxCloseEvent& event ){
     extern JavaScript_pi* pJavaScript_pi;
 
+	if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
+//	pJavaScript_pi->pTools = nullptr;
     this->Hide();
-    cleanupParking();
-    Destroy();
-    pJavaScript_pi->pTools = nullptr;
-    m_parkingMessage->Clear();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
@@ -361,11 +359,8 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 		pJavaScript_pi->m_parkingBespoke = true;
 		pJavaScript_pi->SaveConfig();
 		m_parkingMessage->SetValue("Custom parking parameters set and saved");
-		m_customiseButton->SetLabel("Tidy up");		
-		}
-	else if (label == "Finish") {
 		cleanupParking();
-		m_customiseButton->SetLabel("Start");
+		m_customiseButton->SetLabel("Start");		
 		}
 	}
 	

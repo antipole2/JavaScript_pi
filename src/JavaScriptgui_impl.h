@@ -259,8 +259,7 @@ public:
     		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
     		: m_Console(parent, wxID_ANY, consoleName,
     		pJavaScript_pi->m_parent_window->FromDIP(consolePosition),
-    		pJavaScript_pi->m_parent_window->FromDIP(consoleSize),
-    		wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+    		pJavaScript_pi->m_parent_window->FromDIP(consoleSize))
         {
         void JSlexit(wxStyledTextCtrl* pane);
         Console *pConsole;
@@ -1026,6 +1025,7 @@ public:
     }
     
     void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
+    	return;	// disable for now
 #ifdef __DARWIN__
     	long styles = GetWindowStyle();
 		if (yes) styles |= wxSTAY_ON_TOP;

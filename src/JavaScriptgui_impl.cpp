@@ -217,13 +217,13 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-        }
-	this->bin();
-	// take care to remove from tools, if we have them open
-    ToolsClass *pTools = pJavaScript_pi->pTools;
-    if (pTools != nullptr) pTools->setConsoleChoices();
-	TRACE(3, "Binning console " + this->mConsoleName);
-	return;
+		this->bin();
+		// take care to remove from tools, if we have them open
+		ToolsClass *pTools = pJavaScript_pi->pTools;
+		if (pTools != nullptr) pTools->setConsoleChoices();
+		TRACE(3, "Binning console " + this->mConsoleName);
+		event.Veto(true);
+		}
     }
 
 static wxString dummyMessage, message_id;

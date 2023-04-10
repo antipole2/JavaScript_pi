@@ -29,7 +29,7 @@
 #include <wx/hyperlink.h>
 #include <wx/statline.h>
 #include <wx/notebook.h>
-#include <wx/dialog.h>
+#include <wx/frame.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +37,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ToolsClassBase
 ///////////////////////////////////////////////////////////////////////////////
-class ToolsClassBase : public wxDialog
+class ToolsClassBase : public wxFrame
 {
 	private:
 
@@ -95,7 +95,6 @@ class ToolsClassBase : public wxDialog
 		wxButton* m_cleanButton;
 
 		// Virtual event handlers, override them in your derived class
-		virtual void onClose( wxCloseEvent& event ) { event.Skip(); }
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
@@ -121,7 +120,7 @@ class ToolsClassBase : public wxDialog
 		wxString mNewNameInput;
 		wxString m_changedNameInput;
 
-		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript tools"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxSTAY_ON_TOP );
+		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxTAB_TRAVERSAL );
 
 		~ToolsClassBase();
 

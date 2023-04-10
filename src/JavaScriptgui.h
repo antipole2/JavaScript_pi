@@ -25,6 +25,7 @@
 #include <wx/statline.h>
 #include <wx/panel.h>
 #include <wx/splitter.h>
+#include <wx/frame.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -33,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Class m_Console
 ///////////////////////////////////////////////////////////////////////////////
-class m_Console : public wxDialog
+class m_Console : public wxFrame
 {
 	private:
 
@@ -54,9 +55,6 @@ class m_Console : public wxDialog
 		wxButton* m_clearOutput;
 
 		// Virtual event handlers, override them in your derived class
-		virtual void OnActivate( wxActivateEvent& event ) { event.Skip(); }
-		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
-		virtual void OnMove( wxMoveEvent& event ) { event.Skip(); }
 		virtual void onMouse( wxMouseEvent& event ) { event.Skip(); }
 		virtual void OnClearScript( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnCopyAll( wxCommandEvent& event ) { event.Skip(); }
@@ -78,7 +76,7 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 844,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
 
 		~m_Console();
 
@@ -87,6 +85,29 @@ class m_Console : public wxDialog
 			m_splitter->SetSashPosition( 600 );
 			m_splitter->Disconnect( wxEVT_IDLE, wxIdleEventHandler( m_Console::m_splitterOnIdle ), NULL, this );
 		}
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class m_Console_Exx
+///////////////////////////////////////////////////////////////////////////////
+class m_Console_Exx : public wxDialog
+{
+	private:
+
+	protected:
+
+		// Virtual event handlers, override them in your derived class
+		virtual void OnActivate( wxActivateEvent& event ) { event.Skip(); }
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+		virtual void OnMove( wxMoveEvent& event ) { event.Skip(); }
+
+
+	public:
+
+		m_Console_Exx( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 844,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+
+		~m_Console_Exx();
 
 };
 

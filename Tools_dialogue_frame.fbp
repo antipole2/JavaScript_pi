@@ -29,13 +29,13 @@
         <property name="use_array_enum">0</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
-        <object class="Dialog" expanded="1">
+        <object class="Frame" expanded="1">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg"></property>
-            <property name="center"></property>
+            <property name="center">wxBOTH</property>
             <property name="context_help"></property>
-            <property name="context_menu">0</property>
+            <property name="context_menu">1</property>
             <property name="enabled">1</property>
             <property name="event_handler">impl_virtual</property>
             <property name="extra_style"></property>
@@ -43,20 +43,20 @@
             <property name="font"></property>
             <property name="hidden">0</property>
             <property name="id">wxID_ANY</property>
-            <property name="maximum_size">-1,-1</property>
-            <property name="minimum_size">-1,-1</property>
+            <property name="maximum_size"></property>
+            <property name="minimum_size"></property>
             <property name="name">ToolsClassBase</property>
             <property name="pos"></property>
-            <property name="size">-1,-1</property>
-            <property name="style">wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxSTAY_ON_TOP</property>
+            <property name="size">600,300</property>
+            <property name="style">wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT</property>
             <property name="subclass">; ; forward_declare</property>
-            <property name="title">JavaScript tools</property>
+            <property name="title"></property>
             <property name="tooltip"></property>
             <property name="two_step_creation">0</property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
-            <property name="window_style"></property>
-            <event name="OnClose">onClose</event>
+            <property name="window_style">wxTAB_TRAVERSAL</property>
+            <property name="xrc_skip_sizer">1</property>
             <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size">-1,-1</property>
                 <property name="name">TopSizer</property>
