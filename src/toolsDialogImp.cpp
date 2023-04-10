@@ -30,11 +30,7 @@ void ToolsClass::setConsoleChoices(){
 
 void ToolsClass::onClose( wxCloseEvent& event ){
     extern JavaScript_pi* pJavaScript_pi;
-/*
-    *pPointerToThisInJavaScript_pi = nullptr;
-    TRACE(4, "In Tools close");
-    this->Destroy();
- */
+
     this->Hide();
     cleanupParking();
     Destroy();
@@ -65,7 +61,10 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         m_customiseButton->SetLabel("Start");
         wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
     	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
+#ifdef __DARWIN__
+		m_keepOnTop->Show();	
     	m_keepOnTop->SetValue(pJavaScript_pi->m_keepConsolesOnTop);
+#endif
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
         page->Fit();
@@ -96,18 +95,10 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
 	pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
-/*
-//x 	,
-		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_POSITION),
-		pJavaScript_pi->m_parent_window->FromDIP(NEW_CONSOLE_SIZE),
-		pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
-		pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
-		wxEmptyString, false, wxEmptyString);
-*/
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
-    pConsole->setConsoleMinSize();
+    pConsole->setConsoleMinClientSize();
     setConsoleChoices();    // update
     pConsole->Show();
     m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
@@ -143,7 +134,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     pConsole->SetLabel(newConsoleName);
     pConsole->mConsoleName = newConsoleName;
     TRACE(17, wxString::Format("onChangeName for parked console %s size was x:%i y:%i", oldConsoleName, GetSize().x, GetSize().y ));
-    pConsole->setConsoleMinSize();
+    pConsole->setConsoleMinClientSize();
     if (pConsole->isParked()){	// shrink it
     	wxSize size = pConsole->GetMinSize();
     	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
@@ -288,7 +279,6 @@ void ToolsClass::onClean( wxCommandEvent& event ){
 void ToolsClass::onParkingRevert(wxCommandEvent& event){
 	// revert parking parameters to platform default
 	pJavaScript_pi->m_parkingBespoke = false;
-	pJavaScript_pi->m_parkingMinHeight = CONSOLE_MIN_HEIGHT;
 	pJavaScript_pi->m_parkingStub = CONSOLE_STUB;
 	pJavaScript_pi->m_parkingLevel = PARK_LEVEL;
 	pJavaScript_pi->m_parkFirstX = PARK_FIRST_X;
@@ -345,8 +335,8 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 		TRACE(4, "onParking next");
 		// now for the calculation
 		double scale = SCALE(this);	// for DIP corrections
-		wxSize c1Size = pTestConsole1->GetSize();
-		wxSize c2Size = pTestConsole2->GetSize();
+		wxSize c1Size = pTestConsole1->GetClientSize();
+		wxSize c2Size = pTestConsole2->GetClientSize();
 		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
 		wxPoint c2Pos = screenToFrame(pTestConsole2->GetPosition());
 		m_customiseButton->SetLabel("Retry");	// in case we have a problem
@@ -362,7 +352,6 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 			m_parkingMessage->SetValue("Consoles overlap.\nAdjust and try again");
 			return;
 			}
-		pJavaScript_pi->m_parkingMinHeight = ((c1Size.y + c2Size.y)/2)/scale;	// take average
 		wxString label = pTestConsole2->GetLabel();
 		wxSize labelSize = pTestConsole2->GetTextExtent(label);
 		pJavaScript_pi->m_parkingStub = (c2Size.x - labelSize.x)/scale;
@@ -372,7 +361,7 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 		pJavaScript_pi->m_parkingBespoke = true;
 		pJavaScript_pi->SaveConfig();
 		m_parkingMessage->SetValue("Custom parking parameters set and saved");
-		m_customiseButton->SetLabel("Finish");		
+		m_customiseButton->SetLabel("Tidy up");		
 		}
 	else if (label == "Finish") {
 		cleanupParking();
@@ -383,8 +372,8 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 void ToolsClass::onParkingReveal(wxCommandEvent& event) {
 		m_parkingMessage->SetValue(pJavaScript_pi->m_parkingBespoke?"Bespoke settings\n\n":"Default settings\n\n");
 		m_parkingMessage->AppendText(wxString::Format(
-			"#define CONSOLE_MIN_HEIGHT %iL\n#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
-			pJavaScript_pi->m_parkingMinHeight, pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));	
+			"#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
+			pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));	
 		m_parkingMessage->AppendText("\n\nThe above are all in DIP pixels");			
 		}
 	

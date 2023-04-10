@@ -266,8 +266,8 @@ public:
         Console *pConsole;
         wxPoint checkPointOnScreen(wxPoint point);
         wxPoint screenToFrame(wxPoint);
-        TRACE(3, "Constructing console " + consoleName);
-   
+        TRACE(67, wxString::Format("Constructing for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+
         // hook this new console onto end of chain of consoles
         pConsole = pJavaScript_pi->mpFirstConsole;
         if (pConsole == nullptr) pJavaScript_pi->mpFirstConsole = this;   // is first and only
@@ -277,10 +277,17 @@ public:
             }
         mConsoleName = consoleName;
         consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
+        TRACE(67, wxString::Format("After checkPointOnScreen for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+
         m_parked = parked;
         if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
-        consoleInit();        
+        consoleInit();
         Move(FromDIP(consolePosition));
+        SetClientSize(consoleSize);
+        setConsoleMinClientSize();
+        TRACE(67, wxString::Format("Constructor moved %s to DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+                
+
         mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
         mDialog.pdialog = nullptr;
         mAlert.position = ToDIP(checkPointOnScreen(FromDIP(alertPosition)));
@@ -334,7 +341,7 @@ public:
             m_Script->AddText(welcome); // some initial script
             }
         m_Output->AppendText(welcome);
-        this->SetSize(consoleSize);
+        this->SetClientSize(consoleSize);
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         }
     
@@ -933,21 +940,26 @@ public:
         mTimes.Add(newAction);
         }
         
-    void setConsoleMinSize(){
+    void setConsoleMinClientSize(){
     	// store parameters in DIP but minSize set in physical size here
     	double scale = SCALE(this);
     	wxSize minSize, size;
     	
     	wxSize textSize = this->GetTextExtent(mConsoleName);
     	minSize.x = pJavaScript_pi->m_parkingStub*scale + textSize.x + 3*scale;	// added 3 to be on safe side
-    	minSize.y = pJavaScript_pi->m_parkingMinHeight*scale;
-    	TRACE(4, wxString::Format("setConsoleMinSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
-    	SetMinSize(minSize);
+//    	minSize.y = pJavaScript_pi->m_parkingMinHeight*scale;
+    	TRACE(4, wxString::Format("setConsoleMinClientSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
+//    	SetMinSize(minSize);
+//    	minSize = GetClientSize();	// now force vertical min size to client zero
+    	minSize.y = 0;
+    	SetMinClientSize(minSize);
+/*
     	// make sure is no smaller than new min size
     	size = GetSize();
     	if (size.x < minSize.x) size.x = minSize.x;
     	if (size.y < minSize.y) size.y = minSize.y;
-    	SetSize(size); 	
+    	SetSize(size); 
+*/	
     	}
     	
     void park(){	// park this console
@@ -958,8 +970,9 @@ public:
         bool foundParked {false};
         TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
         	mConsoleName, GetMinSize().x, GetMinSize().y)); 
-		wxSize size = GetMinSize();
-    	SetSize(size);	
+		wxSize size = GetMinClientSize();
+		size.y = 0;	// we are zeroing the client size
+    	SetClientSize(size);	
     	if (isParked()) return;	// was already parked
     	// find horizontal place available avoiding other parked consoles
     	for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){
@@ -970,7 +983,7 @@ public:
             // this one is parked
             foundParked = true;
             wxPoint pCFramePos = screenToFrame(pC->GetPosition());	// position of this console in frame
-            rhe = pCFramePos.x + pC->GetSize().x;
+            rhe = pCFramePos.x + pC->GetMinSize().x;
             if (rhe > rightMost) rightMost = rhe;
             }   
     	int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
@@ -1013,10 +1026,12 @@ public:
     }
     
     void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
+#ifdef __DARWIN__
     	long styles = GetWindowStyle();
 		if (yes) styles |= wxSTAY_ON_TOP;
 		else styles ^= wxSTAY_ON_TOP;
 		SetWindowStyle(styles);
+#endif
     }
     
     wxString consoleDump(){    // returns string being dump of selected information from console structure

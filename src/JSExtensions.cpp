@@ -592,7 +592,7 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
         // OK - ready to go
 		pConsole->mConsoleName = newName;
 		pConsole->SetLabel(newName);
-		pConsole->setConsoleMinSize();
+		pConsole->setConsoleMinClientSize();
     	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();
         }
     if (pConsole->isParked()) pConsole->SetSize(pConsole->GetMinSize());	// shrink it

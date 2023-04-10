@@ -121,7 +121,6 @@ public:
     
     // console parking all stored in DIP units
     bool			m_parkingBespoke {true};	// true if using bespoke parking parameters
-    int				m_parkingMinHeight {CONSOLE_MIN_HEIGHT};	// minimim height of console
     int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length
     int				m_parkingLevel {PARK_LEVEL};			// level below frame of parking
     int				m_parkFirstX {PARK_FIRST_X};			// inset of first park place from left edge of frame
