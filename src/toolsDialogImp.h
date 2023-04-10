@@ -27,7 +27,8 @@ public:
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
     void onChangeName( wxCommandEvent& event );
-    void onKeepOnTop( wxCommandEvent& event );
+    void onFloatOnParent( wxCommandEvent& event );
+    void onToggleStatus( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
     void onRecieveMessage( wxCommandEvent& event );
     void onChangeDirectory( wxCommandEvent& event );

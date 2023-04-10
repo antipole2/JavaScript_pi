@@ -11,7 +11,7 @@
 
 m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( -1,10 ), wxSize( -1,-1 ) );
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
 	wxBoxSizer* consoleTopSizer;
 	consoleTopSizer = new wxBoxSizer( wxVERTICAL );
@@ -216,6 +216,9 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	this->Centre( wxBOTH );
 
 	// Connect Events
+	this->Connect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console::OnActivate ) );
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( m_Console::OnClose ) );
+	this->Connect( wxEVT_MOVE, wxMoveEventHandler( m_Console::OnMove ) );
 	m_splitter->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -289,6 +292,9 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 m_Console::~m_Console()
 {
 	// Disconnect Events
+	this->Disconnect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console::OnActivate ) );
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( m_Console::OnClose ) );
+	this->Disconnect( wxEVT_MOVE, wxMoveEventHandler( m_Console::OnMove ) );
 	m_splitter->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );

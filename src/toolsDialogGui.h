@@ -50,7 +50,8 @@ class ToolsClassBase : public wxFrame
 		wxStaticText* m_staticText15;
 		wxTextCtrl* m_changedName;
 		wxTextCtrl* m_ConsolesMessage;
-		wxCheckBox* m_keepOnTop;
+		wxCheckBox* m_floatOnParent;
+		wxCheckBox* m_rememberToggleStatus;
 		wxPanel* Directory;
 		wxStaticText* mCurrentDirectory;
 		wxStaticText* mCurrentDirectoryString;
@@ -95,10 +96,12 @@ class ToolsClassBase : public wxFrame
 		wxButton* m_cleanButton;
 
 		// Virtual event handlers, override them in your derived class
+		virtual void onClose( wxCloseEvent& event ) { event.Skip(); }
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
-		virtual void onKeepOnTop( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onFloatOnParent( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onToggleStatus( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveNMEAmessage( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveMessage( wxCommandEvent& event ) { event.Skip(); }
@@ -120,7 +123,7 @@ class ToolsClassBase : public wxFrame
 		wxString mNewNameInput;
 		wxString m_changedNameInput;
 
-		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxTAB_TRAVERSAL );
+		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
 
 		~ToolsClassBase();
 

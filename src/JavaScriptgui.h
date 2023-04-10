@@ -55,6 +55,9 @@ class m_Console : public wxFrame
 		wxButton* m_clearOutput;
 
 		// Virtual event handlers, override them in your derived class
+		virtual void OnActivate( wxActivateEvent& event ) { event.Skip(); }
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+		virtual void OnMove( wxMoveEvent& event ) { event.Skip(); }
 		virtual void onMouse( wxMouseEvent& event ) { event.Skip(); }
 		virtual void OnClearScript( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnCopyAll( wxCommandEvent& event ) { event.Skip(); }

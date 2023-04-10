@@ -31,9 +31,12 @@ void ToolsClass::setConsoleChoices(){
 void ToolsClass::onClose( wxCloseEvent& event ){
     extern JavaScript_pi* pJavaScript_pi;
 
+   	if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
 	if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
-//	pJavaScript_pi->pTools = nullptr;
-    this->Hide();
+	m_parkingMessage->Clear();
+	pJavaScript_pi->pTools = nullptr;
+   //  this->Hide();
+    Destroy();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
@@ -59,10 +62,9 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         m_customiseButton->SetLabel("Start");
         wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
     	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
-#ifdef __DARWIN__
-		m_keepOnTop->Show();	
-    	m_keepOnTop->SetValue(pJavaScript_pi->m_keepConsolesOnTop);
-#endif
+		m_floatOnParent->Show();	
+    	m_floatOnParent->SetValue(pJavaScript_pi->m_floatOnParent);
+    	m_rememberToggleStatus->SetValue(pJavaScript_pi->mRememberToggleStatus);
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
         page->Fit();
@@ -92,7 +94,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         return;
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-	pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
+//	pConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -142,13 +144,17 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     setConsoleChoices();    // update
     }
     
-void ToolsClass::onKeepOnTop(wxCommandEvent& event) {
+void ToolsClass::onFloatOnParent(wxCommandEvent& event) {
     Console *pConsole;
-	pJavaScript_pi->m_keepConsolesOnTop = m_keepOnTop->GetValue();
+	pJavaScript_pi->m_floatOnParent = m_floatOnParent->GetValue();
 	for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-		pConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
+		pConsole->floatOnParent(pJavaScript_pi->m_floatOnParent);
         }
-	}   
+	} 
+	
+void ToolsClass::onToggleStatus( wxCommandEvent& event ){
+	pJavaScript_pi->mRememberToggleStatus = m_rememberToggleStatus->GetValue();
+	}  
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
 void ToolsClass::onRecieveNMEAmessage(wxCommandEvent& event ){
@@ -210,7 +216,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (svg + "\n");
     dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-	dump += "pJavaScript_pi->m_keepOnTop\t\t" + (pJavaScript_pi->m_keepConsolesOnTop ? _("true"):_("false")) + "\n";
+	dump += "pJavaScript_pi->m_floatOnTop\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");

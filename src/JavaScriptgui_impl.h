@@ -236,6 +236,7 @@ public:
     void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
+    void OnClose( wxCloseEvent& event );
 
 #ifdef SOCKETS
 	DECLARE_EVENT_TABLE()
@@ -247,7 +248,7 @@ public:
 
 private:
     wxPoint		m_parkedPosition;	// if parked, parked position in DIP
-    void OnClose( wxCloseEvent& event );
+
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
@@ -1024,14 +1025,11 @@ public:
         pFreedConsole->Hide();
     }
     
-    void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
-    	return;	// disable for now
-#ifdef __DARWIN__
+    void floatOnParent(bool yes){	// set the wxFRAME_FLOAT_ON_PARENT style
     	long styles = GetWindowStyle();
-		if (yes) styles |= wxSTAY_ON_TOP;
-		else styles ^= wxSTAY_ON_TOP;
+		if (yes) styles |= wxFRAME_FLOAT_ON_PARENT;
+		else styles ^= wxFRAME_FLOAT_ON_PARENT;
 		SetWindowStyle(styles);
-#endif
     }
     
     wxString consoleDump(){    // returns string being dump of selected information from console structure

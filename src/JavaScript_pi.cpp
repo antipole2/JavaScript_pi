@@ -162,6 +162,7 @@ bool JavaScript_pi::DeInit(void) {
         try{
 //        	pTools->Destroy();
         	delete pTools;
+
         	}
         catch (int i){;}
         pTools = nullptr;
@@ -315,7 +316,7 @@ bool JavaScript_pi::LoadConfig(void)
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
             mpFirstConsole->setConsoleMinClientSize();
-            mpFirstConsole->keepOnTop(true);
+            mpFirstConsole->floatOnParent(true);
             mpFirstConsole->m_Output->AppendText(welcome);
             m_showHelp = true;
             }
@@ -327,13 +328,14 @@ bool JavaScript_pi::LoadConfig(void)
             TRACE(2, "Loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
-            mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
-//			mShowingConsoles = false;	// force this - not really good to open automatically
+            mRememberToggleStatus = (pConf->Read ( _T ( "RememberToggle" ), "0" ) == "0")?false:true;
+            if (mRememberToggleStatus) mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
+            else mShowingConsoles = false;
             TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
 #ifdef __DARWIN__
-            m_keepConsolesOnTop = (pConf->Read ( _T ( "KeepOnTop" ), "0" ) == "0")?false:true;
+            m_floatOnParent = (pConf->Read ( _T ( "FloatOnParent" ), "0" ) == "0")?false:true;
 #else
-			m_keepConsolesOnTop = false;
+			m_floatOnParent = false;
 #endif
             // load parking config - platform defaults if none
             // saved and default values are in DIP
@@ -382,7 +384,7 @@ bool JavaScript_pi::LoadConfig(void)
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
 //                    newConsole->setConsoleMinClientSize();
-                    newConsole->keepOnTop(pJavaScript_pi->m_keepConsolesOnTop);
+//                    newConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     newConsole->Move(newConsole->FromDIP(consolePosition));
                     TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
@@ -447,8 +449,9 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
-        pConf->Write ( _T ( "ShowingConsoles" ), mShowingConsoles?"1":"0" );
-        pConf->Write ( _T ( "KeepOnTop" ), m_keepConsolesOnTop?"1":"0" );
+        pConf->Write ( _T ( "RememberToggle" ), mRememberToggleStatus?"1":"0" );
+        if (mRememberToggleStatus) pConf->Write ( _T ( "ShowingConsoles" ), mShowingConsoles?"1":"0" );
+        pConf->Write ( _T ( "FloatOnParent" ), m_floatOnParent?"1":"0" );
         
         // now to save the recent files list - if any
         if (recentFiles.GetCount() > 0){
@@ -481,7 +484,11 @@ bool JavaScript_pi::SaveConfig(void)
         	}
 
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        	extern Console* pTestConsole1;
+        	extern Console* pTestConsole2;
+        	
         	wxPoint screenToFrame(wxPoint);
+        	if ((pConsole == pTestConsole1) || (pConsole == pTestConsole2)) continue;	// do not save any test consoles
         	// v2 positions now saved relative to frame
             name = pConsole->mConsoleName;
             nameColon = name + ":";
