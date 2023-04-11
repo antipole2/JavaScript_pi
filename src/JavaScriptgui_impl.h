@@ -1050,7 +1050,7 @@ public:
         dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
-        dump += "auto_run:\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
+        dump += "auto_run:\t\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
         wxPoint screenPosition = GetPosition();
         wxPoint DIPposition = ToDIP(screenPosition);
         dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tDIP x:%i y:%i\n", screenPosition.x, screenPosition.y, DIPposition.x, DIPposition.y );

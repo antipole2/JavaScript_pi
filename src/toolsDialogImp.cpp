@@ -73,7 +73,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         wxSize pageSize = ToDIP(page->GetSize());
         TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageSize.x, pageSize.y));
         pageSize.x = 600;	// force width
-		this->SetSize(FromDIP(pageSize));	// allow for screen resolution
+		SetSize(FromDIP(pageSize));	// allow for screen resolution
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
@@ -187,7 +187,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     cout << "Dumping\n";
     wxString ptrToString(Console* address);
     Console *pConsole;
-    wxDialog* dumpWindow;
+    wxFrame* dumpWindow;
     wxTextCtrl *dumpTextCtrl;
     extern JavaScript_pi *pJavaScript_pi;
     wxString dump {wxEmptyString};
@@ -198,10 +198,10 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dumpPosition.x -= toolsSize.x;	// shift left to be on left of tools
     dumpPosition.y = toolsPosition.y;	// and at same height
     dumpPosition = FromDIP(dumpPosition); 
-    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", dumpPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP | wxRESIZE_BORDER);
+    dumpWindow = new wxFrame(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", dumpPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT  | wxRESIZE_BORDER);
     dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
-                          wxTE_MULTILINE);
+                          wxTE_MULTILINE | wxTE_WORDWRAP);
 
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
@@ -214,9 +214,10 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     svg = "Using svg";
 #endif
     dump += (svg + "\n");
-    dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
-    dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-	dump += "pJavaScript_pi->m_floatOnTop\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";
+    dump += "pJavaScript_pi->m_pconfig\t\t\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
+    dump += "pJavaScript_pi->m_parent_window\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
+	dump += "pJavaScript_pi->m_floatOnTop\t\t\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";
+	dump += "pJavaScript_pi->mRememberToggleStatus\t" + (pJavaScript_pi->mRememberToggleStatus ? _("true"):_("false")) + "\n";
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
@@ -236,7 +237,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
         }
     dump += ("\nEnd of dump\n");
     dumpTextCtrl->AppendText(dump);
-    dumpWindow->SetSize(FromDIP(wxSize(600, 900)));
+    dumpWindow->SetSize(FromDIP(wxSize(700, 1000)));
     dumpWindow->Show();
     }
 
@@ -262,7 +263,7 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     wxString JScleanString(wxString given);
     wxString text = this->m_charsToClean->GetValue();
     if (text == wxEmptyString) return;
-    stringWindow = new wxDialog(this /* pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript text cleaning", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
+    stringWindow = new wxFrame(this /* pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript text cleaning", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT );
 
     dumpTextCtrl = new wxTextCtrl(stringWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),

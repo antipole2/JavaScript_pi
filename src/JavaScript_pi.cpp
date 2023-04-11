@@ -793,7 +793,8 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
         wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
         wxDisplay display(wxDisplay::GetFromWindow(frame));
 		wxRect screen = display.GetClientArea();
-        wxSize toolsSize = pTools->GetSize();      	
+        wxSize toolsSize = pTools->FromDIP(pTools->GetSize());
+        TRACE(99, wxString::Format("Screen x: %i y: %i width: %i, toolsSize x: %i y: %i", screen.x, screen.y, screen.width, toolsSize.x, toolsSize.y)) ;    	
         x = screen.x + screen.width - toolsSize.x;
         y = screen.y;
         pTools->SetPosition(wxPoint(x,y));

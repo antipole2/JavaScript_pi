@@ -58,62 +58,68 @@ public:
         m_notebook->SetSelection(0);	//start on required page
         };
         
+#if 0 	//this for simulating Hi Res screen on non-hires screen
+#define simScale 2
+    wxSize FromDIP(wxSize size){
+    	return wxSize(size.x*simScale, size.y*simScale);
+   		 }   		 
+   	 wxPoint FromDIP(wxPoint size){
+    	return wxPoint(size.x*simScale, size.y*simScale);
+   		 }
+   	 wxSize ToDIP(wxSize size){
+    	return wxSize(size.x/simScale, size.y/simScale);
+   		 }   		 
+   	 wxPoint ToDIP(wxPoint size){
+    	return wxPoint(size.x/simScale, size.y/simScale);
+   		}	    		 
+#endif
+        
 	void fixForScreenRes(){	// fix up sizes according to screen resolution
 		double scale = SCALE(this);
+		scale = 2;
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
 //		wxSizer* sizer;
 		
 		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
-		
-/*
-		sizer = this->GetSizer();
-		size = sizer->GetMinSize();
-		sizer->SetMinSize(FromDIP(size));
-		this->SetSizer(sizer);
-*/
 
 		// Consoles tab
 		Consoles->SetSize(FromDIP(Consoles->GetSize()));
-		m_newConsoleName->SetSize(FromDIP(m_newConsoleName->GetSize()));
-		m_oldNames->SetSize(FromDIP(m_oldNames->GetSize()));
-		m_changedName->SetSize(FromDIP(m_changedName->GetSize()));		
-		m_ConsolesMessage->SetSize(FromDIP(m_ConsolesMessage->GetSize()));
-		Consoles->Layout();
-/*
-		sizer = Consoles->GetSizer();
-		size = sizer->GetMinSize();
-		sizer->SetMinSize(FromDIP(size));
-		Consoles->SetSizer(sizer);
-*/
+		m_newConsoleName->SetMinSize(FromDIP(m_newConsoleName->GetSize()));
+		m_oldNames->SetMinSize(FromDIP(m_oldNames->GetSize()));
+		m_changedName->SetMinSize(FromDIP(m_changedName->GetSize()));		
+		m_ConsolesMessage->SetMinSize(FromDIP(m_ConsolesMessage->GetSize()));
 
 		// Directory tab
 		Directory->SetSize(FromDIP(Directory->GetSize()));
-		mCurrentDirectory->SetSize(FromDIP(mCurrentDirectory->GetSize()));
-		Directory->Layout();
+		mCurrentDirectory->SetMinSize(FromDIP(mCurrentDirectory->GetSize()));
 		
 		// NMEA tab
-		size = m_NMEAmessage->GetSize();
-		size.x *= scale;
-		m_NMEAmessage->SetSize(size);
+		NMEA->SetSize(FromDIP(NMEA->GetSize()));
+		m_NMEAmessage->SetMinSize(FromDIP(m_NMEAmessage->GetSize()));
 
-		size = m_MessageID->GetSize();
-		size.x *= scale;
-		m_MessageID->SetSize(size);
+		// Message tab
+		Message->SetSize(FromDIP(Message->GetSize()));
+		m_MessageID->SetMinSize(FromDIP(m_MessageID->GetSize()));
+		m_MessageBody->SetMinSize(FromDIP(m_MessageBody->GetSize()));
 
-		size = m_MessageBody->GetSize();
-		m_MessageBody->SetSize(FromDIP(size));
+		//Parking tab
+		Parking->SetSize(FromDIP(Parking->GetSize()));
+		m_parkingMessage->SetMinSize(FromDIP(m_parkingMessage->GetSize()));
+		
 
-		size = m_parkingMessage->GetSize();
-		m_parkingMessage->SetSize(FromDIP(size));
-
+		//Help tab
 		// NB The wrap with overides that set in wxForBuilder as there is no way of getting the value set
+		Help->SetSize(FromDIP(Help->GetSize()));
 		HelpTopText1->Wrap( 550*scale );
 		HelpTopText11->Wrap( 550*scale );
 		HelpTopText111->Wrap( 550*scale );
 		HelpTopText1111->Wrap( 550*scale );
 		HelpTopText11111->Wrap( 550*scale );
-
+		
+		// Diagnostics tab
+		Diagnostics->SetSize(FromDIP(Diagnostics->GetSize()));
+		m_charsToClean->SetMinSize(FromDIP(m_charsToClean->GetSize()));
 		}
     	    
 	};

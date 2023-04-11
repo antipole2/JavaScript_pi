@@ -57,7 +57,6 @@ class ToolsClassBase : public wxFrame
 		wxStaticText* mCurrentDirectoryString;
 		wxPanel* NMEA;
 		wxStaticText* NMEAtopText;
-		wxStaticText* m_NMEAMessageText;
 		wxButton* m_NMEAReceiveMessageButton;
 		wxPanel* Message;
 		wxStaticText* MessageTopText;
@@ -123,7 +122,7 @@ class ToolsClassBase : public wxFrame
 		wxString mNewNameInput;
 		wxString m_changedNameInput;
 
-		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
+		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,650 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
 
 		~ToolsClassBase();
 
