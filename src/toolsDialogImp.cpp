@@ -56,6 +56,7 @@ void ToolsClass::cleanupParking(){
 void ToolsClass::setupPage(int pageNumber){	// display this page of tools
     	extern JavaScript_pi* pJavaScript_pi;
         wxWindow *page;
+        wxSize size;
         setConsoleChoices();
         cleanupParking();
         m_parkingMessage->Clear();
@@ -68,12 +69,18 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
         page->Fit();
-        Show();
-        Raise();
-        wxSize pageSize = ToDIP(page->GetSize());
+
+        wxSize pageClientSize = ToDIP(page->GetClientSize());
         TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageSize.x, pageSize.y));
-        pageSize.x = 600;	// force width
-		SetSize(FromDIP(pageSize));	// allow for screen resolution
+        pageClientSize.x = 590;	// force width
+		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
+		page->Fit(); // Adjusts to page size but this makes window too tight, so...
+		size = ToDIP(GetSize());
+		size.x = 600;	// Force the window size
+		size.y += 10;
+		SetSize(FromDIP(size));		
+		Show();
+        Raise();
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){

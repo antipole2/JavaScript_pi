@@ -16,10 +16,10 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* TopSizer;
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
-	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,400 ), 0 );
+	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,400 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,180 ), 0 );
+	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,195 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Consoles->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Consoles->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -58,7 +58,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesChoiceSizer->Add( m_addButton, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( ConsolesChoiceSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
+	ConsolesSizer->Add( ConsolesChoiceSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 0 );
 
 	wxStaticBoxSizer* ConsolesRenameSizer;
 	ConsolesRenameSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -141,7 +141,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Consoles->SetSizer( ConsolesSizer );
 	Consoles->Layout();
 	m_notebook->AddPage( Consoles, wxT("Consoles"), true );
-	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,160 ), 0 );
+	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,160 ), 0 );
 	Directory->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Directory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Directory->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -189,7 +189,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Directory->SetSizer( DirectorySizer1 );
 	Directory->Layout();
 	m_notebook->AddPage( Directory, wxT("Directory"), false );
-	NMEA = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,150 ), 0 );
+	NMEA = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,170 ), 0 );
 	NMEA->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* NMEASizer;
@@ -225,7 +225,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	NMEA->SetSizer( NMEASizer );
 	NMEA->Layout();
 	m_notebook->AddPage( NMEA, wxT("NMEA"), false );
-	Message = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), 0 );
+	Message = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,280 ), 0 );
 	Message->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* MessageSizer;
@@ -275,7 +275,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Message->SetSizer( MessageSizer );
 	Message->Layout();
 	m_notebook->AddPage( Message, wxT("Message"), false );
-	Parking = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
+	Parking = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,250 ), wxTAB_TRAVERSAL );
 	Parking->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Parking->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
@@ -353,7 +353,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesMessageSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
 	ConsolesMessageSizer1->SetMinSize( wxSize( -1,135 ) );
-	m_parkingMessage = new wxTextCtrl( ConsolesMessageSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 700,250 ), wxTE_MULTILINE|wxTE_READONLY );
+	m_parkingMessage = new wxTextCtrl( ConsolesMessageSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 700,220 ), wxTE_MULTILINE|wxTE_READONLY );
 	ConsolesMessageSizer1->Add( m_parkingMessage, 0, wxALL, 5 );
 
 
@@ -363,7 +363,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Parking->SetSizer( ParkingTopSizer1 );
 	Parking->Layout();
 	m_notebook->AddPage( Parking, wxT("Parking"), false );
-	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,650 ), 0 );
+	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,650 ), 0 );
 	Help->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* HelpSizer1;
@@ -461,7 +461,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Help->SetSizer( HelpSizer1 );
 	Help->Layout();
 	m_notebook->AddPage( Help, wxT("Help"), false );
-	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,280 ), wxTAB_TRAVERSAL );
+	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,280 ), wxTAB_TRAVERSAL );
 	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
@@ -499,14 +499,14 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	DiagnosticsTpSizer->Add( DumpTopSizer, 0, wxEXPAND, 5 );
 
-	wxBoxSizer* cleanSizer;
-	cleanSizer = new wxBoxSizer( wxVERTICAL );
+	wxStaticBoxSizer* cleanSizer;
+	cleanSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxT("label") ), wxVERTICAL );
 
-	m_charsToClean = new wxTextCtrl( Diagnostics, wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
+	m_charsToClean = new wxTextCtrl( cleanSizer->GetStaticBox(), wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
 	cleanSizer->Add( m_charsToClean, 0, wxALL, 5 );
 
 	wxStaticBoxSizer* CharsTopSizer;
-	CharsTopSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+	CharsTopSizer = new wxStaticBoxSizer( new wxStaticBox( cleanSizer->GetStaticBox(), wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
 	m_cleanPrompt = new wxStaticText( CharsTopSizer->GetStaticBox(), wxID_ANY, wxT("Clean and dump string"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_cleanPrompt->Wrap( -1 );
@@ -524,7 +524,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	cleanSizer->Add( CharsTopSizer, 0, wxEXPAND, 0 );
 
 
-	DiagnosticsTpSizer->Add( cleanSizer, 0, wxEXPAND|wxFIXED_MINSIZE, 5 );
+	DiagnosticsTpSizer->Add( cleanSizer, 1, 0, 10 );
 
 
 	Diagnostics->SetSizer( DiagnosticsTpSizer );

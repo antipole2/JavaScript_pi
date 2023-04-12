@@ -35,7 +35,7 @@
             <property name="bg"></property>
             <property name="center">wxBOTH</property>
             <property name="context_help"></property>
-            <property name="context_menu">1</property>
+            <property name="context_menu">0</property>
             <property name="enabled">1</property>
             <property name="event_handler">impl_virtual</property>
             <property name="extra_style"></property>
@@ -56,7 +56,7 @@
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
-            <property name="xrc_skip_sizer">1</property>
+            <property name="xrc_skip_sizer">0</property>
             <event name="OnClose">onClose</event>
             <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size">-1,-1</property>
@@ -112,7 +112,7 @@
                         <property name="pos"></property>
                         <property name="resize">Resizable</property>
                         <property name="show">1</property>
-                        <property name="size">600,400</property>
+                        <property name="size">590,400</property>
                         <property name="style"></property>
                         <property name="subclass">; ; forward_declare</property>
                         <property name="toolbar_pane">0</property>
@@ -169,7 +169,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,180</property>
+                                <property name="size">590,195</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
@@ -182,7 +182,7 @@
                                     <property name="orient">wxVERTICAL</property>
                                     <property name="permission">none</property>
                                     <object class="sizeritem" expanded="1">
-                                        <property name="border">5</property>
+                                        <property name="border">0</property>
                                         <property name="flag">wxALIGN_CENTER_HORIZONTAL|wxEXPAND</property>
                                         <property name="proportion">0</property>
                                         <object class="wxStaticBoxSizer" expanded="1">
@@ -1025,7 +1025,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,160</property>
+                                <property name="size">590,160</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
@@ -1329,7 +1329,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,150</property>
+                                <property name="size">590,170</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
@@ -1629,7 +1629,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,250</property>
+                                <property name="size">590,280</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
@@ -2115,14 +2115,14 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,250</property>
+                                <property name="size">590,250</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style">wxTAB_TRAVERSAL</property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size">-1,-1</property>
                                     <property name="name">ParkingTopSizer1</property>
                                     <property name="orient">wxVERTICAL</property>
@@ -2520,7 +2520,7 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
@@ -2679,11 +2679,11 @@
                                             </object>
                                         </object>
                                     </object>
-                                    <object class="sizeritem" expanded="0">
+                                    <object class="sizeritem" expanded="1">
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">1</property>
-                                        <object class="wxStaticBoxSizer" expanded="0">
+                                        <object class="wxStaticBoxSizer" expanded="1">
                                             <property name="id">wxID_ANY</property>
                                             <property name="label"></property>
                                             <property name="minimum_size">-1,135</property>
@@ -2740,7 +2740,7 @@
                                                     <property name="pos"></property>
                                                     <property name="resize">Resizable</property>
                                                     <property name="show">1</property>
-                                                    <property name="size">700,250</property>
+                                                    <property name="size">700,220</property>
                                                     <property name="style">wxTE_MULTILINE|wxTE_READONLY</property>
                                                     <property name="subclass">; ; forward_declare</property>
                                                     <property name="toolbar_pane">0</property>
@@ -2808,7 +2808,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,650</property>
+                                <property name="size">590,650</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
@@ -3803,7 +3803,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">600,280</property>
+                                <property name="size">590,280</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
@@ -4050,13 +4050,16 @@
                                         </object>
                                     </object>
                                     <object class="sizeritem" expanded="1">
-                                        <property name="border">5</property>
-                                        <property name="flag">wxEXPAND|wxFIXED_MINSIZE</property>
-                                        <property name="proportion">0</property>
-                                        <object class="wxBoxSizer" expanded="1">
-                                            <property name="minimum_size">-1,-1</property>
+                                        <property name="border">10</property>
+                                        <property name="flag"></property>
+                                        <property name="proportion">1</property>
+                                        <object class="wxStaticBoxSizer" expanded="1">
+                                            <property name="id">wxID_ANY</property>
+                                            <property name="label">label</property>
+                                            <property name="minimum_size"></property>
                                             <property name="name">cleanSizer</property>
                                             <property name="orient">wxVERTICAL</property>
+                                            <property name="parent">1</property>
                                             <property name="permission">none</property>
                                             <object class="sizeritem" expanded="1">
                                                 <property name="border">5</property>
