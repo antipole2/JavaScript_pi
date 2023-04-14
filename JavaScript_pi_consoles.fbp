@@ -1415,36 +1415,5 @@
                 </object>
             </object>
         </object>
-        <object class="Dialog" expanded="1">
-            <property name="aui_managed">0</property>
-            <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
-            <property name="bg"></property>
-            <property name="center"></property>
-            <property name="context_help"></property>
-            <property name="context_menu">1</property>
-            <property name="enabled">1</property>
-            <property name="event_handler">impl_virtual</property>
-            <property name="extra_style"></property>
-            <property name="fg"></property>
-            <property name="font"></property>
-            <property name="hidden">0</property>
-            <property name="id">wxID_ANY</property>
-            <property name="maximum_size">-1,-1</property>
-            <property name="minimum_size">-1,10</property>
-            <property name="name">m_Console_Exx</property>
-            <property name="pos"></property>
-            <property name="size">844,2000</property>
-            <property name="style">wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
-            <property name="subclass">; ; forward_declare</property>
-            <property name="title">JavaScript</property>
-            <property name="tooltip"></property>
-            <property name="two_step_creation">0</property>
-            <property name="window_extra_style"></property>
-            <property name="window_name"></property>
-            <property name="window_style"></property>
-            <event name="OnActivate">OnActivate</event>
-            <event name="OnClose">OnClose</event>
-            <event name="OnMove">OnMove</event>
-        </object>
     </object>
 </wxFormBuilder_Project>

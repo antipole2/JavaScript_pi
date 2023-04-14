@@ -51,11 +51,10 @@ WX_DEFINE_OBJARRAY(SocketRecordsArray);
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
  void Console::OnActivate(wxActivateEvent& event){
- 	return;
-    wxFrame* pConsole = wxDynamicCast(event.GetEventObject(), wxFrame);
+    wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
     long int style = pConsole->GetWindowStyle();
     if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
-	pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
+//  pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
     };
 
 
@@ -167,12 +166,6 @@ void Console::OnRun( wxCommandEvent& event ) {
         message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
-	if (m_Script->IsEmpty()) {
-		message(STYLE_RED, "No script to run");
-		return;
-		}
-	wxString script = m_Script->GetText();
-	if (script == wxEmptyString)
     clearBrief();
     mConsoleRepliesAwaited = 0;
     TRACE(0, "------------------ Run console " + mConsoleName);
@@ -204,6 +197,7 @@ void Console::OnPark( wxCommandEvent& event ){
 void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
+
     if (event.CanVeto()){
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
             // This is only console - decline
@@ -217,13 +211,13 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-		this->bin();
-		// take care to remove from tools, if we have them open
-		ToolsClass *pTools = pJavaScript_pi->pTools;
-		if (pTools != nullptr) pTools->setConsoleChoices();
-		TRACE(3, "Binning console " + this->mConsoleName);
-		event.Veto(true);
-		}
+        }
+	this->bin();
+	// take care to remove from tools, if we have them open
+    ToolsClass *pTools = pJavaScript_pi->pTools;
+    if (pTools != nullptr) pTools->setConsoleChoices();
+	TRACE(3, "Binning console " + this->mConsoleName);
+	return;
     }
 
 static wxString dummyMessage, message_id;

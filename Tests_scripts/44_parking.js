@@ -22,8 +22,8 @@ onSeconds(step1, 1);
 
 function step1(){
 	result = messageBox(consoleNames.length + " consoles should have been created and parked\nWidth of minimized windows with different name lengths  correct?", "YesNo");
-	if (result == 0) stopScript("Parking tests cancelled");
-	if (result != 2) stopScript("Parking tests reported wrong");
+	if (result == 0) throw("Parking tests cancelled");
+	if (result != 2) throw("Parking tests reported wrong");
 
 	consoleLoad(console, shrinkYourself);
 	consoleRun(console);
@@ -58,4 +58,3 @@ function deleteConsoles(){
 		if (consoleExists(console)) consoleClose(console);
 		}
 	}
-

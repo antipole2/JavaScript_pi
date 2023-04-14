@@ -17,8 +17,8 @@
 //USE:  TRACE(level, wxString); will display if level >= TRACE_LEVEL
 // output will go to log or, if in harness, to stdout or to a window
 #define TRACE_YES 	false // if true, include TRACE code. Should be false in release
-#define TRACE_MAX	99	// TRACE level range   (Level 0 always traced)
-#define TRACE_MIN	99
+#define TRACE_MAX	60	// TRACE level range   (Level 0 always traced)
+#define TRACE_MIN	60
 #define TRACE_TO_WINDOW true     // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout
 #if TRACE_TO_WINDOW

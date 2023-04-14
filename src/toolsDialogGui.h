@@ -24,12 +24,11 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/choice.h>
-#include <wx/checkbox.h>
 #include <wx/panel.h>
 #include <wx/hyperlink.h>
 #include <wx/statline.h>
 #include <wx/notebook.h>
-#include <wx/frame.h>
+#include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +36,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ToolsClassBase
 ///////////////////////////////////////////////////////////////////////////////
-class ToolsClassBase : public wxFrame
+class ToolsClassBase : public wxDialog
 {
 	private:
 
@@ -50,13 +49,12 @@ class ToolsClassBase : public wxFrame
 		wxStaticText* m_staticText15;
 		wxTextCtrl* m_changedName;
 		wxTextCtrl* m_ConsolesMessage;
-		wxCheckBox* m_floatOnParent;
-		wxCheckBox* m_rememberToggleStatus;
 		wxPanel* Directory;
 		wxStaticText* mCurrentDirectory;
 		wxStaticText* mCurrentDirectoryString;
 		wxPanel* NMEA;
 		wxStaticText* NMEAtopText;
+		wxStaticText* m_NMEAMessageText;
 		wxButton* m_NMEAReceiveMessageButton;
 		wxPanel* Message;
 		wxStaticText* MessageTopText;
@@ -99,8 +97,6 @@ class ToolsClassBase : public wxFrame
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
-		virtual void onFloatOnParent( wxCommandEvent& event ) { event.Skip(); }
-		virtual void onToggleStatus( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveNMEAmessage( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveMessage( wxCommandEvent& event ) { event.Skip(); }
@@ -122,7 +118,7 @@ class ToolsClassBase : public wxFrame
 		wxString mNewNameInput;
 		wxString m_changedNameInput;
 
-		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,650 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
+		ToolsClassBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript tools"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP );
 
 		~ToolsClassBase();
 

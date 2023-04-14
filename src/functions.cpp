@@ -18,7 +18,6 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/msgdlg.h>
 #include <wx/url.h>
-#include "trace.h"
 
 extern JavaScript_pi *pJavaScript_pi;
 
@@ -121,9 +120,10 @@ duk_bool_t JSduk_timeout_check(void *udata) {
 }
 
 wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the screen
-	// NB This works in Logical Pixels, not DIP    
-    if ((point.x < 0 || point.x > pJavaScript_pi->m_display_width)) point.x = wxDefaultPosition.x;
-    if ((point.y < 0 || point.y > pJavaScript_pi->m_display_height)) point.y = wxDefaultPosition.y;
+    wxPoint defaultPosition = wxPoint(wxDefaultPosition);
+    
+    if ((point.x < 0 || point.x > pJavaScript_pi->m_display_width)) point.x = defaultPosition.x;
+    if ((point.y < 0 || point.y > pJavaScript_pi->m_display_height)) point.y = defaultPosition.y;
     return point;
     }
 
@@ -149,8 +149,9 @@ void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw er
 
 #include "wx/tokenzr.h"
 wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
-    // extract function name from call on JS stack
-    // This does not work if in method in class not substantiated, so is here    
+    // extract function name from call on stack
+    // This does not work if in method in class not substantiated, so is here
+    
     wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), " (");
     if (tokens.GetNextToken() != "function") {
         throwErrorByCtx(ctx, "on.. error: must supply function name");
@@ -158,32 +159,28 @@ wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
     return (tokens.GetNextToken());
     }
 
-#if TRACE_YES
 #if TRACE_TO_WINDOW 
-wxWindow *JStraceWindow;
-wxTextCtrl *JStraceTextCtrl {nullptr};
+wxWindow *traceWindow;
+wxTextCtrl *traceTextCtrl {nullptr};
 void windowTrace(int level, wxString text){
     // implements tracing to a separate window
-    if (!JStraceTextCtrl){
+    if (!traceTextCtrl){
         // the first time to trace
-        wxPoint position = pJavaScript_pi->m_parent_window->FromDIP(wxPoint(800, 100));
-        wxSize size = pJavaScript_pi->m_parent_window->FromDIP(wxSize(300, 200));
-         JStraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
-         	wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP|wxRESIZE_BORDER);
-        JStraceTextCtrl = new wxTextCtrl(JStraceWindow, wxID_NEW,
+        int traceWindowWidth {600};
+        wxPoint position;
+        position.y = 100;
+        position.x = pJavaScript_pi->m_display_width-traceWindowWidth;
+        traceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, wxSize(traceWindowWidth, 600), wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
+        traceTextCtrl = new wxTextCtrl(traceWindow, wxID_NEW,
                               wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                               wxTE_MULTILINE);
+        traceWindow->Show();
         }
-    try{ 	// Use try in case window has been closed
-	    JStraceTextCtrl->AppendText(text + "\n");
-	    JStraceWindow->Raise();
-	    JStraceWindow->Show();
-	    }
-	catch(int i) {};
+    traceTextCtrl->AppendText(text + "\n");
+    traceWindow->Raise();
     return;
     }
 #endif  // TRACE_TO_WINDOW
-#endif	// TRACE_YES
 
 wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options){
 	// if fileString is URL does not change anything
@@ -215,7 +212,7 @@ wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, File
     return wxEmptyString;
     };
 
-wxString getTextFile(wxString fileString, wxString* pText){
+wxString getTextFile(/* Console* pConsole,*/ wxString fileString, wxString* pText){
     // gets contents of a text file
     // if error, returns message, else empty string
     wxFileName filePath;
@@ -306,8 +303,7 @@ wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
 	}
 	
 wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
-/*	With v2.0.3 we change to 
-ing on screen positions so do nothing
+/*	With v2.0.3 we change to parking on screen positions so do nothing
 	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
 	wxPoint framePos = frame->GetPosition();	// screen position of frame 
 	pos.x += framePos.x;

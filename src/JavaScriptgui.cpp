@@ -365,23 +365,3 @@ m_Console::~m_Console()
 	m_clearOutput->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnClearOutput ), NULL, this );
 
 }
-
-m_Console_Exx::m_Console_Exx( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
-{
-	this->SetSizeHints( wxSize( -1,10 ), wxSize( -1,-1 ) );
-
-
-	// Connect Events
-	this->Connect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console_Exx::OnActivate ) );
-	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( m_Console_Exx::OnClose ) );
-	this->Connect( wxEVT_MOVE, wxMoveEventHandler( m_Console_Exx::OnMove ) );
-}
-
-m_Console_Exx::~m_Console_Exx()
-{
-	// Disconnect Events
-	this->Disconnect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console_Exx::OnActivate ) );
-	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( m_Console_Exx::OnClose ) );
-	this->Disconnect( wxEVT_MOVE, wxMoveEventHandler( m_Console_Exx::OnMove ) );
-
-}

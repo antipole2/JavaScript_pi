@@ -172,8 +172,8 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
         pConsole->mAlert.palert->Close();
         pConsole->mAlert.palert->Destroy();
         }
-    alert = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->FromDIP(pConsole->mAlert.position),
-    	wxDefaultSize, wxCAPTION | wxSTAY_ON_TOP | wxBORDER_RAISED);
+    alert = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->mAlert.position, wxDefaultSize,
+                         wxCAPTION | wxSTAY_ON_TOP | wxBORDER_RAISED);
     alert->SetBackgroundColour(*wxYELLOW);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     alert->SetSizer(boxSizer);
@@ -209,7 +209,12 @@ static duk_ret_t duk_print(duk_context *ctx) {   // print
     duk_ret_t result = 0;
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->Show(); // make sure console is visible
-    pConsole->makeBigEnough();
+    // make sure it is big enough to see the output
+    wxSize consoleSize = pConsole->GetSize();
+    if ((consoleSize.x < 200)|| (consoleSize.y < 400)) {
+        consoleSize = wxSize(680,700);
+        pConsole->SetSize(consoleSize);
+        }
     pConsole->m_Output->AppendText(js_formOutput(ctx));
     limitOutput(pConsole->m_Output);
     return (result);
@@ -281,8 +286,7 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     else buttonType = ok;
     if (nargs > 2) caption = duk_get_string(ctx, 2);
     duk_pop_n(ctx, nargs);
-    // we attach this dialogue to the canvas window so console not forced to front on dismiss
-	wxDialog *dialog = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+	wxDialog *dialog = new wxDialog(pConsole, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,   wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls
@@ -592,7 +596,7 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
         // OK - ready to go
 		pConsole->mConsoleName = newName;
 		pConsole->SetLabel(newName);
-		pConsole->setConsoleMinClientSize();
+		pConsole->setConsoleMinSize();
     	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();
         }
     if (pConsole->isParked()) pConsole->SetSize(pConsole->GetMinSize());	// shrink it

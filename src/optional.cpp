@@ -47,7 +47,7 @@ duk_ret_t console_get_details(duk_context *ctx){
 			pConsole->SetMinSize(wxSize(1,1));
 			minSize = pConsole->GetMinSize();
 			}
-		else pConsole->setConsoleMinClientSize();
+		else pConsole->setConsoleMinSize();
 		minSize = pConsole->GetMinSize();
 		duk_pop(ctx);	//pop off arg 2
 		}
@@ -162,7 +162,7 @@ duk_ret_t console_add(duk_context *ctx){
     if (outcome !="") throwErrorByCtx(ctx, outcome);
     pConsole = new Console(pJavaScript_pi->m_parent_window, name);
     pConsole->CenterOnScreen();
-    pConsole->setConsoleMinClientSize();
+    pConsole->setConsoleMinSize();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;

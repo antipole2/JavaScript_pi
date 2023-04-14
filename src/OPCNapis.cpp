@@ -165,12 +165,6 @@ PlugIn_Route_Ex * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
     duk_get_prop_string(ctx, -1, "to");
         p_route->m_EndString = duk_to_string(ctx, -1);
         duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "description");
-        p_route->m_Description = duk_to_string(ctx, -1);
-        duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "isVisible");
-        p_route->m_isVisible = duk_to_boolean(ctx, -1);
-        duk_pop(ctx); 
     ret = duk_get_prop_string(ctx, -1, "GUID");
         p_route->m_GUID = duk_to_string(ctx, -1);
         if (ret == 0 || wxIsEmpty(p_route->m_GUID) || createGUID) {
@@ -574,8 +568,9 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
         if (starPos != wxNOT_FOUND){ // yes there is one
             sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
             }
-        if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
-    		throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $....., or !.....,");
+        if ((sentence[0] != '$') || (sentence[6] != ',')) throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $.....,");
+//      Following length limit not implemented  as OCPN allows higher number and useful
+//      if (sentence.Length() > 77) throwErrorByCtx(ctx, wxString::Format("OCPNpushNMEA sentence > 77 chars - is %d",sentence.Length()));
         wxString Checksum = ComputeChecksum(sentence);
         sentence = sentence.Append("*");
         sentence = sentence.Append(Checksum);
@@ -633,6 +628,46 @@ static duk_ret_t getNewGUID(duk_context *ctx) {  // get new GUID
     duk_push_string(ctx, GetNewGUID());
     return(1);  // returns 1 string
     }
+
+/* not using this at present
+static duk_ret_t getGUID(duk_context *ctx) {  // get GUID as per option
+    wxArrayString guidArray;
+    duk_idx_t arr_idx;
+    wxString result;
+    int i;
+    size_t count;
+    
+    int option = duk_to_int(ctx, 0);
+    duk_pop(ctx);
+    switch (option){
+        case NEW: duk_push_string(ctx, GetNewGUID());
+            break;
+        case WAYPOINTS_ARRAY:
+            guidArray = GetWaypointGUIDArray();
+            arr_idx = duk_push_array(ctx);
+            if (!guidArray.IsEmpty()){
+                count = guidArray.GetCount();
+                for (i = 0; i < count; i++){
+                    duk_push_string(ctx, guidArray[i]);
+                    duk_put_prop_index(ctx, arr_idx, i);
+                    }
+                }
+            break;
+        case WAYPOINT_SELECTED:
+            result = GetSelectedWaypointGUID_Plugin();
+            if (result == wxEmptyString) duk_push_string(ctx, result);
+            else duk_push_boolean(ctx, false);
+            break;
+        case ROUTE_SELECTED:
+            result = GetSelectedRouteGUID_Plugin();
+            if (result == wxEmptyString) duk_push_string(ctx, result);
+            else duk_push_boolean(ctx, false);
+            break;
+        default: throwErrorByCtx(ctx, "OCPNgetGUID error: called with invalid argument");
+            }
+    return(1);
+    }
+ */
  
 OBJECT_LAYER_REQ determinGUIDtype(duk_context *ctx){
 	// for all getGUID array calls,  determine which are to be fetched
@@ -646,7 +681,6 @@ OBJECT_LAYER_REQ determinGUIDtype(duk_context *ctx){
 		case 0:		return OBJECTS_NO_LAYERS;
 		case 1:		return OBJECTS_ONLY_LAYERS;
 		default:	throwErrorByCtx(ctx, "OCPNgetGUIDs called with invalid arg");
-					return OBJECTS_ALL;	// not reachable but avoids compiler warning
 		}
 	}
 
@@ -807,19 +841,15 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     // extra indentation here shows stack depth - do not reformat!
     duk_push_object(ctx); // construct the route object
     duk_push_string(ctx, p_route->m_NameString);
-        duk_put_prop_literal(ctx, -2, "name");        
+        duk_put_prop_literal(ctx, -2, "name");
     duk_push_string(ctx, p_route->m_StartString);
         duk_put_prop_literal(ctx, -2, "from");
     duk_push_string(ctx, p_route->m_EndString);
         duk_put_prop_literal(ctx, -2, "to");
-    duk_push_string(ctx, p_route->m_Description);
-        duk_put_prop_literal(ctx, -2, "description");
     duk_push_string(ctx, p_route->m_GUID);
         duk_put_prop_literal(ctx, -2, "GUID");
     duk_push_boolean(ctx, p_route->m_isActive);
-	    duk_put_prop_literal(ctx, -2, "isActive");	    
-	duk_push_boolean(ctx, p_route->m_isVisible);
-	    duk_put_prop_literal(ctx, -2, "isVisible");   
+	    duk_put_prop_literal(ctx, -2, "isActive");
     duk_idx_t arr_idx = duk_push_array(ctx); // the waypoint array
     if (p_route->pWaypointList ){  // only attempt this if waypoint list of not empty
         wxPlugin_WaypointExListNode *linknode = p_route->pWaypointList->GetFirst();

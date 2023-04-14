@@ -71,7 +71,7 @@ tests = [ // test table format
 	{name:"Explicit result stop", functionToUse:loadRunWait, script:"62_explict_result_stopped.js", time:1, result:"Explicit result"},
 	{name:"Explicit main callback stop", functionToUse:loadRunWait, script:"64_explicit_main_callback_stop.js", time:3, result:"Explicit result"},
 	{name:"Alert", functionToUse:loadRunWait, script:"70_alerts.js", time:20, result:"Alert OK"},
-	{name:"Dialogue", functionToUse:loadRunWait, script:"74_dialogue_test.js", time:40, result:"Dialogue done"},
+	{name:"Dialogue", functionToUse:loadRunWait, script:"74_dialogue_test.js", time:20, result:"Dialogue done"},
 	{name:"Context menu", functionToUse:loadRunWait, script:"76_contextMenu_test.js", time:20, result:"OK"},
 	{name:"Chain_no_brief", functionToUse:loadRunWait, script:"80_chain_no_brief.js", time:1, result:"getBrief found no brief"},
 	{name:"Chain_with_brief", functionToUse:loadRunWait, script:"82_chain_with_brief.js", time:5, result:"Found brief This is the brief"},

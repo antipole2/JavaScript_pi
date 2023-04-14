@@ -30,13 +30,16 @@ void ToolsClass::setConsoleChoices(){
 
 void ToolsClass::onClose( wxCloseEvent& event ){
     extern JavaScript_pi* pJavaScript_pi;
-
-   	if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
-	if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
-	m_parkingMessage->Clear();
-	pJavaScript_pi->pTools = nullptr;
-   //  this->Hide();
+/*
+    *pPointerToThisInJavaScript_pi = nullptr;
+    TRACE(4, "In Tools close");
+    this->Destroy();
+ */
+    this->Hide();
+    cleanupParking();
     Destroy();
+    pJavaScript_pi->pTools = nullptr;
+    m_parkingMessage->Clear();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
@@ -56,31 +59,21 @@ void ToolsClass::cleanupParking(){
 void ToolsClass::setupPage(int pageNumber){	// display this page of tools
     	extern JavaScript_pi* pJavaScript_pi;
         wxWindow *page;
-        wxSize size;
+        int page_x, page_y;
         setConsoleChoices();
         cleanupParking();
         m_parkingMessage->Clear();
         m_customiseButton->SetLabel("Start");
         wxString currentDirectory = pJavaScript_pi->mCurrentDirectory;
     	mCurrentDirectoryString->SetLabel((currentDirectory == wxEmptyString)?"(Not yet set)":currentDirectory);
-		m_floatOnParent->Show();	
-    	m_floatOnParent->SetValue(pJavaScript_pi->m_floatOnParent);
-    	m_rememberToggleStatus->SetValue(pJavaScript_pi->mRememberToggleStatus);
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
         page->Fit();
-
-        wxSize pageClientSize = ToDIP(page->GetClientSize());
-        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageSize.x, pageSize.y));
-        pageClientSize.x = 590;	// force width
-		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
-		page->Fit(); // Adjusts to page size but this makes window too tight, so...
-		size = ToDIP(GetSize());
-		size.x = 600;	// Force the window size
-		size.y += 10;
-		SetSize(FromDIP(size));		
-		Show();
+        Show();
         Raise();
+        page->GetSize(&page_x, &page_y);
+        TRACE(6, wxString::Format("Dialogue GetSize gave %d x %d", page_x, page_y));
+        this->SetSize(600, page_y);
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
@@ -100,12 +93,11 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         m_ConsolesMessage->AppendText(outcome);
         return;
         }
-	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-//	pConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
+    pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName, wxDefaultPosition,wxSize(738,800),wxDefaultPosition, wxDefaultPosition);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
-    pConsole->setConsoleMinClientSize();
+    pConsole->setConsoleMinSize();
     setConsoleChoices();    // update
     pConsole->Show();
     m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
@@ -141,7 +133,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     pConsole->SetLabel(newConsoleName);
     pConsole->mConsoleName = newConsoleName;
     TRACE(17, wxString::Format("onChangeName for parked console %s size was x:%i y:%i", oldConsoleName, GetSize().x, GetSize().y ));
-    pConsole->setConsoleMinClientSize();
+    pConsole->setConsoleMinSize();
     if (pConsole->isParked()){	// shrink it
     	wxSize size = pConsole->GetMinSize();
     	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
@@ -150,18 +142,6 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }
-    
-void ToolsClass::onFloatOnParent(wxCommandEvent& event) {
-    Console *pConsole;
-	pJavaScript_pi->m_floatOnParent = m_floatOnParent->GetValue();
-	for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-		pConsole->floatOnParent(pJavaScript_pi->m_floatOnParent);
-        }
-	} 
-	
-void ToolsClass::onToggleStatus( wxCommandEvent& event ){
-	pJavaScript_pi->mRememberToggleStatus = m_rememberToggleStatus->GetValue();
-	}  
 
 wxString NMEAsentence;  // to hold NMEA sentence as enduring string
 void ToolsClass::onRecieveNMEAmessage(wxCommandEvent& event ){
@@ -194,26 +174,19 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     cout << "Dumping\n";
     wxString ptrToString(Console* address);
     Console *pConsole;
-    wxFrame* dumpWindow;
+    wxDialog* dumpWindow;
     wxTextCtrl *dumpTextCtrl;
     extern JavaScript_pi *pJavaScript_pi;
     wxString dump {wxEmptyString};
-    // position dump window just to left of tools - calculate in DIP
-    wxPoint toolsPosition = ToDIP(GetPosition());
-    wxSize toolsSize = ToDIP(GetSize());
-    wxPoint dumpPosition = toolsPosition;
-    dumpPosition.x -= toolsSize.x;	// shift left to be on left of tools
-    dumpPosition.y = toolsPosition.y;	// and at same height
-    dumpPosition = FromDIP(dumpPosition); 
-    dumpWindow = new wxFrame(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", dumpPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT  | wxRESIZE_BORDER);
+    
+    dumpWindow = new wxDialog(this /*pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript plugin dump", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
     dumpTextCtrl = new wxTextCtrl(dumpWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
-                          wxTE_MULTILINE | wxTE_WORDWRAP);
+                          wxTE_MULTILINE);
 
+    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
-    dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
-    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
     wxString svg {"Not using svg"};
@@ -221,10 +194,9 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     svg = "Using svg";
 #endif
     dump += (svg + "\n");
-    dump += "pJavaScript_pi->m_pconfig\t\t\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
-    dump += "pJavaScript_pi->m_parent_window\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
-	dump += "pJavaScript_pi->m_floatOnTop\t\t\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";
-	dump += "pJavaScript_pi->mRememberToggleStatus\t" + (pJavaScript_pi->mRememberToggleStatus ? _("true"):_("false")) + "\n";
+    dump += "pJavaScript_pi->m_pconfig\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
+    dump += "pJavaScript_pi->m_parent_window\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
+
     dump += "favouriteFiles:\n";
     for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
@@ -233,18 +205,18 @@ void ToolsClass::onDump( wxCommandEvent& event ){
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
     dump += "pJavaScript_pi->mpFirstConsole\t" + ptrToString(pJavaScript_pi->mpFirstConsole) + "\n";
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += ("\n----------Console " + pConsole->mConsoleName + "----------\n");
+        dump += ("\n————————————Console " + pConsole->mConsoleName + "————————————\n");
         dump += (pConsole->consoleDump());
         }
     dump += "\n----------------------------------------------------\n";
     dump += "\npJavaScript_pi->mpBin\t\t" + ptrToString(pJavaScript_pi->mpBin) + "\n";
     for (pConsole = pJavaScript_pi->mpBin; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += ("\n----------Console in bin " + pConsole->mConsoleName + "----------\n");
+        dump += ("\n————————————Console in bin " + pConsole->mConsoleName + "————————————\n");
         dump += (pConsole->consoleDump());
         }
     dump += ("\nEnd of dump\n");
     dumpTextCtrl->AppendText(dump);
-    dumpWindow->SetSize(FromDIP(wxSize(700, 1000)));
+    dumpWindow->SetSize(600, 900);
     dumpWindow->Show();
     }
 
@@ -270,7 +242,7 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     wxString JScleanString(wxString given);
     wxString text = this->m_charsToClean->GetValue();
     if (text == wxEmptyString) return;
-    stringWindow = new wxFrame(this /* pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript text cleaning", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT );
+    stringWindow = new wxDialog(this /* pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript text cleaning", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE );
 
     dumpTextCtrl = new wxTextCtrl(stringWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
@@ -284,13 +256,14 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     dumpTextCtrl->AppendText(JS_dumpString("\nRaw", text));
     text = JScleanString(text);
     dumpTextCtrl->AppendText(JS_dumpString("\nCleaned", text));
-    stringWindow->SetSize(FromDIP(wxSize(500, 500)));
+    stringWindow->SetSize(500, 500);
     stringWindow->Show();
     }
     
 void ToolsClass::onParkingRevert(wxCommandEvent& event){
 	// revert parking parameters to platform default
 	pJavaScript_pi->m_parkingBespoke = false;
+	pJavaScript_pi->m_parkingMinHeight = CONSOLE_MIN_HEIGHT;
 	pJavaScript_pi->m_parkingStub = CONSOLE_STUB;
 	pJavaScript_pi->m_parkingLevel = PARK_LEVEL;
 	pJavaScript_pi->m_parkFirstX = PARK_FIRST_X;
@@ -324,13 +297,13 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 			return;
 			}
 		// create fist test console
-		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M",FromDIP(wxPoint(250,250)), FromDIP(wxSize(700,300)));
+		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M",wxPoint(250,250), wxSize(700,300));
 		pTestConsole1->GetPosition(&x, &y);
 		pTestConsole1->SetPosition(wxPoint(x, y));
 		pTestConsole1->SetMinSize(wxSize(1,1));
 		pTestConsole1->SetBackgroundColour(*wxBLUE);
 		pTestConsole1->Show();
-		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM",FromDIP(wxPoint(300,600)), FromDIP(wxSize(700,300)));
+		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM",wxPoint(300,600), wxSize(700,300));
 		pTestConsole2->GetPosition(&x, &y);
 		pTestConsole2->SetPosition(wxPoint(x, y));
 		pTestConsole2->SetMinSize(wxSize(1,1));
@@ -346,17 +319,16 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	else if ((label == "Next") || (label == "Retry")){
 		TRACE(4, "onParking next");
 		// now for the calculation
-		double scale = SCALE(this);	// for DIP corrections
-		wxSize c1Size = pTestConsole1->GetClientSize();
-		wxSize c2Size = pTestConsole2->GetClientSize();
+		wxSize c1Size = pTestConsole1->GetSize();
+		wxSize c2Size = pTestConsole2->GetSize();
 		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
 		wxPoint c2Pos = screenToFrame(pTestConsole2->GetPosition());
 		m_customiseButton->SetLabel("Retry");	// in case we have a problem
-		if ((c1Size.y > 40*scale) || (c2Size.y > 40*scale)){
+		if ((c1Size.y > 40) || (c2Size.y > 40)){
 			m_parkingMessage->SetValue("You have not minimised the consoles\nDo so and try again");
 			return;
 			}
-		if (abs(c1Pos.y - c2Pos.y) > 3*scale){
+		if (abs(c1Pos.y - c2Pos.y) > 3){
 			m_parkingMessage->SetValue("Both consoles should be at the same level.\nAdjust and try again");
 			return;
 			}
@@ -364,31 +336,30 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 			m_parkingMessage->SetValue("Consoles overlap.\nAdjust and try again");
 			return;
 			}
-		wxString label = pTestConsole2->GetLabel();
-		wxSize labelSize = pTestConsole2->GetTextExtent(label);
-		pJavaScript_pi->m_parkingStub = (c2Size.x - labelSize.x)/scale;
-		pJavaScript_pi->m_parkingLevel = ((c1Pos.y + c2Pos.y)/2)/scale;
-		pJavaScript_pi->m_parkFirstX = c1Pos.x/scale;
-		pJavaScript_pi->m_parkSep = (c2Pos.x - (c1Pos.x + c1Size.x))/scale;
+		pJavaScript_pi->m_parkingMinHeight = (c1Size.y + c2Size.y)/2;	// take average
+		wxStaticText* staticText = new wxStaticText( this, wxID_STATIC, pTestConsole1->mConsoleName);
+    	wxSize nameSize = staticText->GetSize();
+    	delete staticText;
+		pJavaScript_pi->m_parkingStub = c1Size.x - nameSize.x;
+		pJavaScript_pi->m_parkingLevel = (c1Pos.y + c2Pos.y)/2;
+		pJavaScript_pi->m_parkFirstX = c1Pos.x;
+		pJavaScript_pi->m_parkSep = c2Pos.x - (c1Pos.x + c1Size.x);
 		pJavaScript_pi->m_parkingBespoke = true;
 		pJavaScript_pi->SaveConfig();
-		m_parkingMessage->SetValue("Custom parking parameters set and saved");
-		cleanupParking();
-		m_customiseButton->SetLabel("Start");		
+		m_parkingMessage->SetValue("Custom parking parameters set and saved");		
 		}
 	}
 	
 void ToolsClass::onParkingReveal(wxCommandEvent& event) {
 		m_parkingMessage->SetValue(pJavaScript_pi->m_parkingBespoke?"Bespoke settings\n\n":"Default settings\n\n");
 		m_parkingMessage->AppendText(wxString::Format(
-			"#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
-			pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));	
-		m_parkingMessage->AppendText("\n\nThe above are all in DIP pixels");			
+			"#define CONSOLE_MIN_HEIGHT %iL\n#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
+			pJavaScript_pi->m_parkingMinHeight, pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));			
 		}
 	
 void displayTools(wxWindow* parent){ // this used for testing in harness only
     ToolsClass *pToolsDialog = new ToolsClass(parent);
-	pToolsDialog->fixForScreenRes();
+
     pToolsDialog->Fit();
     pToolsDialog->Show();
     }
