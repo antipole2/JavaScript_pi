@@ -17,7 +17,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
 	TopSizer->SetMinSize( wxSize( 620,650 ) );
-	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,190 ), 0 );
+	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,215 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,200 ), 0 );

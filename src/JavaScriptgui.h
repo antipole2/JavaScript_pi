@@ -25,7 +25,7 @@
 #include <wx/statline.h>
 #include <wx/panel.h>
 #include <wx/splitter.h>
-#include <wx/dialog.h>
+#include <wx/frame.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +33,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Class m_Console
 ///////////////////////////////////////////////////////////////////////////////
-class m_Console : public wxDialog
+class m_Console : public wxFrame
 {
 	private:
 
@@ -78,7 +78,7 @@ class m_Console : public wxDialog
 		wxStyledTextCtrl* m_Script;
 		wxStyledTextCtrl* m_Output;
 
-		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 844,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMINIMIZE_BOX|wxRESIZE_BORDER|wxSTAY_ON_TOP);
+		m_Console( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
 
 		~m_Console();
 

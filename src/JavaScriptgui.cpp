@@ -9,9 +9,9 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( -1,10 ), wxSize( -1,-1 ) );
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
 	wxBoxSizer* consoleTopSizer;
 	consoleTopSizer = new wxBoxSizer( wxVERTICAL );
@@ -31,46 +31,46 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	bSizer10 = new wxBoxSizer( wxHORIZONTAL );
 
 	m_clearScript = new wxButton( m_scriptSizer, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( m_clearScript, 0, wxALL, 5 );
+	bSizer10->Add( m_clearScript, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	copy_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Copy all"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( copy_button, 0, wxALL, 5 );
+	bSizer10->Add( copy_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	load_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Load"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( load_button, 0, wxALL, 5 );
+	bSizer10->Add( load_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	save_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Save"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( save_button, 0, wxALL, 5 );
+	bSizer10->Add( save_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	save_as_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Save as..."), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( save_as_button, 0, wxALL, 5 );
+	bSizer10->Add( save_as_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	run_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0 );
 	run_button->SetLabelMarkup( wxT("Run") );
-	bSizer10->Add( run_button, 0, wxALL, 5 );
+	bSizer10->Add( run_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	auto_run = new wxCheckBox( m_scriptSizer, wxID_ANY, wxT("Auto run"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( auto_run, 0, wxALL, 5 );
+	bSizer10->Add( auto_run, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
 	bSizer10->Add( 0, 0, 1, 0, 0 );
 
-	park_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("P"), wxDefaultPosition, wxSize( 25,25 ), 0|wxBORDER_DEFAULT );
+	park_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("P"), wxDefaultPosition, wxSize( 20,20 ), wxBU_EXACTFIT|wxBORDER_DEFAULT|wxBORDER_NONE );
 	park_button->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
-	park_button->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNHIGHLIGHT ) );
-	park_button->SetBackgroundColour( wxColour( 0, 0, 255 ) );
+	park_button->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
+	park_button->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
 
-	bSizer10->Add( park_button, 0, wxALL, 5 );
+	bSizer10->Add( park_button, 0, wxALIGN_CENTER_VERTICAL, 2 );
 
-	tools_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxSize( 50,-1 ), 0 );
+	tools_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxSize( -1,-1 ), wxBORDER_NONE|wxBU_EXACTFIT );
 	tools_button->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
-	bSizer10->Add( tools_button, 0, wxALL, 5 );
+	bSizer10->Add( tools_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2 );
 
-	Help = new wxButton( m_scriptSizer, wxID_ANY, wxT("?"), wxDefaultPosition, wxSize( 18,18 ), wxBORDER_NONE );
+	Help = new wxButton( m_scriptSizer, wxID_ANY, wxT("?"), wxDefaultPosition, wxSize( -1,-1 ), wxBORDER_NONE|wxBU_EXACTFIT );
 	Help->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString ) );
 
-	bSizer10->Add( Help, 0, wxALL, 5 );
+	bSizer10->Add( Help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2 );
 
 
 	bSizer3->Add( bSizer10, 0, wxEXPAND, 5 );
@@ -212,6 +212,8 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	this->SetSizer( consoleTopSizer );
 	this->Layout();
+
+	this->Centre( wxBOTH );
 
 	// Connect Events
 	this->Connect( wxEVT_ACTIVATE, wxActivateEventHandler( m_Console::OnActivate ) );

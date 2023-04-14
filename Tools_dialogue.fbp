@@ -111,7 +111,7 @@
                         <property name="pos"></property>
                         <property name="resize">Resizable</property>
                         <property name="show">1</property>
-                        <property name="size">600,190</property>
+                        <property name="size">600,215</property>
                         <property name="style"></property>
                         <property name="subclass">; ; forward_declare</property>
                         <property name="toolbar_pane">0</property>
