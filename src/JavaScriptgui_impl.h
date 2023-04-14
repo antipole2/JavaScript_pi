@@ -236,6 +236,7 @@ public:
     void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
+    void OnClose( wxCloseEvent& event );
 
 #ifdef SOCKETS
 	DECLARE_EVENT_TABLE()
@@ -247,7 +248,7 @@ public:
 
 private:
     wxPoint		m_parkedPosition;	// if parked, parked position in DIP
-    void OnClose( wxCloseEvent& event );
+
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
@@ -259,8 +260,7 @@ public:
     		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
     		: m_Console(parent, wxID_ANY, consoleName,
     		pJavaScript_pi->m_parent_window->FromDIP(consolePosition),
-    		pJavaScript_pi->m_parent_window->FromDIP(consoleSize),
-    		wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMINIMIZE|wxSYSTEM_MENU)
+    		pJavaScript_pi->m_parent_window->FromDIP(consoleSize))
         {
         void JSlexit(wxStyledTextCtrl* pane);
         Console *pConsole;
@@ -1025,13 +1025,11 @@ public:
         pFreedConsole->Hide();
     }
     
-    void keepOnTop(bool yes){	// set the wxKEEP_ON_TOP style
-#ifdef __DARWIN__
+    void floatOnParent(bool yes){	// set the wxFRAME_FLOAT_ON_PARENT style
     	long styles = GetWindowStyle();
-		if (yes) styles |= wxSTAY_ON_TOP;
-		else styles ^= wxSTAY_ON_TOP;
+		if (yes) styles |= wxFRAME_FLOAT_ON_PARENT;
+		else styles ^= wxFRAME_FLOAT_ON_PARENT;
 		SetWindowStyle(styles);
-#endif
     }
     
     wxString consoleDump(){    // returns string being dump of selected information from console structure
@@ -1052,7 +1050,7 @@ public:
         dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
-        dump += "auto_run:\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
+        dump += "auto_run:\t\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
         wxPoint screenPosition = GetPosition();
         wxPoint DIPposition = ToDIP(screenPosition);
         dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tDIP x:%i y:%i\n", screenPosition.x, screenPosition.y, DIPposition.x, DIPposition.y );

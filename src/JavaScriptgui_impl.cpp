@@ -51,7 +51,8 @@ WX_DEFINE_OBJARRAY(SocketRecordsArray);
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
  void Console::OnActivate(wxActivateEvent& event){
-    wxDialog* pConsole = wxDynamicCast(event.GetEventObject(), wxDialog);
+ 	return;
+    wxFrame* pConsole = wxDynamicCast(event.GetEventObject(), wxFrame);
     long int style = pConsole->GetWindowStyle();
     if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
 	pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
@@ -203,7 +204,6 @@ void Console::OnPark( wxCommandEvent& event ){
 void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
-
     if (event.CanVeto()){
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
             // This is only console - decline
@@ -217,13 +217,13 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-        }
-	this->bin();
-	// take care to remove from tools, if we have them open
-    ToolsClass *pTools = pJavaScript_pi->pTools;
-    if (pTools != nullptr) pTools->setConsoleChoices();
-	TRACE(3, "Binning console " + this->mConsoleName);
-	return;
+		this->bin();
+		// take care to remove from tools, if we have them open
+		ToolsClass *pTools = pJavaScript_pi->pTools;
+		if (pTools != nullptr) pTools->setConsoleChoices();
+		TRACE(3, "Binning console " + this->mConsoleName);
+		event.Veto(true);
+		}
     }
 
 static wxString dummyMessage, message_id;

@@ -110,6 +110,7 @@ public:
     bool            mpPluginActive {false};
     wxWindow        *m_parent_window;
     bool            mShowingConsoles;
+    bool			mRememberToggleStatus {false};
     int             m_display_width, m_display_height;
     wxFileConfig    *m_pconfig;
     wxString        mCurrentDirectory;
@@ -117,7 +118,7 @@ public:
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
     Position        mCursorPosition;     // latest cursor position
     bool			m_showHelp {false};		// show help during first showing of consoles
-    bool			m_keepConsolesOnTop {true};	//set the wxSTAY_ON_TOP style for windows
+    bool			m_floatOnParent {true};	//set the wxSTAY_ON_TOP style for windows
     
     // console parking all stored in DIP units
     bool			m_parkingBespoke {true};	// true if using bespoke parking parameters

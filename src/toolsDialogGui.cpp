@@ -9,17 +9,17 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( -1,-1 ), wxSize( -1,-1 ) );
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
 	wxBoxSizer* TopSizer;
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
-	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 600,260 ), 0 );
+	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,400 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,280 ), 0 );
+	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,195 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Consoles->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Consoles->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -58,7 +58,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesChoiceSizer->Add( m_addButton, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( ConsolesChoiceSizer, 0, wxEXPAND, 5 );
+	ConsolesSizer->Add( ConsolesChoiceSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 0 );
 
 	wxStaticBoxSizer* ConsolesRenameSizer;
 	ConsolesRenameSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -102,7 +102,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesRenameSizer->Add( m_changeButton, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( ConsolesRenameSizer, 0, wxEXPAND, 5 );
+	ConsolesSizer->Add( ConsolesRenameSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* ConsolesMessageSizer;
 	ConsolesMessageSizer = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -115,28 +115,33 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesMessageSizer->Add( m_ConsolesMessage, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( ConsolesMessageSizer, 0, wxEXPAND, 0 );
+	ConsolesSizer->Add( ConsolesMessageSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 0 );
 
 	wxStaticBoxSizer* sbSizer18;
 	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxT("label") ), wxHORIZONTAL );
 
-	m_keepOnTop = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Keep consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_keepOnTop->SetValue(true);
-	m_keepOnTop->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_keepOnTop->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	m_keepOnTop->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
-	m_keepOnTop->Hide();
+	m_floatOnParent = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Float consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_floatOnParent->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	m_floatOnParent->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	m_floatOnParent->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
 
-	sbSizer18->Add( m_keepOnTop, 0, wxALIGN_TOP|wxALL, 5 );
+	sbSizer18->Add( m_floatOnParent, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+	m_rememberToggleStatus = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Remember toggle status"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_rememberToggleStatus->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+	m_rememberToggleStatus->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	m_rememberToggleStatus->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
+
+	sbSizer18->Add( m_rememberToggleStatus, 0, wxALL, 5 );
 
 
-	ConsolesSizer->Add( sbSizer18, 1, wxALIGN_TOP|wxEXPAND, 0 );
+	ConsolesSizer->Add( sbSizer18, 1, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 0 );
 
 
 	Consoles->SetSizer( ConsolesSizer );
 	Consoles->Layout();
 	m_notebook->AddPage( Consoles, wxT("Consoles"), true );
-	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,160 ), 0 );
+	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,160 ), 0 );
 	Directory->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Directory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Directory->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -184,7 +189,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Directory->SetSizer( DirectorySizer1 );
 	Directory->Layout();
 	m_notebook->AddPage( Directory, wxT("Directory"), false );
-	NMEA = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,190 ), 0 );
+	NMEA = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,170 ), 0 );
 	NMEA->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* NMEASizer;
@@ -197,37 +202,30 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* NMEASizer1;
 	NMEASizer1 = new wxStaticBoxSizer( new wxStaticBox( NMEA, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
-	m_NMEAMessageText = new wxStaticText( NMEASizer1->GetStaticBox(), wxID_ANY, wxT("OCPN message"), wxDefaultPosition, wxSize( 600,-1 ), 0 );
-	m_NMEAMessageText->Wrap( -1 );
-	m_NMEAMessageText->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-	m_NMEAMessageText->Hide();
-
-	NMEASizer1->Add( m_NMEAMessageText, 0, wxALL, 5 );
-
-	m_NMEAmessage = new wxTextCtrl( NMEASizer1->GetStaticBox(), wxID_ANY, wxT("$GPRMC,152912,A,5041.0535,N,00205.3070,W,0.06,0,070600,,,A,V*3D"), wxDefaultPosition, wxSize( 540,-1 ), 0 );
+	m_NMEAmessage = new wxTextCtrl( NMEASizer1->GetStaticBox(), wxID_ANY, wxT("$GPRMC,152912,A,5041.0535,N,00205.3070,W,0.06,0,070600,,,A,V*3D"), wxDefaultPosition, wxSize( 500,-1 ), 0 );
 	NMEASizer1->Add( m_NMEAmessage, 0, wxALL, 5 );
 
 
-	NMEASizer->Add( NMEASizer1, 0, 0, 5 );
+	NMEASizer->Add( NMEASizer1, 0, wxEXPAND, 5 );
 
-	wxBoxSizer* bNMEAbuttonBoxSizer;
-	bNMEAbuttonBoxSizer = new wxBoxSizer( wxHORIZONTAL );
+	wxStaticBoxSizer* ReceivedMessageButtonSizer;
+	ReceivedMessageButtonSizer = new wxStaticBoxSizer( new wxStaticBox( NMEA, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
 
-	bNMEAbuttonBoxSizer->Add( 0, 0, 1, 0, 5 );
+	ReceivedMessageButtonSizer->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_NMEAReceiveMessageButton = new wxButton( NMEA, wxID_ANY, wxT("Receive"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_NMEAReceiveMessageButton = new wxButton( ReceivedMessageButtonSizer->GetStaticBox(), wxID_ANY, wxT("Receive"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_NMEAReceiveMessageButton->SetLabelMarkup( wxT("Receive") );
-	bNMEAbuttonBoxSizer->Add( m_NMEAReceiveMessageButton, 0, wxALL, 5 );
+	ReceivedMessageButtonSizer->Add( m_NMEAReceiveMessageButton, 0, wxALL, 5 );
 
 
-	NMEASizer->Add( bNMEAbuttonBoxSizer, 0, wxEXPAND, 5 );
+	NMEASizer->Add( ReceivedMessageButtonSizer, 1, wxEXPAND, 5 );
 
 
 	NMEA->SetSizer( NMEASizer );
 	NMEA->Layout();
 	m_notebook->AddPage( NMEA, wxT("NMEA"), false );
-	Message = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), 0 );
+	Message = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,280 ), 0 );
 	Message->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* MessageSizer;
@@ -244,19 +242,19 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_MessageIDText1->Wrap( -1 );
 	m_MessageIDText1->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
 
-	MessageIDSizer->Add( m_MessageIDText1, 0, wxALL, 5 );
+	MessageIDSizer->Add( m_MessageIDText1, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
 	m_MessageID = new wxTextCtrl( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("EXAMPLE_MESSAGE_ID"), wxDefaultPosition, wxSize( 300,-1 ), 0 );
-	MessageIDSizer->Add( m_MessageID, 0, wxALL, 5 );
+	MessageIDSizer->Add( m_MessageID, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
 
-	MessageIDSizer->Add( 0, 0, 1, 0, 5 );
+	MessageIDSizer->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	m_receiveMessageButton = new wxButton( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("Receive"), wxDefaultPosition, wxDefaultSize, 0 );
-	MessageIDSizer->Add( m_receiveMessageButton, 1, wxALL, 5 );
+	MessageIDSizer->Add( m_receiveMessageButton, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
-	MessageSizer->Add( MessageIDSizer, 0, 0, 5 );
+	MessageSizer->Add( MessageIDSizer, 0, wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* MessageBodySizer1;
 	MessageBodySizer1 = new wxStaticBoxSizer( new wxStaticBox( Message, wxID_ANY, wxEmptyString ), wxVERTICAL );
@@ -268,23 +266,22 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	MessageBodySizer1->Add( m_MessageText11, 0, wxALL, 5 );
 
 	m_MessageBody = new wxTextCtrl( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("\"Latitude\" : 61.234,\n\"Longitude\" : -1.234"), wxDefaultPosition, wxSize( 580,250 ), wxTE_MULTILINE|wxTE_WORDWRAP|wxVSCROLL );
-	MessageBodySizer1->Add( m_MessageBody, 0, wxALL, 5 );
+	MessageBodySizer1->Add( m_MessageBody, 0, 0, 5 );
 
 
-	MessageSizer->Add( MessageBodySizer1, 0, wxFIXED_MINSIZE, 5 );
+	MessageSizer->Add( MessageBodySizer1, 0, 0, 5 );
 
 
 	Message->SetSizer( MessageSizer );
 	Message->Layout();
 	m_notebook->AddPage( Message, wxT("Message"), false );
-	Parking = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
+	Parking = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,250 ), wxTAB_TRAVERSAL );
 	Parking->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Parking->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* ParkingTopSizer1;
 	ParkingTopSizer1 = new wxBoxSizer( wxVERTICAL );
 
-	ParkingTopSizer1->SetMinSize( wxSize( -1,250 ) );
 	wxStaticBoxSizer* parkingAdviceSizer1;
 	parkingAdviceSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
@@ -356,7 +353,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ConsolesMessageSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
 	ConsolesMessageSizer1->SetMinSize( wxSize( -1,135 ) );
-	m_parkingMessage = new wxTextCtrl( ConsolesMessageSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 700,250 ), wxTE_MULTILINE|wxTE_READONLY );
+	m_parkingMessage = new wxTextCtrl( ConsolesMessageSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 700,220 ), wxTE_MULTILINE|wxTE_READONLY );
 	ConsolesMessageSizer1->Add( m_parkingMessage, 0, wxALL, 5 );
 
 
@@ -366,7 +363,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Parking->SetSizer( ParkingTopSizer1 );
 	Parking->Layout();
 	m_notebook->AddPage( Parking, wxT("Parking"), false );
-	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), 0 );
+	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,650 ), 0 );
 	Help->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* HelpSizer1;
@@ -374,7 +371,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin, which you can download from the following links.  Please consult this before raising queries.\n\nIf reading on a mobile device, you may find the .epub format more convenient as you can bookmark pages and keep track of where you have got to."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1->Wrap( 550 );
-	HelpSizer1->Add( HelpTopText1, 0, wxALL, 5 );
+	HelpSizer1->Add( HelpTopText1, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* sbSizer24;
 	sbSizer24 = new wxStaticBoxSizer( new wxStaticBox( Help, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -402,7 +399,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	HelpTopText11 = new wxStaticText( Help, wxID_ANY, wxT("There is a library of sample scripts available.  These can be used ‘as is’ or adapted  as rquired. They are also useful examples of how to achive various tasks."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText11->Wrap( 550 );
-	HelpSizer1->Add( HelpTopText11, 0, wxALL, 5 );
+	HelpSizer1->Add( HelpTopText11, 0, wxALL|wxEXPAND, 5 );
 
 	m_hyperlink5 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("The shared library"), wxT("https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
 	HelpSizer1->Add( m_hyperlink5, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
@@ -412,7 +409,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("You can discuss the plugin and its applications in the JavaScript pugin topic in the OpenCPN forum.  (NB The early posts in this topic concern long obsolete versions of the plugin.) Please do not raise questions already addressed in the User Guide."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText111->Wrap( 550 );
-	HelpSizer1->Add( HelpTopText111, 0, wxALL, 5 );
+	HelpSizer1->Add( HelpTopText111, 0, wxALL|wxEXPAND, 5 );
 
 	m_hyperlink511 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Plugin topic in OpenCPN forum"), wxT("https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
 	HelpSizer1->Add( m_hyperlink511, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
@@ -437,7 +434,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	HelpTopText11111 = new wxStaticText( Help, wxID_ANY, wxT("There is also a Technical Guide for those needing to understand the workings of the plugin or maintain it.  This is not needed or helpful for using the plugin or writing scripts."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText11111->Wrap( 550 );
-	HelpSizer1->Add( HelpTopText11111, 0, wxALL, 5 );
+	HelpSizer1->Add( HelpTopText11111, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* sbSizer33;
 	sbSizer33 = new wxStaticBoxSizer( new wxStaticBox( Help, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -464,14 +461,13 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Help->SetSizer( HelpSizer1 );
 	Help->Layout();
 	m_notebook->AddPage( Help, wxT("Help"), false );
-	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 600,250 ), wxTAB_TRAVERSAL );
+	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,280 ), wxTAB_TRAVERSAL );
 	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
 
 	wxBoxSizer* DiagnosticsTpSizer;
 	DiagnosticsTpSizer = new wxBoxSizer( wxVERTICAL );
 
-	DiagnosticsTpSizer->SetMinSize( wxSize( -1,250 ) );
 	wxStaticBoxSizer* diagnosticAdviceSizer;
 	diagnosticAdviceSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
@@ -503,14 +499,14 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	DiagnosticsTpSizer->Add( DumpTopSizer, 0, wxEXPAND, 5 );
 
-	wxBoxSizer* cleanSizer;
-	cleanSizer = new wxBoxSizer( wxVERTICAL );
+	wxStaticBoxSizer* cleanSizer;
+	cleanSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxT("label") ), wxVERTICAL );
 
-	m_charsToClean = new wxTextCtrl( Diagnostics, wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
+	m_charsToClean = new wxTextCtrl( cleanSizer->GetStaticBox(), wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
 	cleanSizer->Add( m_charsToClean, 0, wxALL, 5 );
 
 	wxStaticBoxSizer* CharsTopSizer;
-	CharsTopSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
+	CharsTopSizer = new wxStaticBoxSizer( new wxStaticBox( cleanSizer->GetStaticBox(), wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
 	m_cleanPrompt = new wxStaticText( CharsTopSizer->GetStaticBox(), wxID_ANY, wxT("Clean and dump string"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_cleanPrompt->Wrap( -1 );
@@ -528,7 +524,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	cleanSizer->Add( CharsTopSizer, 0, wxEXPAND, 0 );
 
 
-	DiagnosticsTpSizer->Add( cleanSizer, 0, wxEXPAND|wxFIXED_MINSIZE, 5 );
+	DiagnosticsTpSizer->Add( cleanSizer, 1, 0, 10 );
 
 
 	Diagnostics->SetSizer( DiagnosticsTpSizer );
@@ -540,14 +536,16 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	this->SetSizer( TopSizer );
 	this->Layout();
-	TopSizer->Fit( this );
+
+	this->Centre( wxBOTH );
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ToolsClassBase::onClose ) );
 	m_notebook->Connect( wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxNotebookEventHandler( ToolsClassBase::onPageChanged ), NULL, this );
 	m_addButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onAddConsole ), NULL, this );
 	m_changeButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeName ), NULL, this );
-	m_keepOnTop->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ToolsClassBase::onKeepOnTop ), NULL, this );
+	m_floatOnParent->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ToolsClassBase::onFloatOnParent ), NULL, this );
+	m_rememberToggleStatus->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ToolsClassBase::onToggleStatus ), NULL, this );
 	mDirectoryChangeButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
@@ -565,7 +563,8 @@ ToolsClassBase::~ToolsClassBase()
 	m_notebook->Disconnect( wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxNotebookEventHandler( ToolsClassBase::onPageChanged ), NULL, this );
 	m_addButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onAddConsole ), NULL, this );
 	m_changeButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeName ), NULL, this );
-	m_keepOnTop->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ToolsClassBase::onKeepOnTop ), NULL, this );
+	m_floatOnParent->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ToolsClassBase::onFloatOnParent ), NULL, this );
+	m_rememberToggleStatus->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ToolsClassBase::onToggleStatus ), NULL, this );
 	mDirectoryChangeButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
