@@ -67,7 +67,6 @@ function step3(){
 	consoleCharWidth = ((details1.size.x - details0.size.x) / (consoleNames[1].length - consoleNames[0].length)).toFixed(2);
 	consoleStub = Math.round(details0.size.x - consoleCharWidth*consoleNames[0].length);
 	print("Recommended settings for consolePositiong.h:\n\n");
-	print("#define CONSOLE_MIN_HEIGHT ", consoleMinHeight, "\n");
 	print("#define CONSOLE_STUB ", consoleStub, "\n");
 	print("#define CONSOLE_CHAR_WIDTH ", consoleCharWidth, "\n");
 	print("#define PARK_LEVEL ", parkLevel, "\n");

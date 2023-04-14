@@ -90,3 +90,26 @@ class m_Console : public wxFrame
 
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// Class m_Console_Exx
+///////////////////////////////////////////////////////////////////////////////
+class m_Console_Exx : public wxDialog
+{
+	private:
+
+	protected:
+
+		// Virtual event handlers, override them in your derived class
+		virtual void OnActivate( wxActivateEvent& event ) { event.Skip(); }
+		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
+		virtual void OnMove( wxMoveEvent& event ) { event.Skip(); }
+
+
+	public:
+
+		m_Console_Exx( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("JavaScript"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 844,2000 ), long style = wxCAPTION|wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
+
+		~m_Console_Exx();
+
+};
+

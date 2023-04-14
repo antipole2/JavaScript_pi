@@ -15,7 +15,6 @@
 #define consolePositioning_h
 
 /* herewith constants used when handling minimised or parked consoles
-CONSOLE_MIN_HEIGHT	Minimum height of a console
 CONSOLE_STUB		Space to be left for things other than console name
 PARK_LEVEL			Level at which to park consoles in distance down on screen
 PARK_FIRST_X		Indent of first parked console from left-hand edge of screen
@@ -23,23 +22,22 @@ PARK_SEP			Horizontal separation of parked consoles
 
 These constants are platform dependent
 See the Technical Guide for instructions for configuring for a given platform
+THese positions and sizes are all in DIP
 */
 #ifdef __WXMSW__
-#define CONSOLE_MIN_HEIGHT 39L
 #define CONSOLE_STUB 63L
 #define PARK_LEVEL 35L
 #define PARK_FIRST_X 85L
 #define PARK_SEP 2L
 
 #elif defined(__LINUX__)
-#define CONSOLE_MIN_HEIGHT 38L
 #define CONSOLE_STUB 45L
 #define PARK_LEVEL 27L
 #define PARK_FIRST_X 100L
 #define PARK_SEP 20L
+
 #else
 //includes MacOS
-#define CONSOLE_MIN_HEIGHT 23L
 #define CONSOLE_STUB 79L
 #define PARK_LEVEL 23L
 #define PARK_FIRST_X 40L

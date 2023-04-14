@@ -7,6 +7,9 @@ function Route(){
 			this.from = "";
 			this.to = "";
 			this.GUID = "";
+			this.description = "";
+			this.isVisible = undefined;
+			this.isActive = undefined;
 			this.waypoints = [];
 			break;
 		case 1:	// argument should be route
@@ -14,6 +17,9 @@ function Route(){
 			this.name = rt.name;
 			this.from = rt.from;
 			this.to = rt.to;
+			this.description = rt.description;
+			this.isVisible = rt.isVisible;
+			this.isActive = rt.isActive;
 			this.GUID = rt.GUID;
 			this.waypoints = rt.waypoints;
 			break;
@@ -29,6 +35,9 @@ function Route(){
 		this.name = gotRoute.name;
 		this.from = gotRoute.from;
 		this.to = gotRoute.to;
+		this.description = gotRoute.description;
+		this.isVisible = gotRoute.isVisible;
+		this.isActive = gotRoute.isActive;
 		// need to construct the waypoint objects so they have their methods
 		for (i = 0; i <gotRoute.waypoints.length; i++){
 			waypoint = new Waypoint();

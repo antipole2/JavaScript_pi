@@ -108,7 +108,7 @@ int JavaScript_pi::Init(void)
 
     //    And load the configuration items
     LoadConfig();
-    mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
+//    mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
 
     //    This PlugIn needs a toolbar icon, so request its insertion
     if(m_bJavaScriptShowIcon){
@@ -122,6 +122,14 @@ int JavaScript_pi::Init(void)
                                            CONSOLE_POSITION, 0, this);
 #endif // JavaScript_USE_SVG
     }
+    
+    // we have taking the present show/hide state from the config file
+    if (mShowingConsoles){	// need to show Now    
+    	mShowingConsoles = false;	// pretend not showing
+    	OnToolbarToolCallback(0);	// and toggle the state
+    	}
+
+    
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
     mTimer.Start(1000);
@@ -151,9 +159,12 @@ bool JavaScript_pi::DeInit(void) {
 
     if (pTools != nullptr) {
         TRACE(3,"JavaScript plugin DeInit destroying tools pane");
- //       pTools->Close();
- //       pTools->Destroy();
-        delete pTools;
+        try{
+//        	pTools->Destroy();
+        	delete pTools;
+
+        	}
+        catch (int i){;}
         pTools = nullptr;
         }
 
@@ -170,6 +181,7 @@ bool JavaScript_pi::DeInit(void) {
 		pConsole->clearSockets();
 #endif
         mpFirstConsole = pConsole->mpNextConsole; // unhook first off chain
+//        pConsole->Destroy();
         delete pConsole;
         pConsole = nullptr;
         }
@@ -184,6 +196,7 @@ bool JavaScript_pi::DeInit(void) {
             TRACE(3,"JavaScript plugin deinit destroying console" + pConsole->mConsoleName + " ctx while emtying bin");
             }
         mpBin = pConsole->mpNextConsole; // take first off chain
+//        pConsole->Destroy();
         delete pConsole;
         pConsole = NULL;
         }
@@ -259,8 +272,8 @@ void JavaScript_pi::OnToolbarToolCallback(int id)
 {
     void JSlexit(wxStyledTextCtrl* pane);
     void fatal_error_handler(void *udata, const char *msg);
-    TRACE(2,"JavaScript_pi->OnToolbarToolCallback() entered");
 
+    TRACE(34,wxString::Format("JavaScript_pi->OnToolbarToolCallback() entered with mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
     mShowingConsoles = !mShowingConsoles;   // toggle console display state
 	if (mShowingConsoles & m_showHelp){
 			ShowTools(m_parent_window, -1);	// show them the help page
@@ -282,7 +295,7 @@ bool JavaScript_pi::LoadConfig(void)
     void JSlexit(wxStyledTextCtrl* pane);
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     wxString fileNames;
-#ifndef IN_HARNESS
+	TRACE(67, wxString::Format("Screen size width:%d height:%d", m_display_width, m_display_height));
 	m_showHelp = false;
     if(pConf){
     	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME);
@@ -302,7 +315,8 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
-            mpFirstConsole->setConsoleMinSize();
+            mpFirstConsole->setConsoleMinClientSize();
+            mpFirstConsole->floatOnParent(true);
             mpFirstConsole->m_Output->AppendText(welcome);
             m_showHelp = true;
             }
@@ -314,24 +328,32 @@ bool JavaScript_pi::LoadConfig(void)
             TRACE(2, "Loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
-            
+            mRememberToggleStatus = (pConf->Read ( _T ( "RememberToggle" ), "0" ) == "0")?false:true;
+            if (mRememberToggleStatus) mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
+            else mShowingConsoles = false;
+            TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
+#ifdef __DARWIN__
+            m_floatOnParent = (pConf->Read ( _T ( "FloatOnParent" ), "0" ) == "0")?false:true;
+#else
+			m_floatOnParent = false;
+#endif
             // load parking config - platform defaults if none
+            // saved and default values are in DIP
             m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
-            m_parkingMinHeight = pConf->Read("ParkingMinHeight", CONSOLE_MIN_HEIGHT);
             m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
             m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
             m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
             m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
-            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingMinHeight:%i, ParkingStub:%i ",
-            	(m_parkingBespoke?"true":"false"), m_parkingMinHeight, m_parkingStub ));
+            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingStub:%i ",
+            	(m_parkingBespoke?"true":"false"), m_parkingStub ));
             
             // create consoles as in config file
             mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configured
-                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20), wxSize(738,800), wxPoint(150, 100),
-                	wxPoint(90, 20), wxEmptyString, false, welcome);
-                newConsole->setConsoleMinSize();
+                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20),
+                	wxSize(738,800), wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
+                newConsole->setConsoleMinClientSize();
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
@@ -349,8 +371,8 @@ bool JavaScript_pi::LoadConfig(void)
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
-                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 20L );
-                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 20L );
+                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
+                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
@@ -358,15 +380,27 @@ bool JavaScript_pi::LoadConfig(void)
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
+                    TRACE(67, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                     // from V2 positions have been saved relative to frame
-                    consolePosition = frameToScreen(consolePosition);
-                    dialogPosition = frameToScreen(dialogPosition);
-                    alertPosition = frameToScreen(alertPosition);
-                    // take care of no console size
-                    if ((consoleSize.x < 80)|| (consoleSize.y < 9)) consoleSize = wxSize(738,800);
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
-                    newConsole->setConsoleMinSize();
-                    if (parked) newConsole->park();
+//                    newConsole->setConsoleMinClientSize();
+//                    newConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
+                    // constructor should have position console but does not seem to work on Hi Res display so force it
+                    newConsole->Move(newConsole->FromDIP(consolePosition));
+                    TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
+                    
+/*
+                    if (parked){ // cannot use newConsole->park() because that will take short cut
+//                    	wxSize clientSize = newConsole->GetClientSize();
+//                    	clientSize.y = 0;
+//                    	newConsole->SetSize(newConsole->GetMinSize());
+                    	newConsole->m_parked = true;
+                    	}
+                    else {
+                    	//newConsole->SetSize(newConsole->FromDIP(consoleSize));
+                    	newConsole->m_parked = false;
+                    	}
+*/
                     }
                 }
             }
@@ -394,7 +428,6 @@ bool JavaScript_pi::LoadConfig(void)
         return true;
     }
     else
-#endif
         return false;
 }
 
@@ -402,6 +435,7 @@ bool JavaScript_pi::SaveConfig(void)
 {
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     Console *pConsole;
+    wxPoint screenToFrame(wxPoint pos);
 
     TRACE(3,"JavaScript_pi->SaveConfig() entered");
 
@@ -415,6 +449,9 @@ bool JavaScript_pi::SaveConfig(void)
         pConf->Write ( _T ( "VersionMinor" ), PLUGIN_VERSION_MINOR );
         pConf->Write ( _T ( "ShowJavaScriptIcon" ), m_bJavaScriptShowIcon );
         pConf->Write ( _T ( "CurrentDirectory" ), mCurrentDirectory );
+        pConf->Write ( _T ( "RememberToggle" ), mRememberToggleStatus?"1":"0" );
+        if (mRememberToggleStatus) pConf->Write ( _T ( "ShowingConsoles" ), mShowingConsoles?"1":"0" );
+        pConf->Write ( _T ( "FloatOnParent" ), m_floatOnParent?"1":"0" );
         
         // now to save the recent files list - if any
         if (recentFiles.GetCount() > 0){
@@ -435,27 +472,32 @@ bool JavaScript_pi::SaveConfig(void)
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
+ //        double scale = m_parent_window->GetDPIScaleFactor();	// we will save config in DIP
             
         //save custom parking config, if any
         if (m_parkingBespoke){
         	pConf->Write (nameColon + _T ( "ParkingBespoke" ),   1 );
-        	pConf->Write (nameColon + _T ( "ParkingMinHeight" ),   m_parkingMinHeight );
-        	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub );
-         	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel );
-         	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX );
-         	pConf->Write (nameColon + _T ( "ParkingSep" ),   m_parkSep );  	
+        	pConf->Write (nameColon + _T ( "ParkingStub" ),   m_parkingStub);
+         	pConf->Write (nameColon + _T ( "ParkingLevel" ),   m_parkingLevel);
+         	pConf->Write (nameColon + _T ( "ParkingFirstX" ),   m_parkFirstX);
+         	pConf->Write (nameColon + _T ( "ParkingSep" ),   m_parkSep);  	
         	}
 
         for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        	extern Console* pTestConsole1;
+        	extern Console* pTestConsole2;
+        	
         	wxPoint screenToFrame(wxPoint);
+        	if ((pConsole == pTestConsole1) || (pConsole == pTestConsole2)) continue;	// do not save any test consoles
         	// v2 positions now saved relative to frame
             name = pConsole->mConsoleName;
             nameColon = name + ":";
+            // will save in DIP
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
-            wxPoint consolePosition = screenToFrame(pConsole->GetPosition());
-            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);
-            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);
-            wxSize  consoleSize = pConsole->GetSize();            
+            wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
+            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
+            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
+            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetClientSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );
@@ -635,10 +677,13 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
             if (pThisConsole->mpCtx != nullptr) { // deferred heap distruction
                 duk_destroy_heap(pThisConsole->mpCtx);
                 pThisConsole->mpCtx = nullptr;  // don't need this but...
-                TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emtying bin");
+                TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emptying bin");
                 }
             TRACE(3,"JavaScript plugin deleting console " + pThisConsole->mConsoleName + " from bin");
+//            pThisConsole->Close(true);
             pThisConsole->Destroy();
+//			delete pThisConsole;
+
             }
         }
     mpBin = pLater; // try later
@@ -742,19 +787,14 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
 
     if (pTools == nullptr) {  // do not yet have a tools dialogue
     	int x, y;
-        pTools = new ToolsClass(m_parent_window, wxID_ANY, "JavaScript Tools");
+        pTools = new ToolsClass(m_parent_window, wxID_ANY /*, "JavaScript Tools" */);
+        pTools->fixForScreenRes();
         // position it top right in display
         wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
         wxDisplay display(wxDisplay::GetFromWindow(frame));
 		wxRect screen = display.GetClientArea();
-        wxSize toolsSize = pTools->GetSize();
-        
-/*       just played with this - not working
-        if (toolsSize.y > screen.height){ // too tall for this display
-        	toolsSize.y = screen.height;
-        	pTools->SetSize(wxSize(toolsSize));
-        	}
-*/        	
+        wxSize toolsSize = pTools->FromDIP(pTools->GetSize());
+        TRACE(99, wxString::Format("Screen x: %i y: %i width: %i, toolsSize x: %i y: %i", screen.x, screen.y, screen.width, toolsSize.x, toolsSize.y)) ;    	
         x = screen.x + screen.width - toolsSize.x;
         y = screen.y;
         pTools->SetPosition(wxPoint(x,y));
