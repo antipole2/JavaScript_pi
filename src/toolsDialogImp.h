@@ -76,10 +76,8 @@ public:
         
 	void fixForScreenRes(){	// fix up sizes according to screen resolution
 		double scale = SCALE(this);
-		scale = 2;
 		if (scale == 1) return;	// nothing to do
 		wxSize size;
-//		wxSizer* sizer;
 		
 		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
 

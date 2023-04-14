@@ -19,7 +19,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,400 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
-	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,195 ), 0 );
+	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,255 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Consoles->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Consoles->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
