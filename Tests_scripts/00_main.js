@@ -78,10 +78,13 @@ tests = [ // test table format
 	{name:"Call no brief", functionToUse:loadRunWait, script:"84_call_no_brief.js", time:1, result:"getBrief found no brief"},
 	{name:"Call with brief", functionToUse:loadRunWait, script:"86_call_with_brief.js", time:1, result:"Found brief This is the brief"},
 	{name:"Call chain with brief", functionToUse:loadRunWait, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"},
-	{name:"Waypoint, route & track", functionToUse:loadRunWait, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"}	
+	{name:"Waypoint, route & track", functionToUse:loadRunWait, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"},
+		{name:"GetGUIDs", functionToUse:loadRunWait, script:"100_getGuids.js", time:3, result:"No errors"}	
 	];
 
-messageBox(JSON.stringify(OCPNgetPluginConfig(), null, "    "),"OK","Plugin Configuration");
+config = OCPNgetPluginConfig();
+messageBox(JSON.stringify(config, null, "    "),"OK","Plugin Configuration");
+pluginVersion = config.PluginVersionMajor*100 + config.PluginVersionMinor;
 
 // we will construct the button rows dynamically from the tests table.
 // we do this so we can display them over severl rows - hold on!
