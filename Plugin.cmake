@@ -34,7 +34,7 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 # -------  Plugin setup --------
 #
 set(PKG_NAME JavaScript_pi)
-set(PKG_VERSION  2.1.5)
+set(PKG_VERSION  2.2.0)
 set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
@@ -75,6 +75,7 @@ SET(SRC
     src/ocpn_duk.h
     src/OPCNapis.cpp
     src/optional.cpp
+    src/drivers.cpp
     src/sockets.cpp
     src/toolsDialogGui.cpp
     src/toolsDialogGui.h

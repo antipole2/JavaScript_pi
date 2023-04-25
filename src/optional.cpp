@@ -346,22 +346,16 @@ void register_console(duk_context *ctx){
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     };
 
-void register_drivers(duk_context *ctx);
-
 bool loadComponent(duk_context *ctx, wxString name) {
+	void register_drivers(duk_context *ctx);
     bool result {false};
     
     if (name == "Consoles") {register_console(ctx); result = true;}
-//    if (name == "Drivers") {register_drivers(ctx); result = true;}
+    if (name == "Drivers") {register_drivers(ctx); result = true;}
     
 #ifdef SOCKETS
     void register_sockets(duk_context *ctx);
 	if (name == "Sockets") {register_sockets(ctx); result = true;}
-#endif
-
-#ifdef IPC
-	void register_tcp(duk_context *ctx);
-	if (name == "IPC") {register_tcp(ctx); result = true;}
 #endif
 	
     return result;

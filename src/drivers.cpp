@@ -22,6 +22,8 @@
 
 extern JavaScript_pi* pJavaScript_pi;
 void throwErrorByCtx(duk_context *ctx, wxString message);
+Console *findConsoleByCtx(duk_context *ctx);
+wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
 
 const char* errorStrings[] = {
 	"RESULT_COMM_NO_ERROR",
@@ -62,10 +64,10 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 		}
 	return 1;			
 	}
-
+/*
 duk_ret_t writeDriver(duk_context* ctx){
 	// OCPNwriteDriver(driverHandle, payload)
-	driverHandle handle;
+	DriverHandle handle;
 	const std::shared_ptr <std::vector<uint8_t>> payload {};
 	const char * data;
 	duk_size_t dataLength;	// length of payload
@@ -81,7 +83,24 @@ duk_ret_t writeDriver(duk_context* ctx){
 	if (result == RESULT_COMM_NO_ERROR) return 0;
 	else throwErrorByCtx(ctx, wxString("OCPNWriteDriver ", errorStrings[result]));	
 	}
+	
+*/
+	
+static duk_ret_t onNavData(duk_context *ctx) {  // callback with nav data
+	// OCPNonNavData(function)
+	// NB presently using a single event - need to allocate so can have several calls open
+	Console *pConsole = findConsoleByCtx(ctx);
+	duk_require_c_function(ctx, 0);
+	jsFunctionNameString_t functionName = extractFunctionName(ctx, 0);
+	duk_pop(ctx);
 
+//	listener.pConsole = pConsole;
+//	listener.functionToCall = functionName;
+	listener.Listen(NavDataId(),EVT_JAVASCRIPT, pJavaScript_pi->HandleNavData(ev));
+	Bind(EVT_JAVASCRIPT [](ObservedEvt ev) { pJavaScript_pi->HandleNavData(ev);}
+	return 0;
+	}
+	
 
 void register_drivers(duk_context *ctx){
     duk_push_global_object(ctx);
@@ -97,6 +116,10 @@ void register_drivers(duk_context *ctx){
     duk_push_string(ctx, "OCPNwriteDriver");
     duk_push_c_function(ctx, writeDriver, 2 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+        
+    duk_push_string(ctx, "OCPNonNavData");
+    duk_push_c_function(ctx, onNavData, 1 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE);
 
     };
 

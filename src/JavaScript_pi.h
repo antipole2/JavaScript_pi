@@ -22,6 +22,7 @@
 #include "JavaScriptgui.h"
 #include "toolsDialogImp.h"
 #include <bitset>
+#include <stdio.h>
 #include "config.h"
 #include "consolePositioning.h"
 
@@ -49,11 +50,15 @@ typedef enum Completions {
 
 typedef  std::bitset<Completions_count> status_t;
 
+typedef wxString jsFunctionNameString_t;
+
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
 
  #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
+ 
+ wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
 
 class Console;
 
@@ -61,7 +66,13 @@ class Position {
 public:
     double lat; double lon;
     };
-
+    
+class JSobservedEvt : public ObservedEvt{
+public:
+	Console* pConsole;	// console to handle this event
+	jsFunctionNameString_t functionToCall;
+	};
+    
 class JavaScript_pi : public opencpn_plugin_118
 {
 public:
@@ -101,6 +112,7 @@ public:
     bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     void ShowTools (wxWindow* m_parent_window, int page);
+    void HandleNavData(ObservedEvt ev);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
@@ -137,6 +149,8 @@ private:
     wxBitmap        m_panelBitmap;
     bool            m_bJavaScriptShowIcon;
     bool            LoadConfig(void);
+	std::shared_ptr<ObservableListener> listener;
+
     };
 
 #endif  // JavaScript_pi_h
