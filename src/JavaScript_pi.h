@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "config.h"
 #include "consolePositioning.h"
-#include "stream_events.h"
+//#include "stream_events.h"
 
 typedef enum FileOptions{
     DONT_CARE,
@@ -59,7 +59,7 @@ typedef wxString jsFunctionNameString_t;
 
  #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
  
- wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
+// wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
 
 class Console;
 
@@ -68,11 +68,13 @@ public:
     double lat; double lon;
     };
     
+/*
 class JSobservedEvt : public ObservedEvt{
 public:
 	Console* pConsole;	// console to handle this event
 	jsFunctionNameString_t functionToCall;
 	};
+*/
     
 class JavaScript_pi : public opencpn_plugin_118
 {
@@ -145,14 +147,13 @@ public:
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
 	bool			m_bShowJavaScript;
 
-	ObservedEvt		JSnavdataEvt;
 private:
     wxBitmap        m_panelBitmap;
     bool            m_bJavaScriptShowIcon;
     bool            LoadConfig(void);
     // stream setups
     void			HandleNavData(ObservedEvt ev);
-	PluginNavdata listener_navdata;
+	std::shared_ptr<ObservableListener> listener_navdata;
 
     };
 

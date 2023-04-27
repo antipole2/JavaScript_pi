@@ -21,7 +21,7 @@
 
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
-#include "stream_events.h"
+//#include "stream_events.h"
 #include "icons.h"
 #include "trace.h"
 #include "wx/tokenzr.h"
@@ -82,10 +82,10 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     m_bShowJavaScript = false;
 #endif // not IN_HARNESS
 	// construct the Navdata stream
-//	wxDEFINE_EVENT(EVT_NAVDATA, ObservedEvt);
+	wxDEFINE_EVENT(EVT_NAVDATA, ObservedEvt);
 	NavDataId navdata_id;
-//	ObservedEvt navdata_evt;
-  	listener_navdata = std::move(GetEventNavdata(JSnavdataEvt));
+  	listener_navdata = std::move(GetListener(navdata_id, EVT_NAVDATA, this));
+  	Bind(EVT_NAVDATA, [&](ObservedEvt ev) { HandleNavData(ev);});
 }
 
 JavaScript_pi::~JavaScript_pi(void)
