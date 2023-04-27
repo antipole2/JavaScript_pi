@@ -35,6 +35,7 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 #
 set(PKG_NAME JavaScript_pi)
 set(PKG_VERSION  2.2.0)
+set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME javascript) # As of GetCommonName() in plugin API
@@ -74,6 +75,7 @@ SET(SRC
     src/ocpn_duk.h
     src/OPCNapis.cpp
     src/optional.cpp
+    src/drivers.cpp
     src/sockets.cpp
     src/toolsDialogGui.cpp
     src/toolsDialogGui.h

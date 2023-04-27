@@ -21,6 +21,7 @@
 
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
+#include "stream_events.h"
 #include "icons.h"
 #include "trace.h"
 #include "wx/tokenzr.h"
@@ -80,6 +81,11 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
 #endif // not IN_HARNESS
+	// construct the Navdata stream
+//	wxDEFINE_EVENT(EVT_NAVDATA, ObservedEvt);
+	NavDataId navdata_id;
+//	ObservedEvt navdata_evt;
+  	listener_navdata = std::move(GetEventNavdata(JSnavdataEvt));
 }
 
 JavaScript_pi::~JavaScript_pi(void)
@@ -813,4 +819,37 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
     pTools->setupPage(page);
     return;
     };
+    
+void JavaScript_pi::HandleNavData(ObservedEvt ev) {
+	PluginNavdata navData = GetEventNavdata(ev);
+	TRACE(100, "Got navData");
+/*	Console* pConsole = ev.pConsole;
+	jsFunctionNameString_t functionToCall = ev.functionToCall;
+	TRACE(100, wxString::Format("HandleNavData Console %s function %s", pConsole->mConsoleName, functionToCall));
+//	Unbind(ev);	// only receive once
+	duk_context *ctx = pConsole->mpCtx;
+	// indentation is stack depth
+	duk_push_object(ctx);
+		duk_push_number(ctx, navData.time);
+			duk_put_prop_literal(ctx, -2, "fixTime");	
+		duk_push_object(ctx);
+			duk_push_number(ctx, navData.lat);
+				duk_put_prop_literal(ctx, -2, "latitude");
+			duk_push_number(ctx, navData.lon);
+				duk_put_prop_literal(ctx, -2, "longitude");
+			duk_put_prop_literal(ctx, -2, "position");
+		duk_push_number(ctx, navData.sog);
+			duk_put_prop_literal(ctx, -2, "SOG");
+		duk_push_number(ctx, navData.cog);
+			duk_put_prop_literal(ctx, -2, "COG");
+		duk_push_number(ctx, navData.hdt);
+			duk_put_prop_literal(ctx, -2, "HDT");	
+		duk_push_number(ctx, navData.var);
+			duk_put_prop_literal(ctx, -2, "variation");	// returns 1 object                 	
+	Completions outcome = pConsole->executeFunction(functionToCall);
+	pConsole->wrapUp(outcome);
+*/
+	return;
+	// NB for now this assumes only one event = need to deallocate when using multiple events
+	}
 
