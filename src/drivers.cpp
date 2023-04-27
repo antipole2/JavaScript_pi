@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <vector>
 #include <wx/arrstr.h>
+#include "stream_events.h"
 
 extern JavaScript_pi* pJavaScript_pi;
 void throwErrorByCtx(duk_context *ctx, wxString message);
@@ -96,8 +97,7 @@ static duk_ret_t onNavData(duk_context *ctx) {  // callback with nav data
 
 //	listener.pConsole = pConsole;
 //	listener.functionToCall = functionName;
-	listener.Listen(NavDataId(),EVT_JAVASCRIPT, pJavaScript_pi->HandleNavData(ev));
-	Bind(EVT_JAVASCRIPT [](ObservedEvt ev) { pJavaScript_pi->HandleNavData(ev);}
+	Bind(EVT_NAVDATA, [&](JSnavdataEvt) { pJavaScript_pi->HandleNavData(ev);}
 	return 0;
 	}
 	

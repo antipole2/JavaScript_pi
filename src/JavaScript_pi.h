@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include "config.h"
 #include "consolePositioning.h"
+#include "stream_events.h"
 
 typedef enum FileOptions{
     DONT_CARE,
@@ -112,7 +113,6 @@ public:
     bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     void ShowTools (wxWindow* m_parent_window, int page);
-    void HandleNavData(ObservedEvt ev);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
@@ -145,11 +145,14 @@ public:
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
 	bool			m_bShowJavaScript;
 
+	ObservedEvt		JSnavdataEvt;
 private:
     wxBitmap        m_panelBitmap;
     bool            m_bJavaScriptShowIcon;
     bool            LoadConfig(void);
-	std::shared_ptr<ObservableListener> listener;
+    // stream setups
+    void			HandleNavData(ObservedEvt ev);
+	PluginNavdata listener_navdata;
 
     };
 

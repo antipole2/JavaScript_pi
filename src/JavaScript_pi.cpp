@@ -21,6 +21,7 @@
 
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
+#include "stream_events.h"
 #include "icons.h"
 #include "trace.h"
 #include "wx/tokenzr.h"
@@ -80,8 +81,11 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
 #endif // not IN_HARNESS
-	NavDataId id;
-	listener.Listen(id, EVT_JAVASCRIPT, this);
+	// construct the Navdata stream
+//	wxDEFINE_EVENT(EVT_NAVDATA, ObservedEvt);
+	NavDataId navdata_id;
+//	ObservedEvt navdata_evt;
+  	listener_navdata = std::move(GetEventNavdata(JSnavdataEvt));
 }
 
 JavaScript_pi::~JavaScript_pi(void)
@@ -817,7 +821,8 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
     };
     
 void JavaScript_pi::HandleNavData(ObservedEvt ev) {
-	PluginNavdata navData = GetEventNavdata((ObservedEvt) ev);
+	PluginNavdata navData = GetEventNavdata(ev);
+	TRACE(100, "Got navData");
 /*	Console* pConsole = ev.pConsole;
 	jsFunctionNameString_t functionToCall = ev.functionToCall;
 	TRACE(100, wxString::Format("HandleNavData Console %s function %s", pConsole->mConsoleName, functionToCall));
