@@ -824,11 +824,11 @@ void JavaScript_pi::HandleNavData(ObservedEvt ev) {
 	PluginNavdata navData = GetEventNavdata(ev);
 	TRACE(100, "Got navData");
 
-	Unbind(ev, HandleNavData(ev), this);
-/*	Console* pConsole = ev.pConsole;
+//	Unbind(ev, HandleNavData(ev), this);
+/*
+	Console* pConsole = ev.pConsole;
 	jsFunctionNameString_t functionToCall = ev.functionToCall;
 	TRACE(100, wxString::Format("HandleNavData Console %s function %s", pConsole->mConsoleName, functionToCall));
-//	Unbind(ev);	// only receive once
 	duk_context *ctx = pConsole->mpCtx;
 	// indentation is stack depth
 	duk_push_object(ctx);
