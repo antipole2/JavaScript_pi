@@ -823,6 +823,8 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
 void JavaScript_pi::HandleNavData(ObservedEvt ev) {
 	PluginNavdata navData = GetEventNavdata(ev);
 	TRACE(100, "Got navData");
+
+	Unbind(ev, HandleNavData(ev), this);
 /*	Console* pConsole = ev.pConsole;
 	jsFunctionNameString_t functionToCall = ev.functionToCall;
 	TRACE(100, wxString::Format("HandleNavData Console %s function %s", pConsole->mConsoleName, functionToCall));

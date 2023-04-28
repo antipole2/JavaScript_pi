@@ -76,7 +76,7 @@ public:
 	};
 */
     
-class JavaScript_pi : public opencpn_plugin_118
+class JavaScript_pi : public wxEvtHandler, public opencpn_plugin_118
 {
 public:
     JavaScript_pi(void *ppimgr);
