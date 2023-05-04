@@ -373,6 +373,7 @@ bool JavaScript_pi::LoadConfig(void)
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
                     consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
                     consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
+ 					if ((consoleSize.x < 40) || (consoleSize.y < 15)) consoleSize = NEW_CONSOLE_SIZE;	// in case size is uselessly small
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
@@ -497,7 +498,7 @@ bool JavaScript_pi::SaveConfig(void)
             wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
             wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
             wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
-            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetClientSize());            
+            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );

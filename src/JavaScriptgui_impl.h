@@ -1,4 +1,4 @@
-/**************************************************************************
+ /**************************************************************************
 * Project:  OpenCPN
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
@@ -283,7 +283,7 @@ public:
         if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
         consoleInit();
         Move(FromDIP(consolePosition));
-        SetClientSize(consoleSize);
+        SetSize(consoleSize);
         setConsoleMinClientSize();
         TRACE(67, wxString::Format("Constructor moved %s to DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                 
@@ -341,7 +341,7 @@ public:
             m_Script->AddText(welcome); // some initial script
             }
         m_Output->AppendText(welcome);
-        this->SetClientSize(consoleSize);
+//        this->SetClientSize(consoleSize);
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         }
     
