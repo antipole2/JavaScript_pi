@@ -20,10 +20,6 @@ set(SRC
   include/TexFont.h
 )   
 
-if (NOT QT_ANDROID)
-  list(APPEND SRC src/pidc.cpp include/pidc.h)
-endif ()
-
 # Library is used also in the plugins, so:
 set(CMAKE_POSITION_INDEPENDENT_CODE "ON")
 
@@ -33,20 +29,10 @@ add_library(ocpn::plugingl ALIAS PLUGINGL)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
   set_property(TARGET PLUGINGL PROPERTY COMPILE_FLAGS "-fvisibility=hidden")
 endif ()
-
 target_link_libraries(PLUGINGL PRIVATE ocpn::api)
 
-if (TARGET OpenGL::GLU)
-  target_link_libraries(PLUGINGL PRIVATE OpenGL::GLU)
-endif()
-
 if (WIN32)
-  target_link_libraries(PLUGINGL PRIVATE windows::headers)
-endif ()
-
-find_path(GLU_HEADERS NAMES GL/glu.h)
-if (GLU_HEADERS)
-  target_include_directories(PLUGINGL PRIVATE ${GLU_HEADERS})
+target_link_libraries(PLUGINGL PRIVATE windows::headers)
 endif ()
 
 target_include_directories(PLUGINGL PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

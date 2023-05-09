@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.1)
 
 if (TARGET ocpn::wxjson)
-  return ()
+    return ()
 endif ()
 
 if (NOT CMAKE_MODULE_PATH)
@@ -31,9 +31,7 @@ add_library(WXJSON STATIC ${SRC})
 add_library(ocpn::wxjson ALIAS WXJSON)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-  set_property(TARGET WXJSON
-    PROPERTY COMPILE_FLAGS "-fvisibility=hidden -Wno-unused-but-set-variable"
-  )
+  set_property(TARGET WXJSON PROPERTY COMPILE_FLAGS "-fvisibility=hidden")
 endif ()
 target_include_directories(WXJSON PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(WXJSON PRIVATE ${wxWidgets_LIBRARIES})
