@@ -1,4 +1,4 @@
-/**************************************************************************
+ /**************************************************************************
 * Project:  OpenCPN
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
@@ -32,6 +32,7 @@
 #include "buildConfig.h"
 #include "consolePositioning.h"
 #include <wx/event.h>
+//#include <cstdlib>
 
 #define DUK_DUMP true
 #if DUK_DUMP
@@ -65,11 +66,10 @@ enum {
     STYLE_BOLD,
     STYLE_UNDERLINE
     };
+    
 
-#define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
-
-// timers
 #include "wx/datetime.h"
+#define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
 class TimeActions  // holds times at which function is to be called
     {
 public:
@@ -81,7 +81,6 @@ public:
 WX_DECLARE_OBJARRAY(TimeActions, TimesArray);
 
 // menus
-//#include "wx/datetime.h"
 class MenuActions
     {
 public:
@@ -154,7 +153,7 @@ public:
     std::vector<dialogElement> dialogElementsArray;// will be an array of dialogue elements
     };
 
-class AlertDetails // holds details of open dialogue
+class AlertDetails // holds details of open alert dialogue
     {
 public:
     wxDialog    *palert;    // points to open alert else nullptr
@@ -173,6 +172,24 @@ public:
     wxString    function;   // function to be called back
     };
 
+typedef enum STREAM_MESSAGE_TYPES {	// types of message handled via streams
+    MESSAGE_NMEA0183_NON_STREAM = 0,
+    MESSAGE_NMEA0183,
+    MESSAGE_N2K,
+    MESSAGE_SK
+    } STREAM_MESSAGE_TYPES;
+
+struct  streamMessageCntl {	// controls how we handle stream events
+	int messageCntlId;
+	STREAM_MESSAGE_TYPES    messageType;
+	wxString id0183;
+	std::shared_ptr<ObservableListener> listener;
+	jsFunctionNameString_t functionName;
+	streamMessageCntl()
+		: messageCntlId(rand()),  functionName("") {}
+	};
+    
+
 class Console : public m_Console {
 public:
     Console     *mpNextConsole {nullptr}; // -> next console in chained list of consoles
@@ -184,7 +201,6 @@ public:
     bool        mJSrunning {false}; // true while any JS code is running
     bool        mscriptToBeRun {false};   // true if script to be run because it was chained
     status_t    mStatus;     // the status of this process
-    
 
     // callback management
     bool        mTimerActionBusy;  // true while handling timer event to stop them piling up
@@ -201,6 +217,7 @@ public:
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
     int         mConsoleRepliesAwaited {0};   // number of console replies awaited
+    std::vector<streamMessageCntl> m_streamMessageCntlsVector {};	// vector of blocks controlling how streams are handled
 
     // duktape timeout handling
     wxLongLong m_pcall_endtime;         // time we must end execution (msecs since 1970)
@@ -221,6 +238,8 @@ public:
     bool        mWaitingToRun {false};  // true if an auto-run script has been loaded but not yet run
     
     bool		m_parked;		// true if this console parked
+    
+    int			mStreamEventCntlId;	// where the event constructor picks up the StreamEventCntlId
 
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
@@ -237,6 +256,10 @@ public:
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
     void OnClose( wxCloseEvent& event );
+    void HandleNMEAstream(ObservedEvt& ev, int id);
+    
+
+    
 
 #ifdef SOCKETS
 	DECLARE_EVENT_TABLE()
@@ -248,7 +271,6 @@ public:
 
 private:
     wxPoint		m_parkedPosition;	// if parked, parked position in DIP
-
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
@@ -283,7 +305,7 @@ public:
         if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
         consoleInit();
         Move(FromDIP(consolePosition));
-        SetClientSize(consoleSize);
+        SetSize(consoleSize);
         setConsoleMinClientSize();
         TRACE(67, wxString::Format("Constructor moved %s to DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                 
@@ -337,11 +359,12 @@ public:
         	wxString patchString = wxEmptyString;
         	if (PLUGIN_VERSION_PATCH > 0) patchString = wxString(_(".")) << PLUGIN_VERSION_PATCH;
         	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR\
-        			<<  patchString  << " " << PLUGIN_VERSION_DATE << " " << PLUGIN_VERSION_COMMENT << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
+        			<<  patchString  << " " << PLUGIN_VERSION_COMMENT << " " << PLUGIN_VERSION_DATE << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
         m_Output->AppendText(welcome);
-        this->SetClientSize(consoleSize);
+//        this->SetClientSize(consoleSize);
+
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         }
     
@@ -394,6 +417,7 @@ public:
 		mpMessageDialog = nullptr;
 		mConsoleRepliesAwaited = 0;
 		m_exitFunction = wxEmptyString;
+		m_streamMessageCntlsVector.clear();
 		#ifdef SOCKETS
 			clearSockets();
 		#endif
@@ -440,13 +464,14 @@ public:
     void doRunCommand(Brief brief){
         // this is implemented as a method so we can lazy call it with CallAfter
         if (run_button->GetLabel() == _("Run")){
+            TRACE(0, "------------------ Console " + mConsoleName + " about to run");
             Completions outcome;
             mBrief = brief;
             outcome = run(m_Script->GetText());
        		if (!isBusy()) wrapUp(outcome);
             }
         else { // Stop button clicked - we have a script running - kill it off
-            TRACE(4, mConsoleName + " script stopped");
+            TRACE(0, "------------------ Console " + mConsoleName + " stopping");
             m_explicitResult = true;
             m_result = _("script was stopped");
             mStatus = 0;
@@ -523,7 +548,7 @@ public:
             TRACE(15,mConsoleName + "->isWaiting() returning cached result " + (mWaiting?"true":"false"));
             return mWaiting;
             }
-        TRACE(4,mConsoleName + "->isWaiting() doing full check");
+        TRACE(15,mConsoleName + "->isWaiting() doing full check");
         bool result = false;
         int count;
         if (
@@ -533,17 +558,18 @@ public:
             (mSockets.GetCount() > 0) ||
 #endif
             (m_NMEAmessageFunction != wxEmptyString) ||
+            (!m_streamMessageCntlsVector.empty()) ||
             (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
             (mpMessageDialog != nullptr) ||
             (mAlert.palert != nullptr) ){
-            	TRACE(5, mConsoleName + "->isWaiting() 1st if true");
+            	TRACE(15, mConsoleName + "->isWaiting() 1st if true");
                 result = true;
                 }
         else if ((count = (int)mMessages.GetCount()) > 0){ // look at messages
              for(unsigned int index = 0; index < count; index++){
                 if (mMessages[index].functionName != wxEmptyString) {
-                    TRACE(5, mConsoleName + "->isWaiting() else if true");
+                    TRACE(15, mConsoleName + "->isWaiting() else if true");
                     result = true;
                     break;
                     }
@@ -552,7 +578,7 @@ public:
         if (mConsoleRepliesAwaited > 0) result = true;
         mWaiting = result;
         mWaitingCached = true;
-        TRACE(4,mConsoleName + "->isWaiting() returning new result " + (mWaiting?"true":"false"));
+        TRACE(15,mConsoleName + "->isWaiting() returning new result " + (mWaiting?"true":"false"));
         return mWaiting;
         }
     
@@ -623,6 +649,7 @@ public:
 				mpCtx = nullptr;
 				}
 			}
+        TRACE(0, "------------------ Console " + mConsoleName + " wrapped up");
 		}
 
     void wrapUpWorks(Completions reason) {    // consider clearing down and destroying context etc.
@@ -708,7 +735,7 @@ public:
      	else {
      		replyToConsole(reason);	// only replies if so set up
 			}
-        if (reason != CLOSED) Show();   // make console visiibleunless was binned
+        if (reason != CLOSED) Show();   // make console visible unless was binned
 		}
         
     void replyToConsole(Completions reason){ // reply according to brief
@@ -784,6 +811,7 @@ public:
 		clearDialog();
 		clearAlert();
 		clearMenus();
+		m_streamMessageCntlsVector.clear();
 		m_NMEAmessageFunction = wxEmptyString;  // function to invoke on receipt of NMEA message, else ""
     	m_activeLegFunction = wxEmptyString;  // function to invoke on receipt of active leg, else ""
 		m_exitFunction = wxEmptyString;  // function to call on exit, else ""
@@ -812,15 +840,16 @@ public:
         // throw an error from within c++ code called from running script
         // either there is an error object on the stack or a message
         // ! do not call otherwise
-        TRACE(4, mConsoleName + "->throw_error() " + message);        m_result = wxEmptyString;    // supress result
+        TRACE(4, mConsoleName + "->throw_error() " + message);
+        m_result = wxEmptyString;    // supress result
         m_explicitResult = true;    // supress result
         if (!duk_is_error(ctx, -1)){
             // we do not have an error object on the stack
             duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
             }
         m_hadError = true;
-        duk_throw(ctx);
         mRunningMain = false;
+        duk_throw(ctx);   // we don't come back from this
         }
     
     void message(int style, wxString message){
@@ -947,19 +976,9 @@ public:
     	
     	wxSize textSize = this->GetTextExtent(mConsoleName);
     	minSize.x = pJavaScript_pi->m_parkingStub*scale + textSize.x + 3*scale;	// added 3 to be on safe side
-//    	minSize.y = pJavaScript_pi->m_parkingMinHeight*scale;
     	TRACE(4, wxString::Format("setConsoleMinClientSize text %s, size X:%i Y: %i", mConsoleName, textSize.x, textSize.y));  	
-//    	SetMinSize(minSize);
-//    	minSize = GetClientSize();	// now force vertical min size to client zero
     	minSize.y = 0;
     	SetMinClientSize(minSize);
-/*
-    	// make sure is no smaller than new min size
-    	size = GetSize();
-    	if (size.x < minSize.x) size.x = minSize.x;
-    	if (size.y < minSize.y) size.y = minSize.y;
-    	SetSize(size); 
-*/	
     	}
     	
     void park(){	// park this console
@@ -1007,7 +1026,7 @@ public:
     
     void destroyConsole(){
         Destroy();
-    };
+    	};
     
     void bin(){  // move console to bin
         Console *pConsole, *pFreedConsole;
@@ -1023,14 +1042,14 @@ public:
             pJavaScript_pi->mpBin = pFreedConsole;
             }
         pFreedConsole->Hide();
-    }
+	    }
     
     void floatOnParent(bool yes){	// set the wxFRAME_FLOAT_ON_PARENT style
     	long styles = GetWindowStyle();
 		if (yes) styles |= wxFRAME_FLOAT_ON_PARENT;
 		else styles ^= wxFRAME_FLOAT_ON_PARENT;
 		SetWindowStyle(styles);
-    }
+	    }
     
     wxString consoleDump(){    // returns string being dump of selected information from console structure
         wxString ptrToString(Console* address);
@@ -1098,6 +1117,20 @@ public:
         dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format("Active with %d elements",  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
+
+        dump += "m_streamMessageCntlsVector\t";
+        if (m_streamMessageCntlsVector.empty()) dump += "<empty>\n";
+        else { dump += "\n";
+			for (auto i = m_streamMessageCntlsVector.begin(); i != m_streamMessageCntlsVector.end(); i++){
+				auto entry = *i;
+				if (i != m_streamMessageCntlsVector.begin()) dump += wxString::Format("\t\t\t\t\t--------------\n");
+				dump += wxString::Format("\t\t\t\t\tmessageCntlId:\t%d\n", entry.messageCntlId);			
+				dump += wxString::Format("\t\t\t\t\tmessageType:\t%d\n", entry.messageType);
+				dump += wxString::Format("\t\t\t\t\tid0183:\t\t\t%s\n", entry.id0183);
+				dump += wxString::Format("\t\t\t\t\tfunctionName:\t%s\n", entry.functionName);
+				}
+			}
+
         dump += "m_activeLegFunction:\t\t" + m_activeLegFunction + "\n";
         dump += "m_exitFunction:\t" + m_exitFunction + "\n";
         dump += "m_explicitResult:\t\t" + (m_explicitResult?_("true"):_("false")) + "\n";
@@ -1169,6 +1202,44 @@ private:
         duk_pop(mpCtx);   // pop off function or undefined
         return false;
         }
+    
+public:
+    void setupNMEA0183stream(duk_context *ctx){
+        // this method is called from the DukTape engine to set up receipt of NMEA0183 messages
+        wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+        
+        duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEAsentence within onExit function");
+        if (nargs == 0) { // empty call - cancel any waiting callbacks
+            m_streamMessageCntlsVector.clear();
+            }
+        else {    // create the control block
+            streamMessageCntl messageCntl;
+            		
+            messageCntl.functionName = extractFunctionName(ctx,0);
+            if (nargs == 1)  // This is non-message type set-up.. Will be handled via th old mechanism
+                messageCntl.messageType = MESSAGE_NMEA0183_NON_STREAM;
+            else if (nargs == 2){
+                messageCntl.messageType = MESSAGE_NMEA0183;
+                duk_require_string(ctx, 1);
+                messageCntl.id0183 = wxString(duk_to_string(ctx, 1));
+                NMEA0183Id id(messageCntl.id0183.ToStdString());
+                wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
+                messageCntl.listener = GetListener(id, EVT_JAVASCRIPT, this);
+                int ident = messageCntl.messageCntlId;	// use a simple int to avoid any issues with a class member
+                TRACE(23, wxString::Format("Before bind messageCntl.messageCntlId is %d", ident));
+                Bind(EVT_JAVASCRIPT, [&, ident](ObservedEvt ev) {
+                    TRACE(23, wxString::Format("Inside lamda ident is %d", ident));
+                    HandleNMEAstream(ev, ident);
+                    });
+                m_streamMessageCntlsVector.push_back(messageCntl);
+                }
+            else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");
+            mWaitingCached = mWaiting = true;
+            }      
+	    }
+
+    
     };
 
 class jsButton : public wxButton {

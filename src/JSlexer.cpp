@@ -94,6 +94,8 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             onExit\
             stopScript\
             messageBox\
+            toClipboard\
+            fromClipboard\
             OCPNpushNMEA\
             OCPNgetMessageNames\
             OCPNsendMessage\

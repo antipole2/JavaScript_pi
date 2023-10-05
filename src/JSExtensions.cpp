@@ -22,6 +22,8 @@
 #include <wx/event.h>
 #include <wx/textfile.h>
 #include <wx/file.h>
+#include <wx/clipbrd.h>
+#include <wx/dataobj.h>
 
 /*  On hold for now - cannot find a way of handling the variable arguments
  // sprintf function
@@ -661,6 +663,33 @@ static duk_ret_t duk_onExit(duk_context *ctx){
     duk_pop(ctx);
     return 0;
     }
+    
+static duk_ret_t duk_copy(duk_context *ctx){
+	// copy arg to clipboard
+	Console *pConsole = findConsoleByCtx(ctx);
+	if (!duk_is_string(ctx, 0)) pConsole->throw_error(ctx, "copyToClip requires string");
+	if (!wxTheClipboard->Open()) pConsole->throw_error(ctx, "copyToClip clipboard is busy");
+	wxTheClipboard->SetData(new wxTextDataObject(duk_get_string(ctx, 0)));
+	wxTheClipboard->Close();		
+	return 0;
+	}
+	
+static duk_ret_t duk_paste(duk_context *ctx){
+	// get string from clipboard
+	Console *pConsole = findConsoleByCtx(ctx);
+	if (!wxTheClipboard->Open()) pConsole->throw_error(ctx, "copyFromClip clipboard is busy");
+	if (wxTheClipboard->IsSupported( wxDF_TEXT )){
+		wxTextDataObject data;
+        wxTheClipboard->GetData( data );
+        duk_push_string(ctx, data.GetText());
+        wxTheClipboard->Close();
+        return 1;
+		}
+	else {
+		wxTheClipboard->Close();
+		pConsole->throw_error(ctx, "pasteFromClip clipboard has no string");		
+		}
+	}
 
 #ifdef DUK_DUMP
 
@@ -806,6 +835,15 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_string(ctx, "onExit");
     duk_push_c_function(ctx, duk_onExit , 1 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "toClipboard");
+    duk_push_c_function(ctx, duk_copy, 1 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+    duk_push_string(ctx, "fromClipboard");
+    duk_push_c_function(ctx, duk_paste, 0 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
 
 #if 0
 	// experiment only

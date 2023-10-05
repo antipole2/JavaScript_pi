@@ -22,10 +22,8 @@
 #include "JavaScriptgui.h"
 #include "toolsDialogImp.h"
 #include <bitset>
-#include <stdio.h>
 #include "config.h"
 #include "consolePositioning.h"
-//#include "stream_events.h"
 
 typedef enum FileOptions{
     DONT_CARE,
@@ -51,15 +49,11 @@ typedef enum Completions {
 
 typedef  std::bitset<Completions_count> status_t;
 
-typedef wxString jsFunctionNameString_t;
-
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
 
  #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
- 
-// wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
 
 class Console;
 
@@ -67,16 +61,8 @@ class Position {
 public:
     double lat; double lon;
     };
-    
-/*
-class JSobservedEvt : public ObservedEvt{
-public:
-	Console* pConsole;	// console to handle this event
-	jsFunctionNameString_t functionToCall;
-	};
-*/
-    
-class JavaScript_pi : public wxEvtHandler, public opencpn_plugin_118
+
+class JavaScript_pi : public opencpn_plugin_118
 {
 public:
     JavaScript_pi(void *ppimgr);
@@ -151,10 +137,6 @@ private:
     wxBitmap        m_panelBitmap;
     bool            m_bJavaScriptShowIcon;
     bool            LoadConfig(void);
-    // stream setups
-    void			HandleNavData(ObservedEvt ev);
-	std::shared_ptr<ObservableListener> listener_navdata;
-
     };
 
 #endif  // JavaScript_pi_h

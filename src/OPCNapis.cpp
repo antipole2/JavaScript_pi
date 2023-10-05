@@ -356,27 +356,11 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
 }
 
 static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    Console *pConsole = findConsoleByCtx(ctx);
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonNMEAsentence within onExit function");
-    if (nargs == 0) { // empty call - cancel any waiting callback
-        pConsole->m_NMEAmessageFunction = wxEmptyString;
-        pConsole->mWaitingCached = false;
-        return(0);
-        }
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setupNMEA0183stream(ctx);   // needs to be in a method
+    return 0;
+};
 
-    if (pConsole->m_NMEAmessageFunction != wxEmptyString){
-        // request already outstanding
-        throwErrorByCtx(ctx, "OCPNonNMEAsentence called with call outstanding");
-        }
-    else{
-        duk_require_function(ctx, 0);
-        pConsole->m_NMEAmessageFunction = extractFunctionName(ctx,0);
-        pConsole->mWaitingCached = pConsole->mWaiting = true;
-        }
-    return 0;  // returns no arg
-    }
-    
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
@@ -554,21 +538,11 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
     duk_idx_t nargs;  // number of args in call
     duk_ret_t result = 0;
     wxString sentence;  // the NMEA sentence
-    auto ComputeChecksum{       // Using Lambda function here to keep it private to this function
-        [](wxString sentence) {
-             unsigned char calculated_checksum = 0;
-             for(wxString::const_iterator i = sentence.begin()+1; i != sentence.end() && *i != '*'; ++i)
-                 calculated_checksum ^= static_cast<unsigned char> (*i);
-
-            return( wxString::Format("%02X", calculated_checksum) );
-        }
-    };
-    
     nargs = duk_get_top(ctx);
     if ((nargs == 1) &&  (duk_get_type(ctx, 0) == DUK_TYPE_STRING)){
         // we have a single string - good to go
         sentence = wxString(duk_to_string(ctx,0));
-        sentence.Trim();
+        sentence.Trim();        
         // we will drop any existing checksum
         int starPos = sentence.Find("*");
         if (starPos != wxNOT_FOUND){ // yes there is one
@@ -576,9 +550,10 @@ static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack 
             }
         if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
     		throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $....., or !.....,");
-        wxString Checksum = ComputeChecksum(sentence);
+		wxString NMEAchecksum(wxString sentence);
+		wxString sum = NMEAchecksum(sentence);
         sentence = sentence.Append("*");
-        sentence = sentence.Append(Checksum);
+        sentence = sentence.Append(sum);
         sentence = sentence.Append("\r\n");
         PushNMEABuffer(sentence);
         return(result);

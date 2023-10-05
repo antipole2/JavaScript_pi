@@ -50,7 +50,7 @@ WX_DEFINE_OBJARRAY(SocketRecordsArray);
 #endif
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
- void Console::OnActivate(wxActivateEvent& event){
+void Console::OnActivate(wxActivateEvent& event){
  	return;
     wxFrame* pConsole = wxDynamicCast(event.GetEventObject(), wxFrame);
     long int style = pConsole->GetWindowStyle();
@@ -175,7 +175,6 @@ void Console::OnRun( wxCommandEvent& event ) {
 	if (script == wxEmptyString)
     clearBrief();
     mConsoleRepliesAwaited = 0;
-    TRACE(0, "------------------ Run console " + mConsoleName);
     doRunCommand(mBrief);
     }
 
@@ -211,6 +210,15 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
+        if (this->isBusy()) {
+            // We will not delete running console, although it is safe to do so
+            wxString text = "Console close: stop";
+            if (!this->m_Script->IsEmpty()) text += " and clear";
+            text +=  " the script first";
+            this->message(STYLE_RED, text);
+            event.Veto(true);
+            return;
+            }
         if (!this->m_Script->IsEmpty()) {
             // We will not delete a console with a script
             this->message(STYLE_RED, "Console close: clear the script first");
@@ -242,3 +250,45 @@ void Console::OnTools( wxCommandEvent& event){
     pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, 0);
     return;
     }
+    
+
+void Console::HandleNMEAstream(ObservedEvt& ev, int messageCntlId) {
+    Completions outcome;
+    bool matched {false};
+    TRACE(23, wxString::Format("Starting HandleNMEAstream messageCntlId is %d", messageCntlId));
+    // look for our messageCntl entry
+    // we reverse iterate because we may remove items as we go
+    for (int i = m_streamMessageCntlsVector.size()-1; i >= 0; i--){
+        auto entry = m_streamMessageCntlsVector[i];
+        if (entry.messageCntlId == messageCntlId) {
+            wxString NMEAchecksum(wxString sentence);
+            wxUniChar star = '*';
+            wxString checksum;
+            wxString correctChecksum;
+            matched = true;
+            NMEA0183Id nmeaId(entry.id0183.ToStdString());
+            wxString sentence = wxString(GetN0183Payload(nmeaId, ev));
+            // check the checksum            
+            sentence.Trim();
+            size_t starPos = sentence.find(star); // position of *
+            if (starPos != wxNOT_FOUND){ // yes there is one
+                checksum = sentence.Mid(starPos + 1, 2);
+                sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+                }
+            correctChecksum = NMEAchecksum(sentence);
+            bool OK = (checksum == correctChecksum) ? true : false;
+            duk_push_object(mpCtx);
+                duk_push_string(mpCtx, sentence.c_str());
+                    duk_put_prop_literal(mpCtx, -2, "value");
+                duk_push_boolean(mpCtx, OK);
+                    duk_put_prop_literal(mpCtx, -2, "OK");
+            // drop this element of vector before executing function
+            m_streamMessageCntlsVector.erase(m_streamMessageCntlsVector.begin() + i);
+            outcome = executeFunction(entry.functionName);
+            if (outcome == MORETODO) continue;  // ?????
+            }
+        }
+    if (!matched) this->message(STYLE_RED, "HandleNMEAstream failed to match messageCntl entry");
+    wrapUp(outcome);
+    }
+

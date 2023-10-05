@@ -21,7 +21,6 @@
 
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
-//#include "stream_events.h"
 #include "icons.h"
 #include "trace.h"
 #include "wx/tokenzr.h"
@@ -80,12 +79,8 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     else
         wxLogWarning("JavaScript panel icon has NOT been loaded");
     m_bShowJavaScript = false;
-#endif // not IN_HARNESS
-	// construct the Navdata stream
-	wxDEFINE_EVENT(EVT_NAVDATA, ObservedEvt);
-	NavDataId navdata_id;
-  	listener_navdata = std::move(GetListener(navdata_id, EVT_NAVDATA, this));
-  	Bind(EVT_NAVDATA, [&](ObservedEvt ev) { HandleNavData(ev);});
+	
+	#endif // not IN_HARNESS
 }
 
 JavaScript_pi::~JavaScript_pi(void)
@@ -379,6 +374,7 @@ bool JavaScript_pi::LoadConfig(void)
                     consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
                     consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
                     consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
+ 					if ((consoleSize.x < 40) || (consoleSize.y < 15)) consoleSize = NEW_CONSOLE_SIZE;	// in case size is uselessly small
                     dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
                     dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
                     alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
@@ -503,7 +499,7 @@ bool JavaScript_pi::SaveConfig(void)
             wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
             wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
             wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
-            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetClientSize());            
+            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );
@@ -525,6 +521,7 @@ bool JavaScript_pi::SaveConfig(void)
 
 void JavaScript_pi::SetNMEASentence(wxString &sentence)
 {    // NMEA sentence received
+	wxString NMEAchecksum(wxString sentence);
     wxString thisFunction, checksum, correctChecksum;
     size_t starPos;
     bool OK {false};
@@ -534,48 +531,45 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     Console *m_pConsole;
     void JSduk_start_exec_timeout(Console);
     void  JSduk_clear_exec_timeout(Console);
-    auto ComputeChecksum{       // Using Lambda function here to keep it private to this function
-        [](wxString sentence) {
-            unsigned char calculated_checksum = 0;
-            for(wxString::const_iterator i = sentence.begin()+1; i != sentence.end() && *i != '*'; ++i)
-                calculated_checksum ^= static_cast<unsigned char> (*i);
-            return( wxString::Format("%02X", calculated_checksum) );
-            }
-        };
-    bool haveDoneChecksum = false;
+    
+    // check checksum and set OK accordingly
+    sentence.Trim();
+	starPos = sentence.find(star); // position of *
+	if (starPos != wxNOT_FOUND){ // yes there is one
+		checksum = sentence.Mid(starPos + 1, 2);
+		sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+		}
+	correctChecksum = NMEAchecksum(sentence);
+	OK = (checksum == correctChecksum) ? true : false;
+	sentence = sentence.BeforeFirst('*');   // drop * onwards
+
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
-        if (!haveDoneChecksum){ // only do this once, avoiding repeat for each console
-            thisFunction = m_pConsole->m_NMEAmessageFunction;  // function to be called - if any
-            if (thisFunction == wxEmptyString) continue;  // not waiting for NMEA
-            m_pConsole->m_NMEAmessageFunction = wxEmptyString; // call only once
-            sentence.Trim();
-            // check the checksum
-            starPos = sentence.find(star); // position of *
-            if (starPos != wxNOT_FOUND){ // yes there is one
-                checksum = sentence.Mid(starPos + 1, 2);
-                sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
-                }
-            correctChecksum = ComputeChecksum(sentence);
-            OK = (checksum == correctChecksum) ? true : false;
-            sentence = sentence.BeforeFirst('*');   // drop * onwards
-            }
         ctx = m_pConsole->mpCtx;
         if (m_pConsole->mJSrunning){
             m_pConsole->message(STYLE_RED, "NMEA callback while JS active - ignored\n");
             return;
             }
-
-        duk_push_object(ctx);
-        duk_push_string(ctx, sentence.c_str());
-        duk_put_prop_literal(ctx, -2, "value");
-        duk_push_boolean(ctx, OK);
-        duk_put_prop_literal(ctx, -2, "OK");
-        outcome = m_pConsole->executeFunction(thisFunction);
-        m_pConsole->wrapUp(outcome);
+		// look for all calls waiting for this general NMEA
+		// we reverse iterate because we may remove items as we go
+		for (int i = m_pConsole->m_streamMessageCntlsVector.size()-1; i >= 0; i--){
+				auto entry = m_pConsole->m_streamMessageCntlsVector[i];
+				if (entry.messageType == MESSAGE_NMEA0183_NON_STREAM){
+					duk_push_object(ctx);
+					duk_push_string(ctx, sentence.c_str());
+					duk_put_prop_literal(ctx, -2, "value");
+					duk_push_boolean(ctx, OK);
+					duk_put_prop_literal(ctx, -2, "OK");
+                    // drop this element of vector before executing function
+                    m_pConsole->m_streamMessageCntlsVector.erase(m_pConsole->m_streamMessageCntlsVector.begin() + i);
+					outcome = m_pConsole->executeFunction(entry.functionName);
+					if (outcome == MORETODO) continue;									
+					}
+				}
+		m_pConsole->wrapUp(outcome);
         }   // end for this console
-    }
+    }  
 
 void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
 {   // note the pfix for others use
@@ -819,39 +813,4 @@ void JavaScript_pi::ShowTools(wxWindow *m_parent_window, int page){
     pTools->setupPage(page);
     return;
     };
-    
-void JavaScript_pi::HandleNavData(ObservedEvt ev) {
-	PluginNavdata navData = GetEventNavdata(ev);
-	TRACE(100, "Got navData");
-
-//	Unbind(ev, HandleNavData(ev), this);
-/*
-	Console* pConsole = ev.pConsole;
-	jsFunctionNameString_t functionToCall = ev.functionToCall;
-	TRACE(100, wxString::Format("HandleNavData Console %s function %s", pConsole->mConsoleName, functionToCall));
-	duk_context *ctx = pConsole->mpCtx;
-	// indentation is stack depth
-	duk_push_object(ctx);
-		duk_push_number(ctx, navData.time);
-			duk_put_prop_literal(ctx, -2, "fixTime");	
-		duk_push_object(ctx);
-			duk_push_number(ctx, navData.lat);
-				duk_put_prop_literal(ctx, -2, "latitude");
-			duk_push_number(ctx, navData.lon);
-				duk_put_prop_literal(ctx, -2, "longitude");
-			duk_put_prop_literal(ctx, -2, "position");
-		duk_push_number(ctx, navData.sog);
-			duk_put_prop_literal(ctx, -2, "SOG");
-		duk_push_number(ctx, navData.cog);
-			duk_put_prop_literal(ctx, -2, "COG");
-		duk_push_number(ctx, navData.hdt);
-			duk_put_prop_literal(ctx, -2, "HDT");	
-		duk_push_number(ctx, navData.var);
-			duk_put_prop_literal(ctx, -2, "variation");	// returns 1 object                 	
-	Completions outcome = pConsole->executeFunction(functionToCall);
-	pConsole->wrapUp(outcome);
-*/
-	return;
-	// NB for now this assumes only one event = need to deallocate when using multiple events
-	}
 
