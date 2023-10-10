@@ -176,7 +176,8 @@ typedef enum STREAM_MESSAGE_TYPES {	// types of message handled via streams
     MESSAGE_NMEA0183_NON_STREAM = 0,
     MESSAGE_NMEA0183,
     MESSAGE_N2K,
-    MESSAGE_SK
+    MESSAGE_SK,
+    MESSAGE_NAVIGATION
     } STREAM_MESSAGE_TYPES;
 
 struct  streamMessageCntl {	// controls how we handle stream events
@@ -257,6 +258,7 @@ public:
     void OnActivate(wxActivateEvent& event);
     void OnClose( wxCloseEvent& event );
     void HandleNMEAstream(ObservedEvt& ev, int id);
+    void HandleNavdata(ObservedEvt& ev, int id);
     
 
     
@@ -455,7 +457,6 @@ public:
 	   duk_int_t dukOutcome = duk_peval(mpCtx);    // run code **** this is where it all happens ****
 	   clearTimeout();
 	   mRunningMain = false;
-	   
 	   outcome = afterwards(dukOutcome);
       TRACE(4, wxString::Format("%s->run() completed with outcome %d",mConsoleName, outcome ));
 	   return outcome;
@@ -545,10 +546,10 @@ public:
     bool isWaiting() { // returns true if waiting for anything
         // for efficiencey, we may have a cached result in mWaiting
         if (mWaitingCached) {
-            TRACE(15,mConsoleName + "->isWaiting() returning cached result " + (mWaiting?"true":"false"));
+            TRACE(75,mConsoleName + "->isWaiting() returning cached result " + (mWaiting?"true":"false"));
             return mWaiting;
             }
-        TRACE(15,mConsoleName + "->isWaiting() doing full check");
+        TRACE(75,mConsoleName + "->isWaiting() doing full check");
         bool result = false;
         int count;
         if (
@@ -563,13 +564,13 @@ public:
             (mDialog.pdialog != nullptr) ||
             (mpMessageDialog != nullptr) ||
             (mAlert.palert != nullptr) ){
-            	TRACE(15, mConsoleName + "->isWaiting() 1st if true");
+            	TRACE(75, mConsoleName + "->isWaiting() 1st if true");
                 result = true;
                 }
         else if ((count = (int)mMessages.GetCount()) > 0){ // look at messages
              for(unsigned int index = 0; index < count; index++){
                 if (mMessages[index].functionName != wxEmptyString) {
-                    TRACE(15, mConsoleName + "->isWaiting() else if true");
+                    TRACE(75, mConsoleName + "->isWaiting() else if true");
                     result = true;
                     break;
                     }
@@ -578,7 +579,7 @@ public:
         if (mConsoleRepliesAwaited > 0) result = true;
         mWaiting = result;
         mWaitingCached = true;
-        TRACE(15,mConsoleName + "->isWaiting() returning new result " + (mWaiting?"true":"false"));
+        TRACE(75,mConsoleName + "->isWaiting() returning new result " + (mWaiting?"true":"false"));
         return mWaiting;
         }
     
@@ -619,16 +620,19 @@ public:
 		  TRACE(4, mConsoleName + "->afterwards()  completed with something to wait for");
 		  duk_push_global_object(mpCtx);  // get our compiled script
 		  if (
-			 functionMissing(m_NMEAmessageFunction) ||
-			 functionMissing(mDialog.functionName) ||
-			 functionMissing(m_activeLegFunction) )
-			 outcome = HAD_ERROR;;
+				 functionMissing(m_NMEAmessageFunction) ||
+				 functionMissing(mDialog.functionName) ||
+				 functionMissing(m_activeLegFunction)
+			 )
+			 outcome = HAD_ERROR;
 		  if (!mTimes.IsEmpty()){
 			 // has set up one or more timers - check them out
 			 int count = (int)mTimes.GetCount();
 			 for (int i = 0; i < count; i++)
 				if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
-			 }
+				}
+		 for (int i = m_streamMessageCntlsVector.size()-1; i >= 0; i--)
+                if (functionMissing(m_streamMessageCntlsVector[i].functionName)) outcome = HAD_ERROR;
 		  if (!mMenus.IsEmpty()){
 			 // has set up one or more context menus - check them out
 			 int count = (int)mMenus.GetCount();
@@ -648,15 +652,15 @@ public:
 				duk_destroy_heap(mpCtx);
 				mpCtx = nullptr;
 				}
+            TRACE(0, "------------------ Console " + mConsoleName + " wrapped up");
 			}
-        TRACE(0, "------------------ Console " + mConsoleName + " wrapped up");
 		}
 
     void wrapUpWorks(Completions reason) {    // consider clearing down and destroying context etc.
     	// this is guts of wrapUp as sub-function to allow multiple returns to wrapUp
         wxString statusesToString(status_t mStatus);
         wxString formErrorMessage(duk_context *ctx);
-        
+        mStatus.reset(MORETODO);
         mStatus.set(reason);
         TRACE(4, wxString::Format("%s->wrapUpWorks() with status %d and now %s\n%s",mConsoleName, reason, statusesToString(mStatus), dukDump()));
 #if TRACE_YES
@@ -1190,7 +1194,7 @@ public:
 #endif
     
 private:
-    bool functionMissing(wxString function){ // checks if function missing in global object
+    bool functionMissing(wxString function){ // returns true if function missing in global object
         // global object must be on stack when this is called
         if (function == wxEmptyString) return false;
         if (!duk_get_prop_string(mpCtx, -1, function.c_str())){  // Does function exist in there?
@@ -1211,36 +1215,56 @@ public:
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
         if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEAsentence within onExit function");
         if (nargs == 0) { // empty call - cancel any waiting callbacks
+        	m_NMEAmessageFunction = wxEmptyString;
             m_streamMessageCntlsVector.clear();
             }
-        else {    // create the control block
-            streamMessageCntl messageCntl;
-            		
+        else if (nargs == 1) {    // old-style general listen. Will be handled via th old mechanism 
+        	if (m_NMEAmessageFunction != wxEmptyString) throw_error(ctx, "OCPNonNMEAsentence called with general call outstanding");		
+            m_NMEAmessageFunction = extractFunctionName(ctx,0);
+            }
+        else if (nargs == 2){  // to be handled by new event mechanism
+        	streamMessageCntl messageCntl;
             messageCntl.functionName = extractFunctionName(ctx,0);
-            if (nargs == 1)  // This is non-message type set-up.. Will be handled via th old mechanism
-                messageCntl.messageType = MESSAGE_NMEA0183_NON_STREAM;
-            else if (nargs == 2){
-                messageCntl.messageType = MESSAGE_NMEA0183;
-                duk_require_string(ctx, 1);
-                messageCntl.id0183 = wxString(duk_to_string(ctx, 1));
-                NMEA0183Id id(messageCntl.id0183.ToStdString());
-                wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
-                messageCntl.listener = GetListener(id, EVT_JAVASCRIPT, this);
-                int ident = messageCntl.messageCntlId;	// use a simple int to avoid any issues with a class member
-                TRACE(23, wxString::Format("Before bind messageCntl.messageCntlId is %d", ident));
-                Bind(EVT_JAVASCRIPT, [&, ident](ObservedEvt ev) {
-                    TRACE(23, wxString::Format("Inside lamda ident is %d", ident));
-                    HandleNMEAstream(ev, ident);
-                    });
-                m_streamMessageCntlsVector.push_back(messageCntl);
-                }
-            else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");
-            mWaitingCached = mWaiting = true;
-            }      
-	    }
-
+			messageCntl.messageType = MESSAGE_NMEA0183;
+			duk_require_string(ctx, 1);
+			wxString header = wxString(duk_to_string(ctx, 1));
+			if ((header.length() != 3) && (header.length() != 5))
+				throw_error(ctx, wxString::Format("OCPNonNMEAsentence called with identifier %s not 3 or 5 characters", header));
+			messageCntl.id0183 = wxString(header);
+			NMEA0183Id id(messageCntl.id0183.ToStdString());
+			wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
+			messageCntl.listener = GetListener(id, EVT_JAVASCRIPT, this);
+			int ident = messageCntl.messageCntlId;	// use a simple int to avoid any issues with a class member
+			TRACE(23, wxString::Format("Before bind messageCntl.messageCntlId is %d", ident));
+			Bind(EVT_JAVASCRIPT, [&, ident](ObservedEvt ev) {
+				TRACE(23, wxString::Format("Inside lamda ident is %d", ident));
+				HandleNMEAstream(ev, ident);
+				});
+			m_streamMessageCntlsVector.push_back(messageCntl);
+			}
+        else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
+	    };    
     
-    };
+    void setupNavigationStream(duk_context *ctx){
+        // this method is called from the DukTape engine to set up receipt of navigation data
+        wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+        
+        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNavigation within onExit function");
+		streamMessageCntl messageCntl;
+		messageCntl.functionName = extractFunctionName(ctx,0);
+		messageCntl.messageType =  MESSAGE_NAVIGATION;
+		wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
+		messageCntl.listener = GetListener( NavDataId(), EVT_JAVASCRIPT, this);
+		int ident = messageCntl.messageCntlId;	// use a simple int to avoid any issues with a class member
+		TRACE(23, wxString::Format("Before bind messageCntl.messageCntlId is %d", ident));
+		Bind(EVT_JAVASCRIPT, [&, ident](ObservedEvt ev) {
+			TRACE(23, wxString::Format("Inside lamda ident is %d", ident));
+			HandleNavdata(ev, ident);
+			});
+		m_streamMessageCntlsVector.push_back(messageCntl); 
+    	};
+    	
+	};
 
 class jsButton : public wxButton {
     // adds pointer to console to button so we can find it from button event

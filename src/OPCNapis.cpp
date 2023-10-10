@@ -353,13 +353,19 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
     duk_pop_2(ctx);
     pConsole->mWaitingCached = pConsole->mWaiting = true;
     return 0;  // returns no arg
-}
+	}
 
 static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
     pConsole->setupNMEA0183stream(ctx);   // needs to be in a method
     return 0;
-};
+	};
+	
+static duk_ret_t onNavigation(duk_context *ctx) {  // to wait for navigation - save function to call
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setupNavigationStream(ctx);   // needs to be in a method
+    return 0;
+	};
 
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
@@ -1221,6 +1227,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
 
     duk_push_string(ctx, "OCPNgetNavigation");
     duk_push_c_function(ctx, getNavigation, 0 /* no args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+    duk_push_string(ctx, "OCPNonNavigation");
+    duk_push_c_function(ctx, onNavigation, 1 /* 1 args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetNavigationK");

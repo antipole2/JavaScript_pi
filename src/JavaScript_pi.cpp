@@ -531,43 +531,41 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     Console *m_pConsole;
     void JSduk_start_exec_timeout(Console);
     void  JSduk_clear_exec_timeout(Console);
-    
-    // check checksum and set OK accordingly
-    sentence.Trim();
-	starPos = sentence.find(star); // position of *
-	if (starPos != wxNOT_FOUND){ // yes there is one
-		checksum = sentence.Mid(starPos + 1, 2);
-		sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
-		}
-	correctChecksum = NMEAchecksum(sentence);
-	OK = (checksum == correctChecksum) ? true : false;
-	sentence = sentence.BeforeFirst('*');   // drop * onwards
+    bool haveDoneChecksum = false;
 
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
-        ctx = m_pConsole->mpCtx;
+
         if (m_pConsole->mJSrunning){
             m_pConsole->message(STYLE_RED, "NMEA callback while JS active - ignored\n");
             return;
             }
-		// look for all calls waiting for this general NMEA
-		// we reverse iterate because we may remove items as we go
-		for (int i = m_pConsole->m_streamMessageCntlsVector.size()-1; i >= 0; i--){
-				auto entry = m_pConsole->m_streamMessageCntlsVector[i];
-				if (entry.messageType == MESSAGE_NMEA0183_NON_STREAM){
-					duk_push_object(ctx);
-					duk_push_string(ctx, sentence.c_str());
-					duk_put_prop_literal(ctx, -2, "value");
-					duk_push_boolean(ctx, OK);
-					duk_put_prop_literal(ctx, -2, "OK");
-                    // drop this element of vector before executing function
-                    m_pConsole->m_streamMessageCntlsVector.erase(m_pConsole->m_streamMessageCntlsVector.begin() + i);
-					outcome = m_pConsole->executeFunction(entry.functionName);
-					if (outcome == MORETODO) continue;									
-					}
+        thisFunction = m_pConsole->m_NMEAmessageFunction;
+        if (thisFunction == wxEmptyString) continue;	// this one not waiting for us
+        if (!haveDoneChecksum){
+			// check checksum and set OK accordingly
+			// we do this in the console loop to avoid when none waiting for us
+			sentence.Trim();
+			starPos = sentence.find(star); // position of *
+			if (starPos != wxNOT_FOUND){ // yes there is one
+				checksum = sentence.Mid(starPos + 1, 2);
+				sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
 				}
-		m_pConsole->wrapUp(outcome);
+			correctChecksum = NMEAchecksum(sentence);
+			OK = (checksum == correctChecksum) ? true : false;
+			sentence = sentence.BeforeFirst('*');   // drop * onwards
+			haveDoneChecksum = true;
+        	}
+        ctx = m_pConsole->mpCtx;
+		duk_push_object(ctx);
+		duk_push_string(ctx, sentence.c_str());
+		duk_put_prop_literal(ctx, -2, "value");
+		duk_push_boolean(ctx, OK);
+		duk_put_prop_literal(ctx, -2, "OK");
+		m_pConsole->m_NMEAmessageFunction = wxEmptyString;	// only once
+		outcome = m_pConsole->executeFunction(thisFunction);		
+		if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
         }   // end for this console
     }  
 
@@ -650,11 +648,18 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
 
                             duk_push_string(ctx, argument.c_str());
                             outcome = pConsole->executeFunction(thisFunction);
-                            if (outcome == MORETODO) continue;
+                            if (!pConsole->isBusy()){
+                            	i = 99999;  // this will stop us looking for further timers on this console
+                            	pConsole->wrapUp(outcome);
+                            	}
+                            	
+//                            if (outcome == MORETODO) continue;
+ /*
                             else {
                                 i = 99999;  // this will stop us looking for further timers on this console
                                 pConsole->wrapUp(outcome);
                                 }
+*/
                             }
                         }
                     }
@@ -722,7 +727,7 @@ void JavaScript_pi::OnContextMenuItemCallback(int menuID){
 						duk_push_string(ctx, argument.c_str());
 						duk_put_prop_literal(ctx, -2, "info");                       	
                         Completions outcome = pConsole->executeFunction(thisFunction);
-                        pConsole->wrapUp(outcome);
+                        if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
                         return;
                         }
                     }
@@ -767,7 +772,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
             TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));
-            m_pConsole->wrapUp(outcome);
+            if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
             }
         }
     }
