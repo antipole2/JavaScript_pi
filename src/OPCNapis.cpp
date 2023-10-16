@@ -18,10 +18,20 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/listimpl.cpp>
 #include <stdarg.h>
+#include <unordered_map>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
 WX_DEFINE_LIST(Plugin_WaypointList);		// used by API16 for tracks
 WX_DEFINE_LIST(Plugin_WaypointExList);		// used for API17 for waypoints and routes
+
+const char* driverErrorStrings[] = {
+	"RESULT_COMM_NO_ERROR",
+	"Invalid driver handle",
+	"RESULT_COMM_INVALID_PARMS",
+	"RESULT_COMM_TX_ERROR",
+	"RESULT_COMM_REGISTER_GATEWAY_ERROR",
+	"RESULT_COMM_REGISTER_PGN_ERROR"
+	};
 
 /* here define parameters for the OPCNgetGUID options */
 /* Not using this at present
@@ -54,6 +64,15 @@ wxString getContextDump(duk_context *ctx){ // return duktape context dump as str
     duk_pop(ctx);
     return result;
     }
+    
+void checkHandle(duk_context *ctx, DriverHandle handle, wxString protocol, wxString APIname){	// checks for correct driver
+	    std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);
+	    if(attributes.empty()) throwErrorByCtx(ctx, wxString::Format("%s: No such handle %s", APIname, handle));
+    	auto protocol_it = attributes.find("protocol");
+    	if (protocol_it == attributes.end()) throwErrorByCtx(ctx, wxString::Format("%s: Handle %s does not have a protocol", APIname, handle));
+	    wxString driverProtocol = protocol_it->second;
+		if (protocol.compare(driverProtocol) != 0) throwErrorByCtx(ctx, wxString::Format("%s: Handle has protocol %s not %s", APIname, driverProtocol, protocol));
+		}
 
 PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
     // returns an opcn waypoint constructed from js waypoint on top of duk stack
@@ -355,11 +374,39 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
     return 0;  // returns no arg
 	}
 
-static duk_ret_t onNMEAsentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
+static duk_ret_t onNMEA0183sentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
     pConsole->setupNMEA0183stream(ctx);   // needs to be in a method
     return 0;
 	};
+	
+static duk_ret_t onNMEA2kSentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
+	wxString answer = "This is the answer";
+	auto payload = make_shared<std::vector<uint8_t>>();
+	for (const auto& ch : answer) payload->push_back(ch);
+	duk_pop(ctx);	// clear off the calling argument
+	// now have a payload to return
+	duk_idx_t arr_idx = duk_push_array(ctx);
+	for (int i = 0; i < payload->size(); i++){
+		duk_push_uint(ctx, payload->at(i));
+		duk_put_prop_index(ctx, -2, i);
+		}
+	return 1;
+//	int argType = duk_get_type(ctx, 0);
+//	bool isArray = duk_is_array(ctx, 0);
+//	duk_pop(ctx);
+	duk_get_prop_index(ctx, -1, 5);
+	int num = duk_get_number(ctx, -1);
+	duk_pop_2(ctx);
+	duk_push_number(ctx, num);
+	return 1;
+//	duk_pop(ctx);
+	duk_push_string(ctx, duk_get_string(ctx, 0));
+//	duk_push_number(ctx, argType);
+	return 1;
+
+	}
+	
 	
 static duk_ret_t onNavigation(duk_context *ctx) {  // to wait for navigation - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
@@ -539,35 +586,47 @@ static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation d
 }
  */
 
-static duk_ret_t NMEApush(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
+static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
     // props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
-    duk_idx_t nargs;  // number of args in call
-    duk_ret_t result = 0;
-    wxString sentence;  // the NMEA sentence
-    nargs = duk_get_top(ctx);
-    if ((nargs == 1) &&  (duk_get_type(ctx, 0) == DUK_TYPE_STRING)){
-        // we have a single string - good to go
-        sentence = wxString(duk_to_string(ctx,0));
-        sentence.Trim();        
-        // we will drop any existing checksum
-        int starPos = sentence.Find("*");
-        if (starPos != wxNOT_FOUND){ // yes there is one
-            sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
-            }
-        if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
-    		throwErrorByCtx(ctx, "OCPNpushNMEA sentence does not start $....., or !.....,");
-		wxString NMEAchecksum(wxString sentence);
-		wxString sum = NMEAchecksum(sentence);
-        sentence = sentence.Append("*");
-        sentence = sentence.Append(sum);
-        sentence = sentence.Append("\r\n");
+    duk_idx_t nargs = duk_get_top(ctx);	// number of arguments
+    wxString result;
+    duk_require_string(ctx, 0);	// first argument must be string
+    wxString sentence = wxString(duk_to_string(ctx,0));  // the NMEA sentence
+	// cleanup and append checksum
+	sentence.Trim();        
+	// we will drop any existing checksum
+	int starPos = sentence.Find("*");
+	if (starPos != wxNOT_FOUND){ // yes there is one
+		sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+		}
+	if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
+		throwErrorByCtx(ctx, "OCPNpushNMEA0183 sentence does not start $....., or !.....,");
+	wxString NMEAchecksum(wxString sentence);
+	wxString sum = NMEAchecksum(sentence);
+	sentence = sentence.Append("*");
+	sentence = sentence.Append(sum);
+	sentence = sentence.Append("\r\n");
+	if (nargs == 1){
+		duk_pop(ctx);
         PushNMEABuffer(sentence);
-        return(result);
-    }
-    else {
-        throwErrorByCtx(ctx, "OCPNpushNMEA called without single string argument");
+        result = "OK";
         }
-    return(result);
+    else if (nargs == 2){	// handle provided
+    	duk_require_string(ctx, 1);	// second argument must be string
+    	DriverHandle handle = duk_to_string(ctx,1);
+    	duk_pop_2(ctx);
+    	checkHandle(ctx, handle, "nmea0183", "OCPNpushNMEA0183");
+   		auto payload = make_shared<std::vector<uint8_t>>();
+		for (const auto& ch : sentence) payload->push_back(ch);
+		CommDriverResult outcome = WriteCommDriver(handle, payload);
+		if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
+		else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA0183 driver error: %s\n", driverErrorStrings[outcome])));
+   		 }
+    else {
+        throwErrorByCtx(ctx, "OCPNpushNMEA0183 called without 1 or 2 string arguments");
+        }
+    duk_push_string(ctx, result);
+    return(1);
 }
 
 static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
@@ -1186,7 +1245,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     
     /* create the getNames objects */
 /*    for (int i = 0; i < END_OF_OPCN_GETGUID_OPTIONS; i++){
-        duk_push_string(ctx, getNames[i]);
+        duk_push_string(ctx, getNames[i]);Ä
         duk_push_int(ctx,i);
         duk_def_prop(ctx, -3, DUK_DEFPROP_SET_ENUMERABLE);
     }
@@ -1194,7 +1253,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     /* add the fuctions */
     
     duk_push_string(ctx, "OCPNpushNMEA");
-    duk_push_c_function(ctx, NMEApush, 1 /*number of arguments*/);
+    duk_push_c_function(ctx, NMEA0183push, DUK_VARARGS /*number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNpushNMEA0183");
+    duk_push_c_function(ctx, NMEA0183push, DUK_VARARGS /*number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNsendMessage");
@@ -1209,8 +1272,16 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, onMessageName, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
+    duk_push_string(ctx, "OCPNonNMEA0183sentence");
+    duk_push_c_function(ctx, onNMEA0183sentence, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "OCPNonNMEAsentence");
-    duk_push_c_function(ctx, onNMEAsentence, DUK_VARARGS /* args */);
+    duk_push_c_function(ctx, onNMEA0183sentence, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonNMEA2kSentence");
+    duk_push_c_function(ctx, onNMEA2kSentence, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNonActiveLeg");
