@@ -20,19 +20,19 @@
 extern JavaScript_pi* pJavaScript_pi;
 
 wxSize getButtonSize(Console* pConsole) { // determine a size for the fileString buttons
-    int maxLength = 0;
+    size_t maxLength = 0;
     wxString fileString, longestString;
     wxButton* fileButton;
     wxSize buttonSize;
     
-    for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++){
+    for (size_t i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++){
         fileString = pJavaScript_pi->favouriteFiles[i];
         if (fileString.Length() > maxLength){
             maxLength = fileString.Length();
             longestString = fileString;
             }
         }
-    for (int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++){
+    for (size_t i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++){
         fileString = pJavaScript_pi->recentFiles[i];
         if (fileString.Length() > maxLength){
             maxLength = fileString.Length();
@@ -127,7 +127,7 @@ wxBoxSizer* constructButtons(wxDialog* pdialog,  wxArrayString fileStrings, wxSi
     wxFont font = subhead->GetFont().MakeLarger();
     subhead->SetFont(font);
     box->Add(subhead);
-    for (int i = 0; i < fileStrings.GetCount(); i++){
+    for (size_t i = 0; i < fileStrings.GetCount(); i++){
         fileButton = new wxButton(pdialog, wxID_ANY, fileStrings[i], wxDefaultPosition, size, wxBU_LEFT );
         box->Add(fileButton, 0, wxALIGN_LEFT|wxALL, 5);
         }
