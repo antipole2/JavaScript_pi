@@ -94,12 +94,15 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             onExit\
             stopScript\
             messageBox\
+            toClipboard\
+            fromClipboard\
             OCPNpushNMEA\
             OCPNgetMessageNames\
             OCPNsendMessage\
             OCPNonNMEAsentence\
             OCPNonMessageName\
             OCPNgetNavigation\
+            OCPNonNavigation\
             OCPNgetARPgpx\
             OCPNonActiveLeg\
             OCPNonContextMenu\
@@ -150,7 +153,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
         pane->StyleSetBold(wxSTC_C_WORD, true);
         pane->StyleSetForeground(wxSTC_C_WORD, wxColour(28,120,255));// blue for supported keywords
         pane->StyleSetForeground(wxSTC_C_WORD2, wxColour(255,118,0));  // orange for unsupported keywords
-        pane->StyleSetForeground(wxSTC_C_GLOBALCLASS, wxColour(128, 64, 134));  // purple for extensions
+        pane->StyleSetForeground(wxSTC_C_GLOBALCLASS, wxColour(132, 0, 255));  // purple for extensions
         pane->StyleSetForeground(wxSTC_C_STRING, *wxRED);
         pane->StyleSetForeground(wxSTC_C_STRINGEOL, *wxRED);
  //     pane->StyleSetForeground(wxSTC_C_PREPROCESSOR, wxColour(49, 106, 197));

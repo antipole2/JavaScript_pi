@@ -352,7 +352,7 @@ bool loadComponent(duk_context *ctx, wxString name) {
     bool result {false};
     
     if (name == "Consoles") {register_console(ctx); result = true;}
-//    if (name == "Drivers") {register_drivers(ctx); result = true;}
+    if (name == "Drivers") {register_drivers(ctx); result = true;}
     
 #ifdef SOCKETS
     void register_sockets(duk_context *ctx);

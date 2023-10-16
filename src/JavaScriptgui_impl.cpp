@@ -50,7 +50,7 @@ WX_DEFINE_OBJARRAY(SocketRecordsArray);
 #endif
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
- void Console::OnActivate(wxActivateEvent& event){
+void Console::OnActivate(wxActivateEvent& event){
  	return;
     wxFrame* pConsole = wxDynamicCast(event.GetEventObject(), wxFrame);
     long int style = pConsole->GetWindowStyle();
@@ -175,7 +175,6 @@ void Console::OnRun( wxCommandEvent& event ) {
 	if (script == wxEmptyString)
     clearBrief();
     mConsoleRepliesAwaited = 0;
-    TRACE(0, "------------------ Run console " + mConsoleName);
     doRunCommand(mBrief);
     }
 
@@ -211,6 +210,15 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
+        if (this->isBusy()) {
+            // We will not delete running console, although it is safe to do so
+            wxString text = "Console close: stop";
+            if (!this->m_Script->IsEmpty()) text += " and clear";
+            text +=  " the script first";
+            this->message(STYLE_RED, text);
+            event.Veto(true);
+            return;
+            }
         if (!this->m_Script->IsEmpty()) {
             // We will not delete a console with a script
             this->message(STYLE_RED, "Console close: clear the script first");
@@ -242,3 +250,82 @@ void Console::OnTools( wxCommandEvent& event){
     pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, 0);
     return;
     }
+    
+
+void Console::HandleNMEAstream(ObservedEvt& ev, int messageCntlId) {
+    Completions outcome;
+    bool matched {false};
+    TRACE(23, wxString::Format("Starting HandleNMEAstream messageCntlId is %d", messageCntlId));
+    if (!isWaiting()) return;  // ignore if we are not waiting on something.  Should not be - being safe
+    // look for our messageCntl entry
+    for (auto it = m_streamMessageCntlsVector.cbegin(); it != m_streamMessageCntlsVector.cend(); ++it){
+        auto entry = *it;
+        if (entry.messageCntlId == messageCntlId) {
+            matched = true;
+            NMEA0183Id nmeaId(entry.id0183.ToStdString());
+            wxString sentence = wxString(GetN0183Payload(nmeaId, ev));
+            // check the checksum
+            wxString NMEAchecksum(wxString sentence);
+            wxUniChar star = '*';
+            wxString checksum;
+            sentence.Trim();
+            size_t starPos = sentence.find(star); // position of *
+            if (starPos != wxNOT_FOUND){ // yes there is one
+                checksum = sentence.Mid(starPos + 1, 2);
+                sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+                }
+            wxString correctChecksum = NMEAchecksum(sentence);
+            bool OK = (checksum == correctChecksum) ? true : false;
+            duk_push_object(mpCtx);
+                duk_push_string(mpCtx, sentence.c_str());
+                    duk_put_prop_literal(mpCtx, -2, "value");
+                duk_push_boolean(mpCtx, OK);
+                    duk_put_prop_literal(mpCtx, -2, "OK");
+            // drop this element of vector before executing function
+            m_streamMessageCntlsVector.erase(it);
+            outcome = executeFunction(entry.functionName);
+            if (!isBusy()) wrapUp(outcome);
+            return;
+            }
+        }
+    // if (!matched) this->message(STYLE_RED, "HandleNMEAstream prog error - failed to match messageCntl entry");
+    }
+    
+    void Console::HandleNavdata(ObservedEvt& ev, int messageCntlId) {
+    Completions outcome;
+    bool matched {false};
+    TRACE(23, wxString::Format("Starting HandleNavdata messageCntlId is %d", messageCntlId));
+    if (!isWaiting()) return;  // ignore if we are not waiting on something.  Should not be - being safe
+    // look for our messageCntl entry
+    for (auto it = m_streamMessageCntlsVector.cbegin(); it != m_streamMessageCntlsVector.cend(); ++it){
+        auto entry = *it;
+        if (entry.messageCntlId == messageCntlId) {
+            matched = true;
+            PluginNavdata navdata = GetEventNavdata(ev);
+			duk_push_object(mpCtx);
+				duk_push_number(mpCtx, navdata.time);
+					duk_put_prop_literal(mpCtx, -2, "fixTime");
+				duk_push_object(mpCtx);                                  // start of position
+					duk_push_number(mpCtx, navdata.lat);
+						duk_put_prop_literal(mpCtx, -2, "latitude");
+					duk_push_number(mpCtx, navdata.lon);
+						duk_put_prop_literal(mpCtx, -2, "longitude");
+					duk_put_prop_literal(mpCtx, -2, "position");             // end of position
+				duk_push_number(mpCtx, navdata.sog);
+					duk_put_prop_literal(mpCtx, -2, "SOG");
+				duk_push_number(mpCtx, navdata.cog);
+					duk_put_prop_literal(mpCtx, -2, "COG");
+				duk_push_number(mpCtx, navdata.var);
+					duk_put_prop_literal(mpCtx, -2, "variation");
+				duk_push_number(mpCtx, navdata.hdt);
+					duk_put_prop_literal(mpCtx, -2, "HDT");
+            // drop this element of vector before executing function
+            m_streamMessageCntlsVector.erase(it);
+            outcome = executeFunction(entry.functionName);
+            if (!isBusy()) wrapUp(outcome);
+            return;
+            }
+        }
+    // if (!matched) this->message(STYLE_RED, "HandleNavdata prog error - failed to match messageCntl entry");
+    }
+

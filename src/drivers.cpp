@@ -14,7 +14,6 @@
 #include <iostream>
 #include "wx/wx.h"
 #include "duktape.h"
-#include <iostream>
 #include "JavaScriptgui_impl.h"
 #include <unordered_map>
 #include <vector>
@@ -50,7 +49,7 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 	std::unordered_map<std::string, std::string> :: iterator i;
 	DriverHandle handle;
 	
-	duk_require_number(ctx, 0);
+//	duk_require_number(ctx, 0);
 	handle = duk_get_string(ctx, 0);
 	duk_pop(ctx);		
 	attributeMap = GetAttributes(handle);
@@ -58,28 +57,43 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 	for (i = attributeMap.begin(); i != attributeMap.end(); i++){
 		duk_push_string(ctx, i->first.c_str());
 		duk_push_string(ctx, i->second.c_str());
-		duk_put_prop(ctx, -2);
+		duk_put_prop(ctx, -3);
 		}
 	return 1;			
 	}
 
 duk_ret_t writeDriver(duk_context* ctx){
-	// OCPNwriteDriver(driverHandle, payload)
-	driverHandle handle;
-	const std::shared_ptr <std::vector<uint8_t>> payload {};
-	const char * data;
-	duk_size_t dataLength;	// length of payload
-	CommDriverResult result;
+	wxString NMEAchecksum(wxString sentence);
+	DriverHandle handle;
+	wxString sentence;
 	
-	handle = (driverHandle) duk_get_string(ctx, 0);
-	data = duk_get_lstring(ctx, 1, &dataLength);
+	handle = (DriverHandle) duk_get_string(ctx, 0);
+	sentence = wxString(duk_to_string(ctx,1));
 	duk_pop_2(ctx);
-	if (dataLength == 0) throwErrorByCtx(ctx, "OCPNwriteDriver error");
-	payload->resize(dataLength);
-	for (int i = 0; i < dataLength; i++) payload->at(i) = (uint8_t)data[i];
-	result = WriteCommDriver(handle, payload);
-	if (result == RESULT_COMM_NO_ERROR) return 0;
-	else throwErrorByCtx(ctx, wxString("OCPNWriteDriver ", errorStrings[result]));	
+	
+	// Determine protocol
+	std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);	
+  	auto protocol_it = attributes.find("protocol");
+  	if (protocol_it == attributes.end()) throwErrorByCtx(ctx, wxString(wxString::Format("OCPNWriteDriver error: %s\n", "Handle does not have protocol")));
+    wxString protocol = protocol_it->second;
+	if (!protocol.compare("nmea0183")){ // if NMEA0183, clean up sentence and add checksum
+		sentence.Trim();        
+		// we will drop any existing checksum
+		int starPos = sentence.Find("*");
+		if (starPos != wxNOT_FOUND){ // yes there is one
+			sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+			}
+		if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
+			throwErrorByCtx(ctx, "OCPNwriteDriverNMEA sentence does not start $....., or !.....,");
+		sentence = sentence.Append("*" + NMEAchecksum(sentence) + "\r\n");
+		}
+	else throwErrorByCtx(ctx, "OCPNWriteDriver error: output not NMEA0183");
+
+	auto payload = make_shared<std::vector<uint8_t>>();
+	for (const auto& ch : sentence) payload->push_back(ch);
+	CommDriverResult outcome = WriteCommDriver(handle, payload);
+	if (outcome == RESULT_COMM_NO_ERROR) {duk_push_string(ctx, "OK"); return 1;}
+	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNWriteDriver error: %s\n", errorStrings[outcome])));	
 	}
 
 
@@ -97,6 +111,5 @@ void register_drivers(duk_context *ctx){
     duk_push_string(ctx, "OCPNwriteDriver");
     duk_push_c_function(ctx, writeDriver, 2 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
     };
 

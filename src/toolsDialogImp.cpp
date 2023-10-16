@@ -71,7 +71,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
         page->Fit();
 
         wxSize pageClientSize = ToDIP(page->GetClientSize());
-        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageSize.x, pageSize.y));
+        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageClientSize.x, pageClientSize.y));
         pageClientSize.x = 590;	// force width
 		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
 		page->Fit(); // Adjusts to page size but this makes window too tight, so...

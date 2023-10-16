@@ -214,6 +214,18 @@ wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, File
     *pResolvedFileString = fullPath;
     return wxEmptyString;
     };
+    
+wxString NMEAchecksum(wxString sentence){
+	// given an NMEA sentence, returns the checksum as a string
+    // we will drop any existing checksum
+    int starPos = sentence.Find("*");
+    if (starPos != wxNOT_FOUND) // yes there is one
+	    sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+    unsigned char calculated_checksum = 0;
+	for(wxString::const_iterator i = sentence.begin()+1; i != sentence.end() && *i != '*'; ++i)
+		 calculated_checksum ^= static_cast<unsigned char> (*i);
+	return( wxString::Format("%02X", calculated_checksum) );
+	};
 
 wxString getTextFile(wxString fileString, wxString* pText){
     // gets contents of a text file
