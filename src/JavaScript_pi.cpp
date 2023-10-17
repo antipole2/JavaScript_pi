@@ -474,7 +474,6 @@ bool JavaScript_pi::SaveConfig(void)
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
- //        double scale = m_parent_window->GetDPIScaleFactor();	// we will save config in DIP
             
         //save custom parking config, if any
         if (m_parkingBespoke){

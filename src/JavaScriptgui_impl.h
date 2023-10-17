@@ -369,6 +369,17 @@ public:
 
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         }
+        
+#if  !SCREEN_RESOLUTION_AVAILABLE
+	// provide dummy methods for those not available
+	wxPoint ToDIP(wxPoint point){
+		return point:
+		}
+		
+	wxPoint FromDIP(wxPoint point){
+		return point:
+		}
+#endif
     
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
         Console *pConsole, *pPrevConsole;
@@ -433,7 +444,7 @@ public:
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
-	   extern bool runLable, stopLabel;
+//	   extern bool runLable, stopLabel;
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
 	   void duk_extensions_init(duk_context *ctx);

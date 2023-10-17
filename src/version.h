@@ -22,5 +22,11 @@
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\nSee the Help panel right for documentation.\n\
 Changes are highlighted in the User Guide and listed in its Appendix A"
 
+// screen resolution support only available in wxWidgets 3.2 or later
+#if wxCHECK_VERSION(3,2,0)
+#define SCREEN_RESOLUTION_AVAILABLE true
+#else
+#define SCREEN_RESOLUTION_AVAILABLE false
+
 #endif		// version_h
 
