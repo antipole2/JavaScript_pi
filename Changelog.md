@@ -1,15 +1,15 @@
-3.2.3-beta1 Feb 14, 2023
-* ci: debian, armhf builds: Fix handling of CLOUDSMITH_BETA_REPO 
-  environment variable (#498)
-* macos: Install built wxWidgets in local project dir (#495).
-* Update opencpn-libs, handle missing ocpn-api link target (opencpn-libs#9).
-* update-templates: Handle wxWidgets 3.2 in build-deps/control (#490).
-* ci: debian-build-docker, -armhf: Clean up directory permissions (#492).
-
-3.2.2 Jan 16, 2023
-* ci: flatpak: Update google packages signing key (#487)
-* ci: android: Handle missing google packages signing key (#487)
-* Context menu only appears when dialog started (#488)
+3.3.0 Oct 10, 2023
+* Fix wrong upload directory for bookworm plugins (#492).
+* Fix handling of wxWidgets 3.2 build deps in update-templates (#490).
+* Use urllib3 < 2.0.0 (#520).
+* Update opencpn-libs,
+    - Provide a compatility target ocpn::api on api-18.
+    - Fix bug in nmea0183 lib, see
+      https://github.com/leamas/opencpn-libs/issues/15
+    - Add new marnav library.
+    - Add new N2k library required to receive and parse n2k messages.
+* Fix expected hash in AndroidLibs.cmake to align with master.zip.
+* Fix move/resize for Android builds
 
 3.2.1  Dec 18, 2022
 * New release afrter some release problems of the 3.2.0 tag
