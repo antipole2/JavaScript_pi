@@ -180,7 +180,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     
     // ready to create new dialogue
     dialog = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
-    	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize,
+    	pConsole->FromDIP(pConsole->mDialog.position), wxDefaultSize,
     	wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     double scale = SCALE(dialog);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
