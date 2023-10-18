@@ -77,7 +77,9 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleDump\
             consoleDetails\
             JS_throw_test\
-            JS_mainThread";
+            JS_mainThread\
+            =>\
+            ";
     wxString extensionNames = "print printRed printOrange printGreen printBlue printUnderlined printLog\
             alert\
             readTextFile\
@@ -96,7 +98,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             messageBox\
             toClipboard\
             fromClipboard\
-            OCPNpushNMEA\
+            OCPNpushNMEA0183\
             OCPNgetMessageNames\
             OCPNsendMessage\
             OCPNonNMEAsentence\
@@ -143,15 +145,17 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleRun\
             onConsoleResult\
             ";
+ 		wxString keywordsDeprecated = "OCPNpushNMEA";
 
         pane->SetKeyWords(0, keywordsSupported);
-        pane->SetKeyWords(1, keywordsUnsupported);
+        pane->SetKeyWords(1, keywordsUnsupported + keywordsDeprecated);
         pane->SetKeyWords(3, extensionNames);
 
  //     wxFont font(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
         pane->StyleClearAll();
         pane->StyleSetBold(wxSTC_C_WORD, true);
         pane->StyleSetForeground(wxSTC_C_WORD, wxColour(28,120,255));// blue for supported keywords
+        pane->StyleSetForeground(wxSTC_C_UUID, wxColour(255,64,255));  // magenta for deprecated keywords
         pane->StyleSetForeground(wxSTC_C_WORD2, wxColour(255,118,0));  // orange for unsupported keywords
         pane->StyleSetForeground(wxSTC_C_GLOBALCLASS, wxColour(132, 0, 255));  // purple for extensions
         pane->StyleSetForeground(wxSTC_C_STRING, *wxRED);

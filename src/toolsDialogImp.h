@@ -58,6 +58,20 @@ public:
         m_notebook->SetSelection(0);	//start on required page
         };
         
+#if !SCREEN_RESOLUTION_AVAILABLE
+	    // provide dummy methods for those not available
+		// needs to work with wxPoint & wxSize
+		template <typename T>
+		T ToDIP(T point){
+		return point;
+		}
+		
+		template <typename T>
+		T FromDIP(T point){
+		return point;
+		}
+#endif
+        
 #if 0 	//this for simulating Hi Res screen on non-hires screen
 #define simScale 2
     wxSize FromDIP(wxSize size){
@@ -74,6 +88,7 @@ public:
    		}	    		 
 #endif
         
+
 	void fixForScreenRes(){	// fix up sizes according to screen resolution
 		double scale = SCALE(this);
 		if (scale == 1) return;	// nothing to do

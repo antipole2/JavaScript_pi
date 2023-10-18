@@ -23,13 +23,17 @@
 /* Handling screens of different resolutions is platform dependent in some respects
 */
 
-#ifdef __WXMSW__
-#define SCALE(window) (window->GetDPIScaleFactor())
-#elif defined(__LINUX__)
-#define SCALE(window) (window->GetDPIScaleFactor())
+#if SCREEN_RESOLUTION_AVAILABLE
+	#ifdef __WXMSW__
+		#define SCALE(window) (window->GetDPIScaleFactor())
+	#elif defined(__LINUX__)
+		#define SCALE(window) (window->GetDPIScaleFactor())
+	#else
+		//includes MacOS
+		#define SCALE(window) (1e0)
+	#endif
 #else
-//includes MacOS
-#define SCALE(window) (1e0)
+	#define SCALE(window) (1e0)
 #endif
 
 #endif		// scaling_h

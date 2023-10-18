@@ -116,6 +116,14 @@ if [ -n "$clean" ]; then
     exit 1
 fi
 
+# Set up a generic sed -i command  for MacOS and Linux/GNU (#505).
+case $OSTYPE in
+  darwin*) SED_I="sed -i.bak"
+           ;;
+  *)       SED_I="sed -i"
+           ;;
+esac
+
 if [ -z "$test_mode" ]; then
     init_shipdriver_remote
 
@@ -167,16 +175,19 @@ git commit -m "Templates: Updating other files"
 
 # Handle opencpn-libs submodule
 test -d opencpn-libs || \
-    git submodule add https://github.com/leamas/opencpn-libs.git opencpn-libs
+    git submodule add https://github.com/opencpn/opencpn-libs.git opencpn-libs
 git submodule update --remote --merge opencpn-libs
 git add opencpn-libs
 git diff-index --quiet --cached HEAD -- || {
     echo "Updating opencpn-libs submodule"
     git commit -m "opencpn-libs: Update to latest version."
 }
+sed -i 's|leamas/opencpn-libs|opencpn/opencpn-libs|g' \
+    .git/modules/opencpn-libs/config || :
+
 
 # Update flatpak runtime version as required:
-sed -i \
+$SED_I \
     -e '/sdk: org.freedesktop.Sdk/s/20.08/22.08/' \
     -e '/^runtime-version:/s/:.*/: beta/' \
   flatpak/org.opencpn.OpenCPN.Plugin.*.yaml
@@ -193,7 +204,8 @@ for f in  \
     build-conf.rc \
     libs \
     build-deps/macos-cache-stamp \
-    build-deps/0001-matrix.h-Patch-attributes-handling-wxwidgets-22790.patch
+    build-deps/0001-matrix.h-Patch-attributes-handling-wxwidgets-22790.patch \
+    UPDATE_PLUGIN_API.md
 do
     if test -e $f; then continue; fi
     git checkout $source_treeish $f
@@ -214,7 +226,7 @@ cat >$wxtemp << EOF
 EOF
 
 grep -q "libwxgtk3.2" build-deps/control || {
-    sed -i -e '/libwxgtk/s/^.*$/LIBWXGTK/' \
+    $SED_I -e '/libwxgtk/s/^.*$/LIBWXGTK/' \
            -e '1,/LIBWXGTK/s/LIBWXGTK/WX_DEPS/' \
            -e "/WX_DEPS/r$wxtemp" \
            -e '/WX_DEPS/d' -e '/LIBWXGTK/d' \

@@ -32,6 +32,7 @@
 #include "buildConfig.h"
 #include "consolePositioning.h"
 #include <wx/event.h>
+#include "jsDialog.h"
 //#include <cstdlib>
 
 #define DUK_DUMP true
@@ -148,7 +149,7 @@ class DialogAction // hold details of open dialogue
     {
 public:
     jsFunctionNameString_t functionName;    // function to be called when dialogue acted on
-    wxDialog    *pdialog;    // points to open dialog else nullptr
+    JsDialog    *pdialog;    // points to open dialog else nullptr
     wxPoint     position = wxPoint(wxDefaultPosition);	// in DIP
     std::vector<dialogElement> dialogElementsArray;// will be an array of dialogue elements
     };
@@ -156,7 +157,7 @@ public:
 class AlertDetails // holds details of open alert dialogue
     {
 public:
-    wxDialog    *palert;    // points to open alert else nullptr
+    JsDialog    *palert;    // points to open alert else nullptr
     wxPoint     position = wxPoint(wxDefaultPosition);	// in DIP
     wxString    alertText;  // the currently displayed text
     };
@@ -276,15 +277,25 @@ private:
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
+	// for pre-wx3.3, no DIP methods available at constructor time, so have to use alternatives
     Console(wxWindow *parent, wxString consoleName,
     		wxPoint consolePosition = NEW_CONSOLE_POSITION,
     		wxSize consoleSize = NEW_CONSOLE_SIZE,
+#if SCREEN_RESOLUTION_AVAILABLE		
     		wxPoint dialogPosition = pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
     		wxPoint alertPosition = pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
     		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
     		: m_Console(parent, wxID_ANY, consoleName,
     		pJavaScript_pi->m_parent_window->FromDIP(consolePosition),
     		pJavaScript_pi->m_parent_window->FromDIP(consoleSize))
+#else
+			wxPoint dialogPosition = DEFAULT_DIALOG_POSITION,
+    		wxPoint alertPosition = DEFAULT_ALERT_POSITION,
+    		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
+    		: m_Console(parent, wxID_ANY, consoleName,
+    		consolePosition,
+    		consoleSize)
+#endif
         {
         void JSlexit(wxStyledTextCtrl* pane);
         Console *pConsole;
@@ -369,6 +380,20 @@ public:
 
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         }
+        
+#if  !SCREEN_RESOLUTION_AVAILABLE
+		// provide dummy methods for those not available
+		// needs to work with wxPoint & wxSize
+		template <typename T>
+		T ToDIP(T point){
+			return point;
+			}
+		
+		template <typename T>
+		T FromDIP(T point){
+			return point;
+			}
+#endif
     
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
         Console *pConsole, *pPrevConsole;
@@ -433,7 +458,7 @@ public:
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
-	   extern bool runLable, stopLabel;
+//	   extern bool runLable, stopLabel;
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
 	   void duk_extensions_init(duk_context *ctx);

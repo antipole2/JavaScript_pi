@@ -14,6 +14,8 @@
 #ifndef version_h
 #define version_h
 
+#include <wx/version.h>
+
 #define     PLUGIN_VERSION_DATE __DATE__
 #define     PLUGIN_VERSION_COMMENT "Build -a"
 
@@ -21,6 +23,13 @@
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\nSee the Help panel right for documentation.\n\
 Changes are highlighted in the User Guide and listed in its Appendix A"
+
+// screen resolution support only available in wxWidgets 3.2 or later
+#if wxCHECK_VERSION(3,2,0)
+#define SCREEN_RESOLUTION_AVAILABLE true
+#else
+#define SCREEN_RESOLUTION_AVAILABLE false
+#endif
 
 #endif		// version_h
 

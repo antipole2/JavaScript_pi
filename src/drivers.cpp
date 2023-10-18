@@ -74,7 +74,7 @@ duk_ret_t writeDriver(duk_context* ctx){
 	// Determine protocol
 	std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);	
   	auto protocol_it = attributes.find("protocol");
-  	if (protocol_it == attributes.end()) throwErrorByCtx(ctx, wxString(wxString::Format("OCPNWriteDriver error: %s\n", "Handle does not have protocol")));
+  	if (protocol_it == attributes.end()) throwErrorByCtx(ctx, wxString(wxString::Format("writeDriver error: %s\n", "Handle does not have protocol")));
     wxString protocol = protocol_it->second;
 	if (!protocol.compare("nmea0183")){ // if NMEA0183, clean up sentence and add checksum
 		sentence.Trim();        
@@ -87,7 +87,8 @@ duk_ret_t writeDriver(duk_context* ctx){
 			throwErrorByCtx(ctx, "OCPNwriteDriverNMEA sentence does not start $....., or !.....,");
 		sentence = sentence.Append("*" + NMEAchecksum(sentence) + "\r\n");
 		}
-	else throwErrorByCtx(ctx, "OCPNWriteDriver error: output not NMEA0183");
+	else if (!protocol.compare("SignalK"))((void)0);	// no action required	
+	else throwErrorByCtx(ctx, "OCPNWriteNMEAdriver error: protocol not NMEA0183 or Signal K");
 
 	auto payload = make_shared<std::vector<uint8_t>>();
 	for (const auto& ch : sentence) payload->push_back(ch);

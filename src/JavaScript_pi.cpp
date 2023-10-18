@@ -385,8 +385,6 @@ bool JavaScript_pi::LoadConfig(void)
                     TRACE(67, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
-//                    newConsole->setConsoleMinClientSize();
-//                    newConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     newConsole->Move(newConsole->FromDIP(consolePosition));
                     TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
@@ -474,7 +472,6 @@ bool JavaScript_pi::SaveConfig(void)
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
             pConf->Write (_T ("Favourites"),  favourites);
             }
- //        double scale = m_parent_window->GetDPIScaleFactor();	// we will save config in DIP
             
         //save custom parking config, if any
         if (m_parkingBespoke){
@@ -496,10 +493,17 @@ bool JavaScript_pi::SaveConfig(void)
             nameColon = name + ":";
             // will save in DIP
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
-            wxPoint consolePosition = m_parent_window->ToDIP(screenToFrame(pConsole->GetPosition()));
+#if SCREEN_RESOLUTION_AVAILABLE
+            wxPoint consolePosition = pConsole->ToDIP(screenToFrame(pConsole->GetPosition()));
+            wxSize  consoleSize = pConsole->ToDIP(pConsole->GetSize());
+#else
+			wxPoint consolePosition = screenToFrame(pConsole->GetPosition());
+			wxSize  consoleSize = pConsole->GetSize();
+#endif
+            if (pConsole->mDialog.pdialog != nullptr) pConsole->clearDialog();
             wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
+            if (pConsole->mAlert.palert != nullptr) pConsole->clearAlert();
             wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
-            wxSize  consoleSize = m_parent_window->ToDIP(pConsole->GetSize());            
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );
