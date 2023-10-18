@@ -32,6 +32,7 @@
 #include "buildConfig.h"
 #include "consolePositioning.h"
 #include <wx/event.h>
+#include "jsDialog.h"
 //#include <cstdlib>
 
 #define DUK_DUMP true
@@ -148,7 +149,7 @@ class DialogAction // hold details of open dialogue
     {
 public:
     jsFunctionNameString_t functionName;    // function to be called when dialogue acted on
-    wxDialog    *pdialog;    // points to open dialog else nullptr
+    JsDialog    *pdialog;    // points to open dialog else nullptr
     wxPoint     position = wxPoint(wxDefaultPosition);	// in DIP
     std::vector<dialogElement> dialogElementsArray;// will be an array of dialogue elements
     };
@@ -156,7 +157,7 @@ public:
 class AlertDetails // holds details of open alert dialogue
     {
 public:
-    wxDialog    *palert;    // points to open alert else nullptr
+    JsDialog    *palert;    // points to open alert else nullptr
     wxPoint     position = wxPoint(wxDefaultPosition);	// in DIP
     wxString    alertText;  // the currently displayed text
     };
@@ -385,13 +386,13 @@ public:
 		// needs to work with wxPoint & wxSize
 		template <typename T>
 		T ToDIP(T point){
-		return point;
-		}
+			return point;
+			}
 		
 		template <typename T>
 		T FromDIP(T point){
-		return point;
-		}
+			return point;
+			}
 #endif
     
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting

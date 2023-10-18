@@ -24,6 +24,7 @@
 #include <wx/file.h>
 #include <wx/clipbrd.h>
 #include <wx/dataobj.h>
+#include "jsDialog.h"
 
 /*  On hold for now - cannot find a way of handling the variable arguments
  // sprintf function
@@ -149,7 +150,7 @@ void onDismissAlert(wxCommandEvent & event){
 static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  box with dismiss button
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
-    wxDialog *alert = pConsole->mAlert.palert;    // any existing alert
+    JsDialog *alert = pConsole->mAlert.palert;    // any existing alert
     extern JavaScript_pi* pJavaScript_pi;
     
     if (nargs == 0){    // just return present state
@@ -174,7 +175,7 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
         pConsole->mAlert.palert->Close();
         pConsole->mAlert.palert->Destroy();
         }
-    alert = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->FromDIP(pConsole->mAlert.position),
+    alert = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->FromDIP(pConsole->mAlert.position),
     	wxDefaultSize, wxCAPTION | wxSTAY_ON_TOP | wxBORDER_RAISED);
     alert->SetBackgroundColour(*wxYELLOW);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer

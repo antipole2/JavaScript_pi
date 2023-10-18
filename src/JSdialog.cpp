@@ -25,6 +25,7 @@
 #include "wx/radiobox.h"
 #include "wx/listbox.h"
 #include "wx/choice.h"
+#include "jsDialog.h"
 
 void onButton(wxCommandEvent & event){  // here when any dialogue button clicked ****************************
     duk_context *ctx;
@@ -155,7 +156,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     Console *pConsole = findConsoleByCtx(ctx);
     std::vector<dialogElement> dialogElementArray;  // will be array of the elements for this call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    wxDialog *dialog = pConsole->mDialog.pdialog; // any existing dialogue
+    JsDialog *dialog = pConsole->mDialog.pdialog; // any existing dialogue
     if (nargs == 0){    // just return present state
         duk_push_boolean(ctx, (dialog != nullptr) ? true : false);
         return 1;
@@ -178,7 +179,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     duk_require_function(ctx, -2);  // first arugment must be function
     
     // ready to create new dialogue
-    dialog = new wxDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
+    dialog = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
     	pJavaScript_pi->m_parent_window->FromDIP(pConsole->mDialog.position), wxDefaultSize,
     	wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
     double scale = SCALE(dialog);
