@@ -58,7 +58,7 @@ public:
         m_notebook->SetSelection(0);	//start on required page
         };
         
-#if   0 //!SCREEN_RESOLUTION_AVAILABLE
+#if !SCREEN_RESOLUTION_AVAILABLE
 	    // provide dummy methods for those not available
 		// needs to work with wxPoint & wxSize
 		template <typename T>
