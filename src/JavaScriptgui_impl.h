@@ -276,15 +276,25 @@ private:
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
+	// for pre-wx3.3, no DIP methods available at constructor time, so have to use alternatives
     Console(wxWindow *parent, wxString consoleName,
     		wxPoint consolePosition = NEW_CONSOLE_POSITION,
     		wxSize consoleSize = NEW_CONSOLE_SIZE,
+#if SCREEN_RESOLUTION_AVAILABLE		
     		wxPoint dialogPosition = pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_DIALOG_POSITION),
     		wxPoint alertPosition = pJavaScript_pi->m_parent_window->FromDIP(DEFAULT_ALERT_POSITION),
     		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
     		: m_Console(parent, wxID_ANY, consoleName,
     		pJavaScript_pi->m_parent_window->FromDIP(consolePosition),
     		pJavaScript_pi->m_parent_window->FromDIP(consoleSize))
+#else
+			wxPoint dialogPosition = DEFAULT_DIALOG_POSITION,
+    		wxPoint alertPosition = DEFAULT_ALERT_POSITION,
+    		wxString fileString = wxEmptyString, bool autoRun = false, wxString welcome = wxEmptyString, bool parked = false)
+    		: m_Console(parent, wxID_ANY, consoleName,
+    		consolePosition,
+    		consoleSize)
+#endif
         {
         void JSlexit(wxStyledTextCtrl* pane);
         Console *pConsole;
