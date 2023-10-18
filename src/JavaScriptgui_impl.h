@@ -371,13 +371,16 @@ public:
         }
         
 #if  !SCREEN_RESOLUTION_AVAILABLE
-	// provide dummy methods for those not available
-	wxPoint ToDIP(wxPoint point){
-		return point:
+		// provide dummy methods for those not available
+		// needs to work with wxPoint & wxSize
+		template <typename T>
+		T ToDIP(T point){
+		return point;
 		}
 		
-	wxPoint FromDIP(wxPoint point){
-		return point:
+		template <typename T>
+		T FromDIP(T point){
+		return point;
 		}
 #endif
     

@@ -58,14 +58,14 @@ public:
         m_notebook->SetSelection(0);	//start on required page
         };
         
-#if  !SCREEN_RESOLUTION_AVAILABLE
+#if   0 //!SCREEN_RESOLUTION_AVAILABLE
 	// provide dummy methods for those not available
 	wxPoint ToDIP(wxPoint point){
-		return point:
+		return point;
 		}
 		
 	wxPoint FromDIP(wxPoint point){
-		return point:
+		return point;
 		}
 #endif
         

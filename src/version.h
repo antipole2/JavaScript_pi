@@ -14,6 +14,8 @@
 #ifndef version_h
 #define version_h
 
+#include <wx/version.h>
+
 #define     PLUGIN_VERSION_DATE __DATE__
 #define     PLUGIN_VERSION_COMMENT "Build -a"
 
@@ -27,6 +29,7 @@ Changes are highlighted in the User Guide and listed in its Appendix A"
 #define SCREEN_RESOLUTION_AVAILABLE true
 #else
 #define SCREEN_RESOLUTION_AVAILABLE false
+#endif
 
 #endif		// version_h
 
