@@ -23,13 +23,19 @@
 extern JavaScript_pi *pJavaScript_pi;
 
 void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which ){
-	// remove all entries in v of type which
+	// remove all entries in vector of type which
 	if (pv->empty()) return;
+/*	this is the best solution but not available on some platforms, so we have to do it the hard way
 	pv->erase(
 		std::remove_if(pv->begin(),
 			 pv->end(),
 			 [which](streamMessageCntl x) {return(x.messageType == which);}),
 			 pv->end());
+*/		 
+	//  hard way - reverse down vector as we remove elements
+	for (int i = pv->size() - 1; i >= 0; i-- ){
+			if (pv->at(i).messageType == which) pv->erase(pv->begin()+i);
+			}			 
 	}
 
 void fatal_error_handler(void *udata, const char *msg) {
