@@ -374,23 +374,33 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
     return 0;  // returns no arg
 	}
 
-static duk_ret_t onNMEA0183sentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
+static duk_ret_t onNMEA0183(duk_context *ctx) {  // to wait for NMEA0183 message - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
-    pConsole->setupNMEA0183stream(ctx);   // needs to be in a method
+    pConsole->setupNMEA0183(ctx);   // needs to be in a method
     return 0;
 	};
 	
-static duk_ret_t onNMEA2kSentence(duk_context *ctx) {  // to wait for NMEA message - save function to call
+static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - save function to call
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setupNMEA2k(ctx);   // needs to be in a method
+    return 0;
+	};
+/*	
 	wxString answer = "This is the answer";
 	auto payload = make_shared<std::vector<uint8_t>>();
 	for (const auto& ch : answer) payload->push_back(ch);
 	duk_pop(ctx);	// clear off the calling argument
 	// now have a payload to return
-	duk_idx_t arr_idx = duk_push_array(ctx);
-	for (int i = 0; i < payload->size(); i++){
-		duk_push_uint(ctx, payload->at(i));
-		duk_put_prop_index(ctx, -2, i);
-		}
+	wxString source {"Data Source"};
+	duk_push_object(ctx);
+		duk_push_string(ctx, source);
+			duk_put_prop_literal(ctx, -2, "Source");
+		duk_push_array(ctx);
+			for (int i = 0; i < payload->size(); i++){
+				duk_push_uint(ctx, payload->at(i));
+				duk_put_prop_index(ctx, -2, i);
+				}
+			duk_put_prop_literal(ctx, -2, "Payload");
 	return 1;
 //	int argType = duk_get_type(ctx, 0);
 //	bool isArray = duk_is_array(ctx, 0);
@@ -406,6 +416,7 @@ static duk_ret_t onNMEA2kSentence(duk_context *ctx) {  // to wait for NMEA messa
 	return 1;
 
 	}
+*/
 	
 	
 static duk_ret_t onNavigation(duk_context *ctx) {  // to wait for navigation - save function to call
@@ -1271,17 +1282,17 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNonMessageName");
     duk_push_c_function(ctx, onMessageName, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
-    duk_push_string(ctx, "OCPNonNMEA0183sentence");
-    duk_push_c_function(ctx, onNMEA0183sentence, DUK_VARARGS /* args */);
-    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNonNMEAsentence");
-    duk_push_c_function(ctx, onNMEA0183sentence, DUK_VARARGS /* args */);
+    duk_push_c_function(ctx, onNMEA0183, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
-    duk_push_string(ctx, "OCPNonNMEA2kSentence");
-    duk_push_c_function(ctx, onNMEA2kSentence, DUK_VARARGS /* args */);
+    duk_push_string(ctx, "OCPNonNMEA0183");
+    duk_push_c_function(ctx, onNMEA0183, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonNMEA2k");
+    duk_push_c_function(ctx, onNMEA2k, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNonActiveLeg");

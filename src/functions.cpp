@@ -22,6 +22,16 @@
 
 extern JavaScript_pi *pJavaScript_pi;
 
+void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which ){
+	// remove all entries in v of type which
+	if (pv->empty()) return;
+	pv->erase(
+		std::remove_if(pv->begin(),
+			 pv->end(),
+			 [which](streamMessageCntl x) {return(x.messageType == which);}),
+			 pv->end());
+	}
+
 void fatal_error_handler(void *udata, const char *msg) {
      // Provide for handling fatal error while running duktape
      (void) udata;  /* ignored in this case, silence warning */

@@ -93,8 +93,9 @@ duk_ret_t writeDriver(duk_context* ctx){
 	auto payload = make_shared<std::vector<uint8_t>>();
 	for (const auto& ch : sentence) payload->push_back(ch);
 	CommDriverResult outcome = WriteCommDriver(handle, payload);
-	if (outcome == RESULT_COMM_NO_ERROR) {duk_push_string(ctx, "OK"); return 1;}
-	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNWriteDriver error: %s\n", errorStrings[outcome])));	
+	if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
+	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNWriteDriver error: %s\n", errorStrings[outcome])));
+	return 1;	
 	}
 
 

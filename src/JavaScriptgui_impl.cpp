@@ -127,7 +127,7 @@ void Console::OnSave( wxCommandEvent& event ) {
     wxDialog query;
     
     mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") & wxFileExists(   mFileString)) {
+    if ((   mFileString != "") && wxFileExists(   mFileString)) {
         // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
@@ -182,7 +182,7 @@ void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     if (this->auto_run->GetValue()){
         // box has been ticked
         mFileString  = m_fileStringBox->GetValue();
-        if ((   mFileString != "") & wxFileExists(   mFileString /*FilePath*/)){
+        if ((   mFileString != "") && wxFileExists(   mFileString /*FilePath*/)){
             // Have a 'current' file we can auto-run
             this->m_autoRun = true;
             }
@@ -252,16 +252,14 @@ void Console::OnTools( wxCommandEvent& event){
     }
     
 
-void Console::HandleNMEAstream(ObservedEvt& ev, int messageCntlId) {
+void Console::HandleNMEA0183(ObservedEvt& ev, int messageCntlId) {
     Completions outcome;
-    bool matched {false};
     TRACE(23, wxString::Format("Starting HandleNMEAstream messageCntlId is %d", messageCntlId));
     if (!isWaiting()) return;  // ignore if we are not waiting on something.  Should not be - being safe
     // look for our messageCntl entry
     for (auto it = m_streamMessageCntlsVector.cbegin(); it != m_streamMessageCntlsVector.cend(); ++it){
         auto entry = *it;
         if (entry.messageCntlId == messageCntlId) {
-            matched = true;
             NMEA0183Id nmeaId(entry.id0183.ToStdString());
             wxString sentence = wxString(GetN0183Payload(nmeaId, ev));
             // check the checksum
@@ -288,19 +286,47 @@ void Console::HandleNMEAstream(ObservedEvt& ev, int messageCntlId) {
             return;
             }
         }
-    // if (!matched) this->message(STYLE_RED, "HandleNMEAstream prog error - failed to match messageCntl entry");
     }
+    
+void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
+    Completions outcome;
+    TRACE(23, wxString::Format("Starting HandleNMEA2k messageCntlId is %d", messageCntlId));
+    if (!isWaiting()) return;  // ignore if we are not waiting on something.  Should not be - being safe
+    // look for our messageCntl entry
+    for (auto it = m_streamMessageCntlsVector.cbegin(); it != m_streamMessageCntlsVector.cend(); ++it){
+        auto entry = *it;
+        if (entry.messageCntlId == messageCntlId) {
+            NMEA2000Id nmea2kId(entry.id2k);
+            std::string source = GetN2000Source(nmea2kId, ev);
+			std::vector<uint8_t> payload = GetN2000Payload(nmea2kId, ev);
+            duk_push_object(mpCtx);
+                duk_push_string(mpCtx, source.c_str());
+                    duk_put_prop_literal(mpCtx, -2, "source");
+				duk_push_array(mpCtx);
+					for (int i = 0; i < payload.size(); i++){
+						duk_push_uint(mpCtx, payload.at(i));
+							duk_put_prop_index(mpCtx, -2, i);
+						}
+                    duk_put_prop_literal(mpCtx, -2, "payload");
+            // drop this element of vector before executing function
+            m_streamMessageCntlsVector.erase(it);
+            outcome = executeFunction(entry.functionName);
+            if (!isBusy()) wrapUp(outcome);
+            return;
+            }
+        }
+    }    
     
     void Console::HandleNavdata(ObservedEvt& ev, int messageCntlId) {
     Completions outcome;
-    bool matched {false};
+//    bool matched {false};
     TRACE(23, wxString::Format("Starting HandleNavdata messageCntlId is %d", messageCntlId));
     if (!isWaiting()) return;  // ignore if we are not waiting on something.  Should not be - being safe
     // look for our messageCntl entry
     for (auto it = m_streamMessageCntlsVector.cbegin(); it != m_streamMessageCntlsVector.cend(); ++it){
         auto entry = *it;
         if (entry.messageCntlId == messageCntlId) {
-            matched = true;
+//            matched = true;
             PluginNavdata navdata = GetEventNavdata(ev);
 			duk_push_object(mpCtx);
 				duk_push_number(mpCtx, navdata.time);

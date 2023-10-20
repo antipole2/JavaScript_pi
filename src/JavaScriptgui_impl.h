@@ -176,7 +176,7 @@ public:
 typedef enum STREAM_MESSAGE_TYPES {	// types of message handled via streams
     MESSAGE_NMEA0183_NON_STREAM = 0,
     MESSAGE_NMEA0183,
-    MESSAGE_N2K,
+    MESSAGE_NMEA2K,
     MESSAGE_SK,
     MESSAGE_NAVIGATION
     } STREAM_MESSAGE_TYPES;
@@ -185,6 +185,7 @@ struct  streamMessageCntl {	// controls how we handle stream events
 	int messageCntlId;
 	STREAM_MESSAGE_TYPES    messageType;
 	wxString id0183;
+	uint64_t id2k;
 	std::shared_ptr<ObservableListener> listener;
 	jsFunctionNameString_t functionName;
 	streamMessageCntl()
@@ -258,7 +259,8 @@ public:
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
     void OnClose( wxCloseEvent& event );
-    void HandleNMEAstream(ObservedEvt& ev, int id);
+    void HandleNMEA0183(ObservedEvt& ev, int id);
+    void HandleNMEA2k(ObservedEvt& ev, int id);
     void HandleNavdata(ObservedEvt& ev, int id);
     
 
@@ -1156,6 +1158,7 @@ public:
 				dump += wxString::Format("\t\t\t\t\tmessageCntlId:\t%d\n", entry.messageCntlId);			
 				dump += wxString::Format("\t\t\t\t\tmessageType:\t%d\n", entry.messageType);
 				dump += wxString::Format("\t\t\t\t\tid0183:\t\t\t%s\n", entry.id0183);
+				dump += wxString::Format("\t\t\t\t\tid2k:\t\t\t%i\n", entry.id2k);
 				dump += wxString::Format("\t\t\t\t\tfunctionName:\t%s\n", entry.functionName);
 				}
 			}
@@ -1233,18 +1236,21 @@ private:
         }
     
 public:
-    void setupNMEA0183stream(duk_context *ctx){
+    void setupNMEA0183(duk_context *ctx){
         // this method is called from the DukTape engine to set up receipt of NMEA0183 messages
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+        void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEAsentence within onExit function");
+        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEA0183 within onExit function");
         if (nargs == 0) { // empty call - cancel any waiting callbacks
+
         	m_NMEAmessageFunction = wxEmptyString;
-            m_streamMessageCntlsVector.clear();
+        	// remove all MESSAGE_NMEA0183 from vector
+ 			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NMEA0183);
             }
         else if (nargs == 1) {    // old-style general listen. Will be handled via th old mechanism 
-        	if (m_NMEAmessageFunction != wxEmptyString) throw_error(ctx, "OCPNonNMEAsentence called with general call outstanding");		
+        	if (m_NMEAmessageFunction != wxEmptyString) throw_error(ctx, "OCPNonNMEA0183 called with general call outstanding");		
             m_NMEAmessageFunction = extractFunctionName(ctx,0);
             }
         else if (nargs == 2){  // to be handled by new event mechanism
@@ -1254,7 +1260,7 @@ public:
 			duk_require_string(ctx, 1);
 			wxString header = wxString(duk_to_string(ctx, 1));
 			if ((header.length() != 3) && (header.length() != 5))
-				throw_error(ctx, wxString::Format("OCPNonNMEAsentence called with identifier %s not 3 or 5 characters", header));
+				throw_error(ctx, wxString::Format("OCPNonNMEA0183 called with identifier %s not 3 or 5 characters", header));
 			messageCntl.id0183 = wxString(header);
 			NMEA0183Id id(messageCntl.id0183.ToStdString());
 			wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
@@ -1263,12 +1269,43 @@ public:
 			TRACE(23, wxString::Format("Before bind messageCntl.messageCntlId is %d", ident));
 			Bind(EVT_JAVASCRIPT, [&, ident](ObservedEvt ev) {
 				TRACE(23, wxString::Format("Inside lamda ident is %d", ident));
-				HandleNMEAstream(ev, ident);
+				HandleNMEA0183(ev, ident);
 				});
 			m_streamMessageCntlsVector.push_back(messageCntl);
 			}
         else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
-	    };    
+	    };
+	    
+    void setupNMEA2k(duk_context *ctx){
+        // this method is called from the DukTape engine to set up receipt of NMEA2k messages
+        duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+        wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+        void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
+        
+        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEA2k within onExit function");
+        if (nargs == 0) { // empty call - cancel any waiting callbacks
+ 			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NMEA2K);
+            }
+        else if (nargs == 2){
+        	streamMessageCntl messageCntl;
+            messageCntl.functionName = extractFunctionName(ctx,0);
+			messageCntl.messageType = MESSAGE_NMEA2K;
+			duk_require_number(ctx, 1);
+			const uint64_t pgn = duk_get_int(ctx, 1);
+			messageCntl.id2k = pgn;
+			NMEA2000Id id(pgn);
+			wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
+			messageCntl.listener = GetListener(id, EVT_JAVASCRIPT, this);
+//			int ident = messageCntl.messageCntlId;	// use a simple int to avoid any issues with a class member
+//			TRACE(23, wxString::Format("Before bind messageCntl.messageCntlId is %d", ident));
+			Bind(EVT_JAVASCRIPT, [&, messageCntl](ObservedEvt ev) {
+//				TRACE(23, wxString::Format("Inside lamda ident is %d", ident));
+				HandleNMEA2k(ev, messageCntl.messageCntlId);
+				});
+			m_streamMessageCntlsVector.push_back(messageCntl);
+			}
+        else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
+	    };
     
     void setupNavigationStream(duk_context *ctx){
         // this method is called from the DukTape engine to set up receipt of navigation data

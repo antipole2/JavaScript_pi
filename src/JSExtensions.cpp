@@ -688,7 +688,8 @@ static duk_ret_t duk_paste(duk_context *ctx){
 		}
 	else {
 		wxTheClipboard->Close();
-		pConsole->throw_error(ctx, "pasteFromClip clipboard has no string");		
+		pConsole->throw_error(ctx, "pasteFromClip clipboard has no string");
+		return 1;	// to keep compiler happy		
 		}
 	}
 

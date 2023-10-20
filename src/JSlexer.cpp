@@ -99,9 +99,11 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             toClipboard\
             fromClipboard\
             OCPNpushNMEA0183\
+            OCPNpushNMEA2kSentence\
             OCPNgetMessageNames\
             OCPNsendMessage\
-            OCPNonNMEAsentence\
+            OCPNonNMEA0183\
+            OCPNonNMEA2k\
             OCPNonMessageName\
             OCPNgetNavigation\
             OCPNonNavigation\
@@ -145,7 +147,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleRun\
             onConsoleResult\
             ";
- 		wxString keywordsDeprecated = "OCPNpushNMEA";
+ 		wxString keywordsDeprecated = "OCPNpushNMEA OCPNonNMEAsentence";
 
         pane->SetKeyWords(0, keywordsSupported);
         pane->SetKeyWords(1, keywordsUnsupported + keywordsDeprecated);
