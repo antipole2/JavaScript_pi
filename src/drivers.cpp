@@ -30,37 +30,7 @@ const char* errorStrings[] = {
 	"RESULT_COMM_REGISTER_GATEWAY_ERROR"
 	};
     
-duk_ret_t getDriverHandles(duk_context* ctx){
-	std::vector<DriverHandle> handlesVector = GetActiveDrivers();
-	duk_idx_t arr_idx = duk_push_array(ctx);
-	int count = handlesVector.size();
-    if (count > 0){
-        for (int i = 0; i < count; i++){
-            duk_push_string(ctx, handlesVector[i].c_str());
-            duk_put_prop_index(ctx, arr_idx, i);
-            }
-        }
-	return 1;
-	}
-	
-duk_ret_t getDriverAttributes(duk_context* ctx){
-	// OCPNgetDriverAttributes(driverHandle)
-	std::unordered_map<std::string, std::string> attributeMap;
-	std::unordered_map<std::string, std::string> :: iterator i;
-	DriverHandle handle;
-	
-//	duk_require_number(ctx, 0);
-	handle = duk_get_string(ctx, 0);
-	duk_pop(ctx);		
-	attributeMap = GetAttributes(handle);
-	duk_push_object(ctx);
-	for (i = attributeMap.begin(); i != attributeMap.end(); i++){
-		duk_push_string(ctx, i->first.c_str());
-		duk_push_string(ctx, i->second.c_str());
-		duk_put_prop(ctx, -3);
-		}
-	return 1;			
-	}
+
 
 duk_ret_t writeDriver(duk_context* ctx){
 	wxString NMEAchecksum(wxString sentence);
@@ -102,13 +72,6 @@ duk_ret_t writeDriver(duk_context* ctx){
 void register_drivers(duk_context *ctx){
     duk_push_global_object(ctx);
     
-    duk_push_string(ctx, "OCPNgetActiveDriverHandles");
-    duk_push_c_function(ctx, getDriverHandles, 0 /* arguments*/);
-    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
-    duk_push_string(ctx, "OCPNgetDriverAttributes");
-    duk_push_c_function(ctx, getDriverAttributes, 1 /* arguments*/);
-    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNwriteDriver");
     duk_push_c_function(ctx, writeDriver, 2 /* arguments*/);

@@ -219,6 +219,13 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
+        if (isParked() && ToDIP(GetClientSize()).y < 2){	// hit close button when parked and minimised
+        	makeBigEnough();
+        	long int style = GetWindowStyle();
+        	SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
+			SetWindowStyle(style ^ wxSTAY_ON_TOP);	// but don't force it to stay
+        	return;
+        	}
         if (!this->m_Script->IsEmpty()) {
             // We will not delete a console with a script
             this->message(STYLE_RED, "Console close: clear the script first");
@@ -303,7 +310,7 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
                 duk_push_string(mpCtx, source.c_str());
                     duk_put_prop_literal(mpCtx, -2, "source");
 				duk_push_array(mpCtx);
-					for (int i = 0; i < payload.size(); i++){
+					for (int i = 0; i < payload.size(); i++){	// *** getting dec 85 on end of every payload
 						duk_push_uint(mpCtx, payload.at(i));
 							duk_put_prop_index(mpCtx, -2, i);
 						}

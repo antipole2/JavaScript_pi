@@ -385,15 +385,23 @@ static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - s
     pConsole->setupNMEA2k(ctx);   // needs to be in a method
     return 0;
 	};
-/*	
-	wxString answer = "This is the answer";
+/*	for testing
+    static const char hex_digits[] = "0123456789ABCDEF";
 	auto payload = make_shared<std::vector<uint8_t>>();
-	for (const auto& ch : answer) payload->push_back(ch);
-	duk_pop(ctx);	// clear off the calling argument
+	wxString source = wxEmptyString;
+	
+	payload->clear();
+	for (int i = 0; i < 20; i++){
+		uint8_t x = rand() % 512;
+		payload->push_back(x);
+		source +=  hex_digits[x >> 4];
+		source +=  hex_digits[x & 15];
+		}
+		
 	// now have a payload to return
-	wxString source {"Data Source"};
+
 	duk_push_object(ctx);
-		duk_push_string(ctx, source);
+		duk_push_string(ctx, source.c_str());
 			duk_put_prop_literal(ctx, -2, "Source");
 		duk_push_array(ctx);
 			for (int i = 0; i < payload->size(); i++){
@@ -402,6 +410,7 @@ static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - s
 				}
 			duk_put_prop_literal(ctx, -2, "Payload");
 	return 1;
+/*
 //	int argType = duk_get_type(ctx, 0);
 //	bool isArray = duk_is_array(ctx, 0);
 //	duk_pop(ctx);
@@ -414,9 +423,9 @@ static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - s
 	duk_push_string(ctx, duk_get_string(ctx, 0));
 //	duk_push_number(ctx, argType);
 	return 1;
-
-	}
+	};
 */
+
 	
 	
 static duk_ret_t onNavigation(duk_context *ctx) {  // to wait for navigation - save function to call
@@ -1246,6 +1255,38 @@ static duk_ret_t isOnline(duk_context *ctx) {   // check if online
 	duk_push_boolean(ctx, OCPN_isOnline());
 	return 1;
 	}
+	
+duk_ret_t getDriverHandles(duk_context* ctx){
+	std::vector<DriverHandle> handlesVector = GetActiveDrivers();
+	duk_idx_t arr_idx = duk_push_array(ctx);
+	int count = handlesVector.size();
+    if (count > 0){
+        for (int i = 0; i < count; i++){
+            duk_push_string(ctx, handlesVector[i].c_str());
+            duk_put_prop_index(ctx, arr_idx, i);
+            }
+        }
+	return 1;
+	}
+	
+duk_ret_t getDriverAttributes(duk_context* ctx){
+	// OCPNgetDriverAttributes(driverHandle)
+	std::unordered_map<std::string, std::string> attributeMap;
+	std::unordered_map<std::string, std::string> :: iterator i;
+	DriverHandle handle;
+	
+//	duk_require_number(ctx, 0);
+	handle = duk_get_string(ctx, 0);
+	duk_pop(ctx);		
+	attributeMap = GetAttributes(handle);
+	duk_push_object(ctx);
+	for (i = attributeMap.begin(); i != attributeMap.end(); i++){
+		duk_push_string(ctx, i->first.c_str());
+		duk_push_string(ctx, i->second.c_str());
+		duk_put_prop(ctx, -3);
+		}
+	return 1;			
+	}
     
 // ÑÑÑÑÑÑ API registrations follow
 
@@ -1262,6 +1303,15 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     }
 */
     /* add the fuctions */
+    
+    duk_push_string(ctx, "OCPNgetActiveDriverHandles");
+    duk_push_c_function(ctx, getDriverHandles, 0 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+    duk_push_string(ctx, "OCPNgetDriverAttributes");
+    duk_push_c_function(ctx, getDriverAttributes, 1 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     
     duk_push_string(ctx, "OCPNpushNMEA");
     duk_push_c_function(ctx, NMEA0183push, DUK_VARARGS /*number of arguments*/);
@@ -1291,7 +1341,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, onNMEA0183, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
-    duk_push_string(ctx, "OCPNonNMEA2k");
+    duk_push_string(ctx, "OCPNonNMEA2000");
     duk_push_c_function(ctx, onNMEA2k, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 

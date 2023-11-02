@@ -1,10 +1,12 @@
 Position = require("Position");
 
 position = new Position(Math.random() * 80,Math.random() * -180);
+print("Position: ", position, "\n");
 thisMoment = new Date();
 seconds = thisMoment.getTime()/1000;
 sog = Math.floor(Math.random() * 10);
 cog = Math.floor(Math.random() * 360);
+print("sog: ", sog, "\tcog: ", cog, "\n");
 OCPNpushNMEA("$JSVTG," + cog + ",T,,M," + sog + ",N,,K,A");
 OCPNpushNMEA("$JSGLL," + position.NMEA + "," + 123456 + ",A,A");
 onSeconds(step, 1);
@@ -22,4 +24,5 @@ print(nav, "\n");
 		stopScript("Navigation OK");
 	else stopScript("Navigation error");
 	}
+
 

@@ -1304,7 +1304,7 @@ public:
 				});
 			m_streamMessageCntlsVector.push_back(messageCntl);
 			}
-        else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
+        else throw_error(ctx, "OCPNonNMEAsentence does not have 0 or 2 args");   
 	    };
     
     void setupNavigationStream(duk_context *ctx){

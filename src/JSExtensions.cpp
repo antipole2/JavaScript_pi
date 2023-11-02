@@ -450,7 +450,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     outcome = getTextFile(resolved, &script);
     script = JScleanString(script);
     duk_push_string(ctx, script);
-    duk_push_string(ctx, "anything"); // the name here is irrelevant
+    duk_push_string(ctx, resolved); // the file name for trace back
     if (duk_pcompile(ctx, DUK_COMPILE_FUNCTION)){
         pConsole->throw_error(ctx, duk_safe_to_string(ctx, -1));
         }

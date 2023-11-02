@@ -103,7 +103,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetMessageNames\
             OCPNsendMessage\
             OCPNonNMEA0183\
-            OCPNonNMEA2k\
+            OCPNonNMEA2000\
             OCPNonMessageName\
             OCPNgetNavigation\
             OCPNonNavigation\
