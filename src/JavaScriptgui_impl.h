@@ -255,7 +255,7 @@ public:
     void OnTools( wxCommandEvent& event );
     void OnHelp( wxCommandEvent& event );
     void OnPark( wxCommandEvent& event );
-    void onActivate( wxActivateEvent& event );
+//  void onActivate( wxActivateEvent& event );
     void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
     void OnClose( wxCloseEvent& event );
@@ -525,6 +525,31 @@ public:
         TRACE(8, "Before call " + findConsoleByCtx(ctx)->dukDump());
         startTimeout();
         duk_outcome = duk_pcall(ctx, 1);   // single argument
+        clearTimeout();
+        TRACE(8, "After call " + findConsoleByCtx(ctx)->dukDump() + _("Result is ") + ((duk_outcome == DUK_EXEC_SUCCESS)?"success":"error"));
+		return(afterwards(duk_outcome));
+        }
+        
+    Completions executeFunctionNargs(wxString function, int nargs){
+        // execute function wih nargs arguments already on duktape stack
+        // returns result with nothing on stack
+        duk_int_t duk_outcome;
+        duk_context *ctx = mpCtx;
+       
+        duk_outcome = duk_get_global_string(ctx, function.c_str());
+        if (!duk_outcome){ // failed to find the function
+            TRACE(14, "executeFunctionNargs failed to find function");
+            m_result = _("Logic error: ") + mConsoleName + _("->executeFunctionNargs - no function ") + function;
+            duk_pop_n(ctx, nargs);
+            return HAD_ERROR;
+            }
+        // the function is on top above the nargs.  Need to shuffle it below them.
+        duk_idx_t pos = -1;
+        for (int i = nargs; i > 0; i--, pos--) duk_swap(ctx, pos, pos-1);
+        Console *findConsoleByCtx(duk_context *ctx); // ******
+        TRACE(8, "Before call " + findConsoleByCtx(ctx)->dukDump());
+         startTimeout();
+        duk_outcome = duk_pcall(ctx, nargs);   // call function with nargs
         clearTimeout();
         TRACE(8, "After call " + findConsoleByCtx(ctx)->dukDump() + _("Result is ") + ((duk_outcome == DUK_EXEC_SUCCESS)?"success":"error"));
 		return(afterwards(duk_outcome));

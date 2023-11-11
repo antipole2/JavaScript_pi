@@ -221,9 +221,7 @@ void Console::OnClose(wxCloseEvent& event) {
             }
         if (isParked() && ToDIP(GetClientSize()).y < 2){	// hit close button when parked and minimised
         	makeBigEnough();
-        	long int style = GetWindowStyle();
-        	SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
-			SetWindowStyle(style ^ wxSTAY_ON_TOP);	// but don't force it to stay
+        	Raise();
         	return;
         	}
         if (!this->m_Script->IsEmpty()) {
@@ -306,18 +304,18 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
             NMEA2000Id nmea2kId(entry.id2k);
             std::string source = GetN2000Source(nmea2kId, ev);
 			std::vector<uint8_t> payload = GetN2000Payload(nmea2kId, ev);
-            duk_push_object(mpCtx);
-                duk_push_string(mpCtx, source.c_str());
-                    duk_put_prop_literal(mpCtx, -2, "source");
-				duk_push_array(mpCtx);
-					for (int i = 0; i < payload.size(); i++){	// *** getting dec 85 on end of every payload
-						duk_push_uint(mpCtx, payload.at(i));
-							duk_put_prop_index(mpCtx, -2, i);
-						}
-                    duk_put_prop_literal(mpCtx, -2, "payload");
+			unsigned int pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
+			duk_push_array(mpCtx);	// 1st arg will be data array
+			int j = 0;
+			for (int i = 13; i < payload.size()-1; i++){	// just the N2K data without the dummy CRC end byte
+				duk_push_uint(mpCtx, payload.at(i));
+				duk_put_prop_index(mpCtx, -2, j++);
+				}
+			duk_push_uint(mpCtx, pgn);	// 2nd arg is pgn
+			duk_push_string(mpCtx, source.c_str());	// 3rd is source
             // drop this element of vector before executing function
             m_streamMessageCntlsVector.erase(it);
-            outcome = executeFunction(entry.functionName);
+            outcome = executeFunctionNargs(entry.functionName, 3);
             if (!isBusy()) wrapUp(outcome);
             return;
             }

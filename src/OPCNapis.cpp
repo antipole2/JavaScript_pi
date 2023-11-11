@@ -410,7 +410,7 @@ static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - s
 				}
 			duk_put_prop_literal(ctx, -2, "Payload");
 	return 1;
-/*
+	
 //	int argType = duk_get_type(ctx, 0);
 //	bool isArray = duk_is_array(ctx, 0);
 //	duk_pop(ctx);

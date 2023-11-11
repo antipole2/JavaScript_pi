@@ -649,9 +649,8 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
                                 pConsole->message(STYLE_RED, "Timer callback while JS active - ignored\n");
                                 return;
                                 }
-
                             duk_push_string(ctx, argument.c_str());
-                            outcome = pConsole->executeFunction(thisFunction);
+                            outcome = pConsole->executeFunctionNargs(thisFunction, 1);
                             if (!pConsole->isBusy()){
                             	i = 99999;  // this will stop us looking for further timers on this console
                             	pConsole->wrapUp(outcome);
