@@ -369,7 +369,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* HelpSizer1;
 	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
 
-	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin, which you can download from the following links.  Please consult this before raising queries.\n\nIf reading on a mobile device, you may find the .epub format more convenient as you can bookmark pages and keep track of where you have got to."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin,. You can download the latest version from the following links.  Please consult this before raising queries.\n\nIf reading on a mobile device, you may find the .epub format more convenient as you can bookmark pages and keep track of where you have got to."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText1, 0, wxALL|wxEXPAND, 5 );
 

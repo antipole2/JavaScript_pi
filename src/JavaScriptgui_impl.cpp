@@ -307,7 +307,7 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
 			unsigned int pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
 			duk_push_array(mpCtx);	// 1st arg will be data array
 			int j = 0;
-			for (int i = 13; i < payload.size()-1; i++){	// just the N2K data without the dummy CRC end byte
+			for (int i = 0 /* 13*/; i < payload.size()-1; i++){	// drop the dummy CRC end byte
 				duk_push_uint(mpCtx, payload.at(i));
 				duk_put_prop_index(mpCtx, -2, j++);
 				}
@@ -317,7 +317,7 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
             m_streamMessageCntlsVector.erase(it);
             outcome = executeFunctionNargs(entry.functionName, 3);
             if (!isBusy()) wrapUp(outcome);
-            return;
+            return;	// only fulfil one entry per call
             }
         }
     }    

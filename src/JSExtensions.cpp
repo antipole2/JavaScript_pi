@@ -24,6 +24,8 @@
 #include <wx/file.h>
 #include <wx/clipbrd.h>
 #include <wx/dataobj.h>
+#include <wx/arrstr.h>
+#include <wx/utils.h>
 #include "jsDialog.h"
 
 /*  On hold for now - cannot find a way of handling the variable arguments
@@ -434,9 +436,9 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
             filePath.SetPath(fileString);
             filePath.AppendDir("data");
             filePath.AppendDir("scripts");
-            filePath.SetFullName(fileNameGiven);
+            filePath.SetFullName(fileNameGiven + ".js");	// .js added Nov 2023
             if (!filePath.FileExists()){
-                pConsole->throw_error(ctx, "require - " + filePath.GetFullName() + " not in scripts library");
+                pConsole->throw_error(ctx, "require - " + fileNameGiven + " not in built-in scripts");
                 }
             if (!filePath.IsFileReadable()) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
             // ready to go
@@ -688,10 +690,82 @@ static duk_ret_t duk_paste(duk_context *ctx){
 		}
 	else {
 		wxTheClipboard->Close();
-		pConsole->throw_error(ctx, "pasteFromClip clipboard has no string");
+		pConsole->throw_error(ctx, "pasteFromClipboard clipboard has no text string");
 		return 1;	// to keep compiler happy		
 		}
 	}
+	
+static duk_ret_t duk_execute(duk_context *ctx){
+	// execute(command string, env, errorOption);  returns output
+	wxString command;
+	wxArrayString output;
+	wxArrayString errors;
+	bool ignoreErrors {false};
+
+	int flags = 0;
+	wxExecuteEnv execEnv;	// execution environment variable
+	execEnv.cwd = pJavaScript_pi->mCurrentDirectory;	// default to plugin current directory
+	size_t i;
+	
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	command = duk_get_string(ctx, 0);
+	duk_idx_t env_obj_idx {1};	// where the env object is if present
+	if(duk_is_object_coercible(ctx, env_obj_idx)){	// yes - given environment variables
+//	 	wxArrayString keys = {"PATH", "PWD"};	// possible keys supported
+		wxArrayString keys;
+		keys.Add("PATH");
+		keys.Add("PWD");
+		keys.Add("SHELL");
+		for (i =0; i < keys.GetCount(); i++){
+			wxString key = keys[i];
+			duk_push_string(ctx, key);
+			if (duk_get_prop(ctx, env_obj_idx)){	// key exists
+				wxString value = duk_get_string(ctx, -1);
+				if (key == "PWD") execEnv.cwd = value;
+//				else execEnv.env.SetEnv(key, value);
+				else execEnv.env[key] = value;
+				}
+			}
+	 	
+	 	}
+	 	
+	 if (nargs >= 2) ignoreErrors = duk_get_boolean(ctx, 2);		
+	duk_pop_n(ctx, nargs);
+	
+	long pid = wxExecute(command, output, errors, flags, &execEnv);
+
+	wxString resultString = wxEmptyString;
+	for (i = 0; i < output.GetCount(); i++) {
+		if (i > 0) resultString += "\n";
+		resultString += output.Item(i);
+		}
+	wxString errorString = wxEmptyString;
+	for (i = 0; i < errors.GetCount(); i++){
+		if (i > 0) errorString += "\n";
+		errorString += errors.Item(i);
+		}		
+	duk_push_object(ctx);	// to be the result
+		duk_push_string(ctx, resultString);
+		duk_put_prop_literal(ctx, -2, "stdout");
+		duk_push_string(ctx, errorString);
+		duk_put_prop_literal(ctx, -2, "stderr");
+
+	if (!ignoreErrors) {	// deal with any errors here
+		if (pid != 0){	// there was an error
+			wxString errorMessage;
+			if (pid < 0) errorMessage = "execute unable to launch process";
+			else errorMessage = "execute " + errorString.c_str();
+			duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, errorString);
+			duk_throw(ctx);
+			}		
+		}
+	else {
+		duk_push_int(ctx, pid);
+		duk_put_prop_literal(ctx, -2, "errorCode");
+		}
+	return 1;		
+	}
+
 
 #ifdef DUK_DUMP
 
@@ -844,6 +918,10 @@ void duk_extensions_init(duk_context *ctx) {
 
     duk_push_string(ctx, "fromClipboard");
     duk_push_c_function(ctx, duk_paste, 0 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "execute");
+    duk_push_c_function(ctx, duk_execute, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
 
