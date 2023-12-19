@@ -425,6 +425,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     fileNameGiven = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
     filePath = wxFileName(fileNameGiven);
+    TRACE(45, "Require - fileGivenName: " + fileNameGiven);
     if ((filePath.GetDirCount() == 0) && !filePath.HasExt()){ // simple file name
         if (loadComponent(ctx, fileNameGiven)) {
             // above we will have loaded a C++ component if it matches
@@ -432,23 +433,28 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
             }
         else {  // we will look for it in the built-in scripts
             // this updated for ocpn v5.5
+            TRACE(45, "Require - looking for built-in script");
             fileString = GetPluginDataDir("JavaScript_pi");
             filePath.SetPath(fileString);
             filePath.AppendDir("data");
             filePath.AppendDir("scripts");
             filePath.SetFullName(fileNameGiven + ".js");	// .js added Nov 2023
+            TRACE(45, "Require - looking to load built-in script: " + filePath.GetFullPath());
             if (!filePath.FileExists()){
                 pConsole->throw_error(ctx, "require - " + fileNameGiven + " not in built-in scripts");
                 }
             if (!filePath.IsFileReadable()) pConsole->throw_error(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
             // ready to go
             resolved = filePath.GetFullPath();
+            TRACE(45, "Require - found built-in script");
             }
         }
     else{   // not a built-in or library script - we will hunt for it
+        TRACE(45, "Require - hunting for script");
         outcome = resolveFileName(fileNameGiven, &resolved, MUST_EXIST);
         if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
         }
+    TRACE(45, "Require - resolved to: " + resolved);
     outcome = getTextFile(resolved, &script);
     script = JScleanString(script);
     duk_push_string(ctx, script);

@@ -19,6 +19,7 @@
 #include <wx/listimpl.cpp>
 #include <stdarg.h>
 #include <unordered_map>
+#include <vector>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
 WX_DEFINE_LIST(Plugin_WaypointList);		// used by API16 for tracks
@@ -648,6 +649,62 @@ static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on st
     duk_push_string(ctx, result);
     return(1);
 }
+
+static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on stack out through OpenCPN
+	// OCPNpushNMEA2000(handle, pgn, destination, priority, payload)
+	// sanity checks
+	duk_require_string(ctx, 0);		// handle
+	duk_require_int(ctx, 1);		// pgn
+	duk_require_int(ctx, 2);		// destination
+	duk_require_int(ctx, 3);		// priority
+	duk_require_object(ctx, 4);		// payload array
+	
+	// deal with pgn registration if needed
+	DriverHandle handle = duk_get_string(ctx, 0);
+	pgn_t pgn = duk_get_int(ctx, 1);
+	bool matchedHandle = false;
+	bool matchedPgn = false;
+	for (int h = 0; h < pJavaScript_pi->m_pgnRegistrations.size(); h++){	// look for existing handle
+		if (pJavaScript_pi->m_pgnRegistrations[h].handle == handle){	// matched handle
+			matchedHandle = true;
+			for (int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
+				if (pJavaScript_pi->m_pgnRegistrations[h].pgns[p] == pgn){	//matched pgn
+					matchedPgn = true;
+					break;
+					}
+				}
+			if (!matchedPgn){	// new pgn in familiar handle
+				pJavaScript_pi->m_pgnRegistrations[h].pgns.emplace_back(pgn);
+				// need to register here
+				matchedPgn = true;
+				break;
+				}
+			}
+		
+		}
+	if (!matchedHandle) {	// new handle - need to register it and remember it
+		checkHandle(ctx, handle, "nmea2000", "OCPNpushNMEA2000");
+		std::vector<int> pgn_list;	// pgn needs to be in list
+		pgn_list.emplace_back(pgn);
+		RegisterTXPGNs(handle, pgn_list);
+		pgn_registration newreg;
+		newreg.handle = handle;
+		newreg.pgns.emplace_back(pgn);
+		pJavaScript_pi->m_pgnRegistrations.emplace_back(newreg);
+		};	
+		
+	// all good to go - prepare payload
+	int destinationCANAddress = duk_get_int(ctx, 2);
+	int priority = duk_get_int(ctx, 3);
+	std::shared_ptr <std::vector<uint8_t>> payload = std::make_shared<std::vector<uint8_t>>();
+	duk_size_t length = duk_get_length(ctx, 4);
+	for (duk_idx_t i = 0; i < length; i++) payload->push_back(duk_get_prop_index(ctx, 4, i));
+	duk_pop_n(ctx, 4);	// finished with arguments	
+	CommDriverResult outcome = WriteCommDriverN2K(handle, pgn, destinationCANAddress, priority, payload);
+	if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
+	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA2000 driver error: %s\n", driverErrorStrings[outcome])));
+	return 1;
+	}
 
 static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
     duk_idx_t nargs;  // number of args in call
@@ -1318,6 +1375,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     
     duk_push_string(ctx, "OCPNpushNMEA0183");
     duk_push_c_function(ctx, NMEA0183push, DUK_VARARGS /*number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNpushNMEA2000");
+    duk_push_c_function(ctx, NMEA2kPush, 5 /*number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNsendMessage");

@@ -48,6 +48,12 @@ typedef enum Completions {
     } Completions;
 
 typedef  std::bitset<Completions_count> status_t;
+typedef	int pgn_t;
+
+struct pgn_registration {	// entry recording pgns registered for given handle
+	DriverHandle	handle;
+	std::vector <pgn_t> pgns;	
+	};
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
@@ -132,6 +138,8 @@ public:
     int				nextID = 1;		// used to generate unique IDs
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
 	bool			m_bShowJavaScript;
+	
+	std::vector<pgn_registration> m_pgnRegistrations;	// will hold N2K pgn registrations here
 
 private:
     wxBitmap        m_panelBitmap;

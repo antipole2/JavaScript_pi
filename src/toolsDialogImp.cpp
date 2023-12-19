@@ -231,6 +231,19 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += "recentFiles:\n";
     for (int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
+    int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
+    dump += "N2K pgn registrations:";
+    if (pgn_reg_count > 0){
+    	dump += "\n";
+    	for (int h = 0; h < pgn_reg_count; h++){
+    		dump += "\tHandle\t" + pJavaScript_pi->m_pgnRegistrations[h].handle + "\n";
+    		for (int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
+    			dump += wxString::Format("\t\t%d", pJavaScript_pi->m_pgnRegistrations[h].pgns[p]);
+    			}
+    		dump += "\n";
+    		}
+    	}
+    else dump += " none\n";
     dump += "pJavaScript_pi->mpFirstConsole\t" + ptrToString(pJavaScript_pi->mpFirstConsole) + "\n";
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
         dump += ("\n----------Console " + pConsole->mConsoleName + "----------\n");
