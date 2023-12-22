@@ -191,6 +191,11 @@ struct  streamMessageCntl {	// controls how we handle stream events
 	streamMessageCntl()
 		: messageCntlId(rand()),  functionName("") {}
 	};
+	
+struct wxFileFcb {	// to hold wxFile structures
+	int id;	// identifying file control block number
+	wxFile fcb;
+	};
     
 
 class Console : public m_Console {
@@ -243,6 +248,7 @@ public:
     bool		m_parked;		// true if this console parked
     
     int			mStreamEventCntlId;	// where the event constructor picks up the StreamEventCntlId
+    std::vector<wxFileFcb> m_wxFileFcbs;	// will hold file fcb entries
 
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
@@ -455,6 +461,7 @@ public:
 		if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
 			mAlert.position.y = 150;
 			}
+		m_wxFileFcbs.clear();
 		return;
 		}
  
@@ -1204,7 +1211,13 @@ public:
             }
         else dump += "No brief\n";
         dump += wxString::Format("mConsoleRepliesAwaited\t%d\n", mConsoleRepliesAwaited);
-        dump+= dukDump();
+        int wxFileCount = m_wxFileFcbs.size();
+        if (wxFileCount > 0) dump += "wxFile ids - none\n";
+        else {
+        	dump += "wxFile ids\n";
+        	for (int f = 0; f < wxFileCount; f++) dump += wxString::Format("\t%d\n", m_wxFileFcbs[f].id);
+        	}
+        dump += dukDump();
         return dump;
         }
     

@@ -83,9 +83,9 @@ function NMEA2000(arg, data, options){
 		repeat1StartField = desc.RepeatingFieldSet1StartField;
 		repeat1CountField = desc.RepeatingFieldSet1CountField;
 		result = [147, 19];	// build the standard OCPN header
-		result.push(checkUndefined(this.prio, 8));
+		result.push(checkUndefined(this.priority, 8));
 		result = result.concat(encodeBytes(this.PGN, 3));	// the pgn
-		result.push(checkUndefined(this.dst, 8), checkUndefined(this.src, 8));
+		result.push(checkUndefined(this.desination, 8), checkUndefined(this.origin, 8));
 		if (undefineTimestamp) result.push(255,255,255,255);
 		else result = result.concat(encodeBytes(new Date(), 4));
 
@@ -152,11 +152,12 @@ function NMEA2000(arg, data, options){
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
 		us["timestamp"] = ud;
-		us["prio"] = ud;
-		us["dst"] = ud;
-		us["src"] = ud;
+		us["priority"] = ud;
+		us["desination"] = ud;
+		us["origin"] = ud;
 		for (field = 1; field < desc.Fields.length; field++){
 			if (desc.Fields[field].Id.slice(0,8) == "reserved") continue;	// ignore
+			if (desc.Fields[field].Id == "spare") continue;	// ignore this too
 			if (field == repeat1StartField - 1){	// set up the the repeating field
 				repeats = [];	// for the repeating values
 				us[repeatName+"Count"] = ud;
@@ -184,19 +185,19 @@ function NMEA2000(arg, data, options){
 		if (count != data.length-13) throw ("NMEA2000 byte count in data does not match actuality");
 		us["timestamp"] = 0;	// get this in now to establish position in enumeration
 		nextByte = 2;
-		us["prio"] = data[nextByte++];
+		us["priority"] = data[nextByte++];
 		pgn = getBytes(data, nextByte,3);
 		if (pgn != this.pgn) throw("NMEA2000 pgn in data does not match descriptor pgn");
-		us["dst"] = data[nextByte++];
+		us["desination"] = data[nextByte++];
 		if ( data[0]==/*MsgTypeN2kData*/0x93 ) {
-			us["src"] = data[nextByte++];
+			us["origin"] = data[nextByte++];
 			stamp = getBytes(data, nextByte,4);
 			stamp = checkNumber(stamp, false, 32);
 			if (trace & 4) printOrange("Have header timestamp ", stamp, "\n");
 			us["timestamp"] = stamp;
 			}
 		  else {
-			us["src"] = data[i++]; /*DefaultSource*/;
+			us["origin"] = data[i++]; /*DefaultSource*/;
 			us["timestamp"] = new Date();
 		  }
 		data = data.slice(13);	// now dispense with actisense header and start on NMEA2000 data proper
@@ -211,11 +212,15 @@ function NMEA2000(arg, data, options){
 					nextBitIndex += field.BitLength;
 					continue;
 					}
+				if (field.Id == "spare") {	// we will skip this also
+					nextBitIndex += field.BitLength;
+					continue;
+					}
 				Id = field.Id;
 				if (field.BitOffset == void 0) canCheckBitOffset = false;	// no BitOffset so stop checking
 				if (canCheckBitOffset) if (field.BitOffset != nextBitIndex)
 					throw("NMEA2000 parse BitOffset " + field.BitOffset + " nextBitIndex " + nextBitIndex + " conflict");
-				value = decode(data, field);
+				value = decodeValue(data, field);
 				if (repeat1 && (order == repeat1CountField)){
 					repeatCount = value;	// remember repeat count
 					if (trace & 4) printBlue("Repeat count:", repeatCount, "\n");
@@ -254,7 +259,7 @@ function NMEA2000(arg, data, options){
 						startByteIndex = Math.floor(nextBitIndex/8);
 						BytesToGet = Math.ceil(field.bitLength/8);
 						if (startByteIndex + BytesToGet > data.length) break;	// off end of data
-						thisRepeat[Id] = decode(data, field);
+						thisRepeat[Id] = decodeValue(data, field);
 						if (trace & 32) print("r:", r, "\ts:", s, "\t nextBitIndex:", nextBitIndex,  " mod8:", nextBitIndex%8, "\n");
 						}
 					repeats.push(thisRepeat);
@@ -266,7 +271,7 @@ function NMEA2000(arg, data, options){
 			}
 		}
 
-	function decode(data, desc) {
+	function decodeValue(data, desc) {
 		// to understand how values are expressed, see https://canboat.github.io/canboat/canboat.html#ft-NUMBER
 		if (trace & 4) printBlue("Decode data:", data, "\tdesc:", desc, "\n");
 		switch (desc.Type){
@@ -305,6 +310,8 @@ function NMEA2000(arg, data, options){
 				time = new Date(value*1000);	// need msec
 				return time.toUTCString().slice(11,19);	// e.g 17:35:00
 			case "Lookup table":
+			case "Manufacturer Code":
+			case "Manufacturer code":
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
 				nextBitIndex += desc.BitLength;
 				value = checkNumber(value, desc.Signed, desc.BitLength);
@@ -325,6 +332,17 @@ function NMEA2000(arg, data, options){
 					if (name) return name;
 					else return "undefined";
 					}
+			case "ASCII text":
+				string = "";
+				toDo = desc.BitLength/8;
+				while (toDo-- > 0) {
+					nextByte = getNextByte(data);
+					if ((nextByte == 0x00) || (nextByte == 0xff)) continue;	// ignore
+					nextChar = String.fromCharCode(nextByte);
+					string += nextChar;
+					}
+				while (string.slice(-1) == "@") string.length--;	// drop trailing @s
+				return string;				
 			case "ASCII or UNICODE string starting with length and control byte":
 				count = getNextByte(data);
 				code = getNextByte(data);
@@ -345,15 +363,10 @@ function NMEA2000(arg, data, options){
 				if (nullByte != 0) throw("In " + + desc.Description + " the string null terminator was not null");
 				if (trace & 8) printOrange("string:", string, "\n");
 				return string;
-			case "Manufacturer code":
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				value = checkNumber(value, desc.Signed, desc.BitLength);
-				return value;
 			default: throw("Unsupported field type " + desc.Type);
 			}
-			result = "The result";
-			return result;
+		result = "The result";
+		return result;
 		}
 
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
@@ -441,7 +454,7 @@ function NMEA2000(arg, data, options){
 
 	function encodeValue(us, field){
 		Id = field.Id;
-		if (Id.slice(0,8) == "reserved"){
+		if ((Id.slice(0,8) == "reserved")|| (Id == "spare")){
 			encodeBits(0xffff, field.BitOffset, field.BitLength, field.BitStart);
 			return;
 			}
@@ -460,11 +473,14 @@ function NMEA2000(arg, data, options){
  		switch (field.Type){
 			case "Integer":
 				if (field.BitLength <= 3) value = 0xfe;	// special case
-				else value = value/field.Resolution;
+				else value = value/field.Resolution.toFixed(0);
 				encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
 				return;
 			case "Lookup table":
-				if ((typeof field.EnumValues) != "undefined"){ // only if lookup table included in desc
+			case "Manufacturer Code":
+			case "Manufacturer code":
+				if (((typeof field.EnumValues) != "undefined") &&
+					((typeof value) == "string")){ // only if lookup table included in desc and it is a string
 					if (trace & 32) printOrange("field.EnumValues.length: " + field.EnumValues.length, "\n");
 					for (i = 0; i < field.EnumValues.length; i++){
 						if (trace & 32) printOrange("Table name: ", field.EnumValues[i].name, "\n");
@@ -506,6 +522,14 @@ function NMEA2000(arg, data, options){
 				data.push(value.length+3, 1);	// count (includes itself, code and terminating zero) + ASCII code
 				for (var c = 0; c < value.length; c++) data.push(value.charCodeAt(c));
 				data.push(0);
+				return;
+			case "ASCII text":	// fixedlength text
+				var c = field.BitLength/8;	// number of chars allowed
+				var s = value.length;		// number of chars provided
+				if (trace & 16) printOrange("Encode ASCII c: ", c, "\ts:", s, "\n");
+				for (var i = 0; ((c > 0) && (s > 0));  i++, c--, s--)
+					data.push(value.charCodeAt(i));
+				while (c-- > 0) data.push(0x00);	// pad if needed
 				return;
 			default: throw("encode Value unsupported type: " + field.Type);
 			}

@@ -379,8 +379,15 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     
     filePath = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
-    result = resolveFileName(filePath, &filePath, MUST_EXIST);
-    if (result != wxEmptyString) pConsole->throw_error(ctx, result);
+    if (filePath == wxEmptyString){	// user to choose
+    	wxFileDialog dialog(pConsole, pConsole->mConsoleName + " readTextFile", pJavaScript_pi->mCurrentDirectory);
+		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(ctx, "Open dialogue cancelled");;
+		filePath = dialog.GetPath();
+    	}
+    else {
+		result = resolveFileName(filePath, &filePath, MUST_EXIST);
+		if (result != wxEmptyString) pConsole->throw_error(ctx, result);
+		}
     result = getTextFile(filePath, &text);
     if (result != wxEmptyString) pConsole->throw_error(ctx, result);
     text = JScleanString(text);
@@ -389,11 +396,9 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     };
 
 static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
-    // write a text file
-    extern JavaScript_pi* pJavaScript_pi;
+	// filewriteTextFile(text, fileNameString, mode)
     wxString fileNameGiven,fileString, outcome, text;
     wxFileName filePath;
-    wxTextFile outputFile;
     Console *pConsole = findConsoleByCtx(ctx);
     
     text = duk_to_string(ctx, 0);
@@ -403,9 +408,24 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
 
     if ((mode < 0) || (mode > 2)) pConsole->throw_error(ctx, "writeTextFile " + filePath.GetFullPath() + "access invalid mode");
     FileOptions option = (mode == 0)? MUST_NOT_EXIST : DONT_CARE;
-    outcome = resolveFileName(fileNameGiven, &fileString, option);
-    if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
-    outputFile.Open(fileString);
+    if (fileNameGiven == wxEmptyString){	// use save dialogue
+    	long ourStyle = wxFD_SAVE;
+    	if (mode == 1) ourStyle |= wxFD_OVERWRITE_PROMPT;
+    	wxFileDialog dialog(pConsole, pConsole->mConsoleName + " writeTextFile", pJavaScript_pi->mCurrentDirectory, wxEmptyString,
+    		wxFileSelectorDefaultWildcardStr, ourStyle);
+		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(ctx, "Save dialogue cancelled");;
+		fileString = dialog.GetPath();
+    	}
+	else {
+	    outcome = resolveFileName(fileNameGiven, &fileString, option);
+    	if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
+    	}
+    if (fileString.Find('.') == wxNOT_FOUND) { // no file extension
+    	fileString.Append(".txt");
+    	}
+    wxTextFile outputFile(fileString);
+    if (outputFile.Exists() && mode == 0) pConsole->throw_error(ctx, "writeTextFile " + outputFile.GetName() + " already exists");
+    outputFile.Open();
     if (mode == 1) outputFile.Clear();
     outputFile.AddLine(text);
     outputFile.Write();
@@ -772,6 +792,20 @@ static duk_ret_t duk_execute(duk_context *ctx){
 	return 1;		
 	}
 
+static duk_ret_t duk_get_fileString(duk_context *ctx){	// file dialogue to get file string
+//    extern JavaScript_pi *pJavaScript_pi;
+    Console *pConsole = findConsoleByCtx(ctx);
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	wxString prompt = duk_get_string(ctx, 0);
+	wxString selector = wxEmptyString;
+	if (nargs > 1) selector = duk_get_string(ctx, 1);
+	wxFileDialog dialog(pConsole, "prompt", pJavaScript_pi->mCurrentDirectory);
+	dialog.ShowModal();
+	duk_pop_n(ctx, nargs);
+	duk_push_string(ctx,dialog.GetPath());
+	return 1;
+	}
+	
 
 #ifdef DUK_DUMP
 
@@ -929,6 +963,11 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_string(ctx, "execute");
     duk_push_c_function(ctx, duk_execute, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "getFileString");
+    duk_push_c_function(ctx, duk_get_fileString, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
 
 
 #if 0
