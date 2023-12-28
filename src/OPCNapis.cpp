@@ -698,7 +698,12 @@ static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on st
 	int priority = duk_get_int(ctx, 3);
 	std::shared_ptr <std::vector<uint8_t>> payload = std::make_shared<std::vector<uint8_t>>();
 	duk_size_t length = duk_get_length(ctx, 4);
-	for (duk_idx_t i = 0; i < length; i++) payload->push_back(duk_get_prop_index(ctx, 4, i));
+	duk_uint_t val;
+	for (duk_idx_t i = 0; i < length; i++) {
+		duk_get_prop_index(ctx, 4, i);
+		val = duk_get_uint(ctx, -1);
+		payload->push_back(val);
+		}
 	duk_pop_n(ctx, 4);	// finished with arguments	
 	CommDriverResult outcome = WriteCommDriverN2K(handle, pgn, destinationCANAddress, priority, payload);
 	if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");

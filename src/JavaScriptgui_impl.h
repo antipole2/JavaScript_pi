@@ -194,7 +194,9 @@ struct  streamMessageCntl {	// controls how we handle stream events
 	
 struct wxFileFcb {	// to hold wxFile structures
 	int id;	// identifying file control block number
-	wxFile fcb;
+	wxFile* pFile;
+	wxFileFcb()
+		: id(rand()) {}	// set id to random number
 	};
     
 
@@ -453,6 +455,17 @@ public:
 		mConsoleRepliesAwaited = 0;
 		m_exitFunction = wxEmptyString;
 		m_streamMessageCntlsVector.clear();
+		// just in case file controls not finalised from any previous run
+		{
+			int count = m_wxFileFcbs.size();
+			if (count > 0){
+				message(STYLE_ORANGE, _("Warning: file controls not cleaned up by previous run - doing it now"));
+				for (auto it = begin (m_wxFileFcbs); it != end (m_wxFileFcbs); ++it) {
+					delete it->pFile;
+					}
+				m_wxFileFcbs.clear();
+				}
+			}
 		#ifdef SOCKETS
 			clearSockets();
 		#endif
@@ -1212,7 +1225,7 @@ public:
         else dump += "No brief\n";
         dump += wxString::Format("mConsoleRepliesAwaited\t%d\n", mConsoleRepliesAwaited);
         int wxFileCount = m_wxFileFcbs.size();
-        if (wxFileCount > 0) dump += "wxFile ids - none\n";
+        if (wxFileCount == 0) dump += "wxFile ids - none\n";
         else {
         	dump += "wxFile ids\n";
         	for (int f = 0; f < wxFileCount; f++) dump += wxString::Format("\t%d\n", m_wxFileFcbs[f].id);

@@ -799,10 +799,73 @@ static duk_ret_t duk_get_fileString(duk_context *ctx){	// file dialogue to get f
 	wxString prompt = duk_get_string(ctx, 0);
 	wxString selector = wxEmptyString;
 	if (nargs > 1) selector = duk_get_string(ctx, 1);
-	wxFileDialog dialog(pConsole, "prompt", pJavaScript_pi->mCurrentDirectory);
+	wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory);
 	dialog.ShowModal();
 	duk_pop_n(ctx, nargs);
 	duk_push_string(ctx,dialog.GetPath());
+	return 1;
+	}
+	
+int findFileIndex(Console *pConsole, int id){
+	// given id, return index of entry in vector
+	int index;
+	int count = pConsole->m_wxFileFcbs.size();
+	for (index = 0; index < count; index ++){
+		if (pConsole->m_wxFileFcbs[index].id == id) return index;
+		}
+	pConsole->throw_error(pConsole->mpCtx, "_wxFile failed to match id");
+	return 1;	// to keep compiler happy
+	}
+	
+duk_ret_t clearFileEntry(duk_context *ctx){
+	// finalise object by cleaning up.  Object on stack
+	TRACE(99, "In finaliser");
+	TRACE(99, wxString::Format("finaliser has ctx:%i", ctx));
+	Console *pConsole = findConsoleByCtx(ctx);
+//	TRACE(99, dukDump( ) + "\n\n");
+	duk_get_prop_literal(ctx, -1, "id");
+	int id = duk_get_int_default(ctx, -1, -1);	// index for this object
+	TRACE(99, wxString::Format("Finaliser got id:%i", id));
+	if (id == -1) {
+		pConsole->message(STYLE_RED, "_wxFile failed to get id in finaliser");
+		return 0;
+		}
+	int index = findFileIndex(pConsole, id);
+	TRACE(99, wxString::Format("Finaliser got index:%i", index));
+	delete pConsole->m_wxFileFcbs[index].pFile;
+	pConsole->m_wxFileFcbs.erase(pConsole->m_wxFileFcbs.begin() + index);
+	duk_pop_2(ctx);
+	return 0;
+	}
+	
+static duk_ret_t _wxFile(duk_context *ctx){
+TRACE(99, wxString::Format("_wxFile has ctx:%i", ctx));
+    Console *pConsole = findConsoleByCtx(ctx);
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	int action = duk_get_number(ctx, 0);
+	switch (action){
+		case 0:	{// construct
+		duk_push_object(ctx);
+			// set up finalisation
+			duk_push_c_function(ctx, clearFileEntry, 1 /*nargs*/);
+			duk_set_finalizer(ctx, 1);
+			duk_pop_n(ctx, nargs);	// finished with call
+			wxFileFcb control;
+			control.pFile = new wxFile;
+			pConsole->m_wxFileFcbs.push_back(control);
+			duk_push_number(ctx, control.id);	//return the id
+			return 1;
+			}
+		case 1: { // Open
+			int id = duk_get_number(ctx, 1);
+			int count =  pConsole->m_wxFileFcbs.size();
+			}
+		default:
+			pConsole->throw_error(ctx, "_wxFile invalid action");
+		}
+	
+	duk_pop_n(ctx, nargs);
+	duk_push_number(ctx, nargs);
 	return 1;
 	}
 	
@@ -966,8 +1029,12 @@ void duk_extensions_init(duk_context *ctx) {
     
     duk_push_string(ctx, "getFileString");
     duk_push_c_function(ctx, duk_get_fileString, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE); 
+    
+    duk_push_string(ctx, "_wxFile");
+    duk_push_c_function(ctx, _wxFile, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
+    
 
 
 #if 0
