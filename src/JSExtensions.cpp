@@ -52,7 +52,7 @@ extern JavaScript_pi *pJavaScript_pi;
 Console* findConsoleByCtx(duk_context *ctx);
 Console* findConsoleByName(wxString name);
 void throwErrorByCtx(duk_context *ctx, wxString message);
-wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options);
+wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options);
 wxString getTextFile(wxString fileString, wxString* text);
 
 void limitOutput(wxStyledTextCtrl* pText){
@@ -379,15 +379,8 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     
     filePath = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
-    if (filePath == wxEmptyString){	// user to choose
-    	wxFileDialog dialog(pConsole, pConsole->mConsoleName + " readTextFile", pJavaScript_pi->mCurrentDirectory);
-		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(ctx, "Open dialogue cancelled");;
-		filePath = dialog.GetPath();
-    	}
-    else {
-		result = resolveFileName(filePath, &filePath, MUST_EXIST);
-		if (result != wxEmptyString) pConsole->throw_error(ctx, result);
-		}
+	filePath = resolveFileName(filePath, pConsole, MUST_EXIST);
+	if (filePath == wxEmptyString) pConsole->throw_error(ctx, result);
     result = getTextFile(filePath, &text);
     if (result != wxEmptyString) pConsole->throw_error(ctx, result);
     text = JScleanString(text);
@@ -417,8 +410,7 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
 		fileString = dialog.GetPath();
     	}
 	else {
-	    outcome = resolveFileName(fileNameGiven, &fileString, option);
-    	if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
+	    outcome = resolveFileName(fileNameGiven, pConsole, option);
     	}
     if (fileString.Find('.') == wxNOT_FOUND) { // no file extension
     	fileString.Append(".txt");
@@ -446,7 +438,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     duk_pop(ctx);  // finished with that
     filePath = wxFileName(fileNameGiven);
     TRACE(45, "Require - fileGivenName: " + fileNameGiven);
-    if ((filePath.GetDirCount() == 0) && !filePath.HasExt()){ // simple file name
+    if ((filePath.GetDirCount() == 0) && !filePath.HasExt() && fileNameGiven.substr(0, 1) != "?"){ // simple file name
         if (loadComponent(ctx, fileNameGiven)) {
             // above we will have loaded a C++ component if it matches
             return 1;
@@ -471,8 +463,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
         }
     else{   // not a built-in or library script - we will hunt for it
         TRACE(45, "Require - hunting for script");
-        outcome = resolveFileName(fileNameGiven, &resolved, MUST_EXIST);
-        if (outcome != wxEmptyString) pConsole->throw_error(ctx, outcome);
+        resolved = resolveFileName(fileNameGiven, pConsole, MUST_EXIST);
         }
     TRACE(45, "Require - resolved to: " + resolved);
     outcome = getTextFile(resolved, &script);
@@ -641,8 +632,7 @@ duk_ret_t chain_script(duk_context* ctx){
     duk_require_string(ctx, 0);
     fileString = wxString(duk_get_string(ctx, 0));
     // the file string is relative - maybe. Ensure is absolute for record
-    outcome = resolveFileName(fileString, &fileString, MUST_EXIST);
-//x    fileString = filePath.GetFullPath();
+    fileString = resolveFileName(fileString, pConsole, MUST_EXIST);
     if (nargs>1){
         duk_require_string(ctx, 1);
         brief = wxString(duk_get_string(ctx, 1));
@@ -849,6 +839,12 @@ TRACE(99, wxString::Format("_wxFile has ctx:%i", ctx));
 			// set up finalisation
 			duk_push_c_function(ctx, clearFileEntry, 1 /*nargs*/);
 			duk_set_finalizer(ctx, 1);
+			wxString fileString = duk_get_string(ctx, 1);
+			if (nargs == 2){	// open existing file
+				if (fileString == wxEmptyString){	// no string provided - ask
+					
+					}
+				}
 			duk_pop_n(ctx, nargs);	// finished with call
 			wxFileFcb control;
 			control.pFile = new wxFile;

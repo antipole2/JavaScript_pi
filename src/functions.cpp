@@ -202,34 +202,40 @@ void windowTrace(int level, wxString text){
 #endif  // TRACE_TO_WINDOW
 #endif	// TRACE_YES
 
-wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options){
+wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options){
 	// if fileString is URL does not change anything
-    // if fileString is relative, makes it absolute by the current directory
+	// if inputName starts "?" uses as prompt for dialogue according to options
+    // else if fileString is relative, makes it absolute by the current directory
     // if it is badly formed or other error returns error message else empty string
     // checks existence according to options
 	if ((inputName.substr(0, 6) == "https:")|| (inputName.substr(0, 5) == "http:")){ 	// If URL, don't do anything
-		*pResolvedFileString = inputName;
-		return(wxEmptyString);
+		return(inputName);
 		}
-		
+	if (inputName.substr(0, 1) == "?") {	// to prompt
+		auto style = wxDEFAULT_DIALOG_STYLE;
+		wxString prompt = pConsole->mConsoleName + " " + inputName.substr(1);
+		if (options == 2) style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
+		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(pConsole->mpCtx, "Open dialogue cancelled");;
+		return dialog.GetPath();			
+		}
 	wxFileName filePath = wxFileName(inputName);
     if (!filePath.IsAbsolute()){ // relative  - so will prepend current working directory and do again
         filePath.MakeAbsolute(pJavaScript_pi->mCurrentDirectory);
         }
-    if (!filePath.IsOk()) return("File path " + filePath.GetFullPath() + " does not make sense");
+    if (!filePath.IsOk()) pConsole->throw_error(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " does not make sense");
     wxString fullPath = filePath.GetFullPath();
     switch (options) {
     	case MUST_EXIST:
     		if (!filePath.FileExists())
-                return ("File " + fullPath + " not found");
+                pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " not found");
             break;
         case MUST_NOT_EXIST:
         	if (filePath.FileExists())
-                return ("File " + fullPath + " already exists");
+                pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " already exists");
         case DONT_CARE: {};
     	}    
-    *pResolvedFileString = fullPath;
-    return wxEmptyString;
+    return fullPath;
     };
     
 wxString NMEAchecksum(wxString sentence){

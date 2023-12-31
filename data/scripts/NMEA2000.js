@@ -11,12 +11,15 @@ function NMEA2000(arg, data, options){
 	// do not include the following when enumerating the NMEA2000 object
 	Object.defineProperty(this, "descriptor", {enumerable: false, writable: true});
 	Object.defineProperty(this, "trace", {enumerable: false, writable: true});
+	Object.defineProperty(this, "undefined", {enumerable: false, writable: true});
 	this.trace = false;
+	this.undefined = false;	// normally omit undefined values
 
 	// examine the arguments
 	this.descriptor = false;	// no descriptor yet
 	if (typeof(options) == "object"){
 		if (options.hasOwnProperty("trace")) this.trace = options.trace;
+		if (options.hasOwnProperty("undefined")) this.undefined = options.undefined;
 		}
 	trace = this.trace;	// for convenience
 	if (trace & 1) printOrange("NMEA2000 called with arg type ", typeof(arg), "\n");
@@ -41,12 +44,11 @@ function NMEA2000(arg, data, options){
 	if (desc.Fields[1].Order != 1) throw("NMEA2000 invalid descriptor");	// now order should match index
 	if (trace & 2) printOrange("\n", JSON.stringify(this.descriptor, null, "\t"), "\n\n");
 	this.PGN = desc.PGN;
-
 	// register the repeating fields, if any
 	repeat1Size = desc.RepeatingFieldSet1Size;
 	repeat1StartField = desc.RepeatingFieldSet1StartField;
 	repeat1CountField = desc.RepeatingFieldSet1CountField;
-	if (typeof(desc.RepeatingFieldSet2Size) != "undefined"){
+	if (desc.RepeatingFieldSet2Size != void 0){
 		printRed("Descriptor ", desc.Id, " has second repeating field group", "\n");
 		throw("Unsupported descriptor");
 		}
@@ -59,7 +61,7 @@ function NMEA2000(arg, data, options){
 		}
 	else repeat1 = false;
 
-	if ((typeof(data) == "undefined") || (data == null)) buildBare(this);
+	if ((typeof(data) == void 0) || (data == null)) buildBare(this);
 	else parse(this, data);
 
 	// now for the methods
@@ -100,12 +102,6 @@ function NMEA2000(arg, data, options){
 					repeatName = field.Id;
 					repeatCount = this[repeatName + "Count"];
 					if (trace & 4) printOrange("Repeat count:", repeatCount, "\n");
-/*
-					if (repeatCount == 0){
-						encodeBits(0xffffffff, field.BitOffset, field.BitLength, field.BitStart);
-						break;
-						}
-*/
 					encodeBits(repeatCount, field.BitOffset, field.BitLength, field.BitStart);
 					}
 				else encodeValue(this, field);
@@ -144,11 +140,41 @@ function NMEA2000(arg, data, options){
 		return result;
 		}
 
+	this.push = function(handle){
+		if ((handle == void 0) && (this.handle == void 0)){	// need to find the handle
+			handles = OCPNgetActiveDriverHandles();
+			var n2kHandles = [];
+			for (h = 0; h < handles.length; h++){
+				attributes = OCPNgetDriverAttributes(handles[h]);
+				if (attributes.protocol == "nmea2000") n2kHandles.push(handles[h]);
+				}
+			switch (n2kHandles.length){
+				case 0:	throw("NMEA2000 no nmea2000 handle");
+				case 1:	this.handle = n2kHandles[0];
+						break;
+				default:	printRed("Multiple nmea2000 handles: ", n2kHandles, "\n");
+						throw("Handles ambiguous");
+				}
+			}
+		else this.handle = handle;
+		// this.handle now contains our cached handle
+		var payload = this.encode();
+		payload = payload.slice(13);	// drop Actisense header
+		if ((this.destination == void 0) || (this.destination == "undefined"))
+			destination = 255;
+		else destination = this.destination;
+		if ((this.priority == void 0) || (this.priority == "undefined"))
+			priority = 3;
+		else priority = this.destination;
+		OCPNpushNMEA2000(this.handle, this.PGN, destination, priority, payload);
+		return;
+		}
+
 	return this;	// end of constructor ---------------------------------------------------
 
 	function buildBare(us){	// create empty attributes
 		if (trace & 1) printOrange("buildEmpty for pgn ", us.PGN, "\n");
-		ud = "undefined";
+		ud = us.undefined ? "undefined" : undefined;
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
 		us["timestamp"] = ud;
@@ -177,7 +203,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function parse(us, data){	// parse
-		if (trace & 1) printOrange("parse for pgn ", us.pgn, "\n");
+		if (trace & 1) printOrange("parse for pgn ", us.PGN, "\n");
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
 		count = data[12];
@@ -193,7 +219,10 @@ function NMEA2000(arg, data, options){
 			us["origin"] = data[nextByte++];
 			stamp = getBytes(data, nextByte,4);
 			stamp = checkNumber(stamp, false, 32);
-			if (trace & 4) printOrange("Have header timestamp ", stamp, "\n");
+			if (trace & 4) {
+				if (stamp == void 0) printOrange("No header timestamp\n");
+				else printOrange("Have header timestamp ", stamp, "\n");
+				}
 			us["timestamp"] = stamp;
 			}
 		  else {
@@ -223,17 +252,18 @@ function NMEA2000(arg, data, options){
 				value = decodeValue(data, field);
 				if (repeat1 && (order == repeat1CountField)){
 					repeatCount = value;	// remember repeat count
-					if (trace & 4) printBlue("Repeat count:", repeatCount, "\n");
 					repeatName = field.Id;
 					if (trace & 4) printOrange("Repeat count:", repeatCount, "\n");
-					if (repeatCount == "undefined") repeatCount = 0;	// no repeats present
+					if (repeatCount == void 0) repeatCount = 0;	// no repeats present
 					us[repeatName + "Count"] = repeatCount;
 					}
-				else us[Id] = value;
+				else us[Id] = maybeUndefine(value, us.undefined);
+				if (trace & 4) printBlue("Field order:", order, "\tId:", Id, "\tValue type:", typeof value, "\n");
+				if (trace & 4) printBlue("us:", us, "\n");
 				}
 			else {	// we have reached the start of the repeating fields
 				if (trace & 4) printOrange("Repeating order:", order, "\n");
-				if (repeatCount == "undefined"){
+				if (repeatCount == void 0){
 					if (trace & 4) printOrange("NMEA2000 parse repeat count not present in data\n");
 					break;	// we stop here
 					}
@@ -259,7 +289,7 @@ function NMEA2000(arg, data, options){
 						startByteIndex = Math.floor(nextBitIndex/8);
 						BytesToGet = Math.ceil(field.bitLength/8);
 						if (startByteIndex + BytesToGet > data.length) break;	// off end of data
-						thisRepeat[Id] = decodeValue(data, field);
+						thisRepeat[Id] =  maybeUndefine(decodeValue(data, field), us.undefined);
 						if (trace & 32) print("r:", r, "\ts:", s, "\t nextBitIndex:", nextBitIndex,  " mod8:", nextBitIndex%8, "\n");
 						}
 					repeats.push(thisRepeat);
@@ -273,7 +303,7 @@ function NMEA2000(arg, data, options){
 
 	function decodeValue(data, desc) {
 		// to understand how values are expressed, see https://canboat.github.io/canboat/canboat.html#ft-NUMBER
-		if (trace & 4) printBlue("Decode data:", data, "\tdesc:", desc, "\n");
+		if (trace & 4) printBlue("Decode data:", data, "\tndesc:", desc, "\n");
 		switch (desc.Type){
 			case "Integer":
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
@@ -289,8 +319,8 @@ function NMEA2000(arg, data, options){
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
 				nextBitIndex += desc.BitLength;
 				value = checkNumber(value, desc.Signed, desc.BitLength);
+				if (value == void 0) return value;
 				if (trace & 8) printOrange("Number/Lat/Long: ", value, "\n");
-				if (value == "undefined") return value;
 				return (value * desc.Resolution).toFixed(7); // desc.Resolution
 			case "Date":	// in days since 1970
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
@@ -342,7 +372,7 @@ function NMEA2000(arg, data, options){
 					string += nextChar;
 					}
 				while (string.slice(-1) == "@") string.length--;	// drop trailing @s
-				return string;				
+				return string.trim();				
 			case "ASCII or UNICODE string starting with length and control byte":
 				count = getNextByte(data);
 				code = getNextByte(data);
@@ -460,7 +490,7 @@ function NMEA2000(arg, data, options){
 			}
 		else value = us[Id];
 		if (trace & 32) printOrange("EncodeValue value: ", value, "\tType:", field.Type, "\n");
-		if (value == "undefined"){
+		if ((value == void 0) || (value == "undefined")){	// no value - undefined
 			if (field.BitLength <= 3) value = 0xfe;	// special case
 			else {	// need to enode undefined 
 				toShift = field.BitLength;
@@ -472,8 +502,7 @@ function NMEA2000(arg, data, options){
 			}
  		switch (field.Type){
 			case "Integer":
-				if (field.BitLength <= 3) value = 0xfe;	// special case
-				else value = value/field.Resolution.toFixed(0);
+				value = value/field.Resolution.toFixed(0);
 				encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
 				return;
 			case "Lookup table":
@@ -509,6 +538,13 @@ function NMEA2000(arg, data, options){
 			case "Latitude":
 			case "Longitude":
 			case "Temperature":
+/*
+				if (value == void 0){
+					if (trace & 16) printOrange("Encoding non-existant number:\n");
+					encodeBits(0xffffffffffff, field.BitOffset, field.BitLength, field.BitStart);
+					return;
+					}
+*/
 				if (trace & 16) printOrange("Encoding number:", value, "\n");
 				value = Math.round(value/field.Resolution);	// convert to integer
 				if (value < 0){
@@ -543,7 +579,7 @@ function NMEA2000(arg, data, options){
 		toShift = bits;
 		if (isSigned) toShift--;	// signed numbers have one less max value
 		max = (2 ** toShift) - 1;	// maximum possible value
-		if (number == max) number = "undefined";
+		if (number == max) return void 0;
 		else if ((bits >= 4) && (number == max-1)) number = "has error";
 		else if (isSigned && (number > max)){ // must be negative
 			number = (2**bits - number) * -1;
@@ -553,10 +589,15 @@ function NMEA2000(arg, data, options){
 		}
 
 	function checkUndefined(value, bits){
-		if (value == "undefined") return (2 ** bits) - 1;	// required number of bits all on
+		if (value == void 0) return (2 ** bits) - 1;	// required number of bits all on
 		else return value;
 		}
 
+	function maybeUndefine(value, ifUndefined){
+		// if to display undefined, substitute text for void 0
+		if (ifUndefined && value == void 0) return "undefined";
+		else return value;
+		}
 	}
 
 

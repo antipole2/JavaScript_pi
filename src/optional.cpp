@@ -193,7 +193,7 @@ duk_ret_t console_load(duk_context* ctx){
     // consoleLoad(consoleName,  script) into console
     wxString fileString, script, consoleName, outcome;
     wxString getTextFile(wxString fileString, wxString* fetched);
-	wxString resolveFileName(wxString inputName, wxString* pResolvedFileString, FileOptions options);
+	wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options);
     wxString JScleanString(wxString given);
     Console* pConsole;
     
@@ -208,8 +208,7 @@ duk_ret_t console_load(duk_context* ctx){
         pConsole->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " cannot load into own console");
     if (pConsole->mpCtx) pConsoleBeingTimed->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
     if (fileString.EndsWith(".js")){   // we are to try and load a file
-        outcome = resolveFileName(fileString, &fileString, MUST_EXIST);
-        if (outcome != wxEmptyString) throwErrorByCtx(ctx, outcome);
+        fileString = resolveFileName(fileString, pConsole, MUST_EXIST);
         outcome = getTextFile( fileString, &script);
         if (outcome != wxEmptyString)  throwErrorByCtx(ctx, outcome);
         script = JScleanString(script);
