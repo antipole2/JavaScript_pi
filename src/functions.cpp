@@ -214,7 +214,7 @@ wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions opti
 	if (inputName.substr(0, 1) == "?") {	// to prompt
 		auto style = wxDEFAULT_DIALOG_STYLE;
 		wxString prompt = pConsole->mConsoleName + " " + inputName.substr(1);
-		if (options == 2) style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+		if (options == MUST_NOT_EXIST) style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
 		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(pConsole->mpCtx, "Open dialogue cancelled");;
 		return dialog.GetPath();			

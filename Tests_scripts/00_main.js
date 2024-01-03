@@ -63,6 +63,7 @@ tests = [ // test table format
 	{name:"Navigation", functionToUse:loadRunWait, script:"36_navigation.js", time:2, result:"Navigation OK"},
 	{name:"Read text file", functionToUse:loadRunWait, script:"40_read_text_file.js", time:3, result:"Read local text file matched"},
 	{name:"Read remote text file", functionToUse:loadRunWait, script:"41_read_remote_text_file.js", time:3, result:"Read remote text file matched"},
+	{name:"Files object", functionToUse:loadRunWait, script:"43_Files.js", time:3, result:"Files OK"},
 	{name:"Park console", functionToUse:loadRunWait, script:"44_parking.js", time:30, result:"Parking completed"},
 	{name:"Stop main", functionToUse:loadRunWait, script:"50_stop_main.js", time:1, result:"undefined"},
 	{name:"Stop result", functionToUse:loadRunWait, script:"52_stop_result_main.js", time:1, result:"Stop result"},

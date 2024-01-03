@@ -834,28 +834,68 @@ TRACE(99, wxString::Format("_wxFile has ctx:%i", ctx));
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
 	int action = duk_get_number(ctx, 0);
 	switch (action){
-		case 0:	{// construct
-		duk_push_object(ctx);
-			// set up finalisation
-			duk_push_c_function(ctx, clearFileEntry, 1 /*nargs*/);
-			duk_set_finalizer(ctx, 1);
-			wxString fileString = duk_get_string(ctx, 1);
-			if (nargs == 2){	// open existing file
-				if (fileString == wxEmptyString){	// no string provided - ask
-					
+		case 0:	{ // construct
+			// call was ( 0, this, filesString[, option])
+			FileOptions options = MUST_EXIST;	// default is read
+//			duk_push_object(ctx);
+			wxString fileString = duk_to_string(ctx, 2);
+/*
+			if (nargs == 3){	// have options				
+					options = duk_get_int(ctx, 2);
 					}
-				}
-			duk_pop_n(ctx, nargs);	// finished with call
+*/
+			wxString filePath = resolveFileName(fileString, pConsole, options);
+			if (filePath == wxEmptyString) pConsole->throw_error(ctx, "_wxFile unable to resiolve fileString " + fileString);
 			wxFileFcb control;
 			control.pFile = new wxFile;
+			bool ok = control.pFile->Open(filePath);
+			if (!ok) pConsole->throw_error(ctx, "_wxFile unable to open file " + filePath);
 			pConsole->m_wxFileFcbs.push_back(control);
-			duk_push_number(ctx, control.id);	//return the id
+
+			// set up finalisation
+			duk_push_c_function(ctx, clearFileEntry, 1 /*nargs*/);
+			duk_set_finalizer(ctx, 1);	// 'this' from call here
+			
+			duk_pop_n(ctx, nargs);	// clear call args
+			duk_push_number(ctx, control.id);	// will return the id
 			return 1;
 			}
-		case 1: { // Open
+		case 1: { // getAllText  call was (1, id)
 			int id = duk_get_number(ctx, 1);
-			int count =  pConsole->m_wxFileFcbs.size();
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			wxString data;
+			bool ok = control.pFile->ReadAll(&data);
+			if (!ok) pConsole->throw_error(ctx, "_wxFile unable to read all text");
+			duk_push_string(ctx, data);
+			return 1;
 			}
+		case 2:
+		case 3: { // getText or getBytes  call was (2, id, start, number)
+			int id = duk_get_number(ctx, 1);
+			wxFileOffset start = duk_get_number(ctx, 2);
+			size_t count = duk_get_number(ctx, 3);
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			if (start > control.pFile->Length()) pConsole->throw_error(ctx, "_wxFile get start beyond end of file");
+			wxFileOffset seeked = control.pFile->Seek(start);
+			if (seeked == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile get invalid start");
+			if (count < 1) pConsole->throw_error(ctx, "_wxFile get invalid count");
+			void* p = duk_push_dynamic_buffer(ctx, count);
+			size_t got = control.pFile->Read(p, count);
+			if (got == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile get invalid start with count");
+			if (got < count) duk_resize_buffer(ctx,-1, got);
+			if (action == 2) duk_buffer_to_string(ctx, -1);
+			else duk_push_buffer_object(ctx, -1, 0, count, DUK_BUFOBJ_UINT8ARRAY);
+			return 1;
+			}
+		case -1: { // return file Length  call was (-1, id)
+			int id = duk_get_number(ctx, 1);
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			duk_push_int(ctx, control.pFile->Length());
+			return 1;
+			}						
 		default:
 			pConsole->throw_error(ctx, "_wxFile invalid action");
 		}
