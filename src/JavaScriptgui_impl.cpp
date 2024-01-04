@@ -314,7 +314,7 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
 			duk_push_uint(mpCtx, pgn);	// 2nd arg is pgn
 			duk_push_string(mpCtx, source.c_str());	// 3rd is source
             // drop this element of vector before executing function
-//            m_streamMessageCntlsVector.erase(it);			// commented out to try persistance
+            m_streamMessageCntlsVector.erase(it);			// commented out to experiment with persistance
             outcome = executeFunctionNargs(entry.functionName, 3);
             if (!isBusy()) wrapUp(outcome);
             return;	// only fulfil one entry per call
