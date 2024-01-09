@@ -344,8 +344,8 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
     return 1;  // returns one arg
     }
 
-static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - save function to call
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+duk_ret_t onMessageNameGuts(duk_context *ctx , bool persist) {  // to wait for message - save function to call
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in JS call
     Console *pConsole = findConsoleByCtx(ctx);
     if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onMessageName within onExit function");
     if (nargs > 2) throwErrorByCtx(ctx, "OCPNonMessageName bad call");
@@ -357,9 +357,6 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
                 }
             }
         pConsole->mWaitingCached = false;
-        if (!pConsole->mRunningMain && !pConsole->isWaiting()){
-            pConsole->wrapUp(DONE);
-            }
         return(0);
         }
     duk_require_function(ctx, 0);
@@ -369,24 +366,48 @@ static duk_ret_t onMessageName(duk_context *ctx) {  // to wait for message - sav
     TRACE (5, findConsoleByCtx(ctx)->dukDump());
     int index = pConsole->OCPNmessageIndex(wxString(duk_to_string(ctx, 1)));
     pConsole->mMessages[index].functionName = extractFunctionName(ctx, 0);
+    pConsole->mMessages[index].persist = persist;
     TRACE(5, "Registered");
     duk_pop_2(ctx);
     pConsole->mWaitingCached = pConsole->mWaiting = true;
     return 0;  // returns no arg
 	}
+	
+static duk_ret_t onMessageName(duk_context *ctx){  // to wait for message - save function to call
+	onMessageNameGuts(ctx, false);
+	return 0;
+	}
+	
+static duk_ret_t onMessageNamePersist(duk_context *ctx){  // to wait for message - save function to call
+	onMessageNameGuts(ctx, true);
+	return 0;
+	}	
 
 static duk_ret_t onNMEA0183(duk_context *ctx) {  // to wait for NMEA0183 message - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
-    pConsole->setupNMEA0183(ctx);   // needs to be in a method
+    pConsole->setupNMEA0183(ctx, false);   // needs to be in a method - not persistent
+    return 0;
+	};
+	
+static duk_ret_t onNMEA0183Persist(duk_context *ctx) {  // to wait for NMEA0183 message - save function to call
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setupNMEA0183(ctx, true);   // needs to be in a method - persistent
     return 0;
 	};
 	
 static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
-    pConsole->setupNMEA2k(ctx);   // needs to be in a method
+    pConsole->setupNMEA2k(ctx, false);   // needs to be in a method - non-persistent
     return 0;
 	};
-/*	for testing
+	
+static duk_ret_t onNMEA2kPersist(duk_context *ctx) {  // to wait for NMEA2k message - save function to call
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setupNMEA2k(ctx, true);   // needs to be in a method - persistent
+    return 0;
+	};
+	
+/*	for testing in development
     static const char hex_digits[] = "0123456789ABCDEF";
 	auto payload = make_shared<std::vector<uint8_t>>();
 	wxString source = wxEmptyString;
@@ -431,9 +452,15 @@ static duk_ret_t onNMEA2k(duk_context *ctx) {  // to wait for NMEA2k message - s
 	
 static duk_ret_t onNavigation(duk_context *ctx) {  // to wait for navigation - save function to call
     Console* pConsole = findConsoleByCtx(ctx);
-    pConsole->setupNavigationStream(ctx);   // needs to be in a method
+    pConsole->setupNavigationStream(ctx, false);   // needs to be in a method - non-persistent
     return 0;
 	};
+	
+static duk_ret_t onNavigationAll(duk_context *ctx) {  // to wait for navigation - save function to call
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setupNavigationStream(ctx, true);   // needs to be in a method - persistant
+    return 0;
+	};	
 
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
@@ -1245,6 +1272,7 @@ static duk_ret_t getVectorPP(duk_context *ctx) {
 
 static duk_ret_t getPositionPV(duk_context *ctx) {
         // get position after position moved by vector
+        // call was (position, vector)
         double fromLat, fromLon, toLat, toLon, bearing, distance;
         duk_idx_t pos_idx {0};
         duk_idx_t vector_idx {1};
@@ -1265,14 +1293,18 @@ static duk_ret_t getPositionPV(duk_context *ctx) {
         if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNgetPositionPV distance is missing or invalid");
         distance = duk_get_number(ctx, -1);
         duk_pop(ctx);
-        duk_pop_2(ctx); // pop off both arguments
         duk_push_object(ctx);   // our new position object to return
+        duk_dup(ctx, pos_idx); // duplicate start pos to top of stack above new pos
+        duk_set_prototype(ctx, -2);	// set prototype of new object to that of start pos
         PositionBearingDistanceMercator_Plugin(fromLat, fromLon, bearing, distance, &toLat, &toLon);
         duk_push_number(ctx, toLat);
         duk_put_prop_literal(ctx, -2, "latitude");
         duk_push_number(ctx, toLon);
         duk_put_prop_literal(ctx, -2, "longitude");
-        return 1;
+        // value stack is now 0 original pos  1 vector  2 new pos
+        duk_remove(ctx, 0);	// out with original pos
+    	duk_remove(ctx, 0);	// out with vector
+        return 1;	// leaving new pos to return
         }
 
 static duk_ret_t getGCdistance(duk_context *ctx) {
@@ -1398,6 +1430,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, onMessageName, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "OCPNonAllMessageName");
+    duk_push_c_function(ctx, onMessageNamePersist, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+    
     duk_push_string(ctx, "OCPNonNMEAsentence");
     duk_push_c_function(ctx, onNMEA0183, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -1406,8 +1443,17 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, onNMEA0183, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "OCPNonAllNMEA0183");
+    duk_push_c_function(ctx, onNMEA0183Persist, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+    
     duk_push_string(ctx, "OCPNonNMEA2000");
     duk_push_c_function(ctx, onNMEA2k, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+     duk_push_string(ctx, "OCPNonAllNMEA2000");
+    duk_push_c_function(ctx, onNMEA2kPersist, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNonActiveLeg");
@@ -1427,7 +1473,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNonNavigation");
-    duk_push_c_function(ctx, onNavigation, 1 /* 1 args */);
+    duk_push_c_function(ctx, onNavigation, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonAllNavigation");
+    duk_push_c_function(ctx, onNavigationAll, 1 /* 1 args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetNavigationK");

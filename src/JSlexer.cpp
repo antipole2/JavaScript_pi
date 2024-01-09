@@ -103,10 +103,14 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetMessageNames\
             OCPNsendMessage\
             OCPNonNMEA0183\
+            OCPNonAllNMEA0183\
             OCPNonNMEA2000\
+            OCPNonAllNMEA2000\
             OCPNonMessageName\
+            OCPNonAllMessageName\
             OCPNgetNavigation\
             OCPNonNavigation\
+            OCPNonAllNavigation\
             OCPNgetARPgpx\
             OCPNonActiveLeg\
             OCPNonContextMenu\
@@ -146,6 +150,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleLoad\
             consoleRun\
             onConsoleResult\
+            _remember\
             ";
  		wxString keywordsDeprecated = "OCPNpushNMEA OCPNonNMEAsentence";
 
