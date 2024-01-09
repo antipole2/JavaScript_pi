@@ -81,7 +81,8 @@ tests = [ // test table format
 	{name:"Call with brief", functionToUse:loadRunWait, script:"86_call_with_brief.js", time:1, result:"Found brief This is the brief"},
 	{name:"Call chain with brief", functionToUse:loadRunWait, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"},
 	{name:"Waypoint, route & track", functionToUse:loadRunWait, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"},
-		{name:"GetGUIDs", functionToUse:loadRunWait, script:"100_getGuids.js", time:3, result:"No errors"}	
+	{name:"GetGUIDs", functionToUse:loadRunWait, script:"100_getGuids.js", time:3, result:"No errors"},
+	{name:"N2k decode/encode", functionToUse:loadRunWait, script:"110_n2k_encode_decode.js", time:3, result:"All tests passed"}	
 	];
 
 config = OCPNgetPluginConfig();

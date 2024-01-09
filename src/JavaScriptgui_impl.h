@@ -54,6 +54,7 @@ class MessagePair  // holds OPCN messages seen, together with JS callback functi
 public:
     messageNameString_t messageName;
     jsFunctionNameString_t functionName;
+    bool persist = false;	// true if to stay listening
     };
 WX_DECLARE_OBJARRAY(MessagePair, MessagesArray);
 
@@ -184,6 +185,7 @@ typedef enum STREAM_MESSAGE_TYPES {	// types of message handled via streams
 struct  streamMessageCntl {	// controls how we handle stream events
 	int messageCntlId;
 	STREAM_MESSAGE_TYPES    messageType;
+	bool persist;	// if true, this listener should persist rather than be one-shot
 	wxString id0183;
 	uint64_t id2k;
 	std::shared_ptr<ObservableListener> listener;
@@ -224,6 +226,7 @@ public:
     AlertDetails    mAlert;        // details of alert dialog
     wxDialog* 		mpMessageDialog;	// the wxWidgets message dialogue if there is one
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
+    bool m_NMEApersistance;		//true of old-style NMEA0183 listening is to be persistent
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
     int         mConsoleRepliesAwaited {0};   // number of console replies awaited
@@ -251,6 +254,8 @@ public:
     
     int			mStreamEventCntlId;	// where the event constructor picks up the StreamEventCntlId
     std::vector<wxFileFcb> m_wxFileFcbs;	// will hold file fcb entries
+    
+    wxString	m_remembered {""};	// _remember variable saved as JSON-like string - initially undefined
 
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
@@ -483,7 +488,7 @@ public:
 //	   extern bool runLable, stopLabel;
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
-	   void duk_extensions_init(duk_context *ctx);
+	   void duk_extensions_init(duk_context *ctx, Console* pConsole);
 	   void ocpn_apis_init(duk_context *ctx);
 	   void ConsoleHandle_init(duk_context *ctx);
    
@@ -495,7 +500,7 @@ public:
 		message(STYLE_RED, _("Plugin logic error: Duktape failed to create heap"));
 		  return HAD_ERROR;
 		  }
-	   duk_extensions_init(mpCtx);  // register our own extensions
+	   duk_extensions_init(mpCtx, this);  // register our own extensions
 	   ocpn_apis_init(mpCtx);       // register our API extensions
 	   run_button->SetLabel(_("Stop"));
 	   mRunningMain = true;
@@ -720,7 +725,13 @@ public:
 		wrapUpWorks(reason);
 		if (!isBusy()){
 			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
-				TRACE(4, mConsoleName + "->wrapUp() destroying ctx");
+
+				// save the enduring variable
+				duk_push_global_object(mpCtx);
+				int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
+				if (OK)	m_remembered = duk_json_encode(mpCtx, -1);
+				else m_remembered = "{}";	// play safe - if no -remember set as undefined
+				TRACE(100, mConsoleName + "->wrapUp() destroying ctx");
 				duk_destroy_heap(mpCtx);
 				mpCtx = nullptr;
 				}
@@ -1160,8 +1171,12 @@ public:
         count =(int)this->mMessages.GetCount();
         if (count == 0) dump += _("\t(empty)\n");
         else {
-            for (i = 0; i < count; i++) dump += _("\t") + this->mMessages[i].messageName +_("\t\t") +
-            this->mMessages[i].functionName + _("\n");
+            for (i = 0; i < count; i++){
+            	 dump += "\t" + this->mMessages[i].messageName;
+            	 if (this->mMessages[i].functionName == wxEmptyString) dump += "\n";
+            	 else dump += "\t\t" + this->mMessages[i].functionName + "\t" + ((this->mMessages[i].persist)?"persistant":"one-time") + "\n";
+ 		           	this->mMessages[i].functionName + _("\n");
+ 		   		}
             }
         dump += "m_timerActionBusy:\t" + (this->mTimerActionBusy?_("true"):_("false")) + "\n";
         dump += _("Timers callback table\n");
@@ -1224,6 +1239,7 @@ public:
             }
         else dump += "No brief\n";
         dump += wxString::Format("mConsoleRepliesAwaited\t%d\n", mConsoleRepliesAwaited);
+        dump += "m_remembered\t" + m_remembered + "\n";
         int wxFileCount = m_wxFileFcbs.size();
         if (wxFileCount == 0) dump += "wxFile ids - none\n";
         else {
@@ -1287,7 +1303,7 @@ private:
         }
     
 public:
-    void setupNMEA0183(duk_context *ctx){
+    void setupNMEA0183(duk_context *ctx, bool persist){
         // this method is called from the DukTape engine to set up receipt of NMEA0183 messages
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
@@ -1303,10 +1319,12 @@ public:
         else if (nargs == 1) {    // old-style general listen. Will be handled via th old mechanism 
         	if (m_NMEAmessageFunction != wxEmptyString) throw_error(ctx, "OCPNonNMEA0183 called with general call outstanding");		
             m_NMEAmessageFunction = extractFunctionName(ctx,0);
+            m_NMEApersistance = persist;
             }
         else if (nargs == 2){  // to be handled by new event mechanism
         	streamMessageCntl messageCntl;
             messageCntl.functionName = extractFunctionName(ctx,0);
+            messageCntl.persist = persist;	// set persistence
 			messageCntl.messageType = MESSAGE_NMEA0183;
 			duk_require_string(ctx, 1);
 			wxString header = wxString(duk_to_string(ctx, 1));
@@ -1327,7 +1345,7 @@ public:
         else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
 	    };
 	    
-    void setupNMEA2k(duk_context *ctx){
+    void setupNMEA2k(duk_context *ctx, bool persist){
         // this method is called from the DukTape engine to set up receipt of NMEA2k messages
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
@@ -1341,6 +1359,7 @@ public:
         	streamMessageCntl messageCntl;
             messageCntl.functionName = extractFunctionName(ctx,0);
 			messageCntl.messageType = MESSAGE_NMEA2K;
+			messageCntl.persist = persist;	// set persistence
 			duk_require_number(ctx, 1);
 			const uint64_t pgn = duk_get_int(ctx, 1);
 			messageCntl.id2k = pgn;
@@ -1358,14 +1377,21 @@ public:
         else throw_error(ctx, "OCPNonNMEAsentence does not have 0 or 2 args");   
 	    };
     
-    void setupNavigationStream(duk_context *ctx){
+    void setupNavigationStream(duk_context *ctx, bool persist){
         // this method is called from the DukTape engine to set up receipt of navigation data
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+        void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
         if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNavigation within onExit function");
+        duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+        if (nargs == 0) { // empty call - cancel any waiting callbacks
+ 			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NAVIGATION);
+ 			return;
+            }
 		streamMessageCntl messageCntl;
 		messageCntl.functionName = extractFunctionName(ctx,0);
 		messageCntl.messageType =  MESSAGE_NAVIGATION;
+		messageCntl.persist = persist;	// set persistence
 		wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
 		messageCntl.listener = GetListener( NavDataId(), EVT_JAVASCRIPT, this);
 		int ident = messageCntl.messageCntlId;	// use a simple int to avoid any issues with a class member

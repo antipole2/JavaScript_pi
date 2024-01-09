@@ -388,7 +388,7 @@ bool JavaScript_pi::LoadConfig(void)
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     newConsole->Move(newConsole->FromDIP(consolePosition));
                     TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
-                    
+                    newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T(""));
 /*
                     if (parked){ // cannot use newConsole->park() because that will take short cut
 //                    	wxSize clientSize = newConsole->GetClientSize();
@@ -515,6 +515,7 @@ bool JavaScript_pi::SaveConfig(void)
             pConf->Write (nameColon + _T ( "AlertPosY" ),  alertPosition.y);
             pConf->Write (nameColon + _T ( "AutoRun" ),   (pConsole->auto_run->GetValue())?"1":"0");
             pConf->Write (nameColon + _T ("LoadFile"),  pConsole->m_fileStringBox->GetValue());
+             pConf->Write (nameColon + _T ( "_remember" ),  pConsole->m_remembered);
             }
         pConf->Write (_T ("Consoles"),  consoleNames);
         return true;
@@ -567,7 +568,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
 		duk_put_prop_literal(ctx, -2, "value");
 		duk_push_boolean(ctx, OK);
 		duk_put_prop_literal(ctx, -2, "OK");
-		m_pConsole->m_NMEAmessageFunction = wxEmptyString;	// only once
+		if (!m_pConsole->m_NMEApersistance) m_pConsole->m_NMEAmessageFunction = wxEmptyString;	// only once
 		outcome = m_pConsole->executeFunction(thisFunction);		
 		if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
         }   // end for this console
@@ -763,9 +764,9 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
         thisFunction = m_pConsole->mMessages[index].functionName;
         if (thisFunction != wxEmptyString){
             // have function to be invoked
-            m_pConsole->mMessages[index].functionName = wxEmptyString;  // do not call again
+            if (!m_pConsole->mMessages[index].persist)
+            	m_pConsole->mMessages[index].functionName = wxEmptyString;  // do not call again
             TRACE(3, "About to process message for console " + m_pConsole->mConsoleName + " " + m_pConsole->consoleDump());
-            m_pConsole->mMessages[index].functionName = wxEmptyString;  // only use once
             if (!ctx) continue; // just in case
             duk_push_string(ctx, message_body.c_str());
             if (m_pConsole->mJSrunning){

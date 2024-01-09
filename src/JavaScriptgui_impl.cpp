@@ -284,8 +284,8 @@ void Console::HandleNMEA0183(ObservedEvt& ev, int messageCntlId) {
                     duk_put_prop_literal(mpCtx, -2, "value");
                 duk_push_boolean(mpCtx, OK);
                     duk_put_prop_literal(mpCtx, -2, "OK");
-            // drop this element of vector before executing function
-            m_streamMessageCntlsVector.erase(it);
+            // maybe drop this element of vector before executing function
+            if (!entry.persist) m_streamMessageCntlsVector.erase(it);
             outcome = executeFunction(entry.functionName);
             if (!isBusy()) wrapUp(outcome);
             return;
@@ -307,14 +307,17 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
 			unsigned int pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
 			duk_push_array(mpCtx);	// 1st arg will be data array
 			int j = 0;
-			for (int i = 0 /* 13*/; i < payload.size()-1; i++){	// drop the dummy CRC end byte
+			int count = payload.size();
+			if (((count - payload.at(12) - 13) == 1) && (payload.back() == 85)) count--;	// drop any crc if present
+			for (int i = 0; i < count; i++){
+//	was		for (int i = 0; i < payload.size()-1; i++){	// drop the dummy CRC end byte
 				duk_push_uint(mpCtx, payload.at(i));
 				duk_put_prop_index(mpCtx, -2, j++);
 				}
 			duk_push_uint(mpCtx, pgn);	// 2nd arg is pgn
 			duk_push_string(mpCtx, source.c_str());	// 3rd is source
             // drop this element of vector before executing function
-            m_streamMessageCntlsVector.erase(it);			// commented out to experiment with persistance
+            if (!entry.persist) m_streamMessageCntlsVector.erase(it);		// drop if not persistent
             outcome = executeFunctionNargs(entry.functionName, 3);
             if (!isBusy()) wrapUp(outcome);
             return;	// only fulfil one entry per call
@@ -351,7 +354,7 @@ void Console::HandleNMEA2k(ObservedEvt& ev, int messageCntlId) {
 				duk_push_number(mpCtx, navdata.hdt);
 					duk_put_prop_literal(mpCtx, -2, "HDT");
             // drop this element of vector before executing function
-            m_streamMessageCntlsVector.erase(it);
+            if (!entry.persist) m_streamMessageCntlsVector.erase(it);		// drop if not persistent
             outcome = executeFunction(entry.functionName);
             if (!isBusy()) wrapUp(outcome);
             return;

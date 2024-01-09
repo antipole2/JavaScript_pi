@@ -65,7 +65,7 @@ void limitOutput(wxStyledTextCtrl* pText){
 		// to avoid leaving a part tine, we will look for a new line near top
 		int newlinePos = pText->FindText(0, 100, wxString("\n"));
 		if (newlinePos != wxSTC_INVALID_POSITION) pText->DeleteRange(0, newlinePos+1);
-		// now we will insert a coloured noe at the start
+		// now we will insert a coloured note at the start
 		pText->InsertText(0, deleted);
 #if (wxVERSION_NUMBER < 3100)
         pText->StartStyling(0,255);   // 2nd parameter included Linux still using wxWidgets v3.0.2
@@ -936,8 +936,19 @@ static duk_ret_t consoleDump(duk_context *ctx){  // dumps useful stuff from the 
     return 1;
     }
 #endif
+
+// following needed later for safe decoding of JSON string
+typedef struct {
+	wxString jsonString;
+	} json_safe_args;	
+duk_ret_t safe_decode_JSON(duk_context *ctx, void *udata) {	// function for safe call to decode JSON
+		json_safe_args *args = (json_safe_args *) udata;
+		duk_push_string(ctx, args->jsonString);	// push the JSON string being the remembred value
+	    duk_json_decode(ctx, -1);	// recover original object - might have invalid JSON
+	    return 1;	// returns with decoded object on stack if OK
+		}
     
-void duk_extensions_init(duk_context *ctx) {
+void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     extern duk_ret_t duk_dialog(duk_context *ctx);
     duk_idx_t duk_push_c_function(duk_context *ctx, duk_c_function func, duk_idx_t nargs);
 
@@ -1071,6 +1082,21 @@ void duk_extensions_init(duk_context *ctx) {
     duk_push_c_function(ctx, _wxFile, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+	// set up the _remember variable
+	// the JSON string could be invalid - need to catch any error	
+    json_safe_args args;
+    args.jsonString = pConsole->m_remembered;
+    duk_int_t rc = duk_safe_call(ctx, safe_decode_JSON, (void *) &args, 0 /*nargs*/, 1 /*nrets*/);
+    if (rc != DUK_EXEC_SUCCESS) {	// JSON decode error
+    	duk_pop(ctx);	// pop off invalid JSON result
+    	duk_push_undefined(ctx);	// replace with undefined
+    	if (pConsole->m_remembered != wxEmptyString){// this was a real error in the JSON}
+    		pConsole->message(STYLE_ORANGE, "_remember saved value invalid JSON - have set to undefined");
+    		}
+    	}	
+	duk_push_string(ctx, "_remember");
+	duk_swap_top(ctx, -2);		
+	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);
 
 
 #if 0
