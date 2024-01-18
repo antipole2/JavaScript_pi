@@ -809,10 +809,8 @@ int findFileIndex(Console *pConsole, int id){
 	
 duk_ret_t clearFileEntry(duk_context *ctx){
 	// finalise object by cleaning up.  Object on stack
-	TRACE(99, "In finaliser");
-	TRACE(99, wxString::Format("finaliser has ctx:%i", ctx));
+	TRACE(99, wxString::Format("In _wxFile finaliser with ctx:%i", ctx));
 	Console *pConsole = findConsoleByCtx(ctx);
-//	TRACE(99, dukDump( ) + "\n\n");
 	duk_get_prop_literal(ctx, -1, "id");
 	int id = duk_get_int_default(ctx, -1, -1);	// index for this object
 	TRACE(99, wxString::Format("Finaliser got id:%i", id));
@@ -822,6 +820,7 @@ duk_ret_t clearFileEntry(duk_context *ctx){
 		}
 	int index = findFileIndex(pConsole, id);
 	TRACE(99, wxString::Format("Finaliser got index:%i", index));
+	pConsole->m_wxFileFcbs[index].pFile->Flush();
 	delete pConsole->m_wxFileFcbs[index].pFile;
 	pConsole->m_wxFileFcbs.erase(pConsole->m_wxFileFcbs.begin() + index);
 	duk_pop_2(ctx);
@@ -829,26 +828,49 @@ duk_ret_t clearFileEntry(duk_context *ctx){
 	}
 	
 static duk_ret_t _wxFile(duk_context *ctx){
-TRACE(99, wxString::Format("_wxFile has ctx:%i", ctx));
+/****
+When called with action 0, we create a control block which we stash in the vector pConsole->m_wxFileFcbs
+This includes a wxFiie object
+When the JavaScript File object is destroyed, this must all be cleared down
+We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript File object which was passed by its this value. 
+****/
     Console *pConsole = findConsoleByCtx(ctx);
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
 	int action = duk_get_number(ctx, 0);
 	switch (action){
 		case 0:	{ // construct
 			// call was ( 0, this, filesString[, option])
-			FileOptions options = MUST_EXIST;	// default is read
-//			duk_push_object(ctx);
+			FileOptions options;
+			std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
 			wxString fileString = duk_to_string(ctx, 2);
-/*
-			if (nargs == 3){	// have options				
-					options = duk_get_int(ctx, 2);
-					}
-*/
+			int mode =  duk_get_int(ctx, 3);
+			switch (mode){
+				case 0:	// READ
+					options  = MUST_EXIST;	// default is read
+					break;
+				case 1:	// WRITE
+					if (fileString.substr(0, 1) == "?"){ // will be prompting so force save dialogue
+						options = MUST_NOT_EXIST;
+						}
+					else options = DONT_CARE;		// can overwrite
+					break;
+				case 2:	// READ & WRITE
+				case 3:	// APPEND
+					options = DONT_CARE;		// can overwrite
+					break;
+				case 4:	// MUST NOT EXIST
+					options = MUST_NOT_EXIST;	// will not overwrite any file unless dialogue to resolve
+					break;
+				default:
+					 pConsole->throw_error(ctx, "_wxFile invalid permission request ");
+				}
 			wxString filePath = resolveFileName(fileString, pConsole, options);
-			if (filePath == wxEmptyString) pConsole->throw_error(ctx, "_wxFile unable to resiolve fileString " + fileString);
+			if (filePath == wxEmptyString) pConsole->throw_error(ctx, "_wxFile unable to resolve fileString " + fileString);
 			wxFileFcb control;
 			control.pFile = new wxFile;
-			bool ok = control.pFile->Open(filePath);
+			bool ok;
+			if (mode == 1) ok = control.pFile->Create(filePath, true);	// overwrite any existing file
+			else ok = control.pFile->Open(filePath, openMode[mode]);
 			if (!ok) pConsole->throw_error(ctx, "_wxFile unable to open file " + filePath);
 			pConsole->m_wxFileFcbs.push_back(control);
 
@@ -860,7 +882,34 @@ TRACE(99, wxString::Format("_wxFile has ctx:%i", ctx));
 			duk_push_number(ctx, control.id);	// will return the id
 			return 1;
 			}
-		case 1: { // getAllText  call was (1, id)
+		case 1: {	// Seek - call was (1, id, offset)
+			int id = duk_get_number(ctx, 1);
+			wxFileOffset offset = duk_get_int(ctx, 2);
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			if (offset >= 0) offset =  control.pFile->Seek(offset);
+			else offset =  control.pFile->SeekEnd();
+			if (offset == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile invalid offset");
+			duk_push_int(ctx, offset);
+			return 1;
+			}
+		case 2: {	// return current offset - call was (2, id)
+			int id = duk_get_number(ctx, 1);
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			wxFileOffset offset = control.pFile->Tell();
+			if (offset == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile invalid offset");
+			duk_push_int(ctx, offset);
+			return 1;
+			}
+		case 3: {	// check for eof - call was (3, id)
+			int id = duk_get_number(ctx, 1);
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			duk_push_boolean(ctx, control.pFile->Eof());
+			return 1;
+			}
+		case 4: { // getAllText  call was (4, id)
 			int id = duk_get_number(ctx, 1);
 			duk_pop_n(ctx, nargs);	// clear call args
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
@@ -870,24 +919,46 @@ TRACE(99, wxString::Format("_wxFile has ctx:%i", ctx));
 			duk_push_string(ctx, data);
 			return 1;
 			}
-		case 2:
-		case 3: { // getText or getBytes  call was (2, id, start, number)
+		case 5:	// get text
+		case 6:	// get bytes
+			{ // call was (5|6, id, number)
+			if (nargs < 3)  pConsole->throw_error(ctx, "_wxFile get no count");
 			int id = duk_get_number(ctx, 1);
-			wxFileOffset start = duk_get_number(ctx, 2);
-			size_t count = duk_get_number(ctx, 3);
+			size_t count = duk_get_number(ctx, 2);
 			duk_pop_n(ctx, nargs);	// clear call args
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
-			if (start > control.pFile->Length()) pConsole->throw_error(ctx, "_wxFile get start beyond end of file");
-			wxFileOffset seeked = control.pFile->Seek(start);
-			if (seeked == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile get invalid start");
 			if (count < 1) pConsole->throw_error(ctx, "_wxFile get invalid count");
 			void* p = duk_push_dynamic_buffer(ctx, count);
 			size_t got = control.pFile->Read(p, count);
 			if (got == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile get invalid start with count");
 			if (got < count) duk_resize_buffer(ctx,-1, got);
-			if (action == 2) duk_buffer_to_string(ctx, -1);
+			if (action == 5) duk_buffer_to_string(ctx, -1);
 			else duk_push_buffer_object(ctx, -1, 0, count, DUK_BUFOBJ_UINT8ARRAY);
 			return 1;
+			}			
+		case 7: // write text
+			{ // call was (7, id, string)
+			int id = duk_get_number(ctx, 1);
+			wxString data = duk_get_string(ctx, 2);
+			duk_pop_n(ctx, nargs);	// clear call args
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			bool OK = control.pFile->Write(data);
+			duk_push_boolean(ctx, OK);
+			return 1;
+			}
+		case 8:	//write bytes
+			{ // call was 8, id, data)
+			int id = duk_get_number(ctx, 1);
+			size_t bufferSize;
+			duk_int_t type = duk_get_type(ctx, 2);
+			void* ptr = duk_get_buffer_data(ctx, 2, &bufferSize);	// get data
+			duk_pop_n(ctx, nargs);	// clear call args
+			TRACE(100, wxString::Format("Write buffer size:%i", bufferSize));
+			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
+			if (bufferSize < 1) pConsole->throw_error(ctx, "_wxFile write invalid data length");
+			size_t wrote = control.pFile->Write(ptr, bufferSize);
+			if (wrote != bufferSize) pConsole->throw_error(ctx, "_wxFile write wrong length");
+			return 0;
 			}
 		case -1: { // return file Length  call was (-1, id)
 			int id = duk_get_number(ctx, 1);

@@ -48,11 +48,12 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             else eval\
             false finally for function\
             if in\
-            new null\
+            new null NaN\
             package private protected public\
             return\
             switch\
             this throw true try typeof\
+            undefined\
             var void\
             while";
         // The following are unsupported or reserved for developer use and lexed orange

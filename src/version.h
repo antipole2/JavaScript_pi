@@ -17,9 +17,8 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "Build -d"
+#define     PLUGIN_VERSION_COMMENT "Beta a"
 
-// #define     USERGUIDES "\nhttps://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.pdf\nor\nhttps://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.epub\n\n"
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\nSee the Help panel right for documentation.\n\
 Changes are highlighted in the User Guide and listed in its Appendix A"
