@@ -202,39 +202,63 @@ void windowTrace(int level, wxString text){
 #endif  // TRACE_TO_WINDOW
 #endif	// TRACE_YES
 
-wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options){
-	// if fileString is URL does not change anything
-	// if inputName starts "?" uses as prompt for dialogue according to options
-    // else if fileString is relative, makes it absolute by the current directory
+wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
+	// if inputName is URL does not change anything
+	// if inputName starts "??" uses as prompt for dialogue according to options
+    // else if inputName is relative, makes it absolute by the current directory
+    // if inputName starts with single "?" and there is an error,  a prompt dialogue is used els the ? is dropped
     // if it is badly formed or other error returns error message else empty string
-    // checks existence according to options
+    // checks existence according to mode
+    if ((mode < 0) || (mode > 4)) pConsole->throw_error(pConsole->mpCtx, "resolveFileNaame invalid mode");
 	if ((inputName.substr(0, 6) == "https:")|| (inputName.substr(0, 5) == "http:")){ 	// If URL, don't do anything
 		return(inputName);
 		}
-	if (inputName.substr(0, 1) == "?") {	// to prompt
-		auto style = wxDEFAULT_DIALOG_STYLE;
-		wxString prompt = pConsole->mConsoleName + " " + inputName.substr(1);
-		if (options == MUST_NOT_EXIST) style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
-		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(pConsole->mpCtx, "Open dialogue cancelled");;
-		return dialog.GetPath();			
+	int toPrompt {0};	// whether to prompt 0 never; -1 always; +1 if file not valid/found	
+	wxString prompt;	// string to use for any prompt
+	bool fileExists;
+	if (inputName.substr(0, 2) == "??") {	// must prompt
+		inputName = inputName.substr(2);	// drop '??'
+		TRACE(101, "?? found - inputName now '" + inputName + "'");
+		toPrompt = -1;
+		prompt = pConsole->mConsoleName + " " + inputName;
+		}
+	else if (inputName.substr(0, 1) == "?") { // prompt if file missing
+		inputName = inputName.substr(1);	// drop '?'
+		TRACE(101, "? found - inputName now '" + inputName + "'");
+		toPrompt = 1;
+		prompt = pConsole->mConsoleName + " " + inputName, " not found - choose alternative";
 		}
 	wxFileName filePath = wxFileName(inputName);
-    if (!filePath.IsAbsolute()){ // relative  - so will prepend current working directory and do again
+	std::vector<wxFile::OpenMode> openModes {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};
+	wxFile::OpenMode wxMode = openModes[mode];
+	TRACE(101, wxString::Format("resolveFileName mode %i toPrompt %i prompt %s", mode, toPrompt, prompt));
+	if (toPrompt != -1){	// try and locate file
+	    if (!filePath.IsAbsolute()){ // relative  - so will prepend current working directory and do again
         filePath.MakeAbsolute(pJavaScript_pi->mCurrentDirectory);
-        }
-    if (!filePath.IsOk()) pConsole->throw_error(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " does not make sense");
+	        }
+	    }
+    if ((toPrompt == 0) && !filePath.IsOk()) pConsole->throw_error(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " does not make sense");
     wxString fullPath = filePath.GetFullPath();
-    switch (options) {
-    	case MUST_EXIST:
-    		if (!filePath.FileExists())
-                pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " not found");
-            break;
-        case MUST_NOT_EXIST:
-        	if (filePath.FileExists())
-                pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " already exists");
-        case DONT_CARE: {};
-    	}    
+    TRACE(101, wxString::Format("resolveFileName fullPath:%s",fullPath));
+    fileExists = filePath.FileExists();
+    if (
+    	(toPrompt == -1)																// always prompt
+    	|| (!fileExists && (toPrompt == 1))												// Prompt if no file
+    	|| (fileExists && (toPrompt == 1) && (wxMode == wxFile::wxFile::write_excl))	// prompt if exits when it should not
+    	)
+    	{	// need dialogue
+    	TRACE(101, wxString::Format("resolveFileName prompting mode %i toPrompt %i prompt %s", mode, toPrompt, prompt));
+		auto style = wxDEFAULT_DIALOG_STYLE;
+		if ((wxMode == wxFile::write) || (wxMode == wxFile::write_append))	// need save dialogue
+			style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
+		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(pConsole->mpCtx, "Open dialogue cancelled");
+		return dialog.GetPath();
+    	}
+    // file exists and we did not use dialogue - check access mode
+    if (wxMode ==  wxFile::write_excl) pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " already exists");
+    if (((wxMode == wxFile::write) || (wxMode == wxFile::read_write)) && !filePath.IsFileWritable ())
+    	pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " no write access");
     return fullPath;
     };
     

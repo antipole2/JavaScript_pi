@@ -1,8 +1,8 @@
 File = require("File");
-READ = 0; WRITE = 1; READ_WRITE = 2; APPEND = 3; WRITE_EXCL = 4;	// permissions for tests
 myFile = new File("00_main.js");	//default is READ
 print (myFile, "\n");
 errorCount = 0;
+print("getAllText and getTextLine test");
 data = myFile.getAllText();
 
 print("Seek to start gives: ", myFile.seek(0),"\n");
@@ -21,8 +21,10 @@ builtLines = builtLines.slice(0, -1);	// drop extra \n
 
 if (data == builtLines) scriptResult("Files OK");
 else {
-	printBlue("'", data, "'\n");
-	printGreen("'", builtLines, "'\n");
+	print("getAllText length: ", data.length, "\n");
+	printBlue("'", data, "'\n\n");
+	print("builtLines length: ", builtLines.length, "\n");
+	printGreen("'", builtLines, "'\n\n");
 	scriptResult("Files not OK");
 	errorCount++;
 	}

@@ -11,6 +11,8 @@
 * https://www.gnu.org/licenses/gpl-3.0.en.html
 ***************************************************************************
 */
+
+#if 0	// not being used at presnt
 #include <iostream>
 #include "wx/wx.h"
 #include "duktape.h"
@@ -78,3 +80,4 @@ void register_drivers(duk_context *ctx){
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     };
 
+#endif

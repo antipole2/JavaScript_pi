@@ -193,7 +193,7 @@ duk_ret_t console_load(duk_context* ctx){
     // consoleLoad(consoleName,  script) into console
     wxString fileString, script, consoleName, outcome;
     wxString getTextFile(wxString fileString, wxString* fetched);
-	wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options);
+	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
     wxString JScleanString(wxString given);
     Console* pConsole;
     
@@ -208,7 +208,7 @@ duk_ret_t console_load(duk_context* ctx){
         pConsole->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " cannot load into own console");
     if (pConsole->mpCtx) pConsoleBeingTimed->throw_error(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
     if (fileString.EndsWith(".js")){   // we are to try and load a file
-        fileString = resolveFileName(fileString, pConsole, MUST_EXIST);
+        fileString = resolveFileName(fileString, pConsole, 0);
         outcome = getTextFile( fileString, &script);
         if (outcome != wxEmptyString)  throwErrorByCtx(ctx, outcome);
         script = JScleanString(script);
@@ -345,13 +345,30 @@ void register_console(duk_context *ctx){
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     };
 
-void register_drivers(duk_context *ctx);
+void addNAME(duk_context *ctx, wxString name, int value){
+	duk_push_string(ctx, name);
+	duk_push_int(ctx, value);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE);
+	}
 
-bool loadComponent(duk_context *ctx, wxString name) {
+void define_wxFileModes(duk_context *ctx){
+	duk_push_global_object(ctx);
+	addNAME(ctx, "READ", 0);
+	addNAME(ctx, "WRITE", 1);
+	addNAME(ctx, "READ_WRITE", 2);
+	addNAME(ctx, "APPEND", 3);
+	addNAME(ctx, "WRITE_EXCL", 4);
+	duk_pop(ctx);	// global object
+	}
+
+// void register_drivers(duk_context *ctx);
+
+bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
     bool result {false};
     
     if (name == "Consoles") {register_console(ctx); result = true;}
-    if (name == "Drivers") {register_drivers(ctx); result = true;}
+    if (name == "File") {define_wxFileModes(ctx); result = false;}	// continue to load .js file
+//    if (name == "Drivers") {register_drivers(ctx); result = true;}
     
 #ifdef SOCKETS
     void register_sockets(duk_context *ctx);

@@ -52,7 +52,7 @@ extern JavaScript_pi *pJavaScript_pi;
 Console* findConsoleByCtx(duk_context *ctx);
 Console* findConsoleByName(wxString name);
 void throwErrorByCtx(duk_context *ctx, wxString message);
-wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options);
+wxString resolveFileName(wxString inputName, Console* pConsole, int options);
 wxString getTextFile(wxString fileString, wxString* text);
 
 void limitOutput(wxStyledTextCtrl* pText){
@@ -379,7 +379,7 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     
     filePath = duk_to_string(ctx,0);
     duk_pop(ctx);  // finished with that
-	filePath = resolveFileName(filePath, pConsole, MUST_EXIST);
+	filePath = resolveFileName(filePath, pConsole, 0);
 	if (filePath == wxEmptyString) pConsole->throw_error(ctx, result);
     result = getTextFile(filePath, &text);
     if (result != wxEmptyString) pConsole->throw_error(ctx, result);
@@ -389,38 +389,29 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
     };
 
 static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
-	// filewriteTextFile(text, fileNameString, mode)
+	// filewriteTextFile(text, fileName, access)
     wxString fileNameGiven,fileString, outcome, text;
     wxFileName filePath;
     Console *pConsole = findConsoleByCtx(ctx);
     
     text = duk_to_string(ctx, 0);
     fileNameGiven = duk_to_string(ctx,1);
-    int mode = (FileOptions)duk_to_int(ctx, 2);
+    int access = (FileOptions)duk_to_int(ctx, 2);
     duk_pop_3(ctx);  // finished with arguments
-
-    if ((mode < 0) || (mode > 2)) pConsole->throw_error(ctx, "writeTextFile " + filePath.GetFullPath() + "access invalid mode");
-    FileOptions option = (mode == 0)? MUST_NOT_EXIST : DONT_CARE;
-    if (fileNameGiven == wxEmptyString){	// use save dialogue
-    	long ourStyle = wxFD_SAVE;
-    	if (mode == 1) ourStyle |= wxFD_OVERWRITE_PROMPT;
-    	wxFileDialog dialog(pConsole, pConsole->mConsoleName + " writeTextFile", pJavaScript_pi->mCurrentDirectory, wxEmptyString,
-    		wxFileSelectorDefaultWildcardStr, ourStyle);
-		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(ctx, "Save dialogue cancelled");;
-		fileString = dialog.GetPath();
+    if ((access < 0) || (access > 2)) pConsole->throw_error(ctx, wxString::Format("writeTextFile access %i invalid", access));
+    std::vector<wxFile::OpenMode> modes {wxFile::write_excl, wxFile::write, wxFile::write_append};	// bespoke list
+    wxFile::OpenMode mode = modes[access];
+    fileString = resolveFileName(fileNameGiven, pConsole, mode);
+    if ((fileNameGiven.substr(0, 1) == "?") && (access = 0)){	// write_excl && "?"
+    	// if file already exists and we are here, user must have chosen to overwrite it, so we allow it to overwrite in next bit
+    	mode = wxFile::write;	
     	}
-	else {
-	    outcome = resolveFileName(fileNameGiven, pConsole, option);
-    	}
-    if (fileString.Find('.') == wxNOT_FOUND) { // no file extension
-    	fileString.Append(".txt");
-    	}
-    wxTextFile outputFile(fileString);
-    if (outputFile.Exists() && mode == 0) pConsole->throw_error(ctx, "writeTextFile " + outputFile.GetName() + " already exists");
-    outputFile.Open();
-    if (mode == 1) outputFile.Clear();
-    outputFile.AddLine(text);
-    outputFile.Write();
+//    std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
+    wxFile* theFile = new wxFile();
+    bool OK = theFile->Open(fileString, mode);
+    if (!OK) pConsole->throw_error(ctx, "writeTextFile failed to open file");
+    OK = theFile->Write(text);
+    if (!OK) pConsole->throw_error(ctx, "writeTextFile failed to write text");
     return 0;
     };
 
@@ -463,7 +454,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
         }
     else{   // not a built-in or library script - we will hunt for it
         TRACE(45, "Require - hunting for script");
-        resolved = resolveFileName(fileNameGiven, pConsole, MUST_EXIST);
+        resolved = resolveFileName(fileNameGiven, pConsole, 0);
         }
     TRACE(45, "Require - resolved to: " + resolved);
     outcome = getTextFile(resolved, &script);
@@ -632,7 +623,7 @@ duk_ret_t chain_script(duk_context* ctx){
     duk_require_string(ctx, 0);
     fileString = wxString(duk_get_string(ctx, 0));
     // the file string is relative - maybe. Ensure is absolute for record
-    fileString = resolveFileName(fileString, pConsole, MUST_EXIST);
+    fileString = resolveFileName(fileString, pConsole, 0);
     if (nargs>1){
         duk_require_string(ctx, 1);
         brief = wxString(duk_get_string(ctx, 1));
@@ -784,15 +775,16 @@ static duk_ret_t duk_execute(duk_context *ctx){
 
 static duk_ret_t duk_get_fileString(duk_context *ctx){	// file dialogue to get file string
 //    extern JavaScript_pi *pJavaScript_pi;
+	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
     Console *pConsole = findConsoleByCtx(ctx);
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-	wxString prompt = duk_get_string(ctx, 0);
-	wxString selector = wxEmptyString;
-	if (nargs > 1) selector = duk_get_string(ctx, 1);
-	wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory);
-	dialog.ShowModal();
+	wxString file = duk_get_string(ctx, 0);
+	int mode;
+	if (nargs > 1) mode = duk_get_int(ctx, 1);
+	else mode = 0;
 	duk_pop_n(ctx, nargs);
-	duk_push_string(ctx,dialog.GetPath());
+	wxString resolved = resolveFileName(file, pConsole, mode);
+	duk_push_string(ctx,resolved);
 	return 1;
 	}
 	
@@ -839,14 +831,18 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 	int action = duk_get_number(ctx, 0);
 	switch (action){
 		case 0:	{ // construct
-			// call was ( 0, this, filesString[, option])
+			// call was ( 0, this, filesString[, mode])
 			FileOptions options;
 			std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
 			wxString fileString = duk_to_string(ctx, 2);
 			int mode =  duk_get_int(ctx, 3);
+/*
 			switch (mode){
 				case 0:	// READ
 					options  = MUST_EXIST;	// default is read
+//					if (!wxFile::Exists(fileString)){	// file to be read does not exist - force ask
+//						fileString = wxString*("??" , fileString , " not found - choose alternative");
+//						|
 					break;
 				case 1:	// WRITE
 					if (fileString.substr(0, 1) == "?"){ // will be prompting so force save dialogue
@@ -862,9 +858,11 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 					options = MUST_NOT_EXIST;	// will not overwrite any file unless dialogue to resolve
 					break;
 				default:
-					 pConsole->throw_error(ctx, "_wxFile invalid permission request ");
+					options = DONT_CARE;	// this to avoid compiler warning
+					pConsole->throw_error(ctx, "_wxFile invalid permission request ");
 				}
-			wxString filePath = resolveFileName(fileString, pConsole, options);
+*/
+			wxString filePath = resolveFileName(fileString, pConsole,  mode);
 			if (filePath == wxEmptyString) pConsole->throw_error(ctx, "_wxFile unable to resolve fileString " + fileString);
 			wxFileFcb control;
 			control.pFile = new wxFile;
@@ -879,7 +877,11 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			duk_set_finalizer(ctx, 1);	// 'this' from call here
 			
 			duk_pop_n(ctx, nargs);	// clear call args
-			duk_push_number(ctx, control.id);	// will return the id
+			duk_push_object(ctx); 	// will return the id and filePath
+			duk_push_number(ctx, control.id);
+			duk_put_prop_literal(ctx, -2, "id");
+			duk_push_string(ctx, filePath);
+			duk_put_prop_literal(ctx, -2, "filePath");
 			return 1;
 			}
 		case 1: {	// Seek - call was (1, id, offset)
@@ -950,7 +952,6 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			{ // call was 8, id, data)
 			int id = duk_get_number(ctx, 1);
 			size_t bufferSize;
-			duk_int_t type = duk_get_type(ctx, 2);
 			void* ptr = duk_get_buffer_data(ctx, 2, &bufferSize);	// get data
 			duk_pop_n(ctx, nargs);	// clear call args
 			TRACE(100, wxString::Format("Write buffer size:%i", bufferSize));

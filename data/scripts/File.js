@@ -1,12 +1,24 @@
 function File(fileString, mode){
-	if ((mode < 0) || (mode > 5)) throw("File - invalid mode");
-	this.mode = mode;
-	this.id = _wxFile(0, this, fileString, mode);
-	this.length = _wxFile(-1, this.id);
-	this.lbl = false;	// true if reading line by line
-	this.lblEof = false;	// special eof flag when reading line by line
-	this.block = "";
-	if (this.mode == void 0) this.mode = 0;	// default to read
+	if (mode == void 0) mode = 0;	// default to READ
+	else if ((mode < 0) || (mode > 5)) throw("File - invalid mode");
+	// set up own properties with appropriate access and limit enumerability
+	setup = _wxFile(0, this, fileString, mode);
+	// we set up attributes in way that avoids them being enumerable and some not writeable
+	Object.defineProperty(this, "id", {value: setup.id, enumerable:true,writable:false,});
+	Object.defineProperty(this, "fileString", {value: setup.filePath,enumerable:true,writable: false,});
+	Object.defineProperty(this, "lbl", {value: false,writable: true});
+	Object.defineProperty(this, "lblEof", {value:false,writable: true});
+	Object.defineProperty(this, "block", {value:"",writable: true});
+/*
+	// global variable for file ops if not yet defined
+	if (typeof READ == "undefined"){
+		Object.defineProperty(globalThis, "READ", {value:0,writable: false});
+		Object.defineProperty(globalThis, "WRITE", {value:1,writable: false});
+		Object.defineProperty(globalThis, "READ_WRITE", {value:2,writable: false});
+		Object.defineProperty(globalThis, "APPEND", {value:3,writable: false});
+		Object.defineProperty(globalThis, "WRITE_EXCL", {value:4,writable: false});
+		}
+*/
 
 	this.length = function(){
 		return(_wxFile(-1, this.id));
@@ -34,27 +46,35 @@ function File(fileString, mode){
 		return(_wxFile(5, this.id, number));
 		}
 	this.getBytes = function(number){
-		if (arguments.length != 1) throw("File.getBytes no count");
+		if (arguments.length != 1) throw("File.getBytes has just 1 arg");
 		this.lbl = false;
 		return(_wxFile(6, this.id, number));
 		}
 	this.getTextLine = function(){
+		trace = false;
+		blockSize =  5000;
 		if (!this.lbl){	// just starting line by line
-			this.length = _wxFile(-1, this.id);
+			if (trace) printOrange("getTextLine first time\n");
 			this.lblEof = false;
 			this.lbl = true;
+			_wxFile(1, this.id, 0);	// rewind
+			this.block = _wxFile(5, this.id, blockSize);;			
 			}
 		if (this.lblEof || (this.length == 0)) return -1;
-		blockSize =  5000;
-		if (this.block.length == 0){
-			this.block = _wxFile(5, this.id, blockSize);
-			}
 		thisLine = nextLine(this);
 		if (thisLine != -1) return thisLine;
+		// reached end of block
+		if (this.tell() == this.length()){	// no more blocks
+			if (trace) printOrange("No more on disk\n");
+			this.lblEof = true;
+			return this.block;	// last bit of block
+			}
 		extension = _wxFile(5, this.id, blockSize);
+		if (trace) printOrange("extending - remaining:", this.block.length, "\ttell:", this.tell(), "\textension:", extension.length, "\n");
 		this.block += extension;
 		thisLine = nextLine(this);
 		if (thisLine == -1){	// no more newlines in this block
+			if (this.trace) printOrange("no more newlines in this block\n"); 
 			line = this.block;
 			this.block = "";
 			this.lblEof = true;

@@ -230,6 +230,14 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
+        if (this->m_remembered != wxEmptyString){
+        	wxString message = "You will lose what you have in _remember\nProceed anyway?";
+        	int choice = wxMessageBox(message, "Close console", wxYES_NO | wxYES_DEFAULT);
+        	if (choice == wxNO){
+        		event.Veto(true);
+        		return;
+        		}
+        	}
 		this->bin();
 		// take care to remove from tools, if we have them open
 		ToolsClass *pTools = pJavaScript_pi->pTools;

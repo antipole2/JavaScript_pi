@@ -66,6 +66,7 @@ wxString getContextDump(duk_context *ctx){ // return duktape context dump as str
     return result;
     }
     
+/*
 void checkHandle(duk_context *ctx, DriverHandle handle, wxString protocol, wxString APIname){	// checks for correct driver
 	    std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);
 	    if(attributes.empty()) throwErrorByCtx(ctx, wxString::Format("%s: No such handle %s", APIname, handle));
@@ -74,6 +75,15 @@ void checkHandle(duk_context *ctx, DriverHandle handle, wxString protocol, wxStr
 	    wxString driverProtocol = protocol_it->second;
 		if (protocol.compare(driverProtocol) != 0) throwErrorByCtx(ctx, wxString::Format("%s: Handle has protocol %s not %s", APIname, driverProtocol, protocol));
 		}
+*/
+		
+wxString getHandleProtocol(duk_context *ctx, DriverHandle handle, wxString APIname){
+		std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);
+	    if(attributes.empty()) throwErrorByCtx(ctx, wxString::Format("%s: No such handle %s", APIname, handle));
+    	auto protocol_it = attributes.find("protocol");
+    	if (protocol_it == attributes.end()) throwErrorByCtx(ctx, wxString::Format("%s: Handle %s does not have a protocol", APIname, handle));
+	   return protocol_it->second;
+	}
 
 PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
     // returns an opcn waypoint constructed from js waypoint on top of duk stack
@@ -663,7 +673,8 @@ static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on st
     	duk_require_string(ctx, 1);	// second argument must be string
     	DriverHandle handle = duk_to_string(ctx,1);
     	duk_pop_2(ctx);
-    	checkHandle(ctx, handle, "nmea0183", "OCPNpushNMEA0183");
+    	wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushNMEA0183");
+    	if (protocol != "nmea0183") throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA0183 handle %s not nmea0183", handle)));
    		auto payload = make_shared<std::vector<uint8_t>>();
 		for (const auto& ch : sentence) payload->push_back(ch);
 		CommDriverResult outcome = WriteCommDriver(handle, payload);
@@ -675,7 +686,32 @@ static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on st
         }
     duk_push_string(ctx, result);
     return(1);
-}
+	}
+	
+static duk_ret_t pushText(duk_context *ctx) {  // pushes string on stack out through OpenCPN
+	// called with OCPNpushText(data, handle)
+    duk_require_string(ctx, 0);	// data argument must be string
+    duk_require_string(ctx, 1);	// handle argument must be string   
+    wxString data = wxString(duk_to_string(ctx,0));
+	DriverHandle handle = duk_to_string(ctx,1);
+	wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushText");
+	if (protocol == "nmea0183"){
+		NMEA0183push(ctx);	// do this one with NMEA0183push
+		return 1;
+		}
+	else if (protocol == "SignalK"){
+		duk_pop_2(ctx);
+		auto payload = make_shared<std::vector<uint8_t>>();
+		for (const auto& ch : data) payload->push_back(ch);
+		CommDriverResult outcome = WriteCommDriver(handle, payload);
+		if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
+		else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushData driver error: %s", driverErrorStrings[outcome])));
+		return(1);
+		}
+	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushText unsupported protocol: %s", protocol)));
+	return 1; // keep compiler happy
+	}
+
 
 static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on stack out through OpenCPN
 	// OCPNpushNMEA2000(handle, pgn, destination, priority, payload)
@@ -710,7 +746,8 @@ static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on st
 		
 		}
 	if (!matchedHandle) {	// new handle - need to register it and remember it
-		checkHandle(ctx, handle, "nmea2000", "OCPNpushNMEA2000");
+		wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushNMEA2000");
+		if (protocol != "nmea2000") throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA2000 handle &s not NMEA2000", handle)));
 		std::vector<int> pgn_list;	// pgn needs to be in list
 		pgn_list.emplace_back(pgn);
 		RegisterTXPGNs(handle, pgn_list);
@@ -1416,6 +1453,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     
     duk_push_string(ctx, "OCPNpushNMEA2000");
     duk_push_c_function(ctx, NMEA2kPush, 5 /*number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNpushText");
+    duk_push_c_function(ctx, pushText, 2 /*number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNsendMessage");

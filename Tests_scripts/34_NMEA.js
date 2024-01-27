@@ -1,7 +1,24 @@
+handleTest = false;
+
 sentence1 = "$ABJKL,sentence1";
 sentence2 = "$ABGHI,sentence2";
 sentence3 = "$ABXYZ,sentence2";
-OK1 = OK2 = OK3 = false;
+sentence4 = "$ABMLN,handleData";
+OK1 = OK2 = OK3 = OK4 = false;
+
+if (handleTest){
+	// find NMEA0183 handle
+	handles = OCPNgetActiveDriverHandles();
+	for (h = 0; h < handles.length; h++){
+		attributes = OCPNgetDriverAttributes(handles[h]);
+		if (attributes.protocol == "nmea0183"){
+			handle = handles[h];
+			print("Using handle port ", attributes.netPort, "\n");
+			break;
+			}
+		}
+	if (typeof handle == "undefined") throw("No NMEA0183 handle found");
+	}
 
 onSeconds(stage1, 1);
 OCPNonNMEAsentence(get1);
@@ -15,7 +32,10 @@ function get1(result){
 	print("Complete 1\n");
 	OCPNonNMEAsentence(receiveXYZ, "XYTRE");	// should not be received
 	OCPNonNMEAsentence(receiveXYZ, "ABXYZ");
-	OCPNonNMEAsentence(receiveGHI, "GHI");
+	if (handleTest){
+		OCPNonNMEAsentence(receiveGHI, "GHI");
+		OCPNpushNMEA(sentence4, handle);
+		}
 	OCPNpushNMEA(sentence2);
 	OCPNpushNMEA(sentence3);
 	onSeconds(sumup,1);
@@ -35,7 +55,14 @@ function receiveGHI(result){
 	print("Complete 3\n");
 	}
 
+function receiveMLN(result){
+	if (!result.OK) stopScript("NMEA stage 4 checksum error");
+	else if (result.value != sentence4) stopScript("NMEA test 4 failed");
+	OK4 = true;
+	print("Complete 4\n");
+	}
+
 function sumup(){
-	if (OK1 && OK2 && OK3) stopScript("NMEA OK");
-	else stopscript("NMEA sumup failed");
+	if (OK1 && OK2 && OK3 && handleTest?OK4:true) stopScript("NMEA OK");
+	else stopScript("NMEA sumup failed");
 	}
