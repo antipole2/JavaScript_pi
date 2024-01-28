@@ -1,0 +1,21 @@
+name: Checkbox Check
+
+on:
+  discussions:
+    types:
+      - opened
+      - edited
+
+jobs:
+  checkbox-check:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Check for checkbox
+      run: |
+        checkbox_found=$(grep -E '\- \[x\]' ${{ github.event_path }} | wc -l)
+        if [ $checkbox_found -eq 0 ]; then
+          echo "Please confirm you have studied the plugin's User Guide."
+          exit 1
+        fi
