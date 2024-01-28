@@ -13,7 +13,7 @@ if (handleTest){
 		attributes = OCPNgetDriverAttributes(handles[h]);
 		if (attributes.protocol == "nmea0183"){
 			handle = handles[h];
-			print("Using handle port ", attributes.netPort, "\n");
+			print("Sending handle port ", attributes.netPort, "\n");
 			break;
 			}
 		}
@@ -32,9 +32,10 @@ function get1(result){
 	print("Complete 1\n");
 	OCPNonNMEAsentence(receiveXYZ, "XYTRE");	// should not be received
 	OCPNonNMEAsentence(receiveXYZ, "ABXYZ");
+	OCPNonNMEAsentence(receiveGHI, "GHI");
 	if (handleTest){
-		OCPNonNMEAsentence(receiveGHI, "GHI");
-		OCPNpushNMEA(sentence4, handle);
+		OCPNonNMEAsentence(receiveGHI, "MLN");
+		OCPNpushText(sentence4, handle);
 		}
 	OCPNpushNMEA(sentence2);
 	OCPNpushNMEA(sentence3);
@@ -63,6 +64,6 @@ function receiveMLN(result){
 	}
 
 function sumup(){
-	if (OK1 && OK2 && OK3 && handleTest?OK4:true) stopScript("NMEA OK");
+	if (OK1 && OK2 && OK3 && (handleTest?OK4:true)) stopScript("NMEA OK");
 	else stopScript("NMEA sumup failed");
 	}
