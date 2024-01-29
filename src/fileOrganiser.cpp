@@ -211,8 +211,8 @@ wxString chooseFileString(Console* pConsole){
     wxButton* cancelButton = new wxButton(pdialog, wxID_ANY, "Cancel");
     wxButton* otherButton = new wxButton(pdialog, wxID_ANY, "Other...");
     otherButton->SetDefault();
-    finalButtonBox->Add(cancelButton, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-    finalButtonBox->Add(otherButton, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+    finalButtonBox->Add(cancelButton, 0, /* wxALIGN_CENTER_HORIZONTAL| */ wxALL, 5);
+    finalButtonBox->Add(otherButton, 0, /* wxALIGN_CENTER_HORIZONTAL| */ wxALL, 5);
     if ((favouritesCount + recentsCount)  > 0){
         // add organiser button, which needs to stand apart
         wxButton* organiserButton = new wxButton(pdialog, wxID_ANY, "Organise Favourites", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);

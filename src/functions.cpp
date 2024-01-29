@@ -264,6 +264,7 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
     
 wxString NMEAchecksum(wxString sentence){
 	// given an NMEA sentence, returns the checksum as a string
+	// props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
     // we will drop any existing checksum
     int starPos = sentence.Find("*");
     if (starPos != wxNOT_FOUND) // yes there is one

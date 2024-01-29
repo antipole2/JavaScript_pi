@@ -643,49 +643,23 @@ static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation d
     return 1;  // returns one arg
 }
  */
-
-static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
-    // props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
-    duk_idx_t nargs = duk_get_top(ctx);	// number of arguments
-    wxString result;
-    duk_require_string(ctx, 0);	// first argument must be string
-    wxString sentence = wxString(duk_to_string(ctx,0));  // the NMEA sentence
-	// cleanup and append checksum
-	sentence.Trim();        
+ 
+wxString addNMEA0183CheckSum(duk_context *ctx, wxString sentence){// add checksum to NMEA sentence
+	// props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
+	wxString NMEAchecksum(wxString sentence);
+	sentence.Trim();       
 	// we will drop any existing checksum
 	int starPos = sentence.Find("*");
 	if (starPos != wxNOT_FOUND){ // yes there is one
 		sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
 		}
 	if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
-		throwErrorByCtx(ctx, "OCPNpushNMEA0183 sentence does not start $....., or !.....,");
-	wxString NMEAchecksum(wxString sentence);
+		throwErrorByCtx(ctx, "NMEA0183 sentence does not start $....., or !.....,");
 	wxString sum = NMEAchecksum(sentence);
 	sentence = sentence.Append("*");
 	sentence = sentence.Append(sum);
 	sentence = sentence.Append("\r\n");
-	if (nargs == 1){
-		duk_pop(ctx);
-        PushNMEABuffer(sentence);
-        result = "OK";
-        }
-    else if (nargs == 2){	// handle provided
-    	duk_require_string(ctx, 1);	// second argument must be string
-    	DriverHandle handle = duk_to_string(ctx,1);
-    	duk_pop_2(ctx);
-    	wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushNMEA0183");
-    	if (protocol != "nmea0183") throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA0183 handle %s not nmea0183", handle)));
-   		auto payload = make_shared<std::vector<uint8_t>>();
-		for (const auto& ch : sentence) payload->push_back(ch);
-		CommDriverResult outcome = WriteCommDriver(handle, payload);
-		if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
-		else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA0183 driver error: %s\n", driverErrorStrings[outcome])));
-   		 }
-    else {
-        throwErrorByCtx(ctx, "OCPNpushNMEA0183 called without 1 or 2 string arguments");
-        }
-    duk_push_string(ctx, result);
-    return(1);
+	return sentence;
 	}
 	
 static duk_ret_t pushText(duk_context *ctx) {  // pushes string on stack out through OpenCPN
@@ -694,24 +668,34 @@ static duk_ret_t pushText(duk_context *ctx) {  // pushes string on stack out thr
     duk_require_string(ctx, 1);	// handle argument must be string   
     wxString data = wxString(duk_to_string(ctx,0));
 	DriverHandle handle = duk_to_string(ctx,1);
+	duk_pop_2(ctx);
 	wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushText");
 	if (protocol == "nmea0183"){
-		NMEA0183push(ctx);	// do this one with NMEA0183push
-		return 1;
+		data = addNMEA0183CheckSum(ctx, data);
 		}
-	else if (protocol == "SignalK"){
-		duk_pop_2(ctx);
-		auto payload = make_shared<std::vector<uint8_t>>();
-		for (const auto& ch : data) payload->push_back(ch);
-		CommDriverResult outcome = WriteCommDriver(handle, payload);
-		if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
-		else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushData driver error: %s", driverErrorStrings[outcome])));
-		return(1);
-		}
-	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushText unsupported protocol: %s", protocol)));
+	auto payload = make_shared<std::vector<uint8_t>>();
+	for (const auto& ch : data) payload->push_back(ch);
+	CommDriverResult outcome = WriteCommDriver(handle, payload);
+	if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
+	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpush driver error: %s", driverErrorStrings[outcome])));
 	return 1; // keep compiler happy
 	}
 
+
+static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
+    duk_idx_t nargs = duk_get_top(ctx);	// number of arguments
+    if (nargs == 1)	{ // old-style Call
+    	duk_require_string(ctx, 0);	// first and only argument must be string
+    	wxString sentence = wxString(duk_to_string(ctx,0));  // the NMEA sentence
+    	duk_pop(ctx);
+    	sentence = addNMEA0183CheckSum(ctx, sentence);
+    	PushNMEABuffer(sentence);
+    	return 0;
+    	}
+    // must have handle - use new method
+    duk_ret_t result = pushText(ctx);
+    return 0;
+    }
 
 static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on stack out through OpenCPN
 	// OCPNpushNMEA2000(handle, pgn, destination, priority, payload)
