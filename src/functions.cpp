@@ -189,7 +189,7 @@ void windowTrace(int level, wxString text){
 #else
         wxPoint position = pJavaScript_pi->m_parent_window->wxPoint(800, 100);
         wxSize size = pJavaScript_pi->m_parent_window->wxSize(700, 500);
-£endif
+#endif
          JStraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
          	wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP|wxRESIZE_BORDER);
         JStraceTextCtrl = new wxTextCtrl(JStraceWindow, wxID_NEW,
