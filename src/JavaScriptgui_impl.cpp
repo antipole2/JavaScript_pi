@@ -50,14 +50,40 @@ WX_DEFINE_OBJARRAY(SocketRecordsArray);
 #endif
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
+/*
 void Console::OnActivate(wxActivateEvent& event){
+	if (event.GetActive()){
+	    TRACE(110, "Activated");
+		if (m_clickFunction != wxEmptyString){
+			wxString function = m_clickFunction;
+			m_clickFunction = wxEmptyString;
+			Completions outcome = executeFunctionNargs(function, 0);
+			if (!isBusy()) wrapUp(outcome);
+			}
+		}
+	wxTextCtrl* what = (wxTextCtrl*) event.GetEventObject();
+	what->SetFocus();
+	event.Skip();
  	return;
     wxFrame* pConsole = wxDynamicCast(event.GetEventObject(), wxFrame);
     long int style = pConsole->GetWindowStyle();
     if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
 	pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
     };
-
+*/
+    
+/*
+void Console::OnLeftDClick(wxMouseEvent& event){
+    TRACE(110, "LeftEvent");
+	if (m_clickFunction != wxEmptyString){
+		wxString function = m_clickFunction;
+		m_clickFunction = wxEmptyString;
+		Completions outcome = executeFunctionNargs(function, 0);
+		if (!isBusy()) wrapUp(outcome);
+		}
+	// event.Skip();	// do rest of focussing
+	}
+*/
 
 void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString fileString;
@@ -204,6 +230,20 @@ void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
     if (event.CanVeto()){
+		if (m_closeButtonFunction != wxEmptyString){
+			wxString function = m_closeButtonFunction;
+			m_closeButtonFunction = wxEmptyString;
+			Completions outcome = executeFunctionNargs(function, 0);
+			if (!isBusy()) wrapUp(outcome);
+			return;
+			}
+		if (isParked()){	// hit close button when parked and minimised
+			TRACE(25, wxString::Format("%s->onClose unparking", mConsoleName));
+			unPark();
+        	Raise();
+        	return;
+        	}
+
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
             // This is only console - decline
             this->message(STYLE_RED, "Console close: You cannot close the only console");
@@ -219,11 +259,6 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-        if (isParked() && ToDIP(GetClientSize()).y < 2){	// hit close button when parked and minimised
-        	makeBigEnough();
-        	Raise();
-        	return;
-        	}
         if (!this->m_Script->IsEmpty()) {
             // We will not delete a console with a script
             this->message(STYLE_RED, "Console close: clear the script first");

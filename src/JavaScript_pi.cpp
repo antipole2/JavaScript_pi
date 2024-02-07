@@ -367,7 +367,6 @@ bool JavaScript_pi::LoadConfig(void)
                     wxSize  consoleSize;
                     wxString fileString;
                     bool autoRun, parked;
-                    wxPoint frameToScreen(wxPoint);
 
                     wxString name = tkz.GetNextToken();
                     consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
@@ -486,24 +485,25 @@ bool JavaScript_pi::SaveConfig(void)
         	extern Console* pTestConsole1;
         	extern Console* pTestConsole2;
         	
-        	wxPoint screenToFrame(wxPoint);
         	if ((pConsole == pTestConsole1) || (pConsole == pTestConsole2)) continue;	// do not save any test consoles
         	// v2 positions now saved relative to frame
             name = pConsole->mConsoleName;
             nameColon = name + ":";
             // will save in DIP
             consoleNames += ((pConsole == pJavaScript_pi->mpFirstConsole)? "":":") + name;
-#if SCREEN_RESOLUTION_AVAILABLE
-            wxPoint consolePosition = pConsole->ToDIP(screenToFrame(pConsole->GetPosition()));
+// #if SCREEN_RESOLUTION_AVAILABLE
+            wxPoint consolePosition = pConsole->ToDIP(pConsole->GetPosition());
             wxSize  consoleSize = pConsole->ToDIP(pConsole->GetSize());
+/*
 #else
-			wxPoint consolePosition = screenToFrame(pConsole->GetPosition());
+			wxPoint consolePosition = pConsole->GetPosition();
 			wxSize  consoleSize = pConsole->GetSize();
 #endif
+*/
             if (pConsole->mDialog.pdialog != nullptr) pConsole->clearDialog();
-            wxPoint dialogPosition = screenToFrame(pConsole->mDialog.position);	// already DIP
+            wxPoint dialogPosition = pConsole->mDialog.position;	// already DIP
             if (pConsole->mAlert.palert != nullptr) pConsole->clearAlert();
-            wxPoint alertPosition = screenToFrame(pConsole->mAlert.position);	// already DIP
+            wxPoint alertPosition = pConsole->mAlert.position;	// already DIP
             pConf->Write (nameColon + _T ( "Parked" ),   (pConsole->isParked())?"1":"0");	// first in case it has been moved
             pConf->Write (nameColon + _T ( "ConsolePosX" ),   consolePosition.x );
             pConf->Write (nameColon + _T ( "ConsolePosY" ),   consolePosition.y );
@@ -515,7 +515,32 @@ bool JavaScript_pi::SaveConfig(void)
             pConf->Write (nameColon + _T ( "AlertPosY" ),  alertPosition.y);
             pConf->Write (nameColon + _T ( "AutoRun" ),   (pConsole->auto_run->GetValue())?"1":"0");
             pConf->Write (nameColon + _T ("LoadFile"),  pConsole->m_fileStringBox->GetValue());
-             pConf->Write (nameColon + _T ( "_remember" ),  pConsole->m_remembered);
+            pConf->Write (nameColon + _T ( "_remember" ),  pConsole->m_remembered);
+            // now the locations
+            bool set = pConsole->m_notParkedLocation.set;
+            wxPoint position = pConsole->m_notParkedLocation.position;
+            wxSize size = pConsole->m_notParkedLocation.size;
+//#if SCREEN_RESOLUTION_AVAILABLE
+			position =  pConsole->ToDIP(position);
+			size =  pConsole->ToDIP(size);
+//#endif           
+            pConf->Write (nameColon + _T ( "UnparkedLocationSet" ),  set?"1":"0");
+            pConf->Write (nameColon + _T ( "UnparkedLocationPosX" ),  position.x);
+            pConf->Write (nameColon + _T ( "UnparkedLocationPosY" ),  position.y);
+            pConf->Write (nameColon + _T ( "UnparkedLocationSizeX" ),  size.x);
+            pConf->Write (nameColon + _T ( "UnparkedLocationSizeY" ),  size.y);
+            set = pConsole->m_parkedLocation.set;
+            position = pConsole->m_parkedLocation.position;
+            size = pConsole->m_parkedLocation.size;
+//#if SCREEN_RESOLUTION_AVAILABLE
+			position =  pConsole->ToDIP(position);
+			size =  pConsole->ToDIP(size);
+//#endif 
+            pConf->Write (nameColon + _T ( "ParkedLocationSet" ),  set?"1":"0");
+            pConf->Write (nameColon + _T ( "ParkedLocationPosX" ),  position.x);
+            pConf->Write (nameColon + _T ( "ParkedLocationPosY" ),  position.y);
+            pConf->Write (nameColon + _T ( "ParkedLocationSizeX" ),  size.x);
+            pConf->Write (nameColon + _T ( "ParkedLocationSizeY" ),  size.y);            
             }
         pConf->Write (_T ("Consoles"),  consoleNames);
         return true;

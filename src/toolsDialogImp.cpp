@@ -316,7 +316,6 @@ void ToolsClass::onParkingRevert(wxCommandEvent& event){
 void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	// customise parking parameters
 	void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour);
-	wxPoint screenToFrame(wxPoint);
 	m_parkingMessage->Clear();
 	wxString label = m_customiseButton->GetLabel();
 	TRACE(4, wxString::Format("In onParking with button %s", label));
@@ -362,8 +361,8 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 		double scale = SCALE(this);	// for DIP corrections
 		wxSize c1Size = pTestConsole1->GetClientSize();
 		wxSize c2Size = pTestConsole2->GetClientSize();
-		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
-		wxPoint c2Pos = screenToFrame(pTestConsole2->GetPosition());
+		wxPoint c1Pos = pTestConsole1->GetPosition();
+		wxPoint c2Pos = pTestConsole2->GetPosition();
 		m_customiseButton->SetLabel("Retry");	// in case we have a problem
 		if ((c1Size.y > 40*scale) || (c2Size.y > 40*scale)){
 			m_parkingMessage->SetValue("You have not minimised the consoles\nDo so and try again");

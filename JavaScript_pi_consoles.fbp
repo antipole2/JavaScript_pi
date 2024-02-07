@@ -57,9 +57,7 @@
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
             <property name="xrc_skip_sizer">1</property>
-            <event name="OnActivate">OnActivate</event>
             <event name="OnClose">OnClose</event>
-            <event name="OnMove">OnMove</event>
             <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size">600,200</property>
                 <property name="name">consoleTopSizer</property>
@@ -700,6 +698,7 @@
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
                                                     <event name="OnCheckBox">OnAutoRun</event>
+                                                    <event name="OnSetFocus">OnFocus</event>
                                                 </object>
                                             </object>
                                             <object class="sizeritem" expanded="0">

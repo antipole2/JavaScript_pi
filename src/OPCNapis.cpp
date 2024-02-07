@@ -693,8 +693,8 @@ static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on st
     	return 0;
     	}
     // must have handle - use new method
-    duk_ret_t result = pushText(ctx);
-    return 0;
+    /*duk_ret_t result = */pushText(ctx);
+    return 1;
     }
 
 static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on stack out through OpenCPN

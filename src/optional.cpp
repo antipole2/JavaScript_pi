@@ -30,14 +30,13 @@ duk_ret_t console_get_details(duk_context *ctx){
 	// if 2nd present and is true, minimise minSize, else set as normal
 	wxSize size, minSize, clientSize;
 	wxPoint pos;
-	wxPoint screenToFrame(wxPoint);
 	
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
 	if ((nargs != 1) && (nargs != 2)) throwErrorByCtx(ctx, "consoleGetDetails number of args not 1 or 2");
 	wxString name = duk_get_string(ctx, 0);
 	Console* pConsole = findConsoleByName(name);
 	if (!pConsole) throwErrorByCtx(ctx, "consoleDetails console " + name + " does not exist");
-	pos = screenToFrame(pConsole->GetPosition());
+	pos = pConsole->GetPosition();
 	size = pConsole->GetSize();
 	minSize = pConsole->GetMinSize();
 	clientSize = pConsole->GetClientSize();

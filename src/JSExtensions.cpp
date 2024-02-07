@@ -774,7 +774,6 @@ static duk_ret_t duk_execute(duk_context *ctx){
 	}
 
 static duk_ret_t duk_get_fileString(duk_context *ctx){	// file dialogue to get file string
-//    extern JavaScript_pi *pJavaScript_pi;
 	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
     Console *pConsole = findConsoleByCtx(ctx);
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
@@ -832,7 +831,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 	switch (action){
 		case 0:	{ // construct
 			// call was ( 0, this, filesString[, mode])
-			FileOptions options;
+//			FileOptions options;
 			std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
 			wxString fileString = duk_to_string(ctx, 2);
 			int mode =  duk_get_int(ctx, 3);
@@ -1019,6 +1018,20 @@ duk_ret_t safe_decode_JSON(duk_context *ctx, void *udata) {	// function for safe
 	    duk_json_decode(ctx, -1);	// recover original object - might have invalid JSON
 	    return 1;	// returns with decoded object on stack if OK
 		}
+		
+static duk_ret_t duk_onCloseButton(duk_context *ctx){
+	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    Console *pConsole = findConsoleByCtx(ctx);
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	if (nargs == 0) pConsole-> m_closeButtonFunction = wxEmptyString;
+	else if (nargs == 1){
+		if (pConsole-> m_closeButtonFunction != wxEmptyString) pConsole->throw_error(ctx, "onCloseButton already set");
+		pConsole-> m_closeButtonFunction = extractFunctionName(ctx, 0);
+		duk_pop(ctx);
+		}
+	else pConsole->throw_error(ctx, "onCloseButton requires just one argument");
+	return 0;
+	}
     
 void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     extern duk_ret_t duk_dialog(duk_context *ctx);
@@ -1152,6 +1165,10 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     
     duk_push_string(ctx, "_wxFile");
     duk_push_c_function(ctx, _wxFile, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "onCloseButton");
+    duk_push_c_function(ctx, duk_onCloseButton, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
 	// set up the _remember variable

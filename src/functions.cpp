@@ -241,6 +241,7 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
     wxString fullPath = filePath.GetFullPath();
     TRACE(101, wxString::Format("resolveFileName fullPath:%s",fullPath));
     fileExists = filePath.FileExists();
+    prompt += " ";	// this to silence compiler warning
     if (
     	(toPrompt == -1)																// always prompt
     	|| (!fileExists && (toPrompt == 1))												// Prompt if no file
@@ -355,6 +356,7 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
     return(wxEmptyString);
     }
     
+#if 0
 wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
 /*	With v2.0.3 we change to parking on screen positions so do nothing
 	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
@@ -375,6 +377,7 @@ ing on screen positions so do nothing
 */
 	return pos;
 	}
+#endif
 
 #include "wx/regex.h"
 // The following could be Duktape release dependent
