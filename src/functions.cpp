@@ -183,8 +183,13 @@ void windowTrace(int level, wxString text){
     // implements tracing to a separate window
     if (!JStraceTextCtrl){
         // the first time to trace
+#if SCREEN_RESOLUTION_AVAILABLE
         wxPoint position = pJavaScript_pi->m_parent_window->FromDIP(wxPoint(800, 100));
         wxSize size = pJavaScript_pi->m_parent_window->FromDIP(wxSize(700, 500));
+#else
+        wxPoint position = pJavaScript_pi->m_parent_window->wxPoint(800, 100);
+        wxSize size = pJavaScript_pi->m_parent_window->wxSize(700, 500);
+£endif
          JStraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
          	wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP|wxRESIZE_BORDER);
         JStraceTextCtrl = new wxTextCtrl(JStraceWindow, wxID_NEW,

@@ -636,7 +636,7 @@ public:
             }
         TRACE(75,mConsoleName + "->isWaiting() doing full check");
         bool result = false;
-        int count;
+        unsigned int count;
         if (
             (mTimes.GetCount() > 0) ||
             (mMenus.GetCount() > 0) ||
@@ -653,7 +653,7 @@ public:
             	TRACE(75, mConsoleName + "->isWaiting() 1st if true");
                 result = true;
                 }
-        else if ((count = (int)mMessages.GetCount()) > 0){ // look at messages
+        else if ((count = mMessages.GetCount()) > 0){ // look at messages
              for(unsigned int index = 0; index < count; index++){
                 if (mMessages[index].functionName != wxEmptyString) {
                     TRACE(75, mConsoleName + "->isWaiting() else if true");
