@@ -116,6 +116,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     wxSize minSize, oldSize, newSize;
     wxString checkConsoleName(wxString name, Console* pConsole);
     Console* findConsoleByName(wxString name);
+    void reviewParking();
     Console *pConsole;
  
     this->m_ConsolesMessage->Clear();
@@ -141,12 +142,14 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     pConsole->SetLabel(newConsoleName);
     pConsole->mConsoleName = newConsoleName;
     TRACE(17, wxString::Format("onChangeName for parked console %s size was x:%i y:%i", oldConsoleName, GetSize().x, GetSize().y ));
+//    wxSize oldClientMinSize = pConsole->GetMinClientSize();
     pConsole->setConsoleMinClientSize();
-    if (pConsole->isParked()){	// shrink it
-    	wxSize size = pConsole->GetMinSize();
-    	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
-    	pConsole->SetSize(size);
-    	}
+	wxSize newMinSize = pConsole->GetMinSize();
+	if (pConsole->m_parkedLocation.set){
+		pConsole->m_parkedLocation.size.x = newMinSize.x;
+		}
+	if (pConsole->isParked()) pConsole->SetSize(newMinSize);	// shrink it
+	reviewParking();
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }

@@ -134,6 +134,8 @@ public:
   double rotation;
 
   float chart_scale;  // conventional chart displayed scale
+  double
+      ref_scale;  //  the nominal scale of the "reference chart" for this view
 
   int pix_width;
   int pix_height;

@@ -1134,16 +1134,31 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     }
 
 static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
-    duk_double_t lat, lon, scale;
-    wxWindow *canvas;
-    MAYBE_DUK_DUMP
-    lat = duk_get_number(ctx, -3);
-    lon = duk_get_number(ctx, -2);
-    scale = 1/duk_get_number(ctx, -1);
-//    scale = GetNativeScale();
-    canvas = GetCanvasUnderMouse();
-    CanvasJumpToPosition(canvas, lat, lon, scale);
-    duk_pop_3(ctx);
+	// call was OCPNcentreCanvas(position [, ppm])   ppm is scale in pixels per metre
+    duk_double_t lat, lon, ppm;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    if ((nargs < 1) || (nargs > 2)) throwErrorByCtx(ctx, "OCPNcentreCanvas called with wrong number of arguments");
+    
+//    duk_require_object(ctx, 0);	// check we have a position
+    bool latOK = duk_get_prop_literal(ctx, 0, "latitude");
+    lat = duk_get_number(ctx, -1);
+    bool lonOK = duk_get_prop_literal(ctx, 0, "longitude");
+    lon = duk_get_number(ctx, -1);
+    duk_pop_2(ctx);	// pop lat and lon
+    if (!latOK || !lonOK) throwErrorByCtx(ctx, "OCPNcentreCanvas called without position as first arg");
+    if ((abs(lat)> 90) || (abs(lon) > 180)) throwErrorByCtx(ctx, "OCPNcentreCanvas called with invalid lat or lon");
+    
+    if (nargs == 2){	// ppm supplied
+    	duk_require_number(ctx, 1);
+    	ppm = duk_get_number(ctx,1);
+    	}
+	else {	// must be just position - no ppm, get current
+		ppm = pJavaScript_pi->m_currentViewPort.view_scale_ppm;
+		}
+
+//    canvas = GetOCPNCanvasWindow();
+    JumpToPosition(lat, lon, ppm);
+    duk_pop_n(ctx, nargs);
     return(0);  // no arguments returned
 }
 
@@ -1357,13 +1372,20 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
 
 // wxString soundFile = wxString("/Applications/OpenCPN.app/Contents/SharedSupport/sounds/beep_ssl.wav");
 static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
-    wxString* directory = GetpSharedDataLocation();
-    wxString soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
-        bool OK = false;
-        OK = PlugInPlaySoundEx(soundFile);
-        duk_push_boolean(ctx, OK);
-        duk_ret_t result = 1;
-        return (result);
+	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
+ 	wxString soundFile;
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	Console *pConsole = findConsoleByCtx(ctx);
+	if (nargs > 0) soundFile = resolveFileName(duk_get_string(ctx, 0), pConsole, 0);
+	else {
+	    wxString* directory = GetpSharedDataLocation();
+    	soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
+    	}
+    duk_pop_n(ctx, nargs);
+	bool OK = false;
+	OK = PlugInPlaySoundEx(soundFile);
+	duk_push_boolean(ctx, OK);
+	return 1;
         }
         
 static duk_ret_t isOnline(duk_context *ctx) {   // check if online
@@ -1401,6 +1423,28 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 		duk_put_prop(ctx, -3);
 		}
 	return 1;			
+	}
+	
+duk_ret_t getCanvasView(duk_context* ctx){
+	PlugIn_ViewPort vp = pJavaScript_pi->m_currentViewPort;
+	duk_push_object(ctx); // construct the object
+		duk_push_number(ctx, vp.view_scale_ppm);
+			duk_put_prop_literal(ctx, -2, "ppm");
+		duk_push_number(ctx, vp.chart_scale);
+			duk_put_prop_literal(ctx, -2, "chartScale");
+//		duk_push_number(ctx, vp.ref_scale);	// missing from plugin's definition of class
+//			duk_put_prop_literal(ctx, -2, "refScale");			
+		duk_push_object(ctx); // construct the centre point
+			duk_push_number(ctx, vp.clat);
+				duk_put_prop_literal(ctx, -2, "latitude");
+			duk_push_number(ctx, vp.clon);
+				duk_put_prop_literal(ctx, -2, "longitude");
+			duk_put_prop_literal(ctx, -2, "centre");	
+		duk_push_number(ctx, vp.pix_width);
+			duk_put_prop_literal(ctx, -2, "pixWidth");
+		duk_push_number(ctx, vp.pix_height);
+			duk_put_prop_literal(ctx, -2, "pixHeight");		
+	return 1;
 	}
     
 // ÑÑÑÑÑÑ API registrations follow
@@ -1618,11 +1662,15 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNsoundAlarm");
-    duk_push_c_function(ctx, playSound, 1 /* 1 arg */);
+    duk_push_c_function(ctx, playSound, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNisOnline");
     duk_push_c_function(ctx, isOnline, 0 /* 0 arg */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNgetCanvasView");
+    duk_push_c_function(ctx, getCanvasView, 0 /* nargs */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_pop(ctx);

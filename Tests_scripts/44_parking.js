@@ -25,25 +25,26 @@ function step1(){
 	if (result == 0) stopScript("Parking tests cancelled");
 	if (result != 2) stopScript("Parking tests reported wrong");
 
-	consoleLoad(console, shrinkYourself);
+	console = consoleNames[1];
+	consoleLoad(console, growYourself);
 	consoleRun(console);
-	consoleNames.push("2");	// this one might be hanging around so add to ones to be deleted
+	consoleNames.push(maximumLengthName);	// this one might be hanging around so add to ones to be deleted
 	onSeconds(step2,1);
 	}
 
 function step2(){
-	result = messageBox("Rightmost console has been renamed to '2'\nHas width of minimized window shrunk correctly?", "YesNo");
+	result = messageBox("Console between '" + consoleNames[0] + "' and '" + consoleNames[2] + "' has been renamed from '" + consoleNames[1] + "' to '" + maximumLengthName + "'\nHave parked consoles adjusted to accommodate?", "YesNo");
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
-	console = "2";
-	consoleLoad(console, growYourself);
+	console = maximumLengthName;
+	consoleLoad(console, shrinkYourself);
 	consoleRun(console);
-	consoleNames.push(maximumLengthName);	// this one might be hanging around so add to ones to be deleted
+	consoleNames.push(console);	// this one might be hanging around so add to ones to be deleted
 	onSeconds(step3, 1);
 	}
 
 function step3(){
-	result = messageBox("Rightmost console has been renamed to " + maximumLengthName + "\nHas width of minimized window grown as needed?", "YesNo");
+	result = messageBox("Console between '" + consoleNames[0] + "' and '" + consoleNames[2] + "' has been shortened from '" + maximumLengthName + "' to '" + extras[0] + "'\nHave parked consoles adjusted to accommodate this?", "YesNo");
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
 	onSeconds(waitforit, 1);
@@ -58,4 +59,5 @@ function deleteConsoles(){
 		if (consoleExists(console)) consoleClose(console);
 		}
 	}
+
 

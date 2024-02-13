@@ -297,7 +297,7 @@ public:
 #endif	// IPC
 
 private:
-    wxPoint		m_parkedPosition;	// if parked, parked position in DIP
+//    wxPoint		m_parkedPosition;	// if parked, parked position in DIP
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
@@ -338,7 +338,7 @@ public:
         TRACE(67, wxString::Format("After checkPointOnScreen for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
 
         m_parked = parked;
-        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
+//        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
         consoleInit();
         Move(FromDIP(consolePosition));
         SetSize(consoleSize);
@@ -969,6 +969,7 @@ public:
         }
         
     void makeBigEnough(){	// ensure console at least minimum size
+    	if (isParked()) unPark();
     	wxSize consoleSize = ToDIP(this->GetSize());	// using DIP size here
         if ((consoleSize.x < 200)|| (consoleSize.y < 400)){
         	consoleSize = FromDIP(wxSize(680,700));		// back to actual size
@@ -1087,7 +1088,7 @@ public:
     	return now;
     	}
     	
-    void setLocation(location loc){
+    void setLocation (location loc){
     	if (!loc.set){
     	    message(STYLE_RED, _("setLocation called when not set - program error"));
     	    }
@@ -1108,6 +1109,7 @@ public:
     	SetClientSize(size);	
     	if (m_parkedLocation.set){	// have a parking slot
     	    TRACE(25, wxString::Format("%s->park() reparking", mConsoleName));
+    		m_parkedLocation.size = GetSize();
     		setLocation(m_parkedLocation);	// repark
     		m_parked = true;
     		return;
@@ -1129,11 +1131,13 @@ public:
 			if (rhe > rightMost) rightMost = rhe;
 			} 
     	int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
-		m_parkedPosition = wxPoint(newX, pJavaScript_pi->m_parkingLevel);	// temp in actual px
-		Move(m_parkedPosition);
-        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
-		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
-		m_parkedLocation = getLocation();
+		m_parkedLocation.position = wxPoint(newX, pJavaScript_pi->m_parkingLevel);
+		m_parkedLocation.size = GetSize();
+		m_parkedLocation.set = true;
+    	setLocation(m_parkedLocation);
+        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
+//		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
+//		m_parkedLocation = getLocation();
         m_parked = true;
     	}
     	
@@ -1155,8 +1159,8 @@ public:
     		return false;
     		}
     	wxPoint posNow = GetPosition();
-    	posNow = ToDIP(posNow);	// stored position in DIP
-    	if ((abs(posNow.y - m_parkedPosition.y) < 4)){  // still parked (allowing small margin for error )
+//    	posNow = ToDIP(posNow);	// stored position in DIP
+    	if ((abs(posNow.y - m_parkedLocation.position.y) < 4)){  // still parked (allowing small margin for error )
     		TRACE(25, wxString::Format("%s->isParked() found is parked", mConsoleName));
     		return true;
     		}
@@ -1164,6 +1168,27 @@ public:
     	TRACE(25, wxString::Format("%s->isParked() found no longer parked", mConsoleName));
     	return false;
     	}
+    	
+   void reviewParking(){
+    	if (m_parkedLocation.set){	// this console has a parking space and may be parked
+			TRACE(17, mConsoleName+ "-> reviewParking");
+			int increase = GetSize().x - m_parkedLocation.position.x;
+			TRACE(17, wxString::Format("Adjusting width by %i", increase));
+			m_parkedLocation.size.x += increase;
+			if (increase != 0){	// may need to adjust other parking
+				for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){	// walk chain of consoles
+					TRACE(17, "Examining console " + pC->mConsoleName);
+					if (pC == this) continue;	// skip ourself
+					if (!pC->m_parkedLocation.set) continue;	// this one does not have a parking place
+					if (pC->m_parkedLocation.position.x < m_parkedLocation.position.x) continue;	// this one to left of us - unaffected
+					TRACE(17, "Shifting console " + pC->mConsoleName);
+					pC->m_parkedLocation.position.x += increase;	// adjust its space;
+					if (pC->isParked())	pC->setLocation(pC->m_parkedLocation);	// repark if needed
+					}
+				}
+			}
+		}
+
     
     void destroyConsole(){
         Destroy();
@@ -1209,7 +1234,7 @@ public:
         dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
-        dump += "auto_run:\t\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
+        dump += "auto_run:\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
         wxPoint screenPosition = GetPosition();
         wxPoint DIPposition = ToDIP(screenPosition);
         dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tDIP x:%i y:%i\n", screenPosition.x, screenPosition.y, DIPposition.x, DIPposition.y );
@@ -1218,10 +1243,11 @@ public:
         wxSize minSize = GetMinSize();
         dump += wxString::Format("Size():\t\t\t\tx:%i y:%i\tDIP\tx:%i y:%i\tMinSize() x:%i y:%i\n",
         	size.x, size.y,DIPsize.x, DIPsize.y, minSize.x, minSize.y );
-        dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
+//        dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
+        dump += wxString::Format("m_parked:\t\t\t%s\n", (m_parked ? _("true"):_("false")));
         dump += "isParked():\t\t\t" + (isParked() ?  _("true"):_("false")) + "\n";
         dump += !m_parkedLocation.set ? "No park location\n":
-        	wxString::Format("Parking place\t\t%i\t%i\tsize %i\t%i\n", m_parkedLocation.position.x, m_parkedLocation.position.y, m_parkedLocation.size.x, m_parkedLocation.size.y);     
+        	wxString::Format("parked Location\t\t%i\t%i\tsize %i\t%i\n", m_parkedLocation.position.x, m_parkedLocation.position.y, m_parkedLocation.size.x, m_parkedLocation.size.y);     
         dump += !m_notParkedLocation.set ? "No unparked location\n":
         	wxString::Format("notParked location\t%i\t%i\tsize %i\t%i\n", m_notParkedLocation.position.x, m_notParkedLocation.position.y, m_notParkedLocation.size.x, m_notParkedLocation.size.y);      
         dump += _("Messages callback table\n");

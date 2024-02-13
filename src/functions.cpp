@@ -231,7 +231,7 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
 		inputName = inputName.substr(1);	// drop '?'
 		TRACE(101, "? found - inputName now '" + inputName + "'");
 		toPrompt = 1;
-		prompt = pConsole->mConsoleName + " " + inputName, " not found - choose alternative";
+		prompt = pConsole->mConsoleName + " " + inputName + " not found - choose alternative";
 		}
 	wxFileName filePath = wxFileName(inputName);
 	std::vector<wxFile::OpenMode> openModes {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};
@@ -360,6 +360,34 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
         }
     return(wxEmptyString);
     }
+    
+void reviewParking(){	// adjust parking space sizes and remove any gaps (console deleted)
+	struct lot{	// a parking lot
+		Console* pConsole;
+		location place;
+		};
+	std::vector<lot> lots;
+	lot aLot;	// working space
+	// build array of places and sort
+	for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
+		if (pCon->m_parkedLocation.set){	// this one has a lot
+			aLot.pConsole = pCon;
+			aLot.place = pCon->m_parkedLocation;
+			lots.push_back(aLot);			
+			}
+		}
+	if (lots.size() < 1) return;
+	std::sort(lots.begin(),lots.end(), [](lot &a, lot &b){ return a.place.position.x < b.place.position.x; });
+	
+	// now adjust location of each lot, shuffling left it needed
+	int xPos = pJavaScript_pi->m_parkFirstX;
+	for (int i = 0; i < lots.size(); i++){
+		aLot = lots[i];
+		aLot.pConsole->m_parkedLocation.position.x = xPos;
+		xPos += aLot.pConsole->m_parkedLocation.size.x + pJavaScript_pi->m_parkSep;	// next place
+		if (aLot.pConsole->m_parked) aLot.pConsole->setLocation(aLot.pConsole->m_parkedLocation);
+		}
+	}
     
 #if 0
 wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame

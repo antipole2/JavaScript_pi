@@ -95,6 +95,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             onSeconds\
             onDialogue\
             onExit\
+            onCloseButton\
             stopScript\
             messageBox\
             toClipboard\
@@ -136,6 +137,8 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNupdateTrack\
             OCPNdeleteTrack\
             OCPNrefreshCanvas\
+            OCPNgetCanvasView\
+            OCPNcentreCanvas\
             OCPNgetAISTargets\
             OCPNgetVectorPP\
             OCPNgetPositionPV\

@@ -144,7 +144,8 @@ int JavaScript_pi::Init(void)
             WANTS_NMEA_SENTENCES |
             WANTS_NMEA_EVENTS |
             WANTS_AIS_SENTENCES |
-            WANTS_PREFERENCES
+            WANTS_PREFERENCES |
+            WANTS_ONPAINT_VIEWPORT
             );
 }
 
@@ -244,7 +245,7 @@ wxString JavaScript_pi::GetCommonName()
 
 wxString JavaScript_pi::GetShortDescription()
 {
-    return "Run JavaScripts and interact with OpenCPN";
+    return "Run JavaScripts";
 }
 
 wxString JavaScript_pi::GetLongDescription()
@@ -352,9 +353,14 @@ bool JavaScript_pi::LoadConfig(void)
             mpFirstConsole = nullptr;	//start with no consoles
             wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
             if (consoles == wxEmptyString){ // no consoles configured
-                Console* newConsole = new Console(m_parent_window, "JavaScript", wxPoint(300,20),
-                	wxSize(738,800), wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
+                Console* newConsole = new Console(m_parent_window, "JavaScript", NEW_CONSOLE_POSITION,
+                	NEW_CONSOLE_SIZE, wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
                 newConsole->setConsoleMinClientSize();
+                // position and size likely wrong for hi res displays, and could not fix until after construction, so...
+                wxPoint position = newConsole->FromDIP(NEW_CONSOLE_POSITION);
+                newConsole->Move(position);
+                wxSize  size = newConsole->FromDIP(NEW_CONSOLE_SIZE);
+                newConsole->SetSize(size);
                 }
             else {
                 wxStringTokenizer tkz(consoles, ":");
@@ -386,20 +392,37 @@ bool JavaScript_pi::LoadConfig(void)
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     newConsole->Move(newConsole->FromDIP(consolePosition));
+                    newConsole->SetSize(newConsole->FromDIP(consoleSize));
                     TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
                     newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T(""));
-/*
-                    if (parked){ // cannot use newConsole->park() because that will take short cut
-//                    	wxSize clientSize = newConsole->GetClientSize();
-//                    	clientSize.y = 0;
-//                    	newConsole->SetSize(newConsole->GetMinSize());
-                    	newConsole->m_parked = true;
+                    // set up the locations
+                    bool set = (pConf->Read ( name + _T ( ":UnparkedLocationSet" ), "0" ) == "1")? true:false;
+                    if (set){  // set up unparked location               
+                    	wxPoint position; wxSize size;
+                    	position.x =  pConf->Read ( name + _T ( ":UnparkedLocationPosX" ), 20L );
+                    	position.y =  pConf->Read ( name + _T ( ":UnparkedLocationPosY" ), 20L );
+                    	size.x =  pConf->Read ( name + _T ( ":UnparkedLocationSizeX" ), 20L );
+                    	size.y =  pConf->Read ( name + _T ( ":UnparkedLocationSizeY" ), 20L );
+                    	position = newConsole->FromDIP(position);
+                    	size = newConsole->FromDIP(size);
+                    	newConsole->m_notParkedLocation.position = position;
+                    	newConsole->m_notParkedLocation.size = size;
+                    	newConsole->m_notParkedLocation.set = set;
                     	}
-                    else {
-                    	//newConsole->SetSize(newConsole->FromDIP(consoleSize));
-                    	newConsole->m_parked = false;
+                    set = (pConf->Read ( name + _T ( ":ParkedLocationSet" ), "0" ) == "1")? true:false;	
+                    if (set){	// set up parked location
+                        wxPoint position; wxSize size;
+                    	position.x =  pConf->Read ( name + _T ( ":ParkedLocationPosX" ), 20L );
+                    	position.y =  pConf->Read ( name + _T ( ":ParkedLocationPosY" ), 20L );
+                    	size.x =  pConf->Read ( name + _T ( ":ParkedLocationSizeX" ), 20L );
+                    	size.y =  pConf->Read ( name + _T ( ":ParkedLocationSizeY" ), 20L );
+                    	position = newConsole->FromDIP(position);
+                    	size = newConsole->FromDIP(size);
+                    	newConsole->m_parkedLocation.position = position;
+                    	newConsole->m_parkedLocation.size = size;
+                    	newConsole->m_parkedLocation.set = set;                    	
                     	}
-*/
+                    newConsole->m_parked = parked;
                     }
                 }
             }
@@ -607,7 +630,11 @@ void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)
 void JavaScript_pi::SetCursorLatLon(double lat, double lon){
     mCursorPosition.lat = lat;
     mCursorPosition.lon = lon;
-    }
+    } 
+
+void JavaScript_pi::SetCurrentViewPort(PlugIn_ViewPort &vp){
+	m_currentViewPort = vp;
+	}
 
 void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
 {

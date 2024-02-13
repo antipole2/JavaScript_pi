@@ -107,6 +107,7 @@ public:
     bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     void ShowTools (wxWindow* m_parent_window, int page);
+    void SetCurrentViewPort(PlugIn_ViewPort &vp);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
@@ -123,6 +124,7 @@ public:
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
     Position        mCursorPosition;     // latest cursor position
+    PlugIn_ViewPort m_currentViewPort;
     bool			m_showHelp {false};		// show help during first showing of consoles
     bool			m_floatOnParent {true};	//set the wxSTAY_ON_TOP style for windows
     

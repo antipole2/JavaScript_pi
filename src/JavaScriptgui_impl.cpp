@@ -222,12 +222,14 @@ void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     }
     
 void Console::OnPark( wxCommandEvent& event ){
-	TRACE(4, "OnPark");
+	TRACE(25, mConsoleName + " OnPark start");
     park();
+    TRACE(25, mConsoleName + " OnPark finished");
     }
 
 void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
+    void reviewParking();
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
     if (event.CanVeto()){
 		if (m_closeButtonFunction != wxEmptyString){
@@ -274,6 +276,7 @@ void Console::OnClose(wxCloseEvent& event) {
         		}
         	}
 		this->bin();
+		reviewParking();
 		// take care to remove from tools, if we have them open
 		ToolsClass *pTools = pJavaScript_pi->pTools;
 		if (pTools != nullptr) pTools->setConsoleChoices();

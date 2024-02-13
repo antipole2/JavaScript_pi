@@ -591,6 +591,7 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
     // consoleName() no change
     // returns console name
     extern JavaScript_pi* pJavaScript_pi;
+    void reviewParking();
     wxString newName, outcome;
     wxString checkConsoleName(wxString name, Console* pConsole);
     
@@ -606,9 +607,15 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
 		pConsole->mConsoleName = newName;
 		pConsole->SetLabel(newName);
 		pConsole->setConsoleMinClientSize();
-    	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();
+		wxSize newMinSize = pConsole->GetMinSize();
+		if (pConsole->m_parkedLocation.set){
+			pConsole->m_parkedLocation.size.x = newMinSize.x;
+			}
+		if (pConsole->isParked()) pConsole->SetSize(newMinSize);	// shrink it
+		reviewParking();
+    	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();	// rebuild in tools if open
         }
-    if (pConsole->isParked()) pConsole->SetSize(pConsole->GetMinSize());	// shrink it
+
     duk_push_string(ctx, pConsole->mConsoleName);
     return 1;
     }

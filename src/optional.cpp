@@ -167,11 +167,13 @@ duk_ret_t console_add(duk_context *ctx){
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
     pConsole->Show();
+    if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();	// update if tools open
     return 0;
     };
 
 duk_ret_t console_close(duk_context* ctx){
     Console *findConsoleByCtx(duk_context *ctx);
+    void reviewParking();
     duk_require_string(ctx, 0);
     wxString name = duk_get_string(ctx, 0);
     duk_pop(ctx);
@@ -185,6 +187,8 @@ duk_ret_t console_close(duk_context* ctx){
 		pConsole->clearCallbacks();
 		}
 	pConsole->bin();
+	reviewParking();
+	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();	// update if tools open
     return 0;
     }
 
