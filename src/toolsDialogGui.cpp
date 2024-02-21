@@ -502,7 +502,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* cleanSizer;
 	cleanSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxT("label") ), wxVERTICAL );
 
-	m_charsToClean = new wxTextCtrl( cleanSizer->GetStaticBox(), wxID_ANY, wxT("‟Fancy quotes” ordinal º primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
+	m_charsToClean = new wxTextCtrl( cleanSizer->GetStaticBox(), wxID_ANY, wxT("‟Fancy quotes” degrees°º⁰ primes ‘’‛’′´`"), wxDefaultPosition, wxSize( 550,-1 ), 0 );
 	cleanSizer->Add( m_charsToClean, 0, wxALL, 5 );
 
 	wxStaticBoxSizer* CharsTopSizer;

@@ -294,7 +294,8 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     for (j = 0, i = text.begin(); i != text.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
-            dumpTextCtrl->AppendText(wxString::Format("[%02d]%c ", j, uni_ch));
+        	wxString format = (uni_ch <= 0xFF) ? "[%02d]%c " : "[%04d]%c ";
+            dumpTextCtrl->AppendText(wxString::Format(format, j, uni_ch));
         if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl->AppendText("\n");
         }
     dumpTextCtrl->AppendText(JS_dumpString("\nRaw", text));

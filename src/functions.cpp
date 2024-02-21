@@ -67,6 +67,8 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString apostrophe   {"\'"};
      const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
      const wxString degree       {"\u00B0"};
+     const wxString superScript0 {"\u2070"};	// superscript 0 pretending to be degrees
+  
      const wxString degreeText   {"&#xb0"};
      const wxString backprime    {"\u0060"};
  #ifndef __WXMSW__   // Don't try this one on Windows
@@ -81,7 +83,8 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
      given.Replace(ordinal, degree, true);
-     given.Replace(degree, degreeText, true);
+	 given.Replace(superScript0, degree, true);
+//     given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      return (given);
      }
@@ -389,29 +392,6 @@ void reviewParking(){	// adjust parking space sizes and remove any gaps (console
 		}
 	}
     
-#if 0
-wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
-/*	With v2.0.3 we change to parking on screen positions so do nothing
-	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
-	wxPoint framePos = frame->GetPosition();	// screen position of frame
-	pos.x -= framePos.x;
-	pos.y -= framePos.y;
-*/
-	return pos;
-	}
-	
-wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
-/*	With v2.0.3 we change to 
-ing on screen positions so do nothing
-	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
-	wxPoint framePos = frame->GetPosition();	// screen position of frame 
-	pos.x += framePos.x;
-	pos.y += framePos.y;
-*/
-	return pos;
-	}
-#endif
-
 #include "wx/regex.h"
 // The following could be Duktape release dependent
 wxRegEx parse(" *at ([^ ]*).*:([0-9]*)"); // parses function and line number

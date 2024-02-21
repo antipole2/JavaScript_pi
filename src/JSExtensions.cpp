@@ -132,6 +132,7 @@ duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on
     Console *pConsole = findConsoleByCtx(ctx);
     
     pConsole->Show(); // make sure console is visible
+    pConsole->unPark();
     output_window = pConsole->m_Output;
     appendStyledText(js_formOutput(ctx),output_window, colour);
     limitOutput(output_window);
@@ -172,12 +173,13 @@ static duk_ret_t duk_alert(duk_context *ctx) {   // create or add to an alert  b
         return 1;
         }
     // we have alert text to display
+    if (pConsole->mAlert.alertText.length() > 0) pConsole->mAlert.alertText += "\n";// Insert newline after any existing text
     pConsole->mAlert.alertText += js_formOutput(ctx); // add text to any existing
     if (alert != nullptr){  // clear any existing alert being displayed
         pConsole->mAlert.palert->Close();
         pConsole->mAlert.palert->Destroy();
         }
-    alert = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, _("JavaScript alert"), pConsole->FromDIP(pConsole->mAlert.position),
+    alert = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, pConsole->mConsoleName, pConsole->FromDIP(pConsole->mAlert.position),
     	wxDefaultSize, wxCAPTION | wxSTAY_ON_TOP | wxBORDER_RAISED);
     alert->SetBackgroundColour(*wxYELLOW);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
@@ -695,7 +697,14 @@ static duk_ret_t duk_paste(duk_context *ctx){
 	// get string from clipboard
 	Console *pConsole = findConsoleByCtx(ctx);
 	if (!wxTheClipboard->Open()) pConsole->throw_error(ctx, "copyFromClip clipboard is busy");
-	if (wxTheClipboard->IsSupported( wxDF_TEXT )){
+	
+	wxTextDataObject data;
+	wxTheClipboard->GetData( data );
+	duk_push_string(ctx, data.GetText());
+	wxTheClipboard->Close();
+	return 1;
+	
+/*	if (wxTheClipboard->IsSupported( wxDF_TEXT )){
 		wxTextDataObject data;
         wxTheClipboard->GetData( data );
         duk_push_string(ctx, data.GetText());
@@ -704,9 +713,10 @@ static duk_ret_t duk_paste(duk_context *ctx){
 		}
 	else {
 		wxTheClipboard->Close();
-		pConsole->throw_error(ctx, "pasteFromClipboard clipboard has no text string");
+		pConsole->throw_error(ctx, "pasteFromClipboard clipboard is not text");
 		return 1;	// to keep compiler happy		
 		}
+*/
 	}
 	
 static duk_ret_t duk_execute(duk_context *ctx){
@@ -1039,6 +1049,16 @@ static duk_ret_t duk_onCloseButton(duk_context *ctx){
 	else pConsole->throw_error(ctx, "onCloseButton requires just one argument");
 	return 0;
 	}
+
+static duk_ret_t cleanString(duk_context *ctx){
+	// string = cleanString(string)
+	wxString JScleanString(wxString given);
+	wxString string = duk_get_string(ctx, 0);
+	duk_pop(ctx);
+	duk_push_string(ctx, JScleanString(string));
+	return 1;
+	}
+
     
 void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     extern duk_ret_t duk_dialog(duk_context *ctx);
@@ -1177,6 +1197,11 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_push_string(ctx, "onCloseButton");
     duk_push_c_function(ctx, duk_onCloseButton, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "cleanString");
+    duk_push_c_function(ctx, cleanString, 1);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     
 	// set up the _remember variable
 	// the JSON string could be invalid - need to catch any error	

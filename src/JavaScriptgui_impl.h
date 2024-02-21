@@ -952,6 +952,7 @@ public:
     void message(int style, wxString message){
         void limitOutput(wxStyledTextCtrl* pText);
         TRACE(5,mConsoleName + "->message() " + message);
+        unPark();
         Show(); // make sure console is visible
     	makeBigEnough();
         wxStyledTextCtrl* output_window = m_Output;
@@ -1159,36 +1160,15 @@ public:
     		return false;
     		}
     	wxPoint posNow = GetPosition();
-//    	posNow = ToDIP(posNow);	// stored position in DIP
     	if ((abs(posNow.y - m_parkedLocation.position.y) < 4)){  // still parked (allowing small margin for error )
     		TRACE(25, wxString::Format("%s->isParked() found is parked", mConsoleName));
+    		m_parkedLocation.position = posNow;	// update in case position moved within park
     		return true;
     		}
     	m_parked = false;	// has been moved
     	TRACE(25, wxString::Format("%s->isParked() found no longer parked", mConsoleName));
     	return false;
     	}
-    	
-   void reviewParking(){
-    	if (m_parkedLocation.set){	// this console has a parking space and may be parked
-			TRACE(17, mConsoleName+ "-> reviewParking");
-			int increase = GetSize().x - m_parkedLocation.position.x;
-			TRACE(17, wxString::Format("Adjusting width by %i", increase));
-			m_parkedLocation.size.x += increase;
-			if (increase != 0){	// may need to adjust other parking
-				for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){	// walk chain of consoles
-					TRACE(17, "Examining console " + pC->mConsoleName);
-					if (pC == this) continue;	// skip ourself
-					if (!pC->m_parkedLocation.set) continue;	// this one does not have a parking place
-					if (pC->m_parkedLocation.position.x < m_parkedLocation.position.x) continue;	// this one to left of us - unaffected
-					TRACE(17, "Shifting console " + pC->mConsoleName);
-					pC->m_parkedLocation.position.x += increase;	// adjust its space;
-					if (pC->isParked())	pC->setLocation(pC->m_parkedLocation);	// repark if needed
-					}
-				}
-			}
-		}
-
     
     void destroyConsole(){
         Destroy();
