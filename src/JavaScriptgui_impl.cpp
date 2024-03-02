@@ -43,7 +43,6 @@ int messageComp(MessagePair** arg1, MessagePair** arg2) {   // used when sorting
     return (strcmp((*arg1)->messageName, (*arg2)->messageName));}
 
 WX_DEFINE_OBJARRAY(MessagesArray);
-WX_DEFINE_OBJARRAY(TimesArray);
 WX_DEFINE_OBJARRAY(MenusArray);
 #ifdef SOCKETS
 WX_DEFINE_OBJARRAY(SocketRecordsArray);
@@ -301,6 +300,26 @@ void Console::OnTools( wxCommandEvent& event){
     pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, 0);
     return;
     }
+    
+void Console::HandleTimer(wxTimerEvent& event){
+	TRACE(66, wxString::Format("in HandleTimer "));
+	int id = event.GetId();
+	bool matched = false;
+	for (auto it = mpTimersVector.cbegin(); it != mpTimersVector.cend(); ++it){
+		auto entry = (*it);
+		if (entry.timer->GetId() == id){
+			wxString functionToCall = entry.functionName;
+			wxString parameter = entry.parameter;
+	    	if (entry.timer->IsOneShot()) mpTimersVector.erase(it);
+	    	duk_push_string(mpCtx, parameter.c_str());
+	    	Completions outcome = executeFunctionNargs(functionToCall, 1);
+	    	if (!isBusy()) wrapUp(outcome);
+	    	matched = true;
+	    	break;
+	    	}	    
+		}
+	if (!matched) message(STYLE_RED, "HandleTimer prog error: failed to match timer ID");
+	};
     
 
 void Console::HandleNMEA0183(ObservedEvt& ev, int messageCntlId) {

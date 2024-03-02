@@ -93,6 +93,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleName\
             consolePark\
             onSeconds\
+            onAllSeconds\
             onDialogue\
             onExit\
             onCloseButton\
@@ -100,6 +101,8 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             messageBox\
             toClipboard\
             fromClipboard\
+            cleanString\
+            NMEA0183checksum\
             OCPNpushNMEA0183\
             OCPNpushNMEA2kSentence\
             OCPNgetMessageNames\

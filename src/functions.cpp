@@ -62,7 +62,7 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString quote        {"\""};
      const wxString accute       {"\u00B4"};
      const wxString rightSquote  {"\u2019"};    // right single quote
-     const wxString leftSquote  {"\u2018"};    // right single quote
+     const wxString leftSquote  {"\u2018"};    // left single quote
  //  const wxString apostrophe   {"\u0027"};
      const wxString apostrophe   {"\'"};
      const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
@@ -168,7 +168,7 @@ void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw er
     }
 
 #include "wx/tokenzr.h"
-wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
+jsFunctionNameString_t extractFunctionName(duk_context *ctx, duk_idx_t idx){
     // extract function name from call on JS stack
     // This does not work if in method in class not substantiated, so is here    
     wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), " (");
@@ -258,8 +258,8 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
     	{	// need dialogue
     	TRACE(101, wxString::Format("resolveFileName prompting mode %i toPrompt %i prompt %s", mode, toPrompt, prompt));
 		auto style = wxDEFAULT_DIALOG_STYLE;
-		if ((wxMode == wxFile::write) || (wxMode == wxFile::write_append))	// need save dialogue
-			style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+//		if ((wxMode == wxFile::write) || (wxMode == wxFile::write_append))	// need save dialogue
+		if (mode == 4)	style |= wxFD_SAVE | wxFD_OVERWRITE_PROMPT; // need save dialogue			
 		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
 		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(pConsole->mpCtx, "Open dialogue cancelled");
 		return dialog.GetPath();
@@ -275,6 +275,7 @@ wxString NMEAchecksum(wxString sentence){
 	// given an NMEA sentence, returns the checksum as a string
 	// props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
     // we will drop any existing checksum
+    if (sentence.length() < 7) return wxEmptyString;	// cannot be sentence - avoid crash ahead
     int starPos = sentence.Find("*");
     if (starPos != wxNOT_FOUND) // yes there is one
 	    sentence = sentence.SubString(0, starPos-1); // truncate at * onwards

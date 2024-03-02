@@ -469,6 +469,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     return(1);
     };
 
+/*
 static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
     wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
     duk_ret_t result = 0;
@@ -501,6 +502,56 @@ static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseco
     pConsole->mWaitingCached = pConsole->mWaiting = true;
     return(result);
     }
+*/
+
+static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setTimedCallback(ctx, false);   // needs to be in a method - not persistent
+    return 1;
+	};
+	
+static duk_ret_t onAllSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
+    Console* pConsole = findConsoleByCtx(ctx);
+    pConsole->setTimedCallback(ctx, true);   // needs to be in a method - not persistent
+    return 1;
+	};
+/*
+    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    duk_ret_t result = 0;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    Console *pConsole = findConsoleByCtx(ctx);
+   
+    TimeActions ourTimeAction;
+    wxString argument = wxEmptyString;
+
+    
+    if (nargs == 0) { // empty call - cancel all timers
+        pConsole->mTimes.Clear();
+        pConsole->mTimerActionBusy = false;
+        pConsole->mWaitingCached = false;   // force full isWaiting check
+        return(result);
+        }
+    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onSeconds within onExit function");
+    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onSeconds first argument must be function");
+    if ((int)pConsole->mTimes.GetCount() > MAX_TIMERS){
+        pConsole->throw_error(ctx, "onSeconds already have maximum timers outstanding");
+        }
+    if ((nargs < 2) || (nargs > 3)){
+        pConsole->throw_error(ctx, "onSeconds requires two or three arguments");
+        }
+        
+    wxTimer timer(&pConsole->HandleTimer);
+    
+
+    wxTimeSpan delay(0, 0, duk_to_number(ctx,1), 0);
+    ourTimeAction.timeToCall = wxDateTime::Now() + delay;
+    ourTimeAction.functionName = extractFunctionName(ctx, 0);
+    if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
+    ourTimeAction.argument = argument;
+    pConsole->mTimes.Add(ourTimeAction);  // add this action to array
+    pConsole->mWaitingCached = pConsole->mWaiting = true;
+    return(result);
+*/
 
 static duk_ret_t duk_timeAlloc(duk_context *ctx) {   // time allocation
     Console *pConsole = findConsoleByCtx(ctx);
@@ -1058,6 +1109,16 @@ static duk_ret_t cleanString(duk_context *ctx){
 	duk_push_string(ctx, JScleanString(string));
 	return 1;
 	}
+	
+	
+static duk_ret_t NMEAchecksum(duk_context *ctx){
+	// checkChars = NMEAchecksum(sentence)
+	wxString NMEAchecksum(wxString sentence);	
+	wxString sentence = duk_get_string(ctx, 0);
+	duk_pop(ctx);
+	duk_push_string(ctx, NMEAchecksum(sentence));
+	return 1;
+	}
 
     
 void duk_extensions_init(duk_context *ctx, Console* pConsole) {
@@ -1112,10 +1173,18 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_push_c_function(ctx, duk_result, DUK_VARARGS /*variable number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "NMEA0183checksum");
+    duk_push_c_function(ctx, NMEAchecksum, 1);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "onSeconds");
     duk_push_c_function(ctx, onSeconds, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "onAllSeconds");
+    duk_push_c_function(ctx, onAllSeconds, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
     duk_push_string(ctx, "onDialogue");
     duk_push_c_function(ctx, duk_dialog, DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);

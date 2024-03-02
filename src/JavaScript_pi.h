@@ -136,6 +136,7 @@ public:
     int				m_parkSep {PARK_SEP};					// separation between parked consoles
     
     wxTimer         mTimer;
+//    wxTimer*			tempTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of a script
     int				nextID = 1;		// used to generate unique IDs
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON

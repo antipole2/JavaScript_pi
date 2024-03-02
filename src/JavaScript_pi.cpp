@@ -132,8 +132,8 @@ int JavaScript_pi::Init(void)
 
     
     mpPluginActive = true;
-    mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this, mTimer.GetId());
-    mTimer.Start(1000);
+    mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this); //, this, mTimer.GetId());
+    mTimer.Start(15000);	// 15s timer to check for deleted consoles
 
     TRACE(1,"JavaScript_pi->Init() returning");
 
@@ -176,7 +176,7 @@ bool JavaScript_pi::DeInit(void) {
         // purge stuff out of this one - we do not use wrapUp() because that might do all sorts of other things
         if (pConsole->mpCtx != nullptr) duk_destroy_heap(pConsole->mpCtx);
         pConsole->mMessages.Clear();
-        pConsole->mTimes.Clear();
+        pConsole->mpTimersVector.clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
 #ifdef SOCKETS
@@ -666,7 +666,9 @@ void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
         }   // end for this console
 }
 
+
 void JavaScript_pi::OnTimer(wxTimerEvent& ){
+/*
     // This is the regular timer tick through which all timed functions are implemented
     Console* pConsole;
     for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){	// for each console
@@ -710,12 +712,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
                             	}
                             	
 //                            if (outcome == MORETODO) continue;
- /*
-                            else {
-                                i = 99999;  // this will stop us looking for further timers on this console
-                                pConsole->wrapUp(outcome);
-                                }
-*/
+
                             }
                         }
                     }
@@ -723,6 +720,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
             }
         pConsole->mTimerActionBusy = false;
         }
+*/
 
     Console* pLater = nullptr;  // the linked list of consoles whose deletion is to be deferred
     while (mpBin) {    // empty the bin if anything in it that can go

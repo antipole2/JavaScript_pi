@@ -521,16 +521,22 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     if (numberOfButtons < 1) pConsole->throw_error(ctx, "onDialog error: radioButtons has empty value array");
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
                     int maxChars = 0;
+                    int defaultIndex = 0;
                     for (int j = 0; j < numberOfButtons; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);
+                        if (value.GetChar(0) == '*'){   // if first char is *, remove and make this default button
+							value.Remove(0, 1);
+							defaultIndex = j;
+							}
                         strings.Add(value);
                         if (value.Length() > maxChars) maxChars = (int) value.Length();
                         }
                     duk_pop_2(ctx);
                     anElement.itemID = wxNewId();
-                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaultSize /*wxSize(maxChars*10*scale+45*scale, numberOfButtons*23*scale+14*scale) */, strings, 1, wxRA_SPECIFY_COLS);
+                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaultSize , strings, 1, wxRA_SPECIFY_COLS);
+                    radioBox->SetSelection(defaultIndex);
                     boxSizer->Add(radioBox, 0, wxHORIZONTAL|wxALL, 2);
                     anElement.label = label;
                     }

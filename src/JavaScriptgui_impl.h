@@ -49,6 +49,7 @@ typedef wxString messageNameString_t;
 
 extern JavaScript_pi *pJavaScript_pi;
 
+#define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
 class MessagePair  // holds OPCN messages seen, together with JS callback function name, if to be called back
     {
 public:
@@ -68,10 +69,10 @@ enum {
     STYLE_BOLD,
     STYLE_UNDERLINE
     };
-    
 
-#include "wx/datetime.h"
-#define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
+/*
+// timers
+
 class TimeActions  // holds times at which function is to be called
     {
 public:
@@ -81,6 +82,16 @@ public:
     };
 #define MAX_TIMERS 10   // safety limit of timers
 WX_DECLARE_OBJARRAY(TimeActions, TimesArray);
+*/
+
+//timers for v3
+#include "wx/datetime.h"
+#define MAX_TIMERS 25   // safety limit of timers
+struct timerEntry {
+	std::shared_ptr <wxTimer>	timer;
+	jsFunctionNameString_t		functionName;
+	wxString					parameter;
+	};
 
 // menus
 class MenuActions
@@ -227,7 +238,10 @@ public:
     // callback management
     bool        mTimerActionBusy;  // true while handling timer event to stop them piling up
     MessagesArray   mMessages;   // The messages call-back table
-    TimesArray      mTimes;       // Timers call-back table
+//    TimesArray      mTimes;       // Timers call-back table
+	std::vector <timerEntry> mpTimersVector;
+//	std::shared_ptr <wxTimer> mpTimer;
+	
     MenusArray      mMenus;         // Menus callback table
 #ifdef SOCKETS
 	SocketRecordsArray	mSockets;		// array of sockets
@@ -284,6 +298,7 @@ public:
     void HandleNMEA0183(ObservedEvt& ev, int id);
     void HandleNMEA2k(ObservedEvt& ev, int id);
     void HandleNavdata(ObservedEvt& ev, int id);
+    void HandleTimer(wxTimerEvent& event);
     
 
     
@@ -468,6 +483,7 @@ public:
 		mConsoleRepliesAwaited = 0;
 		m_exitFunction = wxEmptyString;
 		m_streamMessageCntlsVector.clear();
+		mpTimersVector.clear();
 		// just in case file controls not finalised from any previous run
 		{
 			int count = m_wxFileFcbs.size();
@@ -638,7 +654,8 @@ public:
         bool result = false;
         unsigned int count;
         if (
-            (mTimes.GetCount() > 0) ||
+        	(mpTimersVector.size() > 0) ||
+//            (mTimes.GetCount() > 0) ||
             (mMenus.GetCount() > 0) ||
 #ifdef SOCKETS
             (mSockets.GetCount() > 0) ||
@@ -711,11 +728,11 @@ public:
 				 functionMissing(m_activeLegFunction)
 			 )
 			 outcome = HAD_ERROR;
-		  if (!mTimes.IsEmpty()){
+		  if (mpTimersVector.size() > 0){
 			 // has set up one or more timers - check them out
-			 int count = (int)mTimes.GetCount();
+			 int count = mpTimersVector.size();
 			 for (int i = 0; i < count; i++)
-				if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
+				if (functionMissing(mpTimersVector[i].functionName)) outcome = HAD_ERROR;
 				}
 		 for (int i = m_streamMessageCntlsVector.size()-1; i >= 0; i--)
                 if (functionMissing(m_streamMessageCntlsVector[i].functionName)) outcome = HAD_ERROR;
@@ -903,7 +920,8 @@ public:
 #endif
     
 	void clearCallbacks(){// clears all reasons a console might be called back
-		mTimes.Clear();	//timers
+//		mTimes.Clear();	//timers
+		mpTimersVector.clear();
 		clearDialog();
 		clearAlert();
 		clearMenus();
@@ -1053,6 +1071,7 @@ public:
         return (result);
     }
 
+/*
     void setTimedCallback(jsFunctionNameString_t functionName, wxString argument, wxDateTime timeToCall){
         // create a callback entry to call fuction with argument at timeToCall
         size_t timersCount = this->mTimes.GetCount();
@@ -1066,6 +1085,68 @@ public:
         newAction.argument = argument;
         newAction.timeToCall = timeToCall;
         mTimes.Add(newAction);
+        }
+*/        
+     
+	void setTimedCallback(duk_context *ctx, bool persistant){
+        // create a callback entry to call fuction with argument at timeToCall
+        // called with onSeconds(function, time [, parameter])
+    	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+        if (nargs == 0) { // empty call - cancel all timers
+//			mTimes.Clear();
+			mpTimersVector.clear();
+			mTimerActionBusy = false;
+			mWaitingCached = false;   // force full isWaiting check
+			return;
+			}
+		if (nargs == 1){ // cancel specified timer
+			duk_require_number(ctx, 0);
+			int id = duk_get_int(ctx, 0);
+			bool matched = false;
+			for (auto it = mpTimersVector.cbegin(); it != mpTimersVector.cend(); ++it){
+				auto entry = (*it);
+				if (entry.timer->GetId() == id){
+					mpTimersVector.erase(it);
+					matched = true;
+					break;
+					}
+				}
+			if (matched && !isBusy()) wrapUp(DONE);
+	    	return;
+			}
+		if (mpTimersVector.size() > MAX_TIMERS){
+			throw_error(ctx, wxString::Format("onSeconds already have maximum %i timers outstanding", MAX_TIMERS));   // safety limit of timers);
+			}
+		// ready to go
+        wxString argument = wxEmptyString;
+		if (mStatus.test(INEXIT)) throw_error(ctx, "onSeconds within onExit function");
+		if (!duk_is_function(ctx, 0)) throw_error(ctx, "onSeconds first argument must be function");
+		if (nargs > 3) throw_error(ctx, "onSeconds requires no moretrhan three arguments");
+		jsFunctionNameString_t functionToCall = extractFunctionName(ctx, 0);
+		int timeInt = (int) (duk_get_number(ctx, 1) * 1000);	//interval in msec
+		if (nargs == 3) argument = duk_to_string(ctx, 2);
+		duk_pop_n(ctx, nargs);	// finished with call
+		bool shots = persistant ? wxTIMER_CONTINUOUS : wxTIMER_ONE_SHOT;
+		std::shared_ptr<wxTimer> pTimer = std::shared_ptr<wxTimer>(new wxTimer(this, wxID_ANY));
+		int id = pTimer->GetId();
+		pTimer->Start(timeInt, shots);
+		TRACE(66, wxString::Format("A timer ID:: %i is %s",pTimer->GetId(), pTimer->IsRunning()?"is running":"is not running"));
+		// register this callback
+		timerEntry thisTimer;
+		thisTimer.timer = pTimer;
+		thisTimer.functionName = functionToCall;
+		thisTimer.parameter = argument;
+  		mpTimersVector.push_back(thisTimer);
+
+		Bind(wxEVT_TIMER, [&](wxTimerEvent& event){
+        	TRACE(66, wxString::Format("Timer event lambda"));
+        	HandleTimer(event);
+        	});
+			  		
+  		TRACE(66, wxString::Format("setTimedCallback time %i, function %s  argument %s mpTimersVector length %i",
+			timeInt, functionToCall, argument, mpTimersVector.size())); 
+		duk_push_int(ctx, id);  
         }
         
     void setConsoleMinClientSize(){
@@ -1243,11 +1324,12 @@ public:
             }
         dump += "m_timerActionBusy:\t" + (this->mTimerActionBusy?_("true"):_("false")) + "\n";
         dump += _("Timers callback table\n");
-        count = (int)this->mTimes.GetCount();
+        count = mpTimersVector.size();
         if (count == 0) dump += _("\t(empty)\n");
         else {
             for (i = 0; i < count; i++){
-                dump += _("\t") + mTimes[i].timeToCall.FormatTime() + "\t" + this->mTimes[i].functionName +_("\t") + this->mTimes[i].argument + _("\n");
+                dump += _("\t") + ((mpTimersVector[i].timer->IsOneShot())?"One shot ": "Repeating") + "\t"
+                	 + mpTimersVector[i].functionName +_("\t") + mpTimersVector[i].parameter + _("\n");
                 }
             }
         dump += _("Menus callback table\n");
@@ -1466,6 +1548,7 @@ public:
 			});
 		m_streamMessageCntlsVector.push_back(messageCntl); 
     	};
+    	
     	
 	};
 
