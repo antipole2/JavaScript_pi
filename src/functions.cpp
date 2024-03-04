@@ -18,9 +18,16 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/msgdlg.h>
 #include <wx/url.h>
+#include <wx/clipbrd.h>
 #include "trace.h"
+#include "algorithm"
 
 extern JavaScript_pi *pJavaScript_pi;
+
+bool isURLfileString(wxString fileString){
+	if ((fileString.substr(0, 6) == "https:") /* || (fileString.substr(0, 5) == "http:") */) return true;	// presently recognising https only
+	else return false;
+	}
 
 void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which ){
 	// remove all entries in vector of type which
@@ -284,6 +291,14 @@ wxString NMEAchecksum(wxString sentence){
 		 calculated_checksum ^= static_cast<unsigned char> (*i);
 	return( wxString::Format("%02X", calculated_checksum) );
 	};
+	
+wxString getClipboardString(Console* pConsole){  // return string from clipboard
+	if (!wxTheClipboard->Open())return "getClipboardString clipboard is busy - logic error?";
+	wxTextDataObject data;
+	wxTheClipboard->GetData(data);
+	wxTheClipboard->Close();
+	return data.GetText();
+	}
 
 wxString getTextFile(wxString fileString, wxString* pText){
     // gets contents of a text file
@@ -291,7 +306,7 @@ wxString getTextFile(wxString fileString, wxString* pText){
     wxFileName filePath;
     wxString tmp_file_name = wxEmptyString;
     wxString fileStringCopy = fileString;	// for later error messages
-	if ((fileString.substr(0, 6) == "https:")|| (fileString.substr(0, 5) == "http:")){
+    if (isURLfileString(fileString)){
 		TRACE(64, "Trying for URL: " + fileString);
 		// its a URL - let's try and get it
 		if (!OCPN_isOnline()) return("readTextFile " + filePath.GetFullPath() + " failed - not on-line");

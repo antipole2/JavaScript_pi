@@ -746,13 +746,9 @@ static duk_ret_t duk_copy(duk_context *ctx){
 	
 static duk_ret_t duk_paste(duk_context *ctx){
 	// get string from clipboard
+	wxString getClipboardString(Console* pConsole);
 	Console *pConsole = findConsoleByCtx(ctx);
-	if (!wxTheClipboard->Open()) pConsole->throw_error(ctx, "copyFromClip clipboard is busy");
-	
-	wxTextDataObject data;
-	wxTheClipboard->GetData( data );
-	duk_push_string(ctx, data.GetText());
-	wxTheClipboard->Close();
+	duk_push_string(ctx, getClipboardString(pConsole));
 	return 1;
 	
 /*	if (wxTheClipboard->IsSupported( wxDF_TEXT )){

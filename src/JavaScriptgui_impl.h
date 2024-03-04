@@ -48,6 +48,7 @@ typedef wxString jsFunctionNameString_t;
 typedef wxString messageNameString_t;
 
 extern JavaScript_pi *pJavaScript_pi;
+bool isURLfileString(wxString);
 
 #define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
 class MessagePair  // holds OPCN messages seen, together with JS callback function name, if to be called back
@@ -396,7 +397,20 @@ public:
         if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
             wxString    script;
             wxString    fileString = this->m_fileStringBox->GetValue();
-            if (!wxFileExists(fileString)){
+            if (isURLfileString(fileString)){
+            	if (!OCPN_isOnline()) message(STYLE_RED, _("Load file " + fileString + "OpenCPN not on-line"));
+				else {
+					wxString getTextFile(wxString fileString, wxString* pText);
+					wxString script;
+					wxString result = getTextFile(fileString, &script);
+					if (result == wxEmptyString){	// looking good
+						m_Script->ClearAll();
+						m_Script->WriteText(script);
+						}
+					else message(STYLE_RED, _("Load file cannot download " + fileString + " - " + result));
+					}
+				}
+            else if (!wxFileExists(fileString)){
                 message(STYLE_RED, _("Load file " + fileString + ": ") +_("File does not exist"));
                 auto_run->SetValue(false);
                 }

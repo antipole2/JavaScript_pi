@@ -87,35 +87,54 @@ void Console::OnLeftDClick(wxMouseEvent& event){
 void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString fileString;
     wxTextFile ourFile;
-    wxString lineOfData, script;
+    wxString lineOfData, script, result;
     wxString JScleanString(wxString line);
     wxString chooseFileString(Console*);
     wxString chooseLoadFile(Console*);
+    bool isURLfileString(wxString fileString);
     
     fileString = chooseFileString(this);
-    if (fileString == "**cancel**"){
-        TRACE(3, "Load cancelled");
-        return;
-        }
+	if (fileString == "**cancel**"){
+	TRACE(3, "Load cancelled");
+	return;
+	}
     if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
-    if (fileString != wxEmptyString){   // only if something now chosen
-        bool OK = ourFile.Open(fileString);
-        if (!OK){ // can't read file - it may have gone away
-            message(STYLE_RED, "File '" + fileString + "' not found or unreadable");
-            pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
-            return;
-            }
-        m_Script->ClearAll();   // clear old content
-        for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
-            script += lineOfData + "\n";
-            }
-        script = JScleanString(script);
-        m_Script->AppendText(script);
-        m_fileStringBox->SetValue(wxString(fileString));
-        auto_run->Show();
-        auto_run->SetValue(false);
-        updateRecentFiles(fileString);
-        }
+    else {   // only if something now chosen
+    	if (isURLfileString(fileString)){
+    		// it's a URL
+    		if (!OCPN_isOnline()) {
+    			message(STYLE_RED, "OpenCPN not on-line");
+    			return;
+    			}
+    		wxString getTextFile(wxString fileString, wxString* pText);
+    		result = getTextFile(fileString, &script);
+    		if (result != wxEmptyString){
+    		    TRACE(6, "URL not yielded file result:" + result + "\n" + script + "\n");
+    			message(STYLE_RED, result);
+    			pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
+    			return;
+    			}
+    		}
+    	else {
+			bool OK = ourFile.Open(fileString);
+			if (!OK){ // can't read file - it may have gone away
+				message(STYLE_RED, "File '" + fileString + "' not found or unreadable");
+				pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
+				return;
+				}
+			script = wxEmptyString;
+			for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
+				script += lineOfData + "\n";
+				}
+			}
+		}
+	script = JScleanString(script);
+	m_Script->ClearAll();   // clear old content
+	m_Script->AppendText(script);
+	m_fileStringBox->SetValue(wxString(fileString));
+	auto_run->Show();
+	auto_run->SetValue(false);
+	updateRecentFiles(fileString);
     }
 
 void Console::OnSaveAs( wxCommandEvent& event ) {
@@ -152,7 +171,7 @@ void Console::OnSave( wxCommandEvent& event ) {
     wxDialog query;
     
     mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") && wxFileExists(   mFileString)) {
+    if ((   mFileString != "") && wxFileExists(   mFileString) && !isURLfileString(mFileString)) {
         // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
