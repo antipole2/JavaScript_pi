@@ -18,7 +18,7 @@
 // #include <dukglue/dukglue.h>
 #include <iostream>
 #include "JavaScriptgui_impl.h"
-//#include "wx/arrimpl.cpp"
+#include <wx/kbdstate.h>
 
 extern JavaScript_pi* pJavaScript_pi;
 extern Console* pConsoleBeingTimed;
@@ -160,6 +160,7 @@ duk_ret_t console_add(duk_context *ctx){
     outcome = checkConsoleName(name, nullptr);
     if (outcome !="") throwErrorByCtx(ctx, outcome);
     pConsole = new Console(pJavaScript_pi->m_parent_window, name);
+    pConsole->setup();
     pConsole->CenterOnScreen();
     pConsole->setConsoleMinClientSize();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
@@ -303,6 +304,17 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     pConsole->CallAfter(&Console::doRunCommand, pConsole->mBrief);
     return 0;
     }
+ 
+#if 0 
+// this not working.  It's incredibly simple.
+// Can only think OPCN may be preventing it 
+duk_ret_t keyboardState(duk_context* ctx){
+	wxKeyboardState state;
+	int modifiers = state.GetModifiers();
+	duk_push_int(ctx,  modifiers);
+	return 1;
+	}
+#endif
 
 void register_console(duk_context *ctx){
     duk_push_global_object(ctx);
@@ -346,8 +358,10 @@ void register_console(duk_context *ctx){
     duk_push_string(ctx, "consoleDetails");
     duk_push_c_function(ctx, console_get_details, DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_pop(ctx);
     };
-
+    
 void addNAME(duk_context *ctx, wxString name, int value){
 	duk_push_string(ctx, name);
 	duk_push_int(ctx, value);
@@ -364,6 +378,16 @@ void define_wxFileModes(duk_context *ctx){
 	duk_pop(ctx);	// global object
 	}
 
+#if 0
+void register_keyboard(duk_context *ctx){
+    duk_push_global_object(ctx);   
+    duk_push_string(ctx, "keyboardState");
+    duk_push_c_function(ctx, keyboardState, 0 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    duk_pop(ctx);
+    }
+#endif
+
 // void register_drivers(duk_context *ctx);
 
 bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
@@ -371,7 +395,7 @@ bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
     
     if (name == "Consoles") {register_console(ctx); result = true;}
     if (name == "File") {define_wxFileModes(ctx); result = false;}	// continue to load .js file
-//    if (name == "Drivers") {register_drivers(ctx); result = true;}
+//	if (name == "Keyboard") {register_keyboard(ctx); result = true;}  not working
     
 #ifdef SOCKETS
     void register_sockets(duk_context *ctx);

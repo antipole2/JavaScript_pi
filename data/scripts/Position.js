@@ -1,5 +1,5 @@
 // updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1 
-// updated 20 Feb 2023 to add parsing formatted position
+// updated 4 <ar 2024 to add parsing formatted position
 function position(lat, lon){
 	if (arguments.length == 1){
 		if (typeof arguments[0] != "string"){
@@ -101,7 +101,6 @@ function position(lat, lon){
 			else maxDeg = 180;
 			// squeeze out all spaces
 			parseText = parseText.replace(/\s/g, ''); // squeeze out all spaces
-
 			// degrees minutes & seconds ?
 			dmsPattern = /([0-9]{1,3})\xB0([0-9]{1,2})'([0-9][0-9]?.?[0-9]?)"/;
 			dms = parseText.match(dmsPattern);
@@ -120,7 +119,8 @@ function position(lat, lon){
 				parseText = parseText.slice(0, -1);
 				}
 			parseText = parseText.replace("'", ".");	// and replace ' if any
-			dmPattern = /([0-9]{1,3})\xB0([0-9][0-9]?([\.\']?[0-9][0-9]?)?)'?/;
+			parseText = parseText.replace(",", ".");	// and replace , if any
+			dmPattern = /([0-9]{1,3})\xB0([0-9][0-9]?([\.\']?[0-9][0-9]*)?)'?/;
 			dm = parseText.match(dmPattern);
 			if (dm != null){ // is degrees, minutes
 				if (trace) print(parseText, "\tDM\t", dm, "\n");
@@ -130,19 +130,13 @@ function position(lat, lon){
 				}
 
 			// must be degree only
+			if (trace) print("Deg only: ", parseText, "\n");
 			deg = parseText.slice(0, -1);
 			return(check(deg*1, maxDeg));
 			}
-/*
-		function count(text, ch){	// returns count of ch in text
-			c = 0;
-			for (i = 0; i < text.length; i++){
-				if (text[i] == ch) c++;
-				}
-			return c;
-			}
-*/
-		function check(value, max){	// sanity check 
+
+		function check(value, max){	// sanity check
+			if (trace) print("check:", typeof value, "\t", value, "\n");
 			if (isNaN(value)) bail("not a number");
 			if (value < 0 || value > max) bail("out of range");
 			return value;

@@ -101,7 +101,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         return;
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-//	pConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
+	pConsole->setup();
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));

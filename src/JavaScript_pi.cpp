@@ -93,6 +93,7 @@ JavaScript_pi::~JavaScript_pi(void)
 int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
+    void reviewParking();
     
     wxLogMessage("JavaScript_pi->Init() entered");
     m_parent_window = GetOCPNCanvasWindow();
@@ -134,6 +135,20 @@ int JavaScript_pi::Init(void)
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this); //, this, mTimer.GetId());
     mTimer.Start(15000);	// 15s timer to check for deleted consoles
+    
+    reviewParking();
+    
+    // look out to see if we need to automatically run any console
+    for (Console* pConsole = mpFirstConsole; pConsole!= nullptr; pConsole = pConsole->mpNextConsole) {	// walk consoles chain
+        if (pConsole->mWaitingToRun){
+            TRACE(3, "About to auto-run console " + pConsole->mConsoleName);
+            pConsole->mWaitingToRun = false;
+            pConsole->clearBrief();
+            Completions outcome = pConsole->run(pConsole->m_Script->GetValue());
+            if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
+            TRACE(3, "Finished auto-running console " + pConsole->mConsoleName);
+            }
+        }
 
     TRACE(1,"JavaScript_pi->Init() returning");
 
@@ -317,6 +332,7 @@ bool JavaScript_pi::LoadConfig(void)
             mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
             // create one default console
             mpFirstConsole = new Console(m_parent_window, "JavaScript");
+            mpFirstConsole->setup();
             mpFirstConsole->setConsoleMinClientSize();
             mpFirstConsole->floatOnParent(true);
             mpFirstConsole->m_Output->AppendText(welcome);
@@ -355,6 +371,7 @@ bool JavaScript_pi::LoadConfig(void)
             if (consoles == wxEmptyString){ // no consoles configured
                 Console* newConsole = new Console(m_parent_window, "JavaScript", NEW_CONSOLE_POSITION,
                 	NEW_CONSOLE_SIZE, wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
+                newConsole->setup(welcome);
                 newConsole->setConsoleMinClientSize();
                 // position and size likely wrong for hi res displays, and could not fix until after construction, so...
                 wxPoint position = newConsole->FromDIP(NEW_CONSOLE_POSITION);
@@ -390,6 +407,7 @@ bool JavaScript_pi::LoadConfig(void)
                     TRACE(67, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
+                    newConsole->setup(welcome, fileString, autoRun);
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     newConsole->Move(newConsole->FromDIP(consolePosition));
                     newConsole->SetSize(newConsole->FromDIP(consoleSize));
@@ -668,60 +686,6 @@ void JavaScript_pi::SetActiveLegInfo( Plugin_Active_Leg_Info &leg_info)
 
 
 void JavaScript_pi::OnTimer(wxTimerEvent& ){
-/*
-    // This is the regular timer tick through which all timed functions are implemented
-    Console* pConsole;
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){	// for each console
-        // look out to see if we need to automatically run this console
-        if (pConsole->mWaitingToRun){
-            TRACE(3, "About to auto-run console " + pConsole->mConsoleName);
-            pConsole->mWaitingToRun = false;
-            pConsole->clearBrief();
-            Completions outcome = pConsole->run(pConsole->m_Script->GetValue());
-            if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
-            TRACE(3, "Finished auto-running console " + pConsole->mConsoleName);
-            }
-
-        if (!pConsole->isWaiting()) continue;  // ignore if we are not waiting on something
-        if (!pConsole->mTimerActionBusy){  // only look at timers if not already working on a timer - to stop recursion
-            if (!pConsole->mTimes.IsEmpty()){
-                int count;
-                TRACE(8, "Looking at timers for console " + pConsole->mConsoleName);
-                pConsole->mTimerActionBusy = true;  // There is at least one timer running - stop being called again until we are done
-                count = (int)pConsole->mTimes.GetCount();
-                 for (int i = 0; i < count; i++){
-                    if (pConsole->mTimes[i].timeToCall <= wxDateTime::Now()){  // this one due
-                        wxString argument;
-                        jsFunctionNameString_t thisFunction;
-                        duk_context *ctx = pConsole->mpCtx;
-                        thisFunction = pConsole->mTimes[i].functionName;
-                        argument = pConsole->mTimes[i].argument;
-                        pConsole->mTimes.RemoveAt(i);	// remove timer to stop it firing again
-                        count--; i--;	// adjust because have removed item
-                        if (thisFunction != wxEmptyString){  //only if have valid function
-                            Completions  outcome;
-                            if (pConsole->mJSrunning){
-                                pConsole->message(STYLE_RED, "Timer callback while JS active - ignored\n");
-                                return;
-                                }
-                            duk_push_string(ctx, argument.c_str());
-                            outcome = pConsole->executeFunctionNargs(thisFunction, 1);
-                            if (!pConsole->isBusy()){
-                            	i = 99999;  // this will stop us looking for further timers on this console
-                            	pConsole->wrapUp(outcome);
-                            	}
-                            	
-//                            if (outcome == MORETODO) continue;
-
-                            }
-                        }
-                    }
-                }
-            }
-        pConsole->mTimerActionBusy = false;
-        }
-*/
-
     Console* pLater = nullptr;  // the linked list of consoles whose deletion is to be deferred
     while (mpBin) {    // empty the bin if anything in it that can go
         Console* pThisConsole = mpBin;
@@ -739,10 +703,7 @@ void JavaScript_pi::OnTimer(wxTimerEvent& ){
                 TRACE(3,"JavaScript plugin console " + pThisConsole->mConsoleName + " destroying ctx while emptying bin");
                 }
             TRACE(3,"JavaScript plugin deleting console " + pThisConsole->mConsoleName + " from bin");
-//            pThisConsole->Close(true);
             pThisConsole->Destroy();
-//			delete pThisConsole;
-
             }
         }
     mpBin = pLater; // try later

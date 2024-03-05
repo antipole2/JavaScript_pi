@@ -337,62 +337,59 @@ public:
     		consoleSize)
 #endif
         {
-        void JSlexit(wxStyledTextCtrl* pane);
-        Console *pConsole;
         wxPoint checkPointOnScreen(wxPoint point);
         TRACE(67, wxString::Format("Constructing for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-
-        // hook this new console onto end of chain of consoles
-        pConsole = pJavaScript_pi->mpFirstConsole;
+        mConsoleName = consoleName;
+        consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
+        TRACE(67, wxString::Format("After checkPointOnScreen for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+        Move(FromDIP(consolePosition));
+        SetSize(consoleSize);
+        setConsoleMinClientSize();
+        TRACE(67, wxString::Format("Constructor moved %s to DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+        mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
+        mDialog.pdialog = nullptr;
+        mAlert.position = ToDIP(checkPointOnScreen(FromDIP(alertPosition)));
+        mAlert.palert = nullptr;
+        TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
+        }
+        
+#if  !SCREEN_RESOLUTION_AVAILABLE
+		// provide dummy methods for those not available
+		// needs to work with wxPoint & wxSize
+		template <typename T>
+		T ToDIP(T point){
+			return point;
+			}
+		
+		template <typename T>
+		T FromDIP(T point){
+			return point;
+			}
+#endif
+ 
+	 void setup(	// initialises console
+	 			wxString welcome = wxEmptyString,	// initial text for output pane
+	 			wxString fileString = wxEmptyString, // for the fileString box
+	 			bool autoRun = false				// whether to auto start
+	 		){
+	 	void JSlexit(wxStyledTextCtrl* pane);
+ 	 	TRACE(33, wxString::Format("%s->setup welcome=%s; fileString=%s; autoRun=%s",
+ 	 		mConsoleName, welcome, fileString, autoRun?"true":"false"));
+	 	
+		// hook this new console onto end of chain of consoles
+        Console* pConsole = pJavaScript_pi->mpFirstConsole;
         if (pConsole == nullptr) pJavaScript_pi->mpFirstConsole = this;   // is first and only
         else {
             while (pConsole->mpNextConsole) pConsole = pConsole->mpNextConsole; // point to last
             pConsole->mpNextConsole = this; // add us
             }
-        mConsoleName = consoleName;
-        consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
-        TRACE(67, wxString::Format("After checkPointOnScreen for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-
-        m_parked = parked;
-//        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
-        consoleInit();
-        Move(FromDIP(consolePosition));
-        SetSize(consoleSize);
-        setConsoleMinClientSize();
-        TRACE(67, wxString::Format("Constructor moved %s to DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-                
-
-        mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
-        mDialog.pdialog = nullptr;
-        mAlert.position = ToDIP(checkPointOnScreen(FromDIP(alertPosition)));
-        mAlert.palert = nullptr;
-        m_fileStringBox->SetValue(fileString);
-        auto_run->SetValue(autoRun);
-        mBrief.hasBrief = false;
-        mBrief.theBrief = wxEmptyString;
-        mBrief.reply = false;
-        mBrief.briefingConsoleName = wxEmptyString;
-
-        // output pane set up
-        m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
-        m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
-        m_Output->StyleSetSpec(STYLE_ORANGE, _("fore:#FF7F00"));
-        m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
-        m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
-        m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
-        // wrap text in output pane
-        m_Output->SetWrapMode(wxSTC_WRAP_WORD);
-        m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
-        m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
         
         // script pane set up
         JSlexit(this->m_Script);  // set up lexing
-        // wrap text in script pane
         m_Script->SetWrapMode(wxSTC_WRAP_WORD);
         m_Script->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
         m_Script->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
-        
-
+        m_fileStringBox->SetValue(fileString);
         auto_run->Hide();
         if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
             wxString    script;
@@ -427,59 +424,31 @@ public:
         			<<  patchString  << " " << PLUGIN_VERSION_COMMENT << " " << PLUGIN_VERSION_DATE << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
             }
-        m_Output->AppendText(welcome);
-//        this->SetClientSize(consoleSize);
-
-        TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
-        }
-        
-#if  !SCREEN_RESOLUTION_AVAILABLE
-		// provide dummy methods for those not available
-		// needs to work with wxPoint & wxSize
-		template <typename T>
-		T ToDIP(T point){
-			return point;
-			}
-		
-		template <typename T>
-		T FromDIP(T point){
-			return point;
-			}
-#endif
-    
-    Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
-        Console *pConsole, *pPrevConsole;
-        TRACE(3,"Unhooking console " + this->mConsoleName);
-
-        // unhook ourself from the chained list of consoles
-        if (!pJavaScript_pi->mpFirstConsole)
-            message(STYLE_RED, "Logic error ClearAndUnhook called with no first console");   // should never be
-        if (this == pJavaScript_pi->mpFirstConsole){    // we are the first on the chain
-            pJavaScript_pi->mpFirstConsole = this->mpNextConsole;   // unhook ourself
-            }
-        else {  // we will start at the second on the chain
-            pPrevConsole = pJavaScript_pi->mpFirstConsole;
-            for (pConsole = pPrevConsole->mpNextConsole; pConsole != nullptr;
-                        pPrevConsole = pConsole, pConsole = pConsole->mpNextConsole){
-                if (this == pConsole){
-                    // this is us
-                    pPrevConsole->mpNextConsole = this->mpNextConsole;
-                    break;
-                }
-            }
-        }
-        this->mpNextConsole = nullptr;
-        TRACE(3,"Done unhooking console " + this->mConsoleName);
-        return this;
-    }
-    
-	void clearBrief(){  // initialise brief by clearing it down
-		mBrief.hasBrief = mBrief.fresh = mBrief.reply = false;
-		mConsoleRepliesAwaited = 0;
-		}
-	
- 
-	 void consoleInit(){	// Initialises console, clearing out settings
+        m_fileStringBox->SetValue(fileString);
+        auto_run->SetValue(autoRun);
+       
+        // output pane set up
+        m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
+        m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
+        m_Output->StyleSetSpec(STYLE_ORANGE, _("fore:#FF7F00"));
+        m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
+        m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
+        m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
+        m_Output->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+	 	m_Output->AppendText(welcome);
+	 	
+        mBrief.hasBrief = false;
+        mBrief.theBrief = wxEmptyString;
+        mBrief.reply = false;
+        mBrief.briefingConsoleName = wxEmptyString;
+	 	consoleReset();	// regular initialisation
+	 	
+	 	mWaitingToRun = autoRun;
+	 	}
+	 
+	 void consoleReset(){	// Resets console, clearing out settings
 		mpCtx = nullptr;
 		mRunningMain = false;
 		mStatus = 0;
@@ -520,10 +489,43 @@ public:
 		m_wxFileFcbs.clear();
 		return;
 		}
+   
+    Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
+        Console *pConsole, *pPrevConsole;
+        TRACE(3,"Unhooking console " + this->mConsoleName);
+
+        // unhook ourself from the chained list of consoles
+        if (!pJavaScript_pi->mpFirstConsole)
+            message(STYLE_RED, "Logic error ClearAndUnhook called with no first console");   // should never be
+        if (this == pJavaScript_pi->mpFirstConsole){    // we are the first on the chain
+            pJavaScript_pi->mpFirstConsole = this->mpNextConsole;   // unhook ourself
+            }
+        else {  // we will start at the second on the chain
+            pPrevConsole = pJavaScript_pi->mpFirstConsole;
+            for (pConsole = pPrevConsole->mpNextConsole; pConsole != nullptr;
+                        pPrevConsole = pConsole, pConsole = pConsole->mpNextConsole){
+                if (this == pConsole){
+                    // this is us
+                    pPrevConsole->mpNextConsole = this->mpNextConsole;
+                    break;
+                }
+            }
+        }
+        this->mpNextConsole = nullptr;
+        TRACE(3,"Done unhooking console " + this->mConsoleName);
+        return this;
+    }
+    
+	void clearBrief(){  // initialise brief by clearing it down
+		mBrief.hasBrief = mBrief.fresh = mBrief.reply = false;
+		mConsoleRepliesAwaited = 0;
+		}
+	
+ 
+
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
-//	   extern bool runLable, stopLabel;
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
 	   void duk_extensions_init(duk_context *ctx, Console* pConsole);
@@ -532,7 +534,7 @@ public:
    
 	   TRACE(3, this->mConsoleName + "->run() entered");
 	   if (script == wxEmptyString) return HAD_ERROR;  // ignore
-	   consoleInit();
+	   consoleReset();
 	   mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
 	   if (!mpCtx) {
 		message(STYLE_RED, _("Plugin logic error: Duktape failed to create heap"));

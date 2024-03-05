@@ -100,6 +100,8 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
 	}
     if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
     else {   // only if something now chosen
+    	fileString.Trim(true);	// trim any whitespace both ends
+    	fileString.Trim(false);
     	if (isURLfileString(fileString)){
     		// it's a URL
     		if (!OCPN_isOnline()) {

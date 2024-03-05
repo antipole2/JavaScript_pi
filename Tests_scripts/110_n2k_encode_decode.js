@@ -124,6 +124,7 @@ print("Decode method ", OK ? "passed":"failed", "\n");
 printBlue((decodeErrorCount > 0) ? "\nDecode " + decodeErrorCount + " errors\n":"\nAll decode tests passed\n");
 
 // encoding tests
+timeAlloc(1000);	// more time may be needed
 encodeErrorCount = 0;
 runTime = 0;
 for (t = 0; t < tests.length; t++){
@@ -175,3 +176,4 @@ function matches(a, b){	// compare two simple arrays
 		}
 	return true;
 	}
+
