@@ -1196,7 +1196,10 @@ public:
     	}
     	
     void park(){	// park this console
-    	if (isParked()) return;	// was already parked
+    	if (isParked()) { // was already parked
+    		setLocation(m_parkedLocation);	// might need re-minimizing
+    		return;
+    		}
     	m_notParkedLocation = getLocation();	//remember our unparked location
         int rightMost {0};    // most right hand edge of a parked console relative to frame
         bool foundParked {false};

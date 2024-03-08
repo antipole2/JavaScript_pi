@@ -174,7 +174,8 @@ function NMEA2000(arg, data, options){
 
 	function buildBare(us){	// create empty attributes
 		if (trace & 1) printOrange("buildEmpty for pgn ", us.PGN, "\n");
-		ud = us.undefined ? "undefined" : undefined;
+//		ud = us.undefined ? "undefined" : undefined;
+		ud = "undefined";
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
 		us["timestamp"] = ud;
@@ -478,8 +479,30 @@ function NMEA2000(arg, data, options){
 				data.push(chunk);
 				return;
 				}
-			}			
-		throw("encodebits unsupported bitLength of " + bitLength);
+			}
+		// greater than 8 bits
+		if (bitStart == 0) {
+			encodeBytes(what, bitLength/8);
+			return;
+			}
+		if (bitLength + bitStart == 8){	// completing byte
+			chunk = data.pop();	// recover partially formed byte
+			nibble = what << bitStart;
+			chunk |= nibble;
+			data.push(chunk);
+			return;
+			}
+		if (what = 0xffff){ // just padding
+			chunk = data.pop();	// recover partially formed byte
+			nibble = what << bitStart;
+			nibble &= 0xff;
+			chunk |= nibble;
+			data.push(chunk);
+			bitLength -= bitLength%8;	// reduce to bytes remaining
+			encodeBytes(what, bitLength/8);
+			return;
+			}
+		throw("encodebits unsupported bitLength of " + bitLength + " when not padding");
 		}
 
 	function encodeValue(us, field){
@@ -589,7 +612,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function checkUndefined(value, bits){
-		if (value == void 0) return (2 ** bits) - 1;	// required number of bits all on
+		if ((value == void 0) || (value == "undefined")) return (2 ** bits) - 1;	// required number of bits all on
 		else return value;
 		}
 

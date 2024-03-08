@@ -194,6 +194,7 @@ bool JavaScript_pi::DeInit(void) {
         pConsole->mpTimersVector.clear();
         pConsole->clearAlert();
         pConsole->clearDialog();
+        pConsole->clearMenus();
 #ifdef SOCKETS
 		pConsole->clearSockets();
 #endif

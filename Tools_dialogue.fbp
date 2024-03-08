@@ -3227,7 +3227,7 @@
                                             <property name="gripper">0</property>
                                             <property name="hidden">0</property>
                                             <property name="id">wxID_ANY</property>
-                                            <property name="label">You can discuss the plugin and its applications in the JavaScript pugin topic in the OpenCPN forum.  (NB The early posts in this topic concern long obsolete versions of the plugin.) Please do not raise questions already addressed in the User Guide.</property>
+                                            <property name="label">The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it.</property>
                                             <property name="markup">0</property>
                                             <property name="max_size"></property>
                                             <property name="maximize_button">0</property>
@@ -3289,7 +3289,7 @@
                                             <property name="hidden">0</property>
                                             <property name="hover_color"></property>
                                             <property name="id">wxID_ANY</property>
-                                            <property name="label">Plugin topic in OpenCPN forum</property>
+                                            <property name="label">Plugin discussions</property>
                                             <property name="max_size"></property>
                                             <property name="maximize_button">0</property>
                                             <property name="maximum_size"></property>
@@ -3312,7 +3312,7 @@
                                             <property name="subclass">; ; forward_declare</property>
                                             <property name="toolbar_pane">0</property>
                                             <property name="tooltip"></property>
-                                            <property name="url">https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html</property>
+                                            <property name="url">https://github.com/antipole2/JavaScript_pi/discussions</property>
                                             <property name="visited_color"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
@@ -3324,7 +3324,7 @@
                                         <property name="flag">wxEXPAND</property>
                                         <property name="proportion">0</property>
                                         <object class="spacer" expanded="0">
-                                            <property name="height">25</property>
+                                            <property name="height">20</property>
                                             <property name="permission">protected</property>
                                             <property name="width">0</property>
                                         </object>

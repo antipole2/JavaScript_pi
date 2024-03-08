@@ -407,15 +407,15 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
 
-	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("You can discuss the plugin and its applications in the JavaScript pugin topic in the OpenCPN forum.  (NB The early posts in this topic concern long obsolete versions of the plugin.) Please do not raise questions already addressed in the User Guide."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText111->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText111, 0, wxALL|wxEXPAND, 5 );
 
-	m_hyperlink511 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Plugin topic in OpenCPN forum"), wxT("https://www.cruisersforum.com/forums/f134/javascript-plugin-235728.html"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	m_hyperlink511 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Plugin discussions"), wxT("https://github.com/antipole2/JavaScript_pi/discussions"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
 	HelpSizer1->Add( m_hyperlink511, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
-	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
+	HelpSizer1->Add( 0, 20, 0, wxEXPAND, 5 );
 
 	HelpTopText1111 = new wxStaticText( Help, wxID_ANY, wxT("Technical problems can be raised in the plugin issues here."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1111->Wrap( 550 );

@@ -1,0 +1,1 @@
+scriptResult("Load from URL OK");
