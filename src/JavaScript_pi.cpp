@@ -65,9 +65,6 @@ JavaScript_pi::JavaScript_pi(void *ppimgr)
     fn.SetFullName("JavaScript_pi_panel_icon.png");
 
     path = fn.GetFullPath();
-//    wxString forDebug = fn.GetFullPath();
-//    wxInitAllImageHandlers();
-
     wxLogDebug(wxString("Using icon path: ") + path);
     if (!wxImage::CanRead(path)) {
         wxLogDebug("Initiating image handlers.");
@@ -93,9 +90,8 @@ JavaScript_pi::~JavaScript_pi(void)
 int JavaScript_pi::Init(void)
 {
     ::wxDisplaySize(&m_display_width, &m_display_height);
-    void reviewParking();
-    
-    wxLogMessage("JavaScript_pi->Init() entered");
+    void reviewParking();    
+    if (TRACE_YES) wxLogMessage("JavaScript_pi->Init() entered");
     m_parent_window = GetOCPNCanvasWindow();
     pJavaScript_pi = this;  // Leave a way to find ourselves
     TRACE(1,"JavaScript_pi->Init() entered");
@@ -107,6 +103,10 @@ int JavaScript_pi::Init(void)
 
     //    Get a pointer to the opencpn configuration object
     m_pconfig = GetOCPNConfigObject();
+    if (m_pconfig == nullptr){
+    	wxLogMessage("JavaScript_pi->Init() unable to find ConfigObject");
+    	return 0;
+    	}
 
     //    And load the configuration items
     LoadConfig();
@@ -130,8 +130,7 @@ int JavaScript_pi::Init(void)
     	mShowingConsoles = false;	// pretend not showing
     	OnToolbarToolCallback(0);	// and toggle the state
     	}
-
-    
+   
     mpPluginActive = true;
     mTimer.Bind(wxEVT_TIMER, &JavaScript_pi::OnTimer, this); //, this, mTimer.GetId());
     mTimer.Start(15000);	// 15s timer to check for deleted consoles
@@ -313,19 +312,23 @@ bool JavaScript_pi::LoadConfig(void)
     void JSlexit(wxStyledTextCtrl* pane);
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     wxString fileNames;
-	TRACE(67, wxString::Format("Screen size width:%d height:%d", m_display_width, m_display_height));
+    if (TRACE_YES) wxLogMessage("Entered LoadConfig");
+	TRACE(2, wxString::Format("Screen size width:%d height:%d", m_display_width, m_display_height));
 	m_showHelp = false;
     if(pConf){
     	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME);
         pConf->SetPath (configSection);
         bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         if (!configUptoDate){	// configuration may be pre-v0.5
+        	TRACE(2, "LoadConfig looking in old location");
+        	wxLogMessage("JavaScript_pi->Init() looking in old location");
         	pConf->SetPath("/Settings/JavaScript_pi");	// try old location
         	pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
         	}
         int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 0L );
         int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 0L );
         if ((versionMajor == 0) && (versionMinor < 4)){
+            if (TRACE_YES) wxLogMessage("LoadConfig creating default consoles");
             TRACE(2, "Pre v0.4 or first time ever - creating default consoles");
             // must be old version - forget previous settings
             pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );
@@ -345,12 +348,13 @@ bool JavaScript_pi::LoadConfig(void)
 				m_showHelp = true;
 				}
             TRACE(2, "Loading console configurations");
+            if (TRACE_YES) wxLogMessage("LoadConfig loading console configurations");
             mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
             TRACE(2, "Current Directory set to " + mCurrentDirectory);
             mRememberToggleStatus = (pConf->Read ( _T ( "RememberToggle" ), "0" ) == "0")?false:true;
             if (mRememberToggleStatus) mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
             else mShowingConsoles = false;
-            TRACE(34,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
+            TRACE(2,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
 #ifdef __DARWIN__
             m_floatOnParent = (pConf->Read ( _T ( "FloatOnParent" ), "0" ) == "0")?false:true;
 #else
@@ -363,7 +367,7 @@ bool JavaScript_pi::LoadConfig(void)
             m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
             m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
             m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
-            TRACE(4, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingStub:%i ",
+            TRACE(2, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingStub:%i ",
             	(m_parkingBespoke?"true":"false"), m_parkingStub ));
             
             // create consoles as in config file
@@ -405,14 +409,14 @@ bool JavaScript_pi::LoadConfig(void)
                     fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
                     autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
                     parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
-                    TRACE(67, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+                    TRACE(2, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
                     // from V2 positions have been saved relative to frame
                     Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
                     newConsole->setup(welcome, fileString, autoRun);
                     // constructor should have position console but does not seem to work on Hi Res display so force it
                     newConsole->Move(newConsole->FromDIP(consolePosition));
                     newConsole->SetSize(newConsole->FromDIP(consoleSize));
-                    TRACE(67, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
+                    TRACE(2, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
                     newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T(""));
                     // set up the locations
                     bool set = (pConf->Read ( name + _T ( ":UnparkedLocationSet" ), "0" ) == "1")? true:false;
@@ -468,8 +472,11 @@ bool JavaScript_pi::LoadConfig(void)
         	}    
         return true;
     }
-    else
+    else {
+    	wxLogMessage("JavaScript_pi->LoadConfig unable to find pConf");
         return false;
+        }
+    return true;
 }
 
 bool JavaScript_pi::SaveConfig(void)
@@ -759,10 +766,10 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
     wxString statusesToString(status_t mStatus);
-    TRACE(5,"Entered SetPlugin Message message_id: " + message_id + " message:" + message_body);
+    TRACE(15,"Entered SetPlugin Message message_id: " + message_id + " message:" + message_body);
     if (message_id == "OpenCPN Config"){
         // capture this while we can
-        TRACE(4, "Captured openCPNConfig");
+        TRACE(15, "Captured openCPNConfig");
         openCPNConfig = message_body;
         };
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
@@ -778,16 +785,16 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
             // have function to be invoked
             if (!m_pConsole->mMessages[index].persist)
             	m_pConsole->mMessages[index].functionName = wxEmptyString;  // do not call again
-            TRACE(3, "About to process message for console " + m_pConsole->mConsoleName + " " + m_pConsole->consoleDump());
+            TRACE(15, "About to process message for console " + m_pConsole->mConsoleName + " " + m_pConsole->consoleDump());
             if (!ctx) continue; // just in case
             duk_push_string(ctx, message_body.c_str());
             if (m_pConsole->mJSrunning){
                 m_pConsole->message(STYLE_RED, "Message callback while JS active - ignored - message is:\n" + message_body + "\n");
                 return;
                 }
-            TRACE(3, "Will execute function " /* + m_pConsole->dukDump() */);
+            TRACE(15, "Will execute function " /* + m_pConsole->dukDump() */);
             outcome = m_pConsole->executeFunction(thisFunction);
-            TRACE(3, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));
+            TRACE(15, "Have processed message for console " + m_pConsole->mConsoleName + " and result was " +  statusesToString(m_pConsole->mStatus.set(outcome)));
             if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
             }
         }
