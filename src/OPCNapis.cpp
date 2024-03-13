@@ -693,7 +693,7 @@ static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on st
     	return 0;
     	}
     // must have handle - use new method
-    /*duk_ret_t result = */pushText(ctx);
+    pushText(ctx);
     return 1;
     }
 

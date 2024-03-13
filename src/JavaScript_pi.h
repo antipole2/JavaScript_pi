@@ -129,7 +129,7 @@ public:
     bool			m_floatOnParent {true};	//set the wxSTAY_ON_TOP style for windows
     
     // console parking all stored in DIP units
-    bool			m_parkingBespoke {true};	// true if using bespoke parking parameters
+    bool			m_parkingBespoke {false};	// true if using bespoke parking parameters
     int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length
     int				m_parkingLevel {PARK_LEVEL};			// level below frame of parking
     int				m_parkFirstX {PARK_FIRST_X};			// inset of first park place from left edge of frame
@@ -145,7 +145,7 @@ public:
 
 private:
     wxBitmap        m_panelBitmap;
-    bool            m_bJavaScriptShowIcon;
+    bool            m_bJavaScriptShowIcon {true};
     bool            LoadConfig(void);
     };
 

@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -113,7 +113,7 @@ int JavaScript_pi::Init(void)
 //    mShowingConsoles = false;   // consoles will hence be shown on toolbar callback
 
     //    This PlugIn needs a toolbar icon, so request its insertion
-    if(m_bJavaScriptShowIcon){
+    if (m_bJavaScriptShowIcon){
 
 #ifdef JavaScript_USE_SVG
         m_leftclick_tool_id = InsertPlugInToolSVG(_T("JavaScript"), _svg_JavaScript, _svg_JavaScript, _svg_JavaScript_toggled,
@@ -125,7 +125,7 @@ int JavaScript_pi::Init(void)
 #endif // JavaScript_USE_SVG
     }
     
-    // we have taking the present show/hide state from the config file
+    // we have taken the present show/hide state from the config file
     if (mShowingConsoles){	// need to show Now    
     	mShowingConsoles = false;	// pretend not showing
     	OnToolbarToolCallback(0);	// and toggle the state
@@ -312,142 +312,126 @@ bool JavaScript_pi::LoadConfig(void)
     void JSlexit(wxStyledTextCtrl* pane);
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     wxString fileNames;
+    wxString welcome {wxEmptyString};
     if (TRACE_YES) wxLogMessage("Entered LoadConfig");
 	TRACE(2, wxString::Format("Screen size width:%d height:%d", m_display_width, m_display_height));
 	m_showHelp = false;
-    if(pConf){
-    	wxString welcome = wxString(PLUGIN_FIRST_TIME_WELCOME);
+    if(pConf != nullptr){
         pConf->SetPath (configSection);
-        bool configUptoDate = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
-        if (!configUptoDate){	// configuration may be pre-v0.5
-        	TRACE(2, "LoadConfig looking in old location");
-        	wxLogMessage("JavaScript_pi->Init() looking in old location");
-        	pConf->SetPath("/Settings/JavaScript_pi");	// try old location
-        	pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, 1 );
+        bool configFound = pConf->Read ( _T( "ShowJavaScriptIcon" ), &m_bJavaScriptShowIcon, true );
+        if (!configFound){
+        	welcome =  PLUGIN_FIRST_TIME_WELCOME;
         	}
-        int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 0L );
-        int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 0L );
-        if ((versionMajor == 0) && (versionMinor < 4)){
-            if (TRACE_YES) wxLogMessage("LoadConfig creating default consoles");
-            TRACE(2, "Pre v0.4 or first time ever - creating default consoles");
-            // must be old version - forget previous settings
-            pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );
-            pConf->SetPath ( _T ( "/Settings/JavaScript_pi" ) );
-            mCurrentDirectory = wxStandardPaths::Get().GetDocumentsDir();
-            // create one default console
-            mpFirstConsole = new Console(m_parent_window, "JavaScript");
-            mpFirstConsole->setup();
-            mpFirstConsole->setConsoleMinClientSize();
-            mpFirstConsole->floatOnParent(true);
-            mpFirstConsole->m_Output->AppendText(welcome);
-            m_showHelp = true;
-            }
         else {
-        	if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){ // updated
+			int versionMajor = pConf->Read ( _T ( "VersionMajor" ), 0L );
+			int versionMinor = pConf->Read ( _T ( "VersionMinor" ), 0L );
+			if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){ // updated
 				welcome = wxString(PLUGIN_UPDATE_WELCOME);
 				m_showHelp = true;
 				}
-            TRACE(2, "Loading console configurations");
-            if (TRACE_YES) wxLogMessage("LoadConfig loading console configurations");
-            mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
-            TRACE(2, "Current Directory set to " + mCurrentDirectory);
-            mRememberToggleStatus = (pConf->Read ( _T ( "RememberToggle" ), "0" ) == "0")?false:true;
-            if (mRememberToggleStatus) mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
-            else mShowingConsoles = false;
-            TRACE(2,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
+			}
+		TRACE(2, "Loading console configurations");
+		if (TRACE_YES) wxLogMessage("LoadConfig loading console configurations");
+		mCurrentDirectory = pConf->Read(_T("CurrentDirectory"), _T("") );
+		TRACE(2, "Current Directory set to " + mCurrentDirectory);
+		mRememberToggleStatus = (pConf->Read ( _T ( "RememberToggle" ), "0" ) == "0")?false:true;
+		if (mRememberToggleStatus) mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
+		else mShowingConsoles = false;
+		TRACE(2,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
 #ifdef __DARWIN__
-            m_floatOnParent = (pConf->Read ( _T ( "FloatOnParent" ), "0" ) == "0")?false:true;
+		m_floatOnParent = (pConf->Read ( _T ( "FloatOnParent" ), "0" ) == "0")?false:true;
 #else
-			m_floatOnParent = false;
+		m_floatOnParent = false;
 #endif
-            // load parking config - platform defaults if none
-            // saved and default values are in DIP
-            m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
-            m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
-            m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
-            m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
-            m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
-            TRACE(2, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingStub:%i ",
-            	(m_parkingBespoke?"true":"false"), m_parkingStub ));
-            
-            // create consoles as in config file
-            mpFirstConsole = nullptr;	//start with no consoles
-            wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
-            if (consoles == wxEmptyString){ // no consoles configured
-                Console* newConsole = new Console(m_parent_window, "JavaScript", NEW_CONSOLE_POSITION,
-                	NEW_CONSOLE_SIZE, wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
-                newConsole->setup(welcome);
-                newConsole->setConsoleMinClientSize();
-                // position and size likely wrong for hi res displays, and could not fix until after construction, so...
-                wxPoint position = newConsole->FromDIP(NEW_CONSOLE_POSITION);
-                newConsole->Move(position);
-                wxSize  size = newConsole->FromDIP(NEW_CONSOLE_SIZE);
-                newConsole->SetSize(size);
-                }
-            else {
-                wxStringTokenizer tkz(consoles, ":");
-                wxString welcome = wxEmptyString;
-                if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){
-                    welcome = wxString(PLUGIN_UPDATE_WELCOME);
-                    }
-                while ( tkz.HasMoreTokens() ){
-                    wxPoint consolePosition, dialogPosition, alertPosition;
-                    wxSize  consoleSize;
-                    wxString fileString;
-                    bool autoRun, parked;
+		// load parking config - platform defaults if none
+		// saved and default values are in DIP
+		m_parkingBespoke = ((pConf->Read( "ParkingBespoke" , 0L) == 1)) ? true : false;	// if none, set false
+		if (m_parkingBespoke){
+			m_parkingStub = pConf->Read("ParkingStub", CONSOLE_STUB);
+			m_parkingLevel = pConf->Read("ParkingLevel", PARK_LEVEL);
+			m_parkFirstX = pConf->Read("ParkingFirstX", PARK_FIRST_X);
+			m_parkSep = pConf->Read("ParkingSep", PARK_SEP);
+			}
+		TRACE(2, wxString::Format("Loaded parking config ParkingBespoke:%s ParkingStub:%i ",
+			(m_parkingBespoke?"true":"false"), m_parkingStub ));
+		
+		// create consoles as in config file
+		mpFirstConsole = nullptr;	//start with no consoles
+		wxString consoles = pConf->Read ( _T ( "Consoles" ), _T("") );
+		if (consoles == wxEmptyString){ // no consoles configured
+			Console* newConsole = new Console(m_parent_window, "JavaScript", NEW_CONSOLE_POSITION,
+				NEW_CONSOLE_SIZE, wxPoint(150, 100), wxPoint(90, 20), wxEmptyString, false, welcome);
+			newConsole->setup(welcome);
+			newConsole->setConsoleMinClientSize();
+			// position and size likely wrong for hi res displays, and could not fix until after construction, so...
+			wxPoint position = newConsole->FromDIP(NEW_CONSOLE_POSITION);
+			newConsole->Move(position);
+			wxSize  size = newConsole->FromDIP(NEW_CONSOLE_SIZE);
+			newConsole->SetSize(size);
+			}
+		else {
+			wxStringTokenizer tkz(consoles, ":");
+//			wxString welcome = wxEmptyString;
+//			if ((versionMajor < PLUGIN_VERSION_MAJOR ) || ((versionMajor <= PLUGIN_VERSION_MAJOR ) && (versionMinor < PLUGIN_VERSION_MINOR))){
+//				welcome = wxString(PLUGIN_UPDATE_WELCOME);
+//				}
+			while ( tkz.HasMoreTokens() ){
+				wxPoint consolePosition, dialogPosition, alertPosition;
+				wxSize  consoleSize;
+				wxString fileString;
+				bool autoRun, parked;
 
-                    wxString name = tkz.GetNextToken();
-                    consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
-                    consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
-                    consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
-                    consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
- 					if ((consoleSize.x < 40) || (consoleSize.y < 15)) consoleSize = NEW_CONSOLE_SIZE;	// in case size is uselessly small
-                    dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
-                    dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
-                    alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
-                    alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
-                    fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
-                    autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
-                    parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
-                    TRACE(2, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-                    // from V2 positions have been saved relative to frame
-                    Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
-                    newConsole->setup(welcome, fileString, autoRun);
-                    // constructor should have position console but does not seem to work on Hi Res display so force it
-                    newConsole->Move(newConsole->FromDIP(consolePosition));
-                    newConsole->SetSize(newConsole->FromDIP(consoleSize));
-                    TRACE(2, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
-                    newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T(""));
-                    // set up the locations
-                    bool set = (pConf->Read ( name + _T ( ":UnparkedLocationSet" ), "0" ) == "1")? true:false;
-                    if (set){  // set up unparked location               
-                    	wxPoint position; wxSize size;
-                    	position.x =  pConf->Read ( name + _T ( ":UnparkedLocationPosX" ), 20L );
-                    	position.y =  pConf->Read ( name + _T ( ":UnparkedLocationPosY" ), 20L );
-                    	size.x =  pConf->Read ( name + _T ( ":UnparkedLocationSizeX" ), 20L );
-                    	size.y =  pConf->Read ( name + _T ( ":UnparkedLocationSizeY" ), 20L );
-                    	position = newConsole->FromDIP(position);
-                    	size = newConsole->FromDIP(size);
-                    	newConsole->m_notParkedLocation.position = position;
-                    	newConsole->m_notParkedLocation.size = size;
-                    	newConsole->m_notParkedLocation.set = set;
-                    	}
-                    set = (pConf->Read ( name + _T ( ":ParkedLocationSet" ), "0" ) == "1")? true:false;	
-                    if (set){	// set up parked location
-                        wxPoint position; wxSize size;
-                    	position.x =  pConf->Read ( name + _T ( ":ParkedLocationPosX" ), 20L );
-                    	position.y =  pConf->Read ( name + _T ( ":ParkedLocationPosY" ), 20L );
-                    	size.x =  pConf->Read ( name + _T ( ":ParkedLocationSizeX" ), 20L );
-                    	size.y =  pConf->Read ( name + _T ( ":ParkedLocationSizeY" ), 20L );
-                    	position = newConsole->FromDIP(position);
-                    	size = newConsole->FromDIP(size);
-                    	newConsole->m_parkedLocation.position = position;
-                    	newConsole->m_parkedLocation.size = size;
-                    	newConsole->m_parkedLocation.set = set;                    	
-                    	}
-                    newConsole->m_parked = parked;
-                    }
-                }
+				wxString name = tkz.GetNextToken();
+				consolePosition.x =  pConf->Read ( name + _T ( ":ConsolePosX" ), 20L );
+				consolePosition.y =  pConf->Read ( name + _T ( ":ConsolePosY" ), 20L );
+				consoleSize.x =  pConf->Read ( name + _T ( ":ConsoleSizeX" ), 10L );
+				consoleSize.y =  pConf->Read ( name + _T ( ":ConsoleSizeY" ), 5L );
+				if ((consoleSize.x < 40) || (consoleSize.y < 15)) consoleSize = NEW_CONSOLE_SIZE;	// in case size is uselessly small
+				dialogPosition.x =  pConf->Read ( name + _T ( ":DialogPosX" ), 20L );
+				dialogPosition.y =  pConf->Read ( name + _T ( ":DialogPosY" ), 20L );
+				alertPosition.x =  pConf->Read ( name + _T ( ":AlertPosX" ), 20L );
+				alertPosition.y =  pConf->Read ( name + _T ( ":AlertPosY" ), 20L );
+				fileString = pConf->Read ( name + _T ( ":LoadFile" ), _T(""));
+				autoRun = (pConf->Read ( name + _T ( ":AutoRun" ), "0" ) == "0")?false:true;
+				parked = (pConf->Read ( name + _T ( ":Parked" ), "0" ) == "0")?false:true;
+				TRACE(2, wxString::Format("Loaded config for %s position x:%d y:%d  size x:%d y:%d", name, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
+				// from V2 positions have been saved relative to frame
+				Console* newConsole = new Console(m_parent_window , name, consolePosition, consoleSize, dialogPosition, alertPosition, fileString, autoRun,  welcome, parked);
+				newConsole->setup(welcome, fileString, autoRun);
+				// constructor should have position console but does not seem to work on Hi Res display so force it
+				newConsole->Move(newConsole->FromDIP(consolePosition));
+				newConsole->SetSize(newConsole->FromDIP(consoleSize));
+				TRACE(2, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
+				newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T(""));
+				// set up the locations
+				bool set = (pConf->Read ( name + _T ( ":UnparkedLocationSet" ), "0" ) == "1")? true:false;
+				if (set){  // set up unparked location               
+					wxPoint position; wxSize size;
+					position.x =  pConf->Read ( name + _T ( ":UnparkedLocationPosX" ), 20L );
+					position.y =  pConf->Read ( name + _T ( ":UnparkedLocationPosY" ), 20L );
+					size.x =  pConf->Read ( name + _T ( ":UnparkedLocationSizeX" ), 20L );
+					size.y =  pConf->Read ( name + _T ( ":UnparkedLocationSizeY" ), 20L );
+					position = newConsole->FromDIP(position);
+					size = newConsole->FromDIP(size);
+					newConsole->m_notParkedLocation.position = position;
+					newConsole->m_notParkedLocation.size = size;
+					newConsole->m_notParkedLocation.set = set;
+					}
+				set = (pConf->Read ( name + _T ( ":ParkedLocationSet" ), "0" ) == "1")? true:false;	
+				if (set){	// set up parked location
+					wxPoint position; wxSize size;
+					position.x =  pConf->Read ( name + _T ( ":ParkedLocationPosX" ), 20L );
+					position.y =  pConf->Read ( name + _T ( ":ParkedLocationPosY" ), 20L );
+					size.x =  pConf->Read ( name + _T ( ":ParkedLocationSizeX" ), 20L );
+					size.y =  pConf->Read ( name + _T ( ":ParkedLocationSizeY" ), 20L );
+					position = newConsole->FromDIP(position);
+					size = newConsole->FromDIP(size);
+					newConsole->m_parkedLocation.position = position;
+					newConsole->m_parkedLocation.size = size;
+					newConsole->m_parkedLocation.set = set;                    	
+					}
+				newConsole->m_parked = parked;
+				}
             }
         fileNames = pConf->Read ( _T ( "Recents" ), _T("") );
         if (fileNames != wxEmptyString){	// we have some recent file names
@@ -465,15 +449,17 @@ bool JavaScript_pi::LoadConfig(void)
                 favouriteFiles.Add(name);
                 }
             }
+/*
         if (!configUptoDate){	// read config was from old place
         	pConf->DeleteGroup ( _T ( "/Settings/JavaScript_pi" ) );	// delete the old one
         	pConf->SetPath (configSection);	// the new grouping
         	pConf->Flush();	// make sure it gets into new location
-        	}    
+        	} 
+*/   
         return true;
     }
     else {
-    	wxLogMessage("JavaScript_pi->LoadConfig unable to find pConf");
+    	wxLogMessage("JavaScript_pi->LoadConfig unable to create pConf*");
         return false;
         }
     return true;
