@@ -104,6 +104,7 @@ wxString js_formOutput(duk_context *ctx){
                 findConsoleByCtx(ctx)->throw_error(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
         }
     }
+//    output.Replace("\u0007", "\u00B0", true);	// internally, we are using bell to represent degree - convert any back
 #ifdef __WXMSW__
     wxString JScleanOutput(wxString given);
     output = JScleanOutput(output); // clean for Windows only

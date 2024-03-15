@@ -556,11 +556,12 @@ public:
     
     void doRunCommand(Brief brief){
         // this is implemented as a method so we can lazy call it with CallAfter
+        wxString JScleanString(wxString given);
         if (run_button->GetLabel() == _("Run")){
             TRACE(0, "------------------ Console " + mConsoleName + " about to run");
             Completions outcome;
             mBrief = brief;
-            outcome = run(m_Script->GetText());
+            outcome = run(JScleanString(m_Script->GetText()));
        		if (!isBusy()) wrapUp(outcome);
             }
         else { // Stop button clicked - we have a script running - kill it off

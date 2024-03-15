@@ -74,12 +74,12 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString apostrophe   {"\'"};
      const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
      const wxString degree       {"\u00B0"};
-     const wxString superScript0 {"\u2070"};	// superscript 0 pretending to be degrees
-  
+     const wxString superScript0 {"\u2070"};	// superscript 0 pretending to be degrees  
      const wxString degreeText   {"&#xb0"};
      const wxString backprime    {"\u0060"};
+//     const wxString bell		{"\u0007"};		// Bell used for internal representation of º
  #ifndef __WXMSW__   // Don't try this one on Windows
-     const wxString prime        {"\u2032"};
+     const wxString prime        {"\u2032"};     
      given.Replace(prime, apostrophe, true);
  #endif  // __WXMSW__
      given.Replace(leftQuote, quote, true);
@@ -91,6 +91,7 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(leftSquote, apostrophe, true);
      given.Replace(ordinal, degree, true);
 	 given.Replace(superScript0, degree, true);
+//	 given.Replace(degree, bell, true);
 //     given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      return (given);

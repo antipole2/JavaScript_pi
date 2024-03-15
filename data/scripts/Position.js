@@ -1,6 +1,6 @@
 // updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1 
 // updated 4 <ar 2024 to add parsing formatted position
-function position(lat, lon){
+function Position(lat, lon){
 	if (arguments.length == 1){
 		if (typeof arguments[0] != "string"){
 			this.latitude = arguments[0].latitude;
@@ -18,20 +18,20 @@ function position(lat, lon){
 		}
         
 	Object.defineProperty(this, "formatted",{  // format for human eye
-	enumerable: false,
-	configurable: false,
-	get: function () {
-        latAbs = Math.abs(this.latitude);
-        lonAbs = Math.abs(this.longitude);
-        return (
-            ("00" + parseInt(latAbs)).slice(-2) + String.fromCharCode(176) + " " +
-            ("00" + (latAbs % 1 * 60).toFixed(3)).slice(-6) + "'" +
-            ((this.latitude < 0) ? "S " : "N ") +
-            ("00" + parseInt(lonAbs)).slice(-3) + String.fromCharCode(176) + " " +
-            (lonAbs % 1 * 60).toFixed(3) + "'" +
-            ((this.longitude < 0) ? "W" : "E")
-	        )}
-	    });
+		enumerable: false,
+		configurable: false,
+		get: function () {
+			latAbs = Math.abs(this.latitude);
+			lonAbs = Math.abs(this.longitude);
+			return (
+				("00" + parseInt(latAbs)).slice(-2) + String.fromCharCode(176) + " " +
+				("00" + (latAbs % 1 * 60).toFixed(3)).slice(-6) + "'" +
+				((this.latitude < 0) ? "S " : "N ") +
+				("00" + parseInt(lonAbs)).slice(-3) + String.fromCharCode(176) + " " +
+				(lonAbs % 1 * 60).toFixed(3) + "'" +
+				((this.longitude < 0) ? "W" : "E")
+				)}
+			});
 		
 	Object.defineProperty(this, "NMEA",{   // format as in NMEA sentence
 	enumerable: false,

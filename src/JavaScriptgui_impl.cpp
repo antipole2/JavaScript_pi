@@ -130,7 +130,7 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
 				}
 			}
 		}
-	script = JScleanString(script);
+//	script = JScleanString(script);	// now do this on run command
 	m_Script->ClearAll();   // clear old content
 	m_Script->AppendText(script);
 	m_fileStringBox->SetValue(wxString(fileString));
@@ -217,8 +217,7 @@ void Console::OnRun( wxCommandEvent& event ) {
 		message(STYLE_RED, "No script to run");
 		return;
 		}
-	wxString script = m_Script->GetText();
-	if (script == wxEmptyString)
+//	wxString script = JScleanString(m_Script->GetText());
     clearBrief();
     mConsoleRepliesAwaited = 0;
     doRunCommand(mBrief);
