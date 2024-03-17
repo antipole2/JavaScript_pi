@@ -526,6 +526,7 @@ public:
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
+	   wxString JScleanString(wxString given);
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
 	   void duk_extensions_init(duk_context *ctx, Console* pConsole);
@@ -534,6 +535,7 @@ public:
    
 	   TRACE(3, this->mConsoleName + "->run() entered");
 	   if (script == wxEmptyString) return HAD_ERROR;  // ignore
+	   script = JScleanString(script);
 	   consoleReset();
 	   mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
 	   if (!mpCtx) {
@@ -556,12 +558,11 @@ public:
     
     void doRunCommand(Brief brief){
         // this is implemented as a method so we can lazy call it with CallAfter
-        wxString JScleanString(wxString given);
         if (run_button->GetLabel() == _("Run")){
             TRACE(0, "------------------ Console " + mConsoleName + " about to run");
             Completions outcome;
             mBrief = brief;
-            outcome = run(JScleanString(m_Script->GetText()));
+            outcome = run(m_Script->GetText());
        		if (!isBusy()) wrapUp(outcome);
             }
         else { // Stop button clicked - we have a script running - kill it off

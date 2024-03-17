@@ -90,15 +90,17 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
      given.Replace(ordinal, degree, true);
+#ifndef	__WINDOWS__
 	 given.Replace(superScript0, degree, true);
-//	 given.Replace(degree, bell, true);
-//     given.Replace(degree, degreeText, true);
+#endif
+	 given.Replace(degree, DEGREE, true);	// use substitute character
+//   given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      return (given);
      }
 
  // This function only needed with Windose
- #ifdef __WXMSW__
+ #ifdef __WINDOWS__
  wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
      // As far as we know this only occurs with º symbol on Windows
      const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
