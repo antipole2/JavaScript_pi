@@ -713,7 +713,7 @@ public:
 		// we check for this before other types of error
 		// For now we will mark not busy in case the following are true
 		wxString result;
-		wxString getStringFromDuk(duk_context *ctx);
+//		wxString getStringFromDuk(duk_context *ctx);
 		Completions outcome;
         wxString statusesToString(status_t mStatus);
 		
@@ -731,7 +731,7 @@ public:
 		if (dukOutcome != DUK_EXEC_SUCCESS) return HAD_ERROR;	// a real error
 		
 		mWaitingCached = false;   // now we are past those cases, get a re-check
-	   result = getStringFromDuk(mpCtx);
+	   result = duk_to_string(mpCtx, 0);
 	   if (!m_explicitResult) m_result = result; // for when not explicit result
 	   duk_pop(mpCtx);  // pop result
 	   outcome = DONE; // starting assumption
@@ -973,6 +973,7 @@ public:
         // throw an error from within c++ code called from running script
         // either there is an error object on the stack or a message
         // ! do not call otherwise
+        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(4, mConsoleName + "->throw_error() " + message);
         m_result = wxEmptyString;    // supress result
         m_explicitResult = true;    // supress result
@@ -987,6 +988,7 @@ public:
     
     void message(int style, wxString message){
         void limitOutput(wxStyledTextCtrl* pText);
+        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(5,mConsoleName + "->message() " + message);
         unPark();
         Show(); // make sure console is visible

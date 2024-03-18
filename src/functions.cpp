@@ -89,11 +89,11 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(accute, apostrophe, true);
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
-     given.Replace(ordinal, degree, true);
+     given.Replace(ordinal, DEGREE, true);
 #ifndef	__WINDOWS__
-	 given.Replace(superScript0, degree, true);
+	 given.Replace(superScript0, DEGREE, true);
 #endif
-	 given.Replace(degree, DEGREE, true);	// use substitute character
+	 given.Replace(DEGREE, PSEUDODEGREE, true);	// use substitute character
 //   given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      return (given);
@@ -110,7 +110,8 @@ void fatal_error_handler(void *udata, const char *msg) {
      }
  #endif
 
- wxString getStringFromDuk(duk_context *ctx){
+/*
+wxString getStringFromDuk(duk_context *ctx){
      // gets a string safely from top of duk stack and fixes º-symbol for Windose
      wxString string = wxString(duk_to_string(ctx, -1));
  #ifdef __WXMSW__
@@ -119,6 +120,7 @@ void fatal_error_handler(void *udata, const char *msg) {
  #endif
      return string;
      }
+*/
 
 wxString ptrToString(Console* address){
     // format pointer to string
@@ -297,10 +299,12 @@ wxString NMEAchecksum(wxString sentence){
 	
 wxString getClipboardString(Console* pConsole){  // return string from clipboard
 	if (!wxTheClipboard->Open())return "getClipboardString clipboard is busy - logic error?";
-	wxTextDataObject data;
-	wxTheClipboard->GetData(data);
+	wxTextDataObject dataObject;
+	wxTheClipboard->GetData(dataObject);
 	wxTheClipboard->Close();
-	return data.GetText();
+	wxString data = dataObject.GetText();
+	data =  JScleanString(data);
+	return data;
 	}
 
 wxString getTextFile(wxString fileString, wxString* pText){

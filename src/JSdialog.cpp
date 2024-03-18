@@ -27,11 +27,23 @@
 #include "wx/choice.h"
 #include "jsDialog.h"
 
+ wxString getStringFromDuk(duk_context *ctx){
+     // gets a string safely from top of duk stack and fixes º-symbol for Windose
+     wxString string = wxString(duk_to_string(ctx, -1));
+     string.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+ #ifdef __WXMSW__
+     const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
+     string.Replace(A_stringDeg, "\u00b0", true);
+ #endif
+     return string;
+     }
+
 void onButton(wxCommandEvent & event){  // here when any dialogue button clicked ****************************
     duk_context *ctx;
     wxWindow *window;
     jsButton *button;
     Console *pConsole;
+     wxString JScleanString(wxString given);
     wxString elementType, theData, functionName;
     std::vector<dialogElement>::const_iterator it;
     int i;
@@ -58,16 +70,16 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
             duk_push_string(ctx, elementType);
             duk_put_prop_string(ctx, -2, "type");
             if ((elementType == "caption") || (elementType == "text") || (elementType == "hLine")){
-                duk_push_string(ctx, it->stringValue);
+                duk_push_string(ctx, JScleanString(it->stringValue));
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "field"){
-                duk_push_string(ctx, it->label);
+                duk_push_string(ctx, JScleanString(it->label));
                 duk_put_prop_string(ctx, -2, "label");
-                duk_push_string(ctx, it->textValue);
+                duk_push_string(ctx, JScleanString(it->textValue));
                 duk_put_prop_string(ctx, -2, "value");
                 if (it->suffix != wxEmptyString){
-                    duk_push_string(ctx, it->suffix);
+                    duk_push_string(ctx, JScleanString(it->suffix));
                     duk_put_prop_string(ctx, -2, "suffix");
                     }
                 }
@@ -82,7 +94,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 duk_push_array(ctx);
                 for (int j = 0, k = 0; j < tickListBox->GetCount(); j++){
                     if (tickListBox->IsChecked(j)){
-                        duk_push_string(ctx, tickListBox->GetString(j));
+                        duk_push_string(ctx, JScleanString(tickListBox->GetString(j)));
                         duk_put_prop_index(ctx, -2, k++);
                         }
                     }
@@ -93,20 +105,20 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 duk_push_string(ctx, it->label);
                 duk_put_prop_string(ctx, -2, "label");
                 radioBox = wxDynamicCast(window->FindWindowById(it->itemID), wxRadioBox);
-                theData = radioBox->GetString(radioBox->GetSelection());
+                theData =JScleanString(radioBox->GetString(radioBox->GetSelection()));
                 duk_push_string(ctx, theData);
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "choice"){
                 wxChoice* choice;
                 choice = wxDynamicCast(window->FindWindowById(it->itemID), wxChoice);
-                theData = choice->GetString(choice->GetSelection());
+                theData = JScleanString(choice->GetString(choice->GetSelection()));
                 duk_push_string(ctx, theData);
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "slider"){
                 wxSlider* slider;
-                duk_push_string(ctx, it->label);
+                duk_push_string(ctx, JScleanString(it->label));
                 duk_put_prop_string(ctx, -2, "label");
                 slider = wxDynamicCast(window->FindWindowById(it->itemID), wxSlider);
                 duk_push_number(ctx, slider->GetValue());
@@ -114,14 +126,14 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 }
             else if (elementType == "spinner"){
                 wxSpinCtrl* spinner;
-                duk_push_string(ctx, it->label);
+                duk_push_string(ctx, JScleanString(it->label));
                 duk_put_prop_string(ctx, -2, "label");
                 spinner = wxDynamicCast(window->FindWindowById(it->itemID), wxSpinCtrl);
                 duk_push_number(ctx, spinner->GetValue());
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "button"){
-                duk_push_string(ctx, button->GetLabel());
+                duk_push_string(ctx, JScleanString(button->GetLabel()));
                 duk_put_prop_string(ctx, -2, "label");
                 }
             else pConsole->throw_error(ctx, "onDialog error: onButton found unexpected type " + elementType);
@@ -149,7 +161,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     dialogElement anElement;
     bool hadButton {false};
     wxArrayString strings;
-    wxString getStringFromDuk(duk_context *ctx);
+//    wxString getStringFromDuk(duk_context *ctx);
     Console *findConsoleByCtx(duk_context *ctx);
     wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
     

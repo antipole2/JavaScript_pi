@@ -1,5 +1,5 @@
 // updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1 
-// updated 4 <ar 2024 to add parsing formatted position
+// updated 18 Mar 2024 to add parsing formatted position
 function Position(lat, lon){
 	if (arguments.length == 1){
 		if (typeof arguments[0] != "string"){
@@ -18,20 +18,20 @@ function Position(lat, lon){
 		}
         
 	Object.defineProperty(this, "formatted",{  // format for human eye
-		enumerable: false,
-		configurable: false,
-		get: function () {
-			latAbs = Math.abs(this.latitude);
-			lonAbs = Math.abs(this.longitude);
-			return (
-				("00" + parseInt(latAbs)).slice(-2) + String.fromCharCode(176) + " " +
-				("00" + (latAbs % 1 * 60).toFixed(3)).slice(-6) + "'" +
-				((this.latitude < 0) ? "S " : "N ") +
-				("00" + parseInt(lonAbs)).slice(-3) + String.fromCharCode(176) + " " +
-				(lonAbs % 1 * 60).toFixed(3) + "'" +
-				((this.longitude < 0) ? "W" : "E")
-				)}
-			});
+	enumerable: false,
+	configurable: false,
+	get: function () {
+        latAbs = Math.abs(this.latitude);
+        lonAbs = Math.abs(this.longitude);
+        return (
+            ("00" + parseInt(latAbs)).slice(-2) + "\º " +
+            ("00" + (latAbs % 1 * 60).toFixed(3)).slice(-6) + "'" +
+            ((this.latitude < 0) ? "S " : "N ") +
+            ("00" + parseInt(lonAbs)).slice(-3) + "\º " +
+            (lonAbs % 1 * 60).toFixed(3) + "'" +
+            ((this.longitude < 0) ? "W" : "E")
+	        )}
+	    });
 		
 	Object.defineProperty(this, "NMEA",{   // format as in NMEA sentence
 	enumerable: false,
@@ -102,7 +102,7 @@ function Position(lat, lon){
 			// squeeze out all spaces
 			parseText = parseText.replace(/\s/g, ''); // squeeze out all spaces
 			// degrees minutes & seconds ?
-			dmsPattern = /([0-9]{1,3})\xB0([0-9]{1,2})'([0-9][0-9]?.?[0-9]?)"/;
+			dmsPattern = /([0-9]{1,3})\º([0-9]{1,2})'([0-9][0-9]?.?[0-9]?)"/;
 			dms = parseText.match(dmsPattern);
 			if (dms != null){ // is degrees, minutes & seconds
 				if (trace) print("DMS\t", dms, "\n");
@@ -114,14 +114,17 @@ function Position(lat, lon){
 
 			//	degrees & minutes ?
 			// sometmes ' used as decimal point in minutes.  Fix if needed.
-			if (trace) print("Before fix: ", parseText, "\n");
+			if (trace) print("Before fixes: ", parseText, "\n");
 			if (parseText.slice(-1) == "'"){	// remove any trailing '
 				parseText = parseText.slice(0, -1);
 				}
 			parseText = parseText.replace("'", ".");	// and replace ' if any
 			parseText = parseText.replace(",", ".");	// and replace , if any
-			dmPattern = /([0-9]{1,3})\xB0([0-9][0-9]?([\.\']?[0-9][0-9]*)?)'?/;
+			parseText = parseText.replace("..", ".");	// this could have led to double .
+			if (trace) print("After fixes: ", parseText, "\n");
+			dmPattern = /([0-9]{1,3})\º([0-9][0-9]?([\.\']?[0-9][0-9]*)?)'?/;
 			dm = parseText.match(dmPattern);
+			if (trace) print(dm, "\n");	//  Fix here
 			if (dm != null){ // is degrees, minutes
 				if (trace) print(parseText, "\tDM\t", dm, "\n");
 				deg = check(dm[1]*1, maxDeg);

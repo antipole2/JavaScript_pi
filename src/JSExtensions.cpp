@@ -104,7 +104,7 @@ wxString js_formOutput(duk_context *ctx){
                 findConsoleByCtx(ctx)->throw_error(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
         }
     }
-output.Replace(DEGREE, "\u00B0", true);	// internally, we are using DEGREE to represent degree - convert any back
+output.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
 #ifdef __WXMSW__
     wxString JScleanOutput(wxString given);
     output = JScleanOutput(output); // clean for Windows only
@@ -280,6 +280,7 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs > 3) pConsole->throw_error(ctx, "messageBox called with invalid number of args");
     wxString message = duk_get_string(ctx, 0);
+    message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
     if (nargs > 1){
         wxString arg2 = duk_get_string(ctx,1);
         if (arg2 == yesNo) buttonType = arg2;
@@ -398,6 +399,7 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
     Console *pConsole = findConsoleByCtx(ctx);
     
     text = duk_to_string(ctx, 0);
+    text.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
     fileNameGiven = duk_to_string(ctx,1);
     int access = (FileOptions)duk_to_int(ctx, 2);
     duk_pop_3(ctx);  // finished with arguments
@@ -470,41 +472,6 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     return(1);
     };
 
-/*
-static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
-    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    duk_ret_t result = 0;
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    TimeActions ourTimeAction;
-    wxString argument = wxEmptyString;
-    Console *pConsole = findConsoleByCtx(ctx);
-    
-    if (nargs == 0) { // empty call - cancel all timers
-        pConsole->mTimes.Clear();
-        pConsole->mTimerActionBusy = false;
-        pConsole->mWaitingCached = false;   // force full isWaiting check
-        return(result);
-        }
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onSeconds within onExit function");
-    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onSeconds first argument must be function");
-    if ((int)pConsole->mTimes.GetCount() > MAX_TIMERS){
-        pConsole->throw_error(ctx, "onSeconds already have maximum timers outstanding");
-        }
-    if ((nargs < 2) || (nargs > 3)){
-        pConsole->throw_error(ctx, "onSeconds requires two or three arguments");
-
-        }
-    wxTimeSpan delay(0, 0, duk_to_number(ctx,1), 0);
-    ourTimeAction.timeToCall = wxDateTime::Now() + delay;
-    ourTimeAction.functionName = extractFunctionName(ctx, 0);
-    if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
-    ourTimeAction.argument = argument;
-    pConsole->mTimes.Add(ourTimeAction);  // add this action to array
-    pConsole->mWaitingCached = pConsole->mWaiting = true;
-    return(result);
-    }
-*/
-
 static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
     Console* pConsole = findConsoleByCtx(ctx);
     pConsole->setTimedCallback(ctx, false);   // needs to be in a method - not persistent
@@ -516,43 +483,6 @@ static duk_ret_t onAllSeconds(duk_context *ctx) {  // call function after millis
     pConsole->setTimedCallback(ctx, true);   // needs to be in a method - not persistent
     return 1;
 	};
-/*
-    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    duk_ret_t result = 0;
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    Console *pConsole = findConsoleByCtx(ctx);
-   
-    TimeActions ourTimeAction;
-    wxString argument = wxEmptyString;
-
-    
-    if (nargs == 0) { // empty call - cancel all timers
-        pConsole->mTimes.Clear();
-        pConsole->mTimerActionBusy = false;
-        pConsole->mWaitingCached = false;   // force full isWaiting check
-        return(result);
-        }
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onSeconds within onExit function");
-    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onSeconds first argument must be function");
-    if ((int)pConsole->mTimes.GetCount() > MAX_TIMERS){
-        pConsole->throw_error(ctx, "onSeconds already have maximum timers outstanding");
-        }
-    if ((nargs < 2) || (nargs > 3)){
-        pConsole->throw_error(ctx, "onSeconds requires two or three arguments");
-        }
-        
-    wxTimer timer(&pConsole->HandleTimer);
-    
-
-    wxTimeSpan delay(0, 0, duk_to_number(ctx,1), 0);
-    ourTimeAction.timeToCall = wxDateTime::Now() + delay;
-    ourTimeAction.functionName = extractFunctionName(ctx, 0);
-    if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
-    ourTimeAction.argument = argument;
-    pConsole->mTimes.Add(ourTimeAction);  // add this action to array
-    pConsole->mWaitingCached = pConsole->mWaiting = true;
-    return(result);
-*/
 
 static duk_ret_t duk_timeAlloc(duk_context *ctx) {   // time allocation
     Console *pConsole = findConsoleByCtx(ctx);
@@ -582,7 +512,6 @@ static duk_ret_t duk_stopScript(duk_context *ctx) {
     duk_throw(ctx);
     return 0;  //never executed but keeps compiler happy
     }
-
 
 Console* getConsoleWithOptionalNameOnStack(duk_context *ctx){
     extern JavaScript_pi *pJavaScript_pi;
@@ -740,7 +669,9 @@ static duk_ret_t duk_copy(duk_context *ctx){
 	Console *pConsole = findConsoleByCtx(ctx);
 	if (!duk_is_string(ctx, 0)) pConsole->throw_error(ctx, "copyToClip requires string");
 	if (!wxTheClipboard->Open()) pConsole->throw_error(ctx, "copyToClip clipboard is busy");
-	wxTheClipboard->SetData(new wxTextDataObject(duk_get_string(ctx, 0)));
+	wxString data = duk_get_string(ctx, 0);
+	data.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+	wxTheClipboard->SetData(new wxTextDataObject(data));
 	wxTheClipboard->Close();		
 	return 0;
 	}
@@ -751,20 +682,6 @@ static duk_ret_t duk_paste(duk_context *ctx){
 	Console *pConsole = findConsoleByCtx(ctx);
 	duk_push_string(ctx, getClipboardString(pConsole));
 	return 1;
-	
-/*	if (wxTheClipboard->IsSupported( wxDF_TEXT )){
-		wxTextDataObject data;
-        wxTheClipboard->GetData( data );
-        duk_push_string(ctx, data.GetText());
-        wxTheClipboard->Close();
-        return 1;
-		}
-	else {
-		wxTheClipboard->Close();
-		pConsole->throw_error(ctx, "pasteFromClipboard clipboard is not text");
-		return 1;	// to keep compiler happy		
-		}
-*/
 	}
 	
 static duk_ret_t duk_execute(duk_context *ctx){
@@ -891,6 +808,7 @@ When the JavaScript File object is destroyed, this must all be cleared down
 We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript File object which was passed by its this value. 
 ****/
     Console *pConsole = findConsoleByCtx(ctx);
+    wxString JScleanString(wxString given);
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
 	int action = duk_get_number(ctx, 0);
 	switch (action){
@@ -900,32 +818,6 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
 			wxString fileString = duk_to_string(ctx, 2);
 			int mode =  duk_get_int(ctx, 3);
-/*
-			switch (mode){
-				case 0:	// READ
-					options  = MUST_EXIST;	// default is read
-//					if (!wxFile::Exists(fileString)){	// file to be read does not exist - force ask
-//						fileString = wxString*("??" , fileString , " not found - choose alternative");
-//						|
-					break;
-				case 1:	// WRITE
-					if (fileString.substr(0, 1) == "?"){ // will be prompting so force save dialogue
-						options = MUST_NOT_EXIST;
-						}
-					else options = DONT_CARE;		// can overwrite
-					break;
-				case 2:	// READ & WRITE
-				case 3:	// APPEND
-					options = DONT_CARE;		// can overwrite
-					break;
-				case 4:	// MUST NOT EXIST
-					options = MUST_NOT_EXIST;	// will not overwrite any file unless dialogue to resolve
-					break;
-				default:
-					options = DONT_CARE;	// this to avoid compiler warning
-					pConsole->throw_error(ctx, "_wxFile invalid permission request ");
-				}
-*/
 			wxString filePath = resolveFileName(fileString, pConsole,  mode);
 			if (filePath == wxEmptyString) pConsole->throw_error(ctx, "_wxFile unable to resolve fileString " + fileString);
 			wxFileFcb control;
@@ -982,6 +874,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			wxString data;
 			bool ok = control.pFile->ReadAll(&data);
 			if (!ok) pConsole->throw_error(ctx, "_wxFile unable to read all text");
+			data = JScleanString(data);
 			duk_push_string(ctx, data);
 			return 1;
 			}
@@ -998,7 +891,13 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			size_t got = control.pFile->Read(p, count);
 			if (got == wxInvalidOffset) pConsole->throw_error(ctx, "_wxFile get invalid start with count");
 			if (got < count) duk_resize_buffer(ctx,-1, got);
-			if (action == 5) duk_buffer_to_string(ctx, -1);
+			if (action == 5){
+				duk_buffer_to_string(ctx, -1);
+				wxString data = duk_get_string(ctx, -1);
+				duk_pop(ctx);
+				data = JScleanString(data);
+				duk_push_string(ctx, data);
+				}
 			else duk_push_buffer_object(ctx, -1, 0, count, DUK_BUFOBJ_UINT8ARRAY);
 			return 1;
 			}			
@@ -1007,6 +906,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			int id = duk_get_number(ctx, 1);
 			wxString data = duk_get_string(ctx, 2);
 			duk_pop_n(ctx, nargs);	// clear call args
+			data.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
 			bool OK = control.pFile->Write(data);
 			duk_push_boolean(ctx, OK);
