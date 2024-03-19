@@ -324,8 +324,8 @@ void Console::OnTools( wxCommandEvent& event){
 void Console::HandleTimer(wxTimerEvent& event){
 	TRACE(66, wxString::Format("in HandleTimer "));
 	int id = event.GetId();
-	bool matched = false;
-	for (auto it = mpTimersVector.cbegin(); it != mpTimersVector.cend(); ++it){
+	if (mpTimersVector.empty()) return;
+	for (auto it = mpTimersVector.cbegin(); it < mpTimersVector.cend(); ++it){
 		auto entry = (*it);
 		if (entry.timer->GetId() == id){
 			wxString functionToCall = entry.functionName;
@@ -334,11 +334,10 @@ void Console::HandleTimer(wxTimerEvent& event){
 	    	duk_push_string(mpCtx, parameter.c_str());
 	    	Completions outcome = executeFunctionNargs(functionToCall, 1);
 	    	if (!isBusy()) wrapUp(outcome);
-	    	matched = true;
-	    	break;
+	    	return;
 	    	}	    
 		}
-	if (!matched) message(STYLE_RED, "HandleTimer prog error: failed to match timer ID");
+	message(STYLE_RED, "HandleTimer prog error: failed to match timer ID");
 	};
     
 

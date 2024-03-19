@@ -280,7 +280,7 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs > 3) pConsole->throw_error(ctx, "messageBox called with invalid number of args");
     wxString message = duk_get_string(ctx, 0);
-    message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+    message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
     if (nargs > 1){
         wxString arg2 = duk_get_string(ctx,1);
         if (arg2 == yesNo) buttonType = arg2;
@@ -472,15 +472,70 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     return(1);
     };
 
-static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
+void setupSeconds(duk_context *ctx, bool persistant){
+	// create a callback entry to call fuction with argument at timeToCall
+	// called with onSeconds(function, time [, parameter])
+	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+	int matched = -1;
     Console* pConsole = findConsoleByCtx(ctx);
-    pConsole->setTimedCallback(ctx, false);   // needs to be in a method - not persistent
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	if (nargs < 2){
+		if (nargs == 0) { // empty call - cancel all timers
+			pConsole->mpTimersVector.clear();
+			pConsole->mTimerActionBusy = false;
+			pConsole->mWaitingCached = false;   // force full isWaiting check
+			matched = 0;
+			}
+		else if (nargs == 1){ // cancel specified timer
+			duk_require_number(ctx, 0);
+			int id = duk_get_int(ctx, 0);
+			duk_pop(ctx);
+			if (pConsole->mpTimersVector.empty()) return;
+			for (auto it = pConsole->mpTimersVector.cbegin(); it != pConsole->mpTimersVector.cend(); ++it){
+				auto entry = (*it);
+				if (entry.timer->GetId() == id){
+					pConsole->mpTimersVector.erase(it);
+					matched = 1;
+					break;
+					}
+				}
+			}
+		duk_push_int(ctx, matched);
+		return;
+		}
+	if (pConsole->mpTimersVector.size() > MAX_TIMERS){
+		pConsole->throw_error(ctx, wxString::Format("onSeconds already have maximum %i timers outstanding", MAX_TIMERS));   // safety limit of timers);
+		}
+	// ready to go
+	wxString argument = wxEmptyString;
+	if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onSeconds within onExit function");
+	if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "onSeconds first argument must be function");
+	if (nargs > 3) pConsole->throw_error(ctx, "onSeconds requires no more than three arguments");
+	jsFunctionNameString_t functionToCall = extractFunctionName(ctx, 0);
+	int timeInt = (int) (duk_get_number(ctx, 1) * 1000);	//interval in msec
+	if (nargs == 3) argument = duk_to_string(ctx, 2);
+	duk_pop_n(ctx, nargs);	// finished with call
+	bool shots = persistant ? wxTIMER_CONTINUOUS : wxTIMER_ONE_SHOT;
+	timerEntry entry;
+	entry.functionName = functionToCall;
+	entry.parameter = argument;
+	entry.timer = make_shared<wxTimer>();
+	int id = entry.timer->GetId();
+	entry.timer->Bind(wxEVT_TIMER, &Console::HandleTimer, pConsole);
+	entry.timer->Start(timeInt, shots);
+	pConsole->mpTimersVector.push_back(entry);
+	TRACE(66, wxString::Format("setTimedCallback time %i, function %s  argument %s mpTimersVector length %i",
+		timeInt, functionToCall, argument, mpTimersVector.size())); 
+	duk_push_int(ctx, id); 
+	}
+
+static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
+	setupSeconds(ctx, false);
     return 1;
 	};
 	
 static duk_ret_t onAllSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
-    Console* pConsole = findConsoleByCtx(ctx);
-    pConsole->setTimedCallback(ctx, true);   // needs to be in a method - not persistent
+	setupSeconds(ctx, true);
     return 1;
 	};
 

@@ -89,7 +89,10 @@ WX_DECLARE_OBJARRAY(TimeActions, TimesArray);
 #include "wx/datetime.h"
 #define MAX_TIMERS 25   // safety limit of timers
 struct timerEntry {
-	std::shared_ptr <wxTimer>	timer;
+//	std::shared_ptr <wxTimer>	timer;
+//	wxTimer*					pTimer;
+//	std::shared_ptr <wxTimer>	pTimer;
+	std::shared_ptr<wxTimer>	timer;
 	jsFunctionNameString_t		functionName;
 	wxString					parameter;
 	};
@@ -240,7 +243,7 @@ public:
     bool        mTimerActionBusy;  // true while handling timer event to stop them piling up
     MessagesArray   mMessages;   // The messages call-back table
 //    TimesArray      mTimes;       // Timers call-back table
-	std::vector <timerEntry> mpTimersVector;
+	std::vector <timerEntry> mpTimersVector {};
 //	std::shared_ptr <wxTimer> mpTimer;
 	
     MenusArray      mMenus;         // Menus callback table
@@ -938,8 +941,7 @@ public:
 #endif
     
 	void clearCallbacks(){// clears all reasons a console might be called back
-//		mTimes.Clear();	//timers
-		mpTimersVector.clear();
+		/* if (!mpTimersVector.empty())*/  mpTimersVector.clear();
 		clearDialog();
 		clearAlert();
 		clearMenus();
@@ -1089,86 +1091,8 @@ public:
         }
         else result = _("<nil>\n");
         return (result);
-    }
+    }      
 
-/*
-    void setTimedCallback(jsFunctionNameString_t functionName, wxString argument, wxDateTime timeToCall){
-        // create a callback entry to call fuction with argument at timeToCall
-        size_t timersCount = this->mTimes.GetCount();
-        if (timersCount >= MAX_TIMERS){
-            // should not get here unless something wrong
-            wxMessageBox(_("Number of timers exceeding safety limit"), _("JavaScript plugin - setTimedCallback"));
-            return;
-            }
-        TimeActions newAction;
-        newAction.functionName = functionName;
-        newAction.argument = argument;
-        newAction.timeToCall = timeToCall;
-        mTimes.Add(newAction);
-        }
-*/        
-     
-	void setTimedCallback(duk_context *ctx, bool persistant){
-        // create a callback entry to call fuction with argument at timeToCall
-        // called with onSeconds(function, time [, parameter])
-    	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-        if (nargs == 0) { // empty call - cancel all timers
-//			mTimes.Clear();
-			mpTimersVector.clear();
-			mTimerActionBusy = false;
-			mWaitingCached = false;   // force full isWaiting check
-			return;
-			}
-		if (nargs == 1){ // cancel specified timer
-			duk_require_number(ctx, 0);
-			int id = duk_get_int(ctx, 0);
-			bool matched = false;
-			for (auto it = mpTimersVector.cbegin(); it != mpTimersVector.cend(); ++it){
-				auto entry = (*it);
-				if (entry.timer->GetId() == id){
-					mpTimersVector.erase(it);
-					matched = true;
-					break;
-					}
-				}
-			if (matched && !isBusy()) wrapUp(DONE);
-	    	return;
-			}
-		if (mpTimersVector.size() > MAX_TIMERS){
-			throw_error(ctx, wxString::Format("onSeconds already have maximum %i timers outstanding", MAX_TIMERS));   // safety limit of timers);
-			}
-		// ready to go
-        wxString argument = wxEmptyString;
-		if (mStatus.test(INEXIT)) throw_error(ctx, "onSeconds within onExit function");
-		if (!duk_is_function(ctx, 0)) throw_error(ctx, "onSeconds first argument must be function");
-		if (nargs > 3) throw_error(ctx, "onSeconds requires no moretrhan three arguments");
-		jsFunctionNameString_t functionToCall = extractFunctionName(ctx, 0);
-		int timeInt = (int) (duk_get_number(ctx, 1) * 1000);	//interval in msec
-		if (nargs == 3) argument = duk_to_string(ctx, 2);
-		duk_pop_n(ctx, nargs);	// finished with call
-		bool shots = persistant ? wxTIMER_CONTINUOUS : wxTIMER_ONE_SHOT;
-		std::shared_ptr<wxTimer> pTimer = std::shared_ptr<wxTimer>(new wxTimer(this, wxID_ANY));
-		int id = pTimer->GetId();
-		pTimer->Start(timeInt, shots);
-		TRACE(66, wxString::Format("A timer ID:: %i is %s",pTimer->GetId(), pTimer->IsRunning()?"is running":"is not running"));
-		// register this callback
-		timerEntry thisTimer;
-		thisTimer.timer = pTimer;
-		thisTimer.functionName = functionToCall;
-		thisTimer.parameter = argument;
-  		mpTimersVector.push_back(thisTimer);
-
-		Bind(wxEVT_TIMER, [&](wxTimerEvent& event){
-        	TRACE(66, wxString::Format("Timer event lambda"));
-        	HandleTimer(event);
-        	});
-			  		
-  		TRACE(66, wxString::Format("setTimedCallback time %i, function %s  argument %s mpTimersVector length %i",
-			timeInt, functionToCall, argument, mpTimersVector.size())); 
-		duk_push_int(ctx, id);  
-        }
-        
     void setConsoleMinClientSize(){
     	// store parameters in DIP but minSize set in physical size here
     	double scale = SCALE(this);
