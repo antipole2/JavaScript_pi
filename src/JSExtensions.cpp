@@ -102,9 +102,9 @@ wxString js_formOutput(duk_context *ctx){
                 findConsoleByCtx(ctx)->throw_error(ctx, "output - arg " + to_string(i) + " is undefined");
             default:
                 findConsoleByCtx(ctx)->throw_error(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
-        }
-    }
-output.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+	        }
+    	}
+	output.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
 #ifdef __WXMSW__
     wxString JScleanOutput(wxString given);
     output = JScleanOutput(output); // clean for Windows only
@@ -525,7 +525,7 @@ void setupSeconds(duk_context *ctx, bool persistant){
 	entry.timer->Start(timeInt, shots);
 	pConsole->mpTimersVector.push_back(entry);
 	TRACE(66, wxString::Format("setTimedCallback time %i, function %s  argument %s mpTimersVector length %i",
-		timeInt, functionToCall, argument, mpTimersVector.size())); 
+		timeInt, functionToCall, argument, pConsole->mpTimersVector.size())); 
 	duk_push_int(ctx, id); 
 	}
 
@@ -1007,10 +1007,14 @@ static duk_ret_t duk_mainThread(duk_context *ctx){ // check if in main thread
 static duk_ret_t jstest(duk_context *ctx){  // for testing when in harness
     int a = duk_get_int(ctx, 0);
     int b = duk_get_int(ctx, 1);
-    if (a == b){
-        duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, _("the arguments match"));
+    if ((a == b) && (a > 0)){
+        duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, _("the arguments match - duk_throw"));
         duk_throw(ctx);
         }
+    else if ((a == b) && (a == 0)) {
+        Console *pConsole = findConsoleByCtx(ctx);
+    	pConsole->throw_error(ctx, "the arguments are both zero - throw_error");
+    	}
     duk_push_int(ctx, a + b);
     return 1;
     }

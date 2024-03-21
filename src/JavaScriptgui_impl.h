@@ -269,7 +269,7 @@ public:
     // result handling - can be made explicit by scriptResult or stopScript
     bool        m_explicitResult;    // true if using explicit result
     wxString    m_result {wxEmptyString};   // the result if explicit
-    bool        m_hadError;     // true if unwinding from dukpate after throing error
+//  bool        m_hadError;     // true if unwinding from dukpate after throing error
     Brief       mBrief;         // brief for this console
     
     // file handling
@@ -458,7 +458,7 @@ public:
 		mWaitingCached = false;
 		m_explicitResult = false;
 		m_result = wxEmptyString;
-		m_hadError = false;
+//		m_hadError = false;
 		m_time_to_allocate = 1000;   //default time allocation (msecs)
 		mTimerActionBusy = false;
 		mDialog.pdialog = nullptr;
@@ -772,13 +772,15 @@ public:
 		wrapUpWorks(reason);
 		if (!isBusy()){
 			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
-
-				// save the enduring variable
-				duk_push_global_object(mpCtx);
-				int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
-				if (OK)	m_remembered = duk_json_encode(mpCtx, -1);
-				else m_remembered = "{}";	// play safe - if no -remember set as undefined
-				TRACE(100, mConsoleName + "->wrapUp() destroying ctx");
+				if (reason == DONE){	// save the enduring variable
+					TRACE(4, mConsoleName + "->wrapUp() will save _remember");
+					duk_push_global_object(mpCtx);
+					int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
+					if (OK)	m_remembered = duk_json_encode(mpCtx, -1);
+					else m_remembered = "{}";	// play safe - if no -remember set as undefined
+					duk_pop(mpCtx);
+					}
+				TRACE(4, mConsoleName + "->wrapUp() destroying ctx");
 				duk_destroy_heap(mpCtx);
 				mpCtx = nullptr;
 				}
@@ -981,9 +983,12 @@ public:
         m_explicitResult = true;    // supress result
         if (!duk_is_error(ctx, -1)){
             // we do not have an error object on the stack
+            TRACE(4, mConsoleName + "->throw_error() pushing error object to stack");
+            int n = duk_get_top(ctx);  // number of items on stack
+            if (n > 0) duk_pop_n(ctx, n);	// clear stack
             duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
             }
-        m_hadError = true;
+//      m_hadError = true;
         mRunningMain = false;
         duk_throw(ctx);   // we don't come back from this
         }
@@ -1023,7 +1028,7 @@ public:
         // either there is an error object on the stack or a message
         m_explicitResult = true;    // supress result
         m_result = duk_safe_to_string(ctx, -1);
-        m_hadError = true;
+//      m_hadError = true;
         duk_pop(ctx);
         this->message(STYLE_RED, _("From display_error ") +  m_result);
         }

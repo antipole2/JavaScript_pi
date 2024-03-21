@@ -305,7 +305,7 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     return 0;
     }
  
-#if 0 
+/*
 // this not working.  It's incredibly simple.
 // Can only think OPCN may be preventing it 
 duk_ret_t keyboardState(duk_context* ctx){
@@ -314,7 +314,7 @@ duk_ret_t keyboardState(duk_context* ctx){
 	duk_push_int(ctx,  modifiers);
 	return 1;
 	}
-#endif
+*/
 
 void register_console(duk_context *ctx){
     duk_push_global_object(ctx);
