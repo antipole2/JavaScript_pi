@@ -973,6 +973,7 @@ public:
 		run_button->SetLabel(_("Run"));
 		}
 		
+/*
     void throw_error(duk_context *ctx, wxString message){
         // throw an error from within c++ code called from running script
         // either there is an error object on the stack or a message
@@ -991,6 +992,24 @@ public:
 //      m_hadError = true;
         mRunningMain = false;
         duk_throw(ctx);   // we don't come back from this
+        }
+*/
+
+    void prep_for_throw(duk_context *ctx, wxString message){
+        // throw an error from within c++ code called from running script
+        // either there is an error object on the stack or a message
+        // Because of Windows, the actual throw has to be done after return
+        // ! do not call otherwise
+        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+        TRACE(4, mConsoleName + "->prep_for_throw() " + message);
+        m_result = wxEmptyString;    // supress result
+        m_explicitResult = true;    // supress result
+        if (!duk_is_error(ctx, -1)){
+            // we do not have an error object on the stack
+            TRACE(4, mConsoleName + "->prep_for_throw() pushing error object to stack");
+            duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
+            }
+        mRunningMain = false;
         }
     
     void message(int style, wxString message){
@@ -1407,7 +1426,10 @@ public:
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEA0183 within onExit function");
+        if (mStatus.test(INEXIT)){
+        	prep_for_throw(ctx, "OCPNonNMEA0183 within onExit function");
+        	duk_throw(ctx);
+        	}
         if (nargs == 0) { // empty call - cancel any waiting callbacks
 
         	m_NMEAmessageFunction = wxEmptyString;
@@ -1415,7 +1437,10 @@ public:
  			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NMEA0183);
             }
         else if (nargs == 1) {    // old-style general listen. Will be handled via th old mechanism 
-        	if (m_NMEAmessageFunction != wxEmptyString) throw_error(ctx, "OCPNonNMEA0183 called with general call outstanding");		
+        	if (m_NMEAmessageFunction != wxEmptyString){
+        		prep_for_throw(ctx, "OCPNonNMEA0183 called with general call outstanding");
+        		duk_throw(ctx);
+        		}		
             m_NMEAmessageFunction = extractFunctionName(ctx,0);
             m_NMEApersistance = persist;
             }
@@ -1426,8 +1451,10 @@ public:
 			messageCntl.messageType = MESSAGE_NMEA0183;
 			duk_require_string(ctx, 1);
 			wxString header = wxString(duk_to_string(ctx, 1));
-			if ((header.length() != 3) && (header.length() != 5))
-				throw_error(ctx, wxString::Format("OCPNonNMEA0183 called with identifier %s not 3 or 5 characters", header));
+			if ((header.length() != 3) && (header.length() != 5)){
+				prep_for_throw(ctx, wxString::Format("OCPNonNMEA0183 called with identifier %s not 3 or 5 characters", header));
+				duk_throw(ctx);
+				}
 			messageCntl.id0183 = wxString(header);
 			NMEA0183Id id(messageCntl.id0183.ToStdString());
 			wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
@@ -1440,7 +1467,10 @@ public:
 				});
 			m_streamMessageCntlsVector.push_back(messageCntl);
 			}
-        else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
+        else{
+        	prep_for_throw(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");
+        	duk_throw(ctx);
+        	}
 	    };
 	    
     void setupNMEA2k(duk_context *ctx, bool persist){
@@ -1449,7 +1479,10 @@ public:
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEA2k within onExit function");
+        if (mStatus.test(INEXIT)){
+        	prep_for_throw(ctx, "OCPNonNMEA2k within onExit function");
+        	duk_throw(ctx);
+        	}
         if (nargs == 0) { // empty call - cancel any waiting callbacks
  			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NMEA2K);
             }
@@ -1472,7 +1505,10 @@ public:
 				});
 			m_streamMessageCntlsVector.push_back(messageCntl);
 			}
-        else throw_error(ctx, "OCPNonNMEAsentence does not have 0 or 2 args");   
+        else{
+        	prep_for_throw(ctx, "OCPNonNMEAsentence does not have 0 or 2 args");
+        	duk_throw(ctx);
+        	}  
 	    };
     
     void setupNavigationStream(duk_context *ctx, bool persist){
@@ -1480,7 +1516,10 @@ public:
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNavigation within onExit function");
+        if (mStatus.test(INEXIT)){
+        	prep_for_throw(ctx, "OCPNonNavigation within onExit function");
+        	duk_throw(ctx);
+        	}
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
         if (nargs == 0) { // empty call - cancel any waiting callbacks
  			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NAVIGATION);

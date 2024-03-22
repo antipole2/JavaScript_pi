@@ -357,7 +357,10 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
 duk_ret_t onMessageNameGuts(duk_context *ctx , bool persist) {  // to wait for message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in JS call
     Console *pConsole = findConsoleByCtx(ctx);
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onMessageName within onExit function");
+    if (pConsole->mStatus.test(INEXIT)) {
+		pConsole->prep_for_throw(ctx, "onMessageName within onExit function");
+		duk_throw(ctx);
+		}
     if (nargs > 2) throwErrorByCtx(ctx, "OCPNonMessageName bad call");
     if (nargs == 0) { // empty call - cancel any waiting callback
         size_t messageCount = pConsole->mMessages.GetCount();
@@ -475,7 +478,10 @@ static duk_ret_t onNavigationAll(duk_context *ctx) {  // to wait for navigation 
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonActiveLeg within onExit function");
+    if (pConsole->mStatus.test(INEXIT)) {
+		pConsole->prep_for_throw(ctx, "OCPNonActiveLeg within onExit function");
+		duk_throw(ctx);
+		}
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_activeLegFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
@@ -511,14 +517,20 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
         pConsole->mWaitingCached = false;   // force full isWaiting check
         return(result);
         }
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonContextMenu within onExit function");
-    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "OCPNonContextMenu first argument must be function");
+    if (pConsole->mStatus.test(INEXIT)) {
+		pConsole->prep_for_throw(ctx, "OCPNonContextMenu within onExit function");
+		duk_throw(ctx);
+		}
+    if (!duk_is_function(ctx, 0)) {
+		pConsole->prep_for_throw(ctx, "OCPNonContextMenu first argument must be function");
+		duk_throw(ctx);
+		}
     menuCount = pConsole->mMenus.GetCount();
     if (menuCount >= MAX_MENUS){
-        pConsole->throw_error(ctx, "OCPNonContextMenu already have maximum menus outstanding");
+        pConsole->prep_for_throw(ctx, "OCPNonContextMenu already have maximum menus outstanding");
         }
     if ((nargs < 2) || (nargs > 3)){
-        pConsole->throw_error(ctx, "OCPNonContextMenu requires two or three arguments");
+        pConsole->prep_for_throw(ctx, "OCPNonContextMenu requires two or three arguments");
         }
     menuAction.functionName = extractFunctionName(ctx, 0);
     if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
@@ -526,7 +538,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     // check menuName not already in use
     for (int i = 0; i < menuCount; i++){
          if (pConsole->mMenus[i].menuName == menuName)
-             pConsole->throw_error(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
+             pConsole->prep_for_throw(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
         }
     menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
     menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
