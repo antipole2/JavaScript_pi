@@ -1,4 +1,5 @@
-/*
+ function getDescriptor(pgn, optionsArg){
+	/*
 	Here are the pgn descriptions from the canboat project in a function wrapper
     "Comment":"See https://github.com/canboat/canboat for the full source code",
     "CreatorCode":"Canboat NMEA2000 Analyzer",
@@ -11,10 +12,8 @@
 	To update, copy the descriptors inside the PGNs array [ ] and paste this replacing all within the [ } of the descriptors definition.
 	Be sure to leave the code beyondthe last descriptor.
 	Then run this script to check it compiles without errors.
-	For extra confidence, runthe N2k decode/encode tests in the test scripts.
-*/ 
-
-function getDescriptor(pgn, optionsArg){
+	For extra confidence, run the N2k decode/encode tests in the test scripts.
+	*/
 
 	unsupported = [
 	{pgn:130824, reason:"multiple descriptions leave ambiguity"}

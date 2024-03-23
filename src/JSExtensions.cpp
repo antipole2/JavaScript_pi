@@ -492,6 +492,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     duk_push_string(ctx, resolved); // the file name for trace back
     if (duk_pcompile(ctx, DUK_COMPILE_FUNCTION)){
         pConsole->prep_for_throw(ctx, duk_safe_to_string(ctx, -1));
+        duk_throw(ctx);
         }
     return(1);
     };
@@ -995,9 +996,9 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			wxString data;
 			bool ok = control.pFile->ReadAll(&data);
 			if (!ok) {
-		pConsole->prep_for_throw(ctx, "_wxFile unable to read all text");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile unable to read all text");
+				duk_throw(ctx);
+				}
 			data = JScleanString(data);
 			duk_push_string(ctx, data);
 			return 1;
@@ -1006,23 +1007,23 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 		case 6:	// get bytes
 			{ // call was (5|6, id, number)
 			if (nargs < 3) {
-		pConsole->prep_for_throw(ctx, "_wxFile get no count");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile get no count");
+				duk_throw(ctx);
+				}
 			int id = duk_get_number(ctx, 1);
 			size_t count = duk_get_number(ctx, 2);
 			duk_pop_n(ctx, nargs);	// clear call args
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
 			if (count < 1) {
-		pConsole->prep_for_throw(ctx, "_wxFile get invalid count");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile get invalid count");
+				duk_throw(ctx);
+				}
 			void* p = duk_push_dynamic_buffer(ctx, count);
 			size_t got = control.pFile->Read(p, count);
 			if (got == wxInvalidOffset) {
-		pConsole->prep_for_throw(ctx, "_wxFile get invalid start with count");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile get invalid start with count");
+				duk_throw(ctx);
+				}
 			if (got < count) duk_resize_buffer(ctx,-1, got);
 			if (action == 5){
 				duk_buffer_to_string(ctx, -1);
@@ -1081,7 +1082,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 	}
 	
 
-#ifdef DUK_DUMP
+#if DUK_DUMP
 
 static duk_ret_t duk_mainThread(duk_context *ctx){ // check if in main thread
     duk_push_boolean(ctx, wxThread::IsMain());
@@ -1343,7 +1344,7 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
 
 
 
-#ifdef DUK_DUMP
+#if DUK_DUMP
     duk_push_string(ctx, "JS_throw_test");
     duk_push_c_function(ctx, jstest, 2 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
