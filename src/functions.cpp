@@ -96,7 +96,7 @@ void fatal_error_handler(void *udata, const char *msg) {
 	 given.Replace(DEGREE, PSEUDODEGREE, true);	// use substitute character
 //   given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
-     given.Replace("\r\n", "\n", true):		// drop CR inserted by Windows for new line  v3
+     given.Replace("\r\n", "\n", true);	// drop CR inserted by Windows for new line  v3
      return (given);
      }
 
