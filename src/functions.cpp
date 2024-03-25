@@ -79,9 +79,16 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString backprime    {"\u0060"};
 //     const wxString bell		{"\u0007"};		// Bell used for internal representation of º
  #ifndef __WXMSW__   // Don't try this one on Windows
-     const wxString prime        {"\u2032"};     
+     const wxString prime        {"\u2032"};
      given.Replace(prime, apostrophe, true);
  #endif  // __WXMSW__
+ #ifdef __WINDOWS__
+	const wxString o_umlaut	{"\u00F6"};
+     const wxString u_umlaut	{"\u00FC"};
+     given.Replace(o_umlaut, "oe", true);
+	 given.Replace(u_umlaut, "ue", true);
+ #endif
+ 
      given.Replace(leftQuote, quote, true);
      given.Replace(reverseQuote, apostrophe, true);
      given.Replace(leftDQuote, quote, true);

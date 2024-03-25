@@ -820,7 +820,7 @@ static duk_ret_t duk_execute(duk_context *ctx){
 		keys.Add("PATH");
 		keys.Add("PWD");
 		keys.Add("SHELL");
-		for (i =0; i < keys.GetCount(); i++){
+		for (i = 0; i < keys.GetCount(); i++){
 			wxString key = keys[i];
 			duk_push_string(ctx, key);
 			if (duk_get_prop(ctx, env_obj_idx)){	// key exists

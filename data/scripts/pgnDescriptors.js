@@ -46013,7 +46013,7 @@
 		else throw("getDescriptor - 2nd argument not options");
 		}
 	if (!returnAll){
-		for (i = 0; i < unsupported.length; i++){
+		for (var i = 0; i < unsupported.length; i++){
 			if (unsupported[i].pgn == pgn) throw("pgn " + pgn + " unsupported - " + unsupported[i].reason);
 			}
 		}
@@ -46025,7 +46025,7 @@
 		return toReturn;
 		}
 	else {
-		for (i = 0; i < descriptors.length; i++){
+		for (var i = 0; i < descriptors.length; i++){
 			if (descriptors[i].PGN == pgn){
 				if (descriptors[i].RepeatingFieldSet2StartField != void 0)
 					throw("Descriptor for pgn " + pgn + " has more than one repeating field - not supported");
