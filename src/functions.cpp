@@ -347,6 +347,13 @@ wxString getTextFile(wxString fileString, wxString* pText){
     if (!inputFile.Exists(fileString)) return("readTextFile " + fileStringCopy + " not found");
     bool ok = inputFile.Open(fileString);
     if (!ok) return(wxString::Format("readTextFile %s cannot be opened - error code %d", fileStringCopy, inputFile.GetLastError()));
+    // the file can be big, so we will allocated buffer space
+    wxFileOffset length = inputFile.Length();
+#if TRACE_YES
+    wxString message = wxString::Format("geTextFile file %s is length %d", fileString, length);
+    TRACE(64, message);
+#endif
+	wxStringBuffer(*pText, length+10);
 	ok = inputFile.ReadAll(pText);
 	if (tmp_file_name != wxEmptyString) wxRemoveFile(tmp_file_name);	// if created one
     if (!ok) return(wxString::Format("readTextFile %s cannot read file - error code %d", fileStringCopy, inputFile.GetLastError()));
