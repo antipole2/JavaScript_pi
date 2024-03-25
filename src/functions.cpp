@@ -194,11 +194,11 @@ jsFunctionNameString_t extractFunctionName(duk_context *ctx, duk_idx_t idx){
 
 #if TRACE_YES
 #if TRACE_TO_WINDOW 
-wxWindow *JStraceWindow;
-wxTextCtrl *JStraceTextCtrl {nullptr};
+//wxWindow *JStraceWindow;
+//wxTextCtrl *JStraceTextCtrl {nullptr};
 void windowTrace(int level, wxString text){
     // implements tracing to a separate window
-    if (!JStraceTextCtrl){
+    if (pJavaScript_pi->mpTraceWindow == nullptr){
         // the first time to trace
 #if SCREEN_RESOLUTION_AVAILABLE
         wxPoint position = pJavaScript_pi->m_parent_window->FromDIP(wxPoint(800, 100));
@@ -207,16 +207,16 @@ void windowTrace(int level, wxString text){
         wxPoint position = wxPoint(800, 100);
         wxSize size = wxSize(700, 500);
 #endif
-         JStraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
+        pJavaScript_pi->mpTraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
          	wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP|wxRESIZE_BORDER);
-        JStraceTextCtrl = new wxTextCtrl(JStraceWindow, wxID_NEW,
+        pJavaScript_pi->mpTraceTextCtrl = new wxTextCtrl( pJavaScript_pi->mpTraceWindow, wxID_NEW,
                               wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                               wxTE_MULTILINE);
         }
     try{ 	// Use try in case window has been closed
-	    JStraceTextCtrl->AppendText(text + "\n");
-	    JStraceWindow->Raise();
-	    JStraceWindow->Show();
+	    pJavaScript_pi->mpTraceTextCtrl->AppendText(text + "\n");
+	    pJavaScript_pi->mpTraceWindow->Raise();
+	     pJavaScript_pi->mpTraceWindow->Show();
 	    }
 	catch(int i) {};
     return;

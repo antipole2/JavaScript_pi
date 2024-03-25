@@ -112,7 +112,7 @@ public:
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
 
-    Console         *mpFirstConsole;   // pointer to the first console
+    Console*		mpFirstConsole;   // pointer to the first console
     Console*        mpBin;      // the bin for consoles to be deleted
     bool            mpPluginActive {false};
     wxWindow        *m_parent_window;
@@ -142,6 +142,11 @@ public:
 	bool			m_bShowJavaScript;
 	
 	std::vector<pgn_registration> m_pgnRegistrations;	// will hold N2K pgn registrations here
+	
+#if TRACE_YES
+	wxWindow*		mpTraceWindow	{nullptr};
+	wxTextCtrl*		mpTraceTextCtrl {nullptr};	
+#endif
 
 private:
     wxBitmap        m_panelBitmap;

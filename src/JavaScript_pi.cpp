@@ -221,7 +221,10 @@ bool JavaScript_pi::DeInit(void) {
     SetToolbarItemState(m_leftclick_tool_id, mpPluginActive);
     RequestRefresh(m_parent_window); // refresh main window
     wxLogMessage("JavaScript completed deinit");
-    TRACE(1,"JavaScript_pi->DeInit() returning");    
+    TRACE(1,"JavaScript_pi->DeInit() returning");
+#if TRACE_YES
+	if (mpTraceWindow != nullptr) delete mpTraceWindow;
+#endif
     return true;
     }
 

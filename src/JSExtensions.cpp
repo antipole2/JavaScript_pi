@@ -471,11 +471,12 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
             TRACE(45, "Require - looking to load built-in script: " + filePath.GetFullPath());
             if (!filePath.FileExists()){
                 pConsole->prep_for_throw(ctx, "require - " + fileNameGiven + " not in built-in scripts");
+                duk_throw(ctx);
                 }
             if (!filePath.IsFileReadable()) {
-		pConsole->prep_for_throw(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "readTextFile " + filePath.GetFullPath() + " not readable");
+				duk_throw(ctx);
+				}
             // ready to go
             resolved = filePath.GetFullPath();
             TRACE(45, "Require - found built-in script");
@@ -487,6 +488,10 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
         }
     TRACE(45, "Require - resolved to: " + resolved);
     outcome = getTextFile(resolved, &script);
+    if (outcome != wxEmptyString){
+    	pConsole->prep_for_throw(ctx, "require readTextFile error: " + outcome);
+		duk_throw(ctx);
+    	}
     script = JScleanString(script);
     duk_push_string(ctx, script);
     duk_push_string(ctx, resolved); // the file name for trace back
