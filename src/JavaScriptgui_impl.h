@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -1286,7 +1286,7 @@ public:
         count =(int)this->mMessages.GetCount();
         if (count == 0) dump += _("\t(empty)\n");
         else {
-            for (i = 0; i < count; i++){
+            for (var i = 0; i < count; i++){
             	 dump += "\t" + this->mMessages[i].messageName;
             	 if (this->mMessages[i].functionName == wxEmptyString) dump += "\n";
             	 else dump += "\t\t" + this->mMessages[i].functionName + "\t" + ((this->mMessages[i].persist)?"persistant":"one-time") + "\n";
@@ -1298,7 +1298,7 @@ public:
         count = mpTimersVector.size();
         if (count == 0) dump += _("\t(empty)\n");
         else {
-            for (i = 0; i < count; i++){
+            for (var i = 0; i < count; i++){
                 dump += _("\t") + ((mpTimersVector[i].timer->IsOneShot())?"One shot ": "Repeating") + "\t"
                 	 + mpTimersVector[i].functionName +_("\t") + mpTimersVector[i].parameter + _("\n");
                 }
@@ -1307,7 +1307,7 @@ public:
         count = (int)this->mMenus.GetCount();
         if (count == 0) dump += _("\t(empty)\n");
         else {
-            for (i = 0; i < count; i++){
+            for (var i = 0; i < count; i++){
                 dump += _("\t") + this->mMenus[i].menuName +_("\t") + this->mMenus[i].functionName +_("\t") + this->mMenus[i].argument + _("\n");
                 }
             }
@@ -1316,7 +1316,7 @@ public:
         count = (int)this->mSockets.GetCount();
         if (count == 0) dump += _("\t(empty)\n");
         else {
-            for (i = 0; i < count; i++){
+            for (var i = 0; i < count; i++){
                 dump += wxString::Format("\tID %i\t%s\t%s\n", this->mSockets[i].socketID, this->mSockets[i].functionName,this->mSockets[i].argument);
                 }
             }
