@@ -83,10 +83,14 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(prime, apostrophe, true);
  #endif  // __WXMSW__
  #ifdef __WINDOWS__
-	const wxString o_umlaut	{"\u00F6"};
-     const wxString u_umlaut	{"\u00FC"};
-     given.Replace(o_umlaut, "oe", true);
+	 const wxString o_umlaut	{"\u00F6"};		// ö
+	 const wxString O_umlaut	{"\u00D6"};		// ö
+	 const wxString u_umlaut	{"\u00FC"};	// ü
+	 const wxString U_umlaut	{"\u00DC"};	// ü
+	 given.Replace(o_umlaut, "oe", true);
+	 given.Replace(O_umlaut, "OE", true);
 	 given.Replace(u_umlaut, "ue", true);
+	 given.Replace(U_umlaut, "UE", true);
  #endif
  
      given.Replace(leftQuote, quote, true);
