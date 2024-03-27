@@ -1160,7 +1160,10 @@ public:
         TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
         	mConsoleName, GetMinSize().x, GetMinSize().y)); 
 		wxSize size = GetMinClientSize();
-		size.y = 20;	// we are zeroing the client size	// should be 0 ******************
+		size.y = 0;	// we are zeroing the client size
+#if defined(__LINUX__)
+		size.y = 1;	// Linux does not work if y is 0
+#endif
     	SetClientSize(size);
     	TRACE(25, wxString::Format("%s->park() readback of client size X:%i  Y:%i",
         	mConsoleName, GetClientSize().x, GetClientSize().y)); 
