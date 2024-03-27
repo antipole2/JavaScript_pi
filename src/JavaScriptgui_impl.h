@@ -1161,7 +1161,11 @@ public:
         	mConsoleName, GetMinSize().x, GetMinSize().y)); 
 		wxSize size = GetMinClientSize();
 		size.y = 0;	// we are zeroing the client size
-    	SetClientSize(size);	
+    	SetClientSize(size);
+    	TRACE(25, wxString::Format("%s->park() readback of client size X:%i  Y:%i",
+        	mConsoleName, GetClientSize().x, GetClientSize().y)); 
+        TRACE(25, wxString::Format("%s->park() readback of size X:%i  Y:%i",
+        	mConsoleName, GetSize().x, GetSize().y));
     	if (m_parkedLocation.set){	// have a parking slot
     	    TRACE(25, wxString::Format("%s->park() reparking", mConsoleName));
     		m_parkedLocation.size = GetSize();
