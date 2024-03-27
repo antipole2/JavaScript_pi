@@ -133,7 +133,7 @@ duk_ret_t print_coloured(duk_context *ctx, int colour) {   // print arguments on
     Console *pConsole = findConsoleByCtx(ctx);
     
     pConsole->Show(); // make sure console is visible
-    pConsole->unPark();
+	pConsole->makeBigEnough();
     output_window = pConsole->m_Output;
     appendStyledText(js_formOutput(ctx),output_window, colour);
     limitOutput(output_window);

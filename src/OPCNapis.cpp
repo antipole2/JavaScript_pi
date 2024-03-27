@@ -1391,7 +1391,9 @@ static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
 	if (nargs > 0) soundFile = resolveFileName(duk_get_string(ctx, 0), pConsole, 0);
 	else {
 	    wxString* directory = GetpSharedDataLocation();
+TRACE(999, *directory);
     	soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
+TRACE(999, soundFile);
     	}
     duk_pop_n(ctx, nargs);
 	bool OK = false;

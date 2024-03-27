@@ -1016,7 +1016,6 @@ public:
         void limitOutput(wxStyledTextCtrl* pText);
         message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(5,mConsoleName + "->message() " + message);
-        unPark();
         Show(); // make sure console is visible
     	makeBigEnough();
         wxStyledTextCtrl* output_window = m_Output;
@@ -1034,7 +1033,10 @@ public:
         }
         
     void makeBigEnough(){	// ensure console at least minimum size
-    	if (isParked()) unPark();
+    	if (isParked()){
+			unPark();
+			this->message(STYLE_ORANGE,"Console unparked to show message");	// recursing!
+			}
     	wxSize consoleSize = ToDIP(this->GetSize());	// using DIP size here
         if ((consoleSize.x < 200)|| (consoleSize.y < 400)){
         	consoleSize = FromDIP(wxSize(680,700));		// back to actual size
@@ -1165,36 +1167,41 @@ public:
     		m_parkedLocation.size = GetSize();
     		setLocation(m_parkedLocation);	// repark
     		m_parked = true;
+    		TRACE(25, wxString::Format("%s->park() finished reparking", mConsoleName));
     		return;
     		}
-    	// first time parked - find horizontal place available avoiding other parked consoles
-    	for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){
-    		// for each console
-    		int rhe {0};	// right hand edge within frame
-            if (pC == this) continue;	// omit ourselves console from check            
-            if (pC->isParked()){
-				foundParked = true;
-				wxPoint pCFramePos = pC->GetPosition();
-				rhe = pCFramePos.x + pC->GetMinSize().x;
-				}
-			else if (pC->m_parkedLocation.set) {// not parked but has a parking place
-				foundParked = true;
-				rhe = pC->m_parkedLocation.position.x + pC->m_parkedLocation.size.x;
-				}
-			if (rhe > rightMost) rightMost = rhe;
-			} 
-    	int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
-		m_parkedLocation.position = wxPoint(newX, pJavaScript_pi->m_parkingLevel);
-		m_parkedLocation.size = GetSize();
-		m_parkedLocation.set = true;
-    	setLocation(m_parkedLocation);
-        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
-//		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
-//		m_parkedLocation = getLocation();
-        m_parked = true;
+    	else {// first time parked - find horizontal place available avoiding other parked consoles
+    	    TRACE(25, wxString::Format("%s->park() parking first time", mConsoleName));
+    		for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){
+				// for each console
+				int rhe {0};	// right hand edge within frame
+				if (pC == this) continue;	// omit ourselves console from check            
+				if (pC->isParked()){
+					foundParked = true;
+					wxPoint pCFramePos = pC->GetPosition();
+					rhe = pCFramePos.x + pC->GetMinSize().x;
+					}
+				else if (pC->m_parkedLocation.set) {// not parked but has a parking place
+					foundParked = true;
+					rhe = pC->m_parkedLocation.position.x + pC->m_parkedLocation.size.x;
+					}
+				if (rhe > rightMost) rightMost = rhe;
+				} 
+			int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
+			m_parkedLocation.position = wxPoint(newX, pJavaScript_pi->m_parkingLevel);
+			m_parkedLocation.size = GetSize();
+			m_parkedLocation.set = true;
+			setLocation(m_parkedLocation);
+			TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
+	//		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
+	//		m_parkedLocation = getLocation();
+			m_parked = true;
+			}
     	}
     	
     void unPark(){	//unpark this Console
+    	TRACE(25, wxString::Format("%s->unpark() called with parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
+
     	if (!isParked()) return;
     	m_parkedLocation = getLocation();	// remember where we parked
     	if (!m_notParkedLocation.set){	// have no unparked location - invent one
@@ -1203,6 +1210,8 @@ public:
 			m_notParkedLocation.set = true;
 			}
     	setLocation(m_notParkedLocation);
+    	TRACE(25, wxString::Format("%s->unpark() completed to X:%i   Y:%i frame", mConsoleName, m_notParkedLocation.position.x, m_notParkedLocation.position.y));
+
     	m_parked = false;    	
     	}
     	
@@ -1214,7 +1223,7 @@ public:
     	wxPoint posNow = GetPosition();
     	if ((abs(posNow.y - m_parkedLocation.position.y) < 4)){  // still parked (allowing small margin for error )
     		TRACE(25, wxString::Format("%s->isParked() found is parked", mConsoleName));
-    		m_parkedLocation.position = posNow;	// update in case position moved within park
+ //   		m_parkedLocation.position = posNow;	// update in case position moved within park
     		return true;
     		}
     	m_parked = false;	// has been moved

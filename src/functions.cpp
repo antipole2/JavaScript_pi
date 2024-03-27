@@ -171,19 +171,18 @@ wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the 
     return point;
     }
 
-Console *findConsoleByCtx(duk_context *ctx){
+Console* findConsoleByCtx(duk_context *ctx){
     // given a duktape context, return pointer to the console
     void throwErrorByCtx(duk_context *ctx, wxString message);
-    Console *m_pConsole;
+    Console* pConsole;
     
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
-        if (m_pConsole->mpCtx == ctx) return m_pConsole;
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        if (pConsole->mpCtx == ctx) return pConsole;
         }
     // failed to match - emit an error message
     wxMessageBox( wxT("findConsoleByCtx failed to match console"), wxT("JavaScript_pi program error"), wxICON_ERROR);
-    return nullptr;
     // or maybe we will return the first console anyway
-    return pJavaScript_pi->mpFirstConsole;
+    return pJavaScript_pi->mpFirstConsole;	//to avoid crash
 }
 
 void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw error message
