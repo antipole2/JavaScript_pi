@@ -1160,7 +1160,7 @@ public:
         TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
         	mConsoleName, GetMinSize().x, GetMinSize().y)); 
 		wxSize size = GetMinClientSize();
-		size.y = 0;	// we are zeroing the client size
+		size.y = 20;	// we are zeroing the client size	// should be 0 ******************
     	SetClientSize(size);
     	TRACE(25, wxString::Format("%s->park() readback of client size X:%i  Y:%i",
         	mConsoleName, GetClientSize().x, GetClientSize().y)); 
@@ -1171,7 +1171,9 @@ public:
     		m_parkedLocation.size = GetSize();
     		setLocation(m_parkedLocation);	// repark
     		m_parked = true;
-    		TRACE(25, wxString::Format("%s->park() finished reparking", mConsoleName));
+    		TRACE(25, wxString::Format("%s->park() readback of parked size X:%i  Y:%i",
+        	mConsoleName, GetSize().x, GetSize().y));
+    		TRACE(25, wxString::Format("%s->park() finished re-parking", mConsoleName));
     		return;
     		}
     	else {// first time parked - find horizontal place available avoiding other parked consoles
