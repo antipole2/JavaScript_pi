@@ -16,16 +16,18 @@
 // 
 //USE:  TRACE(level, wxString); will display if level >= TRACE_LEVEL
 // output will go to log or, if in harness, to stdout or to a window
-#define TRACE_YES 	true // if true, include TRACE code. Should be false in release
+#define TRACE_YES 	false // if true, include TRACE code. Should be false in release
+#define TRACE_LEVEL_0	false
 #define TRACE_MAX	25	// TRACE level range   (Level 0 always traced)
 #define TRACE_MIN	25
+#define TRACE_THIS  0	// specific level to trace, else 0
 #define TRACE_TO_WINDOW true     // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout
 #if TRACE_TO_WINDOW
     // trace to window goes here
     void windowTrace(int level, wxString text);
     inline void ptrace(int level, wxString text){
-        if ((level == 0) || ((level <= TRACE_MAX) && (level >= TRACE_MIN))) windowTrace(level, wxString::Format("L%d\t%s", level, text));
+        if ((TRACE_LEVEL_0 && (level == 0)) || ((TRACE_THIS != 0) && (level == TRACE_THIS)) || ((level <= TRACE_MAX) && (level >= TRACE_MIN))) windowTrace(level, wxString::Format("L%d\t%s", level, text));
         }
 #else   // TRACE_TO_WINDOW false
     #ifdef IN_HARNESS

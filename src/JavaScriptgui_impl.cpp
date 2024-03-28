@@ -148,8 +148,8 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
     wxDialog query;
     
     wxFileDialog SaveAsConsole( this, _( "Saving your script" ), wxEmptyString, wxEmptyString,
-                               _T("js files (*.js)|*.js|All files (*.*)|*.*"),
-                               wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxDD_NEW_DIR_BUTTON);
+    				"JavaScript files (*.js)|*.js",
+                    wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxDD_NEW_DIR_BUTTON);
     response = SaveAsConsole.ShowModal();
     if( response == wxID_OK ) {
         filePath = SaveAsConsole.GetPath();

@@ -216,6 +216,8 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
+    dump += (wxString::Format("Platform\t%s\n", wxGetOsDescription()));
+    dump += (wxString::Format("Architecture\t%s\n", wxGetNativeCpuArchitectureName()));
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
