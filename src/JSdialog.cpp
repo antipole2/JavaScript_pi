@@ -92,7 +92,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
             else if (elementType == "tickList"){
                 wxCheckListBox *tickListBox = wxDynamicCast(window->FindWindowById(it->itemID), wxCheckListBox);
                 duk_push_array(ctx);
-                for (int j = 0, k = 0; j < tickListBox->GetCount(); j++){
+                for (unsigned int j = 0, k = 0; j < tickListBox->GetCount(); j++){
                     if (tickListBox->IsChecked(j)){
                         duk_push_string(ctx, JScleanString(tickListBox->GetString(j)));
                         duk_put_prop_index(ctx, -2, k++);
@@ -380,7 +380,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     	pConsole->prep_for_throw(ctx, "onDialog error: tickList has empty value array");
                     	duk_throw(ctx);
                     	}
-                    for (int j = 0; j < listLength; j++) {
+                    for (unsigned int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);

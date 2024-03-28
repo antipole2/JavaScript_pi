@@ -935,18 +935,20 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			int mode =  duk_get_int(ctx, 3);
 			wxString filePath = resolveFileName(fileString, pConsole,  mode);
 			if (filePath == wxEmptyString) {
-		pConsole->prep_for_throw(ctx, "_wxFile unable to resolve fileString " + fileString);
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile unable to resolve fileString " + fileString);
+				duk_throw(ctx);
+				}
 			wxFileFcb control;
 			control.pFile = new wxFile;
 			bool ok;
 			if (mode == 1) ok = control.pFile->Create(filePath, true);	// overwrite any existing file
 			else ok = control.pFile->Open(filePath, openMode[mode]);
 			if (!ok) {
-		pConsole->prep_for_throw(ctx, "_wxFile unable to open file " + filePath);
-		duk_throw(ctx);
-		}
+//				pConsole->prep_for_throw(ctx, "_wxFile unable to open file " + filePath);
+				pConsole->prep_for_throw(ctx, wxString::Format("_wxFile unable to open file %s error %d", filePath, control.pFile->GetLastError()));
+
+				duk_throw(ctx);
+				}
 			pConsole->m_wxFileFcbs.push_back(control);
 
 			// set up finalisation

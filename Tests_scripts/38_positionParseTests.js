@@ -13,7 +13,7 @@ expected = [
 	];
 
 
-Position = require("/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/data/scripts/Position.js");
+Position = require("Position");
 
 errors = 0;
 for (t = 0; t < tests.length; t++){

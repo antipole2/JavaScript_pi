@@ -493,7 +493,7 @@ bool JavaScript_pi::SaveConfig(void)
         // now to save the recent files list - if any
         if (recentFiles.GetCount() > 0){
 			wxString recents;
-			for (int i = 0; i < recentFiles.GetCount(); i++){
+			for (unsigned int i = 0; i < recentFiles.GetCount(); i++){
 				recents += recentFiles.Item(i) + ";";        	
 				}
 			recents = recents.BeforeLast(wxString(";").Last());	// drop last :
@@ -503,7 +503,7 @@ bool JavaScript_pi::SaveConfig(void)
         // and the favourite files list - if any
         if (favouriteFiles.GetCount() > 0){
             wxString favourites;
-            for (int i = 0; i < favouriteFiles.GetCount(); i++){
+            for (unsigned int i = 0; i < favouriteFiles.GetCount(); i++){
                 favourites += favouriteFiles.Item(i) + FS;
                 }
             favourites = favourites.BeforeLast(wxString(FS).Last());    // drop last :
