@@ -104,7 +104,14 @@ wxString js_formOutput(duk_context *ctx){
                 findConsoleByCtx(ctx)->prep_for_throw(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
 	        }
     	}
-	output.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+//    wxString what;
+//    what = wxString::Format("PSEUDODEGREE is %s", PSEUDODEGREE);
+//   TRACE(123, what);
+//    what = wxString::Format("DEGREE is %s",DEGREE);
+//    TRACE(123, what);
+//    TRACE(123, "Before: " + output);
+	output.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
+//	TRACE(123, "After: " + output);
 #ifdef __WXMSW__
     wxString JScleanOutput(wxString given);
     output = JScleanOutput(output); // clean for Windows only

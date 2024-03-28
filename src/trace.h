@@ -20,7 +20,7 @@
 #define TRACE_LEVEL_0	false
 #define TRACE_MAX	25	// TRACE level range   (Level 0 always traced)
 #define TRACE_MIN	25
-#define TRACE_THIS  0	// specific level to trace, else 0
+#define TRACE_THIS  123	// specific level to trace, else 0
 #define TRACE_TO_WINDOW true     // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout
 #if TRACE_TO_WINDOW

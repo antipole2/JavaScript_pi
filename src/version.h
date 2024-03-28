@@ -30,9 +30,9 @@ Changes are highlighted in the User Guide and listed in its Appendix A"
 #define SCREEN_RESOLUTION_AVAILABLE false
 #endif
 
-#define	DEGREE		  {"\u00B0"}	// real degree character
+#define	DEGREE		  "\u00B0"	// real degree character
 #ifdef __WINDOWS__
-#define PSEUDODEGREE  {"\u0007"}	// substitute character for degree - bell
+#define PSEUDODEGREE  "\u0007"	// substitute character for degree - bell
 #else
 #define PSEUDODEGREE  DEGREE	// keep it as real degree
 #endif
