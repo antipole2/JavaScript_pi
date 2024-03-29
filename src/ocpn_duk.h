@@ -16,7 +16,7 @@
 #ifndef OCPN_DUK_H
 #define OCPN_DUK_H
 
-#define DUK_DUMP true
+#define DUK_DUMP false
 #if DUK_DUMP
 #define MAYBE_DUK_DUMP duk_push_context_dump(ctx);pConsole->message(STYLE_ORANGE, "", "Duktape context dump:\n"+duk_to_string(ctx, -1)+"\n");duk_pop(ctx);
 #define ERROR_DUMP {pConsole->message(STYLE_ORANGE, "", "error dump\n"+(duk_is_error(ctx, -1)?(_("Error object with " )+duk_safe_to_string(ctx, -1)+"\n"):"No error object\n"));}\
