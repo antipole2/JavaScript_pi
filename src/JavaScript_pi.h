@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -107,11 +107,12 @@ public:
     bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     void ShowTools (wxWindow* m_parent_window, int page);
+    void SetCurrentViewPort(PlugIn_ViewPort &vp);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
 
-    Console         *mpFirstConsole;   // pointer to the first console
+    Console*		mpFirstConsole;   // pointer to the first console
     Console*        mpBin;      // the bin for consoles to be deleted
     bool            mpPluginActive {false};
     wxWindow        *m_parent_window;
@@ -123,11 +124,12 @@ public:
     PlugIn_Position_Fix_Ex  m_positionFix;  // latest position fix - if none yet, time is NULL
     Plugin_Active_Leg_Info m_activeLeg;     // latest active leg info
     Position        mCursorPosition;     // latest cursor position
+    PlugIn_ViewPort m_currentViewPort;
     bool			m_showHelp {false};		// show help during first showing of consoles
     bool			m_floatOnParent {true};	//set the wxSTAY_ON_TOP style for windows
     
     // console parking all stored in DIP units
-    bool			m_parkingBespoke {true};	// true if using bespoke parking parameters
+    bool			m_parkingBespoke {false};	// true if using bespoke parking parameters
     int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length
     int				m_parkingLevel {PARK_LEVEL};			// level below frame of parking
     int				m_parkFirstX {PARK_FIRST_X};			// inset of first park place from left edge of frame
@@ -140,10 +142,15 @@ public:
 	bool			m_bShowJavaScript;
 	
 	std::vector<pgn_registration> m_pgnRegistrations;	// will hold N2K pgn registrations here
+	
+#if TRACE_YES
+	wxWindow*		mpTraceWindow	{nullptr};
+	wxTextCtrl*		mpTraceTextCtrl {nullptr};	
+#endif
 
 private:
     wxBitmap        m_panelBitmap;
-    bool            m_bJavaScriptShowIcon;
+    bool            m_bJavaScriptShowIcon {true};
     bool            LoadConfig(void);
     };
 

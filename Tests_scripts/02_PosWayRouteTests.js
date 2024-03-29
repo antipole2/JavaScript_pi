@@ -200,8 +200,7 @@ catch(error){ throw("Deleting the updated waypoint failed"); }
 delete testWaypoint; delete readWaypoint; delete updatedWaypoint;
 rawWaypoint = {position: {latitude:51,longitude:11}, markName:"Test mark"};
 fullWaypoint = new Waypoint(rawWaypoint);
-summaryShouldBe = "Mark Test mark is at 51" + String.fromCharCode(176)
-	+ " 00.000'N 011" + String.fromCharCode(176) + " 0.000'E";
+summaryShouldBe = "Mark Test mark is at 51º 00.000'N 011º 0.000'E";
 if (fullWaypoint.summary() != summaryShouldBe){
 	report("Constructing fullwaypoint failed: " + summaryShouldBe + " " +fullWaypoint.summary() + "\n");
 	OK = false;
@@ -408,3 +407,4 @@ if (!tryError) printOrange("Failed to delete track\n");
 if (OK) printGreen("Track tests OK\n");
 else printRed("Track tests completed with error(s)\n");
 scriptResult("Tests ran to completion");
+

@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -18,9 +18,16 @@
 #include "JavaScriptgui_impl.h"
 #include <wx/msgdlg.h>
 #include <wx/url.h>
+#include <wx/clipbrd.h>
 #include "trace.h"
+#include "algorithm"
 
 extern JavaScript_pi *pJavaScript_pi;
+
+bool isURLfileString(wxString fileString){
+	if ((fileString.substr(0, 6) == "https:") /* || (fileString.substr(0, 5) == "http:") */) return true;	// presently recognising https only
+	else return false;
+	}
 
 void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which ){
 	// remove all entries in vector of type which
@@ -62,17 +69,30 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString quote        {"\""};
      const wxString accute       {"\u00B4"};
      const wxString rightSquote  {"\u2019"};    // right single quote
-     const wxString leftSquote  {"\u2018"};    // right single quote
+     const wxString leftSquote  {"\u2018"};    // left single quote
  //  const wxString apostrophe   {"\u0027"};
      const wxString apostrophe   {"\'"};
      const wxString ordinal      {"\u00BA"};  // masculine ordinal indicator - like degree
      const wxString degree       {"\u00B0"};
+     const wxString superScript0 {"\u2070"};	// superscript 0 pretending to be degrees  
      const wxString degreeText   {"&#xb0"};
      const wxString backprime    {"\u0060"};
+//     const wxString bell		{"\u0007"};		// Bell used for internal representation of º
  #ifndef __WXMSW__   // Don't try this one on Windows
      const wxString prime        {"\u2032"};
      given.Replace(prime, apostrophe, true);
  #endif  // __WXMSW__
+ #ifdef __WINDOWS__
+	 const wxString o_umlaut	{"\u00F6"};		// ö
+	 const wxString O_umlaut	{"\u00D6"};		// ö
+	 const wxString u_umlaut	{"\u00FC"};	// ü
+	 const wxString U_umlaut	{"\u00DC"};	// ü
+	 given.Replace(o_umlaut, "oe", true);
+	 given.Replace(O_umlaut, "OE", true);
+	 given.Replace(u_umlaut, "ue", true);
+	 given.Replace(U_umlaut, "UE", true);
+ #endif
+ 
      given.Replace(leftQuote, quote, true);
      given.Replace(reverseQuote, apostrophe, true);
      given.Replace(leftDQuote, quote, true);
@@ -80,24 +100,33 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(accute, apostrophe, true);
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
-     given.Replace(ordinal, degree, true);
-     given.Replace(degree, degreeText, true);
+     given.Replace(ordinal, DEGREE, true);
+#ifndef	__WINDOWS__
+	 given.Replace(superScript0, DEGREE, true);
+#endif
+	 given.Replace(DEGREE, PSEUDODEGREE, true);	// use substitute character
+//   given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
+     given.Replace("\r\n", "\n", true);	// drop CR inserted by Windows for new line  v3
      return (given);
      }
 
  // This function only needed with Windose
- #ifdef __WXMSW__
+
  wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
+#ifdef __WINDOWS__
      // As far as we know this only occurs with º symbol on Windows
      const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
      const wxString A_stringOrd{ "\u00C2\u00ba"};    // Â ordinal
      given.Replace(A_stringDeg, "\u00b0", true);
+#endif     
+     given.Replace(PSEUDODEGREE, DEGREE);  
      return (given);
      }
- #endif
 
- wxString getStringFromDuk(duk_context *ctx){
+
+/*
+wxString getStringFromDuk(duk_context *ctx){
      // gets a string safely from top of duk stack and fixes º-symbol for Windose
      wxString string = wxString(duk_to_string(ctx, -1));
  #ifdef __WXMSW__
@@ -106,6 +135,7 @@ void fatal_error_handler(void *udata, const char *msg) {
  #endif
      return string;
      }
+*/
 
 wxString ptrToString(Console* address){
     // format pointer to string
@@ -144,28 +174,28 @@ wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the 
     return point;
     }
 
-Console *findConsoleByCtx(duk_context *ctx){
+Console* findConsoleByCtx(duk_context *ctx){
     // given a duktape context, return pointer to the console
     void throwErrorByCtx(duk_context *ctx, wxString message);
-    Console *m_pConsole;
+    Console* pConsole;
     
-    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){
-        if (m_pConsole->mpCtx == ctx) return m_pConsole;
+    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+        if (pConsole->mpCtx == ctx) return pConsole;
         }
     // failed to match - emit an error message
     wxMessageBox( wxT("findConsoleByCtx failed to match console"), wxT("JavaScript_pi program error"), wxICON_ERROR);
-    return nullptr;
     // or maybe we will return the first console anyway
-    return pJavaScript_pi->mpFirstConsole;
+    return pJavaScript_pi->mpFirstConsole;	//to avoid crash
 }
 
 void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw error message
     Console *pConsole = findConsoleByCtx(ctx);
-    pConsole->throw_error(ctx, message);
+    pConsole->prep_for_throw(ctx, message);
+    duk_throw(ctx);
     }
 
 #include "wx/tokenzr.h"
-wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
+jsFunctionNameString_t extractFunctionName(duk_context *ctx, duk_idx_t idx){
     // extract function name from call on JS stack
     // This does not work if in method in class not substantiated, so is here    
     wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), " (");
@@ -177,24 +207,29 @@ wxString extractFunctionName(duk_context *ctx, duk_idx_t idx){
 
 #if TRACE_YES
 #if TRACE_TO_WINDOW 
-wxWindow *JStraceWindow;
-wxTextCtrl *JStraceTextCtrl {nullptr};
+//wxWindow *JStraceWindow;
+//wxTextCtrl *JStraceTextCtrl {nullptr};
 void windowTrace(int level, wxString text){
     // implements tracing to a separate window
-    if (!JStraceTextCtrl){
+    if (pJavaScript_pi->mpTraceWindow == nullptr){
         // the first time to trace
+#if SCREEN_RESOLUTION_AVAILABLE
         wxPoint position = pJavaScript_pi->m_parent_window->FromDIP(wxPoint(800, 100));
         wxSize size = pJavaScript_pi->m_parent_window->FromDIP(wxSize(700, 500));
-         JStraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
+#else
+        wxPoint position = wxPoint(800, 100);
+        wxSize size = wxSize(700, 500);
+#endif
+        pJavaScript_pi->mpTraceWindow = new wxDialog(pJavaScript_pi->m_parent_window, wxID_ANY,"JavaScript plugin trace", position, size,
          	wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP|wxRESIZE_BORDER);
-        JStraceTextCtrl = new wxTextCtrl(JStraceWindow, wxID_NEW,
+        pJavaScript_pi->mpTraceTextCtrl = new wxTextCtrl( pJavaScript_pi->mpTraceWindow, wxID_NEW,
                               wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                               wxTE_MULTILINE);
         }
     try{ 	// Use try in case window has been closed
-	    JStraceTextCtrl->AppendText(text + "\n");
-	    JStraceWindow->Raise();
-	    JStraceWindow->Show();
+	    pJavaScript_pi->mpTraceTextCtrl->AppendText(text + "\n");
+	    pJavaScript_pi->mpTraceWindow->Raise();
+	     pJavaScript_pi->mpTraceWindow->Show();
 	    }
 	catch(int i) {};
     return;
@@ -202,45 +237,86 @@ void windowTrace(int level, wxString text){
 #endif  // TRACE_TO_WINDOW
 #endif	// TRACE_YES
 
-wxString resolveFileName(wxString inputName, Console* pConsole, FileOptions options){
-	// if fileString is URL does not change anything
-	// if inputName starts "?" uses as prompt for dialogue according to options
-    // else if fileString is relative, makes it absolute by the current directory
+wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
+	// if inputName is URL does not change anything
+	// if inputName starts "??" uses as prompt for dialogue according to options
+    // else if inputName is relative, makes it absolute by the current directory
+    // if inputName starts with single "?" and there is an error,  a prompt dialogue is used els the ? is dropped
     // if it is badly formed or other error returns error message else empty string
-    // checks existence according to options
+    // checks existence according to mode
+    if ((mode < 0) || (mode > 4)) {
+    		pConsole->prep_for_throw(pConsole->mpCtx, "resolveFileNaame invalid mode");
+    		duk_throw(pConsole->mpCtx);
+    		}
 	if ((inputName.substr(0, 6) == "https:")|| (inputName.substr(0, 5) == "http:")){ 	// If URL, don't do anything
 		return(inputName);
 		}
-	if (inputName.substr(0, 1) == "?") {	// to prompt
-		auto style = wxDEFAULT_DIALOG_STYLE;
-		wxString prompt = pConsole->mConsoleName + " " + inputName.substr(1);
-		if (options == MUST_NOT_EXIST) style |= (wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
-		if (dialog.ShowModal() == wxID_CANCEL) pConsole->throw_error(pConsole->mpCtx, "Open dialogue cancelled");;
-		return dialog.GetPath();			
+	int toPrompt {0};	// whether to prompt 0 never; -1 always; +1 if file not valid/found	
+	wxString prompt;	// string to use for any prompt
+	bool fileExists;
+	if (inputName.substr(0, 2) == "??") {	// must prompt
+		inputName = inputName.substr(2);	// drop '??'
+		TRACE(101, "?? found - inputName now '" + inputName + "'");
+		toPrompt = -1;
+		prompt = pConsole->mConsoleName + " " + inputName;
+		}
+	else if (inputName.substr(0, 1) == "?") { // prompt if file missing
+		inputName = inputName.substr(1);	// drop '?'
+		TRACE(101, "? found - inputName now '" + inputName + "'");
+		toPrompt = 1;
+		prompt = pConsole->mConsoleName + " " + inputName + " not found - choose alternative";
 		}
 	wxFileName filePath = wxFileName(inputName);
-    if (!filePath.IsAbsolute()){ // relative  - so will prepend current working directory and do again
+	std::vector<wxFile::OpenMode> openModes {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};
+	wxFile::OpenMode wxMode = openModes[mode];
+	TRACE(101, wxString::Format("resolveFileName mode %i toPrompt %i prompt %s", mode, toPrompt, prompt));
+	if (toPrompt != -1){	// try and locate file
+	    if (!filePath.IsAbsolute()){ // relative  - so will prepend current working directory and do again
         filePath.MakeAbsolute(pJavaScript_pi->mCurrentDirectory);
-        }
-    if (!filePath.IsOk()) pConsole->throw_error(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " does not make sense");
+	        }
+	    }
+    if ((toPrompt == 0) && !filePath.IsOk()){
+    	pConsole->prep_for_throw(pConsole->mpCtx, "File path " + filePath.GetFullPath() + " does not make sense");
+    	duk_throw(pConsole->mpCtx);
+    	}
     wxString fullPath = filePath.GetFullPath();
-    switch (options) {
-    	case MUST_EXIST:
-    		if (!filePath.FileExists())
-                pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " not found");
-            break;
-        case MUST_NOT_EXIST:
-        	if (filePath.FileExists())
-                pConsole->throw_error(pConsole->mpCtx, "File " + fullPath + " already exists");
-        case DONT_CARE: {};
-    	}    
+    TRACE(101, wxString::Format("resolveFileName fullPath:%s",fullPath));
+    fileExists = filePath.FileExists();
+    prompt += " ";	// this to silence compiler warning
+    if (
+    	(toPrompt == -1)																// always prompt
+    	|| (!fileExists && (toPrompt == 1))												// Prompt if no file
+    	|| (fileExists && (toPrompt == 1) && (wxMode == wxFile::wxFile::write_excl))	// prompt if exits when it should not
+    	)
+    	{	// need dialogue
+    	TRACE(101, wxString::Format("resolveFileName prompting mode %i toPrompt %i prompt %s", mode, toPrompt, prompt));
+		auto style = wxDEFAULT_DIALOG_STYLE;
+//		if ((wxMode == wxFile::write) || (wxMode == wxFile::write_append))	// need save dialogue
+		if (mode == 4)	style |= wxFD_SAVE | wxFD_OVERWRITE_PROMPT; // need save dialogue			
+		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
+		if (dialog.ShowModal() == wxID_CANCEL){
+			pConsole->prep_for_throw(pConsole->mpCtx, "Open dialogue cancelled");
+			duk_throw(pConsole->mpCtx);
+			}
+		return dialog.GetPath();
+    	}
+    // file exists and we did not use dialogue - check access mode
+    if (wxMode ==  wxFile::write_excl){
+    	pConsole->prep_for_throw(pConsole->mpCtx, "File " + fullPath + " already exists");
+    	duk_throw(pConsole->mpCtx);
+    	}
+    if (((wxMode == wxFile::write) || (wxMode == wxFile::read_write)) && !filePath.IsFileWritable ()){
+    	pConsole->prep_for_throw(pConsole->mpCtx, "File " + fullPath + " no write access");
+    	duk_throw(pConsole->mpCtx);
+    	}
     return fullPath;
     };
     
 wxString NMEAchecksum(wxString sentence){
 	// given an NMEA sentence, returns the checksum as a string
+	// props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
     // we will drop any existing checksum
+    if (sentence.length() < 7) return wxEmptyString;	// cannot be sentence - avoid crash ahead
     int starPos = sentence.Find("*");
     if (starPos != wxNOT_FOUND) // yes there is one
 	    sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
@@ -249,6 +325,16 @@ wxString NMEAchecksum(wxString sentence){
 		 calculated_checksum ^= static_cast<unsigned char> (*i);
 	return( wxString::Format("%02X", calculated_checksum) );
 	};
+	
+wxString getClipboardString(Console* pConsole){  // return string from clipboard
+	if (!wxTheClipboard->Open())return "getClipboardString clipboard is busy - logic error?";
+	wxTextDataObject dataObject;
+	wxTheClipboard->GetData(dataObject);
+	wxTheClipboard->Close();
+	wxString data = dataObject.GetText();
+	data =  JScleanString(data);
+	return data;
+	}
 
 wxString getTextFile(wxString fileString, wxString* pText){
     // gets contents of a text file
@@ -256,7 +342,7 @@ wxString getTextFile(wxString fileString, wxString* pText){
     wxFileName filePath;
     wxString tmp_file_name = wxEmptyString;
     wxString fileStringCopy = fileString;	// for later error messages
-	if ((fileString.substr(0, 6) == "https:")|| (fileString.substr(0, 5) == "http:")){
+    if (isURLfileString(fileString)){
 		TRACE(64, "Trying for URL: " + fileString);
 		// its a URL - let's try and get it
 		if (!OCPN_isOnline()) return("readTextFile " + filePath.GetFullPath() + " failed - not on-line");
@@ -274,6 +360,13 @@ wxString getTextFile(wxString fileString, wxString* pText){
     if (!inputFile.Exists(fileString)) return("readTextFile " + fileStringCopy + " not found");
     bool ok = inputFile.Open(fileString);
     if (!ok) return(wxString::Format("readTextFile %s cannot be opened - error code %d", fileStringCopy, inputFile.GetLastError()));
+    // the file can be big, so we will allocated buffer space
+    wxFileOffset length = inputFile.Length();
+#if TRACE_YES
+    wxString message = wxString::Format("geTextFile file %s is length %d", fileString, length);
+    TRACE(64, message);
+#endif
+	wxStringBuffer(*pText, length+10);
 	ok = inputFile.ReadAll(pText);
 	if (tmp_file_name != wxEmptyString) wxRemoveFile(tmp_file_name);	// if created one
     if (!ok) return(wxString::Format("readTextFile %s cannot read file - error code %d", fileStringCopy, inputFile.GetLastError()));
@@ -330,27 +423,34 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
     return(wxEmptyString);
     }
     
-wxPoint screenToFrame(wxPoint pos){	// returns position relative to the frame
-/*	With v2.0.3 we change to parking on screen positions so do nothing
-	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
-	wxPoint framePos = frame->GetPosition();	// screen position of frame
-	pos.x -= framePos.x;
-	pos.y -= framePos.y;
-*/
-	return pos;
-	}
+void reviewParking(){	// adjust parking space sizes and remove any gaps (console deleted)
+	struct lot{	// a parking lot
+		Console* pConsole;
+		location place;
+		};
+	std::vector<lot> lots;
+	lot aLot;	// working space
+	// build array of places and sort
+	for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
+		if (pCon->m_parkedLocation.set){	// this one has a lot
+			aLot.pConsole = pCon;
+			aLot.place = pCon->m_parkedLocation;
+			lots.push_back(aLot);			
+			}
+		}
+	if (lots.size() < 1) return;
+	std::sort(lots.begin(),lots.end(), [](lot &a, lot &b){ return a.place.position.x < b.place.position.x; });
 	
-wxPoint frameToScreen(wxPoint pos){	// returns position relative to the screen
-/*	With v2.0.3 we change to 
-ing on screen positions so do nothing
-	wxWindow* frame = GetOCPNCanvasWindow()->GetParent();
-	wxPoint framePos = frame->GetPosition();	// screen position of frame 
-	pos.x += framePos.x;
-	pos.y += framePos.y;
-*/
-	return pos;
+	// now adjust location of each lot, shuffling left it needed
+	int xPos = pJavaScript_pi->m_parkFirstX;
+	for (int i = 0; i < lots.size(); i++){
+		aLot = lots[i];
+		aLot.pConsole->m_parkedLocation.position.x = xPos;
+		xPos += aLot.pConsole->m_parkedLocation.size.x + pJavaScript_pi->m_parkSep;	// next place
+		if (aLot.pConsole->m_parked) aLot.pConsole->setLocation(aLot.pConsole->m_parkedLocation);
+		}
 	}
-
+    
 #include "wx/regex.h"
 // The following could be Duktape release dependent
 wxRegEx parse(" *at ([^ ]*).*:([0-9]*)"); // parses function and line number

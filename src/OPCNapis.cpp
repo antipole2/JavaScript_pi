@@ -66,6 +66,7 @@ wxString getContextDump(duk_context *ctx){ // return duktape context dump as str
     return result;
     }
     
+/*
 void checkHandle(duk_context *ctx, DriverHandle handle, wxString protocol, wxString APIname){	// checks for correct driver
 	    std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);
 	    if(attributes.empty()) throwErrorByCtx(ctx, wxString::Format("%s: No such handle %s", APIname, handle));
@@ -74,6 +75,15 @@ void checkHandle(duk_context *ctx, DriverHandle handle, wxString protocol, wxStr
 	    wxString driverProtocol = protocol_it->second;
 		if (protocol.compare(driverProtocol) != 0) throwErrorByCtx(ctx, wxString::Format("%s: Handle has protocol %s not %s", APIname, driverProtocol, protocol));
 		}
+*/
+		
+wxString getHandleProtocol(duk_context *ctx, DriverHandle handle, wxString APIname){
+		std::unordered_map<std::string, std::string> attributes = GetAttributes(handle);
+	    if(attributes.empty()) throwErrorByCtx(ctx, wxString::Format("%s: No such handle %s", APIname, handle));
+    	auto protocol_it = attributes.find("protocol");
+    	if (protocol_it == attributes.end()) throwErrorByCtx(ctx, wxString::Format("%s: Handle %s does not have a protocol", APIname, handle));
+	   return protocol_it->second;
+	}
 
 PlugIn_Waypoint_Ex * js_duk_to_opcn_waypoint(duk_context *ctx){
     // returns an opcn waypoint constructed from js waypoint on top of duk stack
@@ -347,7 +357,10 @@ static duk_ret_t getMessageNames(duk_context *ctx) {  // get message names seen
 duk_ret_t onMessageNameGuts(duk_context *ctx , bool persist) {  // to wait for message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in JS call
     Console *pConsole = findConsoleByCtx(ctx);
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "onMessageName within onExit function");
+    if (pConsole->mStatus.test(INEXIT)) {
+		pConsole->prep_for_throw(ctx, "onMessageName within onExit function");
+		duk_throw(ctx);
+		}
     if (nargs > 2) throwErrorByCtx(ctx, "OCPNonMessageName bad call");
     if (nargs == 0) { // empty call - cancel any waiting callback
         size_t messageCount = pConsole->mMessages.GetCount();
@@ -465,7 +478,10 @@ static duk_ret_t onNavigationAll(duk_context *ctx) {  // to wait for navigation 
 static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg message - save function to call
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonActiveLeg within onExit function");
+    if (pConsole->mStatus.test(INEXIT)) {
+		pConsole->prep_for_throw(ctx, "OCPNonActiveLeg within onExit function");
+		duk_throw(ctx);
+		}
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_activeLegFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
@@ -501,14 +517,20 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
         pConsole->mWaitingCached = false;   // force full isWaiting check
         return(result);
         }
-    if (pConsole->mStatus.test(INEXIT)) pConsole->throw_error(ctx, "OCPNonContextMenu within onExit function");
-    if (!duk_is_function(ctx, 0)) pConsole->throw_error(ctx, "OCPNonContextMenu first argument must be function");
+    if (pConsole->mStatus.test(INEXIT)) {
+		pConsole->prep_for_throw(ctx, "OCPNonContextMenu within onExit function");
+		duk_throw(ctx);
+		}
+    if (!duk_is_function(ctx, 0)) {
+		pConsole->prep_for_throw(ctx, "OCPNonContextMenu first argument must be function");
+		duk_throw(ctx);
+		}
     menuCount = pConsole->mMenus.GetCount();
     if (menuCount >= MAX_MENUS){
-        pConsole->throw_error(ctx, "OCPNonContextMenu already have maximum menus outstanding");
+        pConsole->prep_for_throw(ctx, "OCPNonContextMenu already have maximum menus outstanding");
         }
     if ((nargs < 2) || (nargs > 3)){
-        pConsole->throw_error(ctx, "OCPNonContextMenu requires two or three arguments");
+        pConsole->prep_for_throw(ctx, "OCPNonContextMenu requires two or three arguments");
         }
     menuAction.functionName = extractFunctionName(ctx, 0);
     if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
@@ -516,7 +538,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     // check menuName not already in use
     for (int i = 0; i < menuCount; i++){
          if (pConsole->mMenus[i].menuName == menuName)
-             pConsole->throw_error(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
+             pConsole->prep_for_throw(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
         }
     menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
     menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
@@ -633,49 +655,59 @@ static duk_ret_t getNavigationK(duk_context *ctx) {  // gets latest navigation d
     return 1;  // returns one arg
 }
  */
-
-static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
-    // props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
-    duk_idx_t nargs = duk_get_top(ctx);	// number of arguments
-    wxString result;
-    duk_require_string(ctx, 0);	// first argument must be string
-    wxString sentence = wxString(duk_to_string(ctx,0));  // the NMEA sentence
-	// cleanup and append checksum
-	sentence.Trim();        
+ 
+wxString addNMEA0183CheckSum(duk_context *ctx, wxString sentence){// add checksum to NMEA sentence
+	// props to Dirk Smits for the checksum calculation lifted from his NMEAConverter plugin
+	wxString NMEAchecksum(wxString sentence);
+	sentence.Trim();       
 	// we will drop any existing checksum
 	int starPos = sentence.Find("*");
 	if (starPos != wxNOT_FOUND){ // yes there is one
 		sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
 		}
 	if  (!(((sentence[0] == '$') || (sentence[0] == '!')) && (sentence[6] == ',')))
-		throwErrorByCtx(ctx, "OCPNpushNMEA0183 sentence does not start $....., or !.....,");
-	wxString NMEAchecksum(wxString sentence);
+		throwErrorByCtx(ctx, "NMEA0183 sentence does not start $....., or !.....,");
 	wxString sum = NMEAchecksum(sentence);
 	sentence = sentence.Append("*");
 	sentence = sentence.Append(sum);
 	sentence = sentence.Append("\r\n");
-	if (nargs == 1){
-		duk_pop(ctx);
-        PushNMEABuffer(sentence);
-        result = "OK";
-        }
-    else if (nargs == 2){	// handle provided
-    	duk_require_string(ctx, 1);	// second argument must be string
-    	DriverHandle handle = duk_to_string(ctx,1);
-    	duk_pop_2(ctx);
-    	checkHandle(ctx, handle, "nmea0183", "OCPNpushNMEA0183");
-   		auto payload = make_shared<std::vector<uint8_t>>();
-		for (const auto& ch : sentence) payload->push_back(ch);
-		CommDriverResult outcome = WriteCommDriver(handle, payload);
-		if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
-		else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA0183 driver error: %s\n", driverErrorStrings[outcome])));
-   		 }
-    else {
-        throwErrorByCtx(ctx, "OCPNpushNMEA0183 called without 1 or 2 string arguments");
-        }
-    duk_push_string(ctx, result);
-    return(1);
-}
+	return sentence;
+	}
+	
+static duk_ret_t pushText(duk_context *ctx) {  // pushes string on stack out through OpenCPN
+	// called with OCPNpushText(data, handle)
+    duk_require_string(ctx, 0);	// data argument must be string
+    duk_require_string(ctx, 1);	// handle argument must be string   
+    wxString data = wxString(duk_to_string(ctx,0));
+	DriverHandle handle = duk_to_string(ctx,1);
+	duk_pop_2(ctx);
+	wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushText");
+	if (protocol == "nmea0183"){
+		data = addNMEA0183CheckSum(ctx, data);
+		}
+	auto payload = make_shared<std::vector<uint8_t>>();
+	for (const auto& ch : data) payload->push_back(ch);
+	CommDriverResult outcome = WriteCommDriver(handle, payload);
+	if (outcome == RESULT_COMM_NO_ERROR) duk_push_string(ctx, "OK");
+	else throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpush driver error: %s", driverErrorStrings[outcome])));
+	return 1; // keep compiler happy
+	}
+
+
+static duk_ret_t NMEA0183push(duk_context *ctx) {  // pushes NMEA sentence on stack out through OpenCPN
+    duk_idx_t nargs = duk_get_top(ctx);	// number of arguments
+    if (nargs == 1)	{ // old-style Call
+    	duk_require_string(ctx, 0);	// first and only argument must be string
+    	wxString sentence = wxString(duk_to_string(ctx,0));  // the NMEA sentence
+    	duk_pop(ctx);
+    	sentence = addNMEA0183CheckSum(ctx, sentence);
+    	PushNMEABuffer(sentence);
+    	return 0;
+    	}
+    // must have handle - use new method
+    pushText(ctx);
+    return 1;
+    }
 
 static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on stack out through OpenCPN
 	// OCPNpushNMEA2000(handle, pgn, destination, priority, payload)
@@ -710,7 +742,8 @@ static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on st
 		
 		}
 	if (!matchedHandle) {	// new handle - need to register it and remember it
-		checkHandle(ctx, handle, "nmea2000", "OCPNpushNMEA2000");
+		wxString protocol = getHandleProtocol(ctx, handle, "OCPNpushNMEA2000");
+		if (protocol != "nmea2000") throwErrorByCtx(ctx, wxString(wxString::Format("OCPNpushNMEA2000 handle &s not NMEA2000", handle)));
 		std::vector<int> pgn_list;	// pgn needs to be in list
 		pgn_list.emplace_back(pgn);
 		RegisterTXPGNs(handle, pgn_list);
@@ -1113,16 +1146,31 @@ static duk_ret_t deleteTrack(duk_context *ctx) {  // given a GUID, deletes track
     }
 
 static duk_ret_t OCPNcentreCanvas(duk_context *ctx) { // jump to position
-    duk_double_t lat, lon, scale;
-    wxWindow *canvas;
-    MAYBE_DUK_DUMP
-    lat = duk_get_number(ctx, -3);
-    lon = duk_get_number(ctx, -2);
-    scale = 1/duk_get_number(ctx, -1);
-//    scale = GetNativeScale();
-    canvas = GetCanvasUnderMouse();
-    CanvasJumpToPosition(canvas, lat, lon, scale);
-    duk_pop_3(ctx);
+	// call was OCPNcentreCanvas(position [, ppm])   ppm is scale in pixels per metre
+    duk_double_t lat, lon, ppm;
+    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    if ((nargs < 1) || (nargs > 2)) throwErrorByCtx(ctx, "OCPNcentreCanvas called with wrong number of arguments");
+    
+//    duk_require_object(ctx, 0);	// check we have a position
+    bool latOK = duk_get_prop_literal(ctx, 0, "latitude");
+    lat = duk_get_number(ctx, -1);
+    bool lonOK = duk_get_prop_literal(ctx, 0, "longitude");
+    lon = duk_get_number(ctx, -1);
+    duk_pop_2(ctx);	// pop lat and lon
+    if (!latOK || !lonOK) throwErrorByCtx(ctx, "OCPNcentreCanvas called without position as first arg");
+    if ((abs(lat)> 90) || (abs(lon) > 180)) throwErrorByCtx(ctx, "OCPNcentreCanvas called with invalid lat or lon");
+    
+    if (nargs == 2){	// ppm supplied
+    	duk_require_number(ctx, 1);
+    	ppm = duk_get_number(ctx,1);
+    	}
+	else {	// must be just position - no ppm, get current
+		ppm = pJavaScript_pi->m_currentViewPort.view_scale_ppm;
+		}
+
+//    canvas = GetOCPNCanvasWindow();
+    JumpToPosition(lat, lon, ppm);
+    duk_pop_n(ctx, nargs);
     return(0);  // no arguments returned
 }
 
@@ -1336,13 +1384,22 @@ static duk_ret_t getGCdistance(duk_context *ctx) {
 
 // wxString soundFile = wxString("/Applications/OpenCPN.app/Contents/SharedSupport/sounds/beep_ssl.wav");
 static duk_ret_t playSound(duk_context *ctx) {   // play alarm sound
-    wxString* directory = GetpSharedDataLocation();
-    wxString soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
-        bool OK = false;
-        OK = PlugInPlaySoundEx(soundFile);
-        duk_push_boolean(ctx, OK);
-        duk_ret_t result = 1;
-        return (result);
+	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
+ 	wxString soundFile;
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+	Console *pConsole = findConsoleByCtx(ctx);
+	if (nargs > 0) soundFile = resolveFileName(duk_get_string(ctx, 0), pConsole, 0);
+	else {
+	    wxString* directory = GetpSharedDataLocation();
+TRACE(999, *directory);
+    	soundFile = *directory   + "sounds" + wxFileName::GetPathSeparator() + "beep_ssl.wav";
+TRACE(999, soundFile);
+    	}
+    duk_pop_n(ctx, nargs);
+	bool OK = false;
+	OK = PlugInPlaySoundEx(soundFile);
+	duk_push_boolean(ctx, OK);
+	return 1;
         }
         
 static duk_ret_t isOnline(duk_context *ctx) {   // check if online
@@ -1381,6 +1438,28 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 		}
 	return 1;			
 	}
+	
+duk_ret_t getCanvasView(duk_context* ctx){
+	PlugIn_ViewPort vp = pJavaScript_pi->m_currentViewPort;
+	duk_push_object(ctx); // construct the object
+		duk_push_number(ctx, vp.view_scale_ppm);
+			duk_put_prop_literal(ctx, -2, "ppm");
+		duk_push_number(ctx, vp.chart_scale);
+			duk_put_prop_literal(ctx, -2, "chartScale");
+//		duk_push_number(ctx, vp.ref_scale);	// missing from plugin's definition of class
+//			duk_put_prop_literal(ctx, -2, "refScale");			
+		duk_push_object(ctx); // construct the centre point
+			duk_push_number(ctx, vp.clat);
+				duk_put_prop_literal(ctx, -2, "latitude");
+			duk_push_number(ctx, vp.clon);
+				duk_put_prop_literal(ctx, -2, "longitude");
+			duk_put_prop_literal(ctx, -2, "centre");	
+		duk_push_number(ctx, vp.pix_width);
+			duk_put_prop_literal(ctx, -2, "pixWidth");
+		duk_push_number(ctx, vp.pix_height);
+			duk_put_prop_literal(ctx, -2, "pixHeight");		
+	return 1;
+	}
     
 // ÑÑÑÑÑÑ API registrations follow
 
@@ -1416,6 +1495,10 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     
     duk_push_string(ctx, "OCPNpushNMEA2000");
     duk_push_c_function(ctx, NMEA2kPush, 5 /*number of arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNpushText");
+    duk_push_c_function(ctx, pushText, 2 /*number of arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNsendMessage");
@@ -1593,11 +1676,15 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNsoundAlarm");
-    duk_push_c_function(ctx, playSound, 1 /* 1 arg */);
+    duk_push_c_function(ctx, playSound, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNisOnline");
     duk_push_c_function(ctx, isOnline, 0 /* 0 arg */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNgetCanvasView");
+    duk_push_c_function(ctx, getCanvasView, 0 /* nargs */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_pop(ctx);

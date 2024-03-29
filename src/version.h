@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/04/2022
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,7 +17,7 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "Beta a"
+#define     PLUGIN_VERSION_COMMENT "Build 1"
 
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\nSee the Help panel right for documentation.\n\
@@ -30,5 +30,11 @@ Changes are highlighted in the User Guide and listed in its Appendix A"
 #define SCREEN_RESOLUTION_AVAILABLE false
 #endif
 
-#endif		// version_h
+#define	DEGREE		  "\u00B0"	// real degree character
+#ifdef __WINDOWS__
+#define PSEUDODEGREE  "\u0007"	// substitute character for degree - bell
+#else
+#define PSEUDODEGREE  DEGREE	// keep it as real degree
+#endif
 
+#endif		// version_h

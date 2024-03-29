@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -46,9 +46,12 @@ MAYBE_DUK_DUMP
 using namespace std;
 typedef wxString jsFunctionNameString_t;
 typedef wxString messageNameString_t;
+wxString JScleanOutput(wxString given);
 
 extern JavaScript_pi *pJavaScript_pi;
+bool isURLfileString(wxString);
 
+#define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
 class MessagePair  // holds OPCN messages seen, together with JS callback function name, if to be called back
     {
 public:
@@ -68,10 +71,10 @@ enum {
     STYLE_BOLD,
     STYLE_UNDERLINE
     };
-    
 
-#include "wx/datetime.h"
-#define MAX_SENTENCE_TYPES 50    // safety limit in case of coding error
+/*
+// timers
+
 class TimeActions  // holds times at which function is to be called
     {
 public:
@@ -81,6 +84,19 @@ public:
     };
 #define MAX_TIMERS 10   // safety limit of timers
 WX_DECLARE_OBJARRAY(TimeActions, TimesArray);
+*/
+
+//timers for v3
+#include "wx/datetime.h"
+#define MAX_TIMERS 25   // safety limit of timers
+struct timerEntry {
+//	std::shared_ptr <wxTimer>	timer;
+//	wxTimer*					pTimer;
+//	std::shared_ptr <wxTimer>	pTimer;
+	std::shared_ptr<wxTimer>	timer;
+	jsFunctionNameString_t		functionName;
+	wxString					parameter;
+	};
 
 // menus
 class MenuActions
@@ -200,6 +216,12 @@ struct wxFileFcb {	// to hold wxFile structures
 	wxFileFcb()
 		: id(rand()) {}	// set id to random number
 	};
+	
+struct location {	// holds location and size of Console
+	bool	set {false};	// whether this has a location
+	wxPoint	position;
+	wxSize	size;
+	};
     
 
 class Console : public m_Console {
@@ -213,11 +235,18 @@ public:
     bool        mJSrunning {false}; // true while any JS code is running
     bool        mscriptToBeRun {false};   // true if script to be run because it was chained
     status_t    mStatus;     // the status of this process
+    
+    // window handling
+    location	m_parkedLocation;
+    location 	m_notParkedLocation;
 
     // callback management
     bool        mTimerActionBusy;  // true while handling timer event to stop them piling up
     MessagesArray   mMessages;   // The messages call-back table
-    TimesArray      mTimes;       // Timers call-back table
+//    TimesArray      mTimes;       // Timers call-back table
+	std::vector <timerEntry> mpTimersVector {};
+//	std::shared_ptr <wxTimer> mpTimer;
+	
     MenusArray      mMenus;         // Menus callback table
 #ifdef SOCKETS
 	SocketRecordsArray	mSockets;		// array of sockets
@@ -229,6 +258,7 @@ public:
     bool m_NMEApersistance;		//true of old-style NMEA0183 listening is to be persistent
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
+    jsFunctionNameString_t m_closeButtonFunction;  // function to call on activating console window, else ""
     int         mConsoleRepliesAwaited {0};   // number of console replies awaited
     std::vector<streamMessageCntl> m_streamMessageCntlsVector {};	// vector of blocks controlling how streams are handled
 
@@ -240,7 +270,7 @@ public:
     // result handling - can be made explicit by scriptResult or stopScript
     bool        m_explicitResult;    // true if using explicit result
     wxString    m_result {wxEmptyString};   // the result if explicit
-    bool        m_hadError;     // true if unwinding from dukpate after throing error
+//  bool        m_hadError;     // true if unwinding from dukpate after throing error
     Brief       mBrief;         // brief for this console
     
     // file handling
@@ -268,13 +298,12 @@ public:
     void OnTools( wxCommandEvent& event );
     void OnHelp( wxCommandEvent& event );
     void OnPark( wxCommandEvent& event );
-//  void onActivate( wxActivateEvent& event );
-    void OnMouse(wxMouseEvent& event);
     void OnActivate(wxActivateEvent& event);
     void OnClose( wxCloseEvent& event );
     void HandleNMEA0183(ObservedEvt& ev, int id);
     void HandleNMEA2k(ObservedEvt& ev, int id);
     void HandleNavdata(ObservedEvt& ev, int id);
+    void HandleTimer(wxTimerEvent& event);
     
 
     
@@ -288,7 +317,7 @@ public:
 #endif	// IPC
 
 private:
-    wxPoint		m_parkedPosition;	// if parked, parked position in DIP
+//    wxPoint		m_parkedPosition;	// if parked, parked position in DIP
     
 public:
 	// Console constructor is given positions and sizes in DIP.  Constructor makes necessary adjustments.
@@ -312,87 +341,19 @@ public:
     		consoleSize)
 #endif
         {
-        void JSlexit(wxStyledTextCtrl* pane);
-        Console *pConsole;
         wxPoint checkPointOnScreen(wxPoint point);
-        wxPoint screenToFrame(wxPoint);
         TRACE(67, wxString::Format("Constructing for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-
-        // hook this new console onto end of chain of consoles
-        pConsole = pJavaScript_pi->mpFirstConsole;
-        if (pConsole == nullptr) pJavaScript_pi->mpFirstConsole = this;   // is first and only
-        else {
-            while (pConsole->mpNextConsole) pConsole = pConsole->mpNextConsole; // point to last
-            pConsole->mpNextConsole = this; // add us
-            }
         mConsoleName = consoleName;
         consolePosition = ToDIP(checkPointOnScreen(FromDIP(consolePosition))); // check position on screen
         TRACE(67, wxString::Format("After checkPointOnScreen for %s DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-
-        m_parked = parked;
-        if (parked) m_parkedPosition = consolePosition;	// if parked, restore position DIP relative to frame
-        consoleInit();
         Move(FromDIP(consolePosition));
         SetSize(consoleSize);
         setConsoleMinClientSize();
         TRACE(67, wxString::Format("Constructor moved %s to DIP position x:%d y:%d  size x:%d y:%d", consoleName, consolePosition.x, consolePosition.y, consoleSize.x, consoleSize.y));
-                
-
         mDialog.position = ToDIP(checkPointOnScreen(FromDIP(dialogPosition)));
         mDialog.pdialog = nullptr;
         mAlert.position = ToDIP(checkPointOnScreen(FromDIP(alertPosition)));
         mAlert.palert = nullptr;
-        m_fileStringBox->SetValue(fileString);
-        auto_run->SetValue(autoRun);
-        mBrief.hasBrief = false;
-        mBrief.theBrief = wxEmptyString;
-        mBrief.reply = false;
-        mBrief.briefingConsoleName = wxEmptyString;
-
-        // output pane set up
-        m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
-        m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
-        m_Output->StyleSetSpec(STYLE_ORANGE, _("fore:#FF7F00"));
-        m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
-        m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
-        m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
-        // wrap text in output pane
-        m_Output->SetWrapMode(wxSTC_WRAP_WORD);
-        m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
-        m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
-        
-        // script pane set up
-        JSlexit(this->m_Script);  // set up lexing
-        // wrap text in script pane
-        m_Script->SetWrapMode(wxSTC_WRAP_WORD);
-        m_Script->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
-        m_Script->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
-        
-
-        auto_run->Hide();
-        if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
-            wxString    script;
-            wxString    fileString = this->m_fileStringBox->GetValue();
-            if (!wxFileExists(fileString)){
-                message(STYLE_RED, _("Load file " + fileString + ": ") +_("File does not exist"));
-                auto_run->SetValue(false);
-                }
-            else {
-                m_Script->LoadFile(fileString);
-                auto_run->Show();
-                mWaitingToRun = this->auto_run->GetValue();
-                }
-            }
-        else {
-        	wxString patchString = wxEmptyString;
-        	if (PLUGIN_VERSION_PATCH > 0) patchString = wxString(_(".")) << PLUGIN_VERSION_PATCH;
-        	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR\
-        			<<  patchString  << " " << PLUGIN_VERSION_COMMENT << " " << PLUGIN_VERSION_DATE << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
-            m_Script->AddText(welcome); // some initial script
-            }
-        m_Output->AppendText(welcome);
-//        this->SetClientSize(consoleSize);
-
         TRACE(4, "Constructed console " + consoleName + wxString::Format(" size x %d y %d  minSize x %d y %d", consoleSize.x, consoleSize.y, this->GetMinSize().x, this->GetMinSize().y ));        
         }
         
@@ -409,7 +370,130 @@ public:
 			return point;
 			}
 #endif
-    
+ 
+	 void setup(	// initialises console
+	 			wxString welcome = wxEmptyString,	// initial text for output pane
+	 			wxString fileString = wxEmptyString, // for the fileString box
+	 			bool autoRun = false				// whether to auto start
+	 		){
+	 	void JSlexit(wxStyledTextCtrl* pane);
+ 	 	TRACE(33, wxString::Format("%s->setup welcome=%s; fileString=%s; autoRun=%s",
+ 	 		mConsoleName, welcome, fileString, autoRun?"true":"false"));
+	 	
+		// hook this new console onto end of chain of consoles
+        Console* pConsole = pJavaScript_pi->mpFirstConsole;
+        if (pConsole == nullptr) pJavaScript_pi->mpFirstConsole = this;   // is first and only
+        else {
+            while (pConsole->mpNextConsole) pConsole = pConsole->mpNextConsole; // point to last
+            pConsole->mpNextConsole = this; // add us
+            }
+        
+        // script pane set up
+        JSlexit(this->m_Script);  // set up lexing
+        m_Script->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Script->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Script->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+        m_fileStringBox->SetValue(fileString);
+        auto_run->Hide();
+        if (m_fileStringBox->GetValue() != wxEmptyString) {    // we have a script to load
+            wxString    script;
+            wxString    fileString = this->m_fileStringBox->GetValue();
+            if (isURLfileString(fileString)){
+            	if (!OCPN_isOnline()) message(STYLE_RED, _("Load file " + fileString + "OpenCPN not on-line"));
+				else {
+					wxString getTextFile(wxString fileString, wxString* pText);
+					wxString script;
+					wxString result = getTextFile(fileString, &script);
+					if (result == wxEmptyString){	// looking good
+						m_Script->ClearAll();
+						m_Script->WriteText(script);
+						}
+					else message(STYLE_RED, _("Load file cannot download " + fileString + " - " + result));
+					}
+				}
+            else if (!wxFileExists(fileString)){
+                message(STYLE_RED, _("Load file " + fileString + ": ") +_("File does not exist"));
+                auto_run->SetValue(false);
+                }
+            else {
+                m_Script->LoadFile(fileString);
+                auto_run->Show();
+                mWaitingToRun = this->auto_run->GetValue();
+                }
+            }
+        else {
+        	wxString patchString = wxEmptyString;
+        	if (PLUGIN_VERSION_PATCH > 0) patchString = wxString(_(".")) << PLUGIN_VERSION_PATCH;
+        	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR\
+        			<<  patchString  << " " << PLUGIN_VERSION_COMMENT << " " << PLUGIN_VERSION_DATE << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
+            m_Script->AddText(welcome); // some initial script
+            }
+        m_fileStringBox->SetValue(fileString);
+        auto_run->SetValue(autoRun);
+       
+        // output pane set up
+        m_Output->StyleSetSpec(STYLE_RED, _("fore:#FF0000"));
+        m_Output->StyleSetSpec(STYLE_BLUE, _("fore:#2020FF"));
+        m_Output->StyleSetSpec(STYLE_ORANGE, _("fore:#FF7F00"));
+        m_Output->StyleSetSpec(STYLE_GREEN, _("fore:#00CE00"));
+        m_Output->StyleSetSpec(STYLE_BOLD, _("bold"));
+        m_Output->StyleSetSpec(STYLE_UNDERLINE, _("underline"));
+        m_Output->SetWrapMode(wxSTC_WRAP_WORD);
+        m_Output->SetWrapIndentMode(wxSTC_WRAPINDENT_INDENT);
+        m_Output->SetWrapVisualFlags(wxSTC_WRAPVISUALFLAG_START);
+	 	m_Output->AppendText(welcome);
+	 	
+        mBrief.hasBrief = false;
+        mBrief.theBrief = wxEmptyString;
+        mBrief.reply = false;
+        mBrief.briefingConsoleName = wxEmptyString;
+	 	consoleReset();	// regular initialisation
+	 	
+	 	mWaitingToRun = autoRun;
+	 	}
+	 
+	 void consoleReset(){	// Resets console, clearing out settings
+		mpCtx = nullptr;
+		mRunningMain = false;
+		mStatus = 0;
+		mWaitingCached = false;
+		m_explicitResult = false;
+		m_result = wxEmptyString;
+//		m_hadError = false;
+		m_time_to_allocate = 1000;   //default time allocation (msecs)
+		mTimerActionBusy = false;
+		mDialog.pdialog = nullptr;
+		mDialog.functionName = wxEmptyString;
+		mAlert.palert = nullptr;
+		mAlert.alertText = wxEmptyString;
+		mpMessageDialog = nullptr;
+		mConsoleRepliesAwaited = 0;
+		m_exitFunction = wxEmptyString;
+		m_streamMessageCntlsVector.clear();
+		mpTimersVector.clear();
+		// just in case file controls not finalised from any previous run
+		{
+			int count = m_wxFileFcbs.size();
+			if (count > 0){
+				message(STYLE_ORANGE, _("Warning: file controls not cleaned up by previous run - doing it now"));
+				for (auto it = begin (m_wxFileFcbs); it != end (m_wxFileFcbs); ++it) {
+					delete it->pFile;
+					}
+				m_wxFileFcbs.clear();
+				}
+			}
+		#ifdef SOCKETS
+			clearSockets();
+		#endif
+		mscriptToBeRun = false;
+		run_button->SetLabel("Run");
+		if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
+			mAlert.position.y = 150;
+			}
+		m_wxFileFcbs.clear();
+		return;
+		}
+   
     Console *clearAndUnhook(){  //  Clear down and unhook console prior to deleting
         Console *pConsole, *pPrevConsole;
         TRACE(3,"Unhooking console " + this->mConsoleName);
@@ -442,50 +526,11 @@ public:
 		}
 	
  
-	 void consoleInit(){	// Initialises console, clearing out settings
-		mpCtx = nullptr;
-		mRunningMain = false;
-		mStatus = 0;
-		mWaitingCached = false;
-		m_explicitResult = false;
-		m_result = wxEmptyString;
-		m_hadError = false;
-		m_time_to_allocate = 1000;   //default time allocation (msecs)
-		mTimerActionBusy = false;
-		mDialog.pdialog = nullptr;
-		mDialog.functionName = wxEmptyString;
-		mAlert.palert = nullptr;
-		mAlert.alertText = wxEmptyString;
-		mpMessageDialog = nullptr;
-		mConsoleRepliesAwaited = 0;
-		m_exitFunction = wxEmptyString;
-		m_streamMessageCntlsVector.clear();
-		// just in case file controls not finalised from any previous run
-		{
-			int count = m_wxFileFcbs.size();
-			if (count > 0){
-				message(STYLE_ORANGE, _("Warning: file controls not cleaned up by previous run - doing it now"));
-				for (auto it = begin (m_wxFileFcbs); it != end (m_wxFileFcbs); ++it) {
-					delete it->pFile;
-					}
-				m_wxFileFcbs.clear();
-				}
-			}
-		#ifdef SOCKETS
-			clearSockets();
-		#endif
-		mscriptToBeRun = false;
-		run_button->SetLabel("Run");
-		if (mAlert.position.y == -1){ // shift initial position of alert  away from default used by dialogue
-			mAlert.position.y = 150;
-			}
-		m_wxFileFcbs.clear();
-		return;
-		}
+
  
   Completions run(wxString script) { // compile and run the script
 	   Completions outcome;       // result of JS run
-//	   extern bool runLable, stopLabel;
+	   wxString JScleanString(wxString given);
 	   wxString result;
 	   void fatal_error_handler(void *udata, const char *msg);
 	   void duk_extensions_init(duk_context *ctx, Console* pConsole);
@@ -494,7 +539,8 @@ public:
    
 	   TRACE(3, this->mConsoleName + "->run() entered");
 	   if (script == wxEmptyString) return HAD_ERROR;  // ignore
-	   consoleInit();
+	   script = JScleanString(script);
+	   consoleReset();
 	   mpCtx = duk_create_heap(NULL, NULL, NULL, NULL, fatal_error_handler);  // create the Duktape context
 	   if (!mpCtx) {
 		message(STYLE_RED, _("Plugin logic error: Duktape failed to create heap"));
@@ -628,9 +674,10 @@ public:
             }
         TRACE(75,mConsoleName + "->isWaiting() doing full check");
         bool result = false;
-        int count;
+        unsigned int count;
         if (
-            (mTimes.GetCount() > 0) ||
+        	(mpTimersVector.size() > 0) ||
+//            (mTimes.GetCount() > 0) ||
             (mMenus.GetCount() > 0) ||
 #ifdef SOCKETS
             (mSockets.GetCount() > 0) ||
@@ -640,11 +687,12 @@ public:
             (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
             (mpMessageDialog != nullptr) ||
+            (m_closeButtonFunction != wxEmptyString) ||
             (mAlert.palert != nullptr) ){
             	TRACE(75, mConsoleName + "->isWaiting() 1st if true");
                 result = true;
                 }
-        else if ((count = (int)mMessages.GetCount()) > 0){ // look at messages
+        else if ((count = mMessages.GetCount()) > 0){ // look at messages
              for(unsigned int index = 0; index < count; index++){
                 if (mMessages[index].functionName != wxEmptyString) {
                     TRACE(75, mConsoleName + "->isWaiting() else if true");
@@ -669,7 +717,7 @@ public:
 		// we check for this before other types of error
 		// For now we will mark not busy in case the following are true
 		wxString result;
-		wxString getStringFromDuk(duk_context *ctx);
+//		wxString getStringFromDuk(duk_context *ctx);
 		Completions outcome;
         wxString statusesToString(status_t mStatus);
 		
@@ -687,7 +735,7 @@ public:
 		if (dukOutcome != DUK_EXEC_SUCCESS) return HAD_ERROR;	// a real error
 		
 		mWaitingCached = false;   // now we are past those cases, get a re-check
-	   result = getStringFromDuk(mpCtx);
+	   result = duk_to_string(mpCtx, 0);
 	   if (!m_explicitResult) m_result = result; // for when not explicit result
 	   duk_pop(mpCtx);  // pop result
 	   outcome = DONE; // starting assumption
@@ -702,11 +750,11 @@ public:
 				 functionMissing(m_activeLegFunction)
 			 )
 			 outcome = HAD_ERROR;
-		  if (!mTimes.IsEmpty()){
+		  if (mpTimersVector.size() > 0){
 			 // has set up one or more timers - check them out
-			 int count = (int)mTimes.GetCount();
+			 int count = mpTimersVector.size();
 			 for (int i = 0; i < count; i++)
-				if (functionMissing(mTimes[i].functionName)) outcome = HAD_ERROR;
+				if (functionMissing(mpTimersVector[i].functionName)) outcome = HAD_ERROR;
 				}
 		 for (int i = m_streamMessageCntlsVector.size()-1; i >= 0; i--)
                 if (functionMissing(m_streamMessageCntlsVector[i].functionName)) outcome = HAD_ERROR;
@@ -725,13 +773,15 @@ public:
 		wrapUpWorks(reason);
 		if (!isBusy()){
 			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
-
-				// save the enduring variable
-				duk_push_global_object(mpCtx);
-				int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
-				if (OK)	m_remembered = duk_json_encode(mpCtx, -1);
-				else m_remembered = "{}";	// play safe - if no -remember set as undefined
-				TRACE(100, mConsoleName + "->wrapUp() destroying ctx");
+				if (reason == DONE){	// save the enduring variable
+					TRACE(4, mConsoleName + "->wrapUp() will save _remember");
+					duk_push_global_object(mpCtx);
+					int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
+					if (OK)	m_remembered = duk_json_encode(mpCtx, -1);
+					else m_remembered = "{}";	// play safe - if no -remember set as undefined
+					duk_pop(mpCtx);
+					}
+				TRACE(4, mConsoleName + "->wrapUp() destroying ctx");
 				duk_destroy_heap(mpCtx);
 				mpCtx = nullptr;
 				}
@@ -894,7 +944,7 @@ public:
 #endif
     
 	void clearCallbacks(){// clears all reasons a console might be called back
-		mTimes.Clear();	//timers
+		/* if (!mpTimersVector.empty())*/  mpTimersVector.clear();
 		clearDialog();
 		clearAlert();
 		clearMenus();
@@ -902,6 +952,7 @@ public:
 		m_NMEAmessageFunction = wxEmptyString;  // function to invoke on receipt of NMEA message, else ""
     	m_activeLegFunction = wxEmptyString;  // function to invoke on receipt of active leg, else ""
 		m_exitFunction = wxEmptyString;  // function to call on exit, else ""
+		m_closeButtonFunction = wxEmptyString;  // function to call on click, else ""
 		size_t messageCount = mMessages.GetCount();
 		if (messageCount > 0){
 			for(unsigned int index = 0; index < messageCount; index++){
@@ -923,24 +974,48 @@ public:
 		run_button->SetLabel(_("Run"));
 		}
 		
+/*
     void throw_error(duk_context *ctx, wxString message){
         // throw an error from within c++ code called from running script
         // either there is an error object on the stack or a message
         // ! do not call otherwise
+        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(4, mConsoleName + "->throw_error() " + message);
         m_result = wxEmptyString;    // supress result
         m_explicitResult = true;    // supress result
         if (!duk_is_error(ctx, -1)){
             // we do not have an error object on the stack
+            TRACE(4, mConsoleName + "->throw_error() pushing error object to stack");
+            int n = duk_get_top(ctx);  // number of items on stack
+            if (n > 0) duk_pop_n(ctx, n);	// clear stack
             duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
             }
-        m_hadError = true;
+//      m_hadError = true;
         mRunningMain = false;
         duk_throw(ctx);   // we don't come back from this
+        }
+*/
+
+    void prep_for_throw(duk_context *ctx, wxString message){
+        // throw an error from within c++ code called from running script
+        // either there is an error object on the stack or a message
+        // Because of Windows, the actual throw has to be done after return
+        // ! do not call otherwise
+        message = JScleanOutput(message);	// internally, we are using DEGREE to represent degree - convert any back
+        TRACE(4, mConsoleName + "->prep_for_throw() " + message);
+        m_result = wxEmptyString;    // supress result
+        m_explicitResult = true;    // supress result
+        if (!duk_is_error(ctx, -1)){
+            // we do not have an error object on the stack
+            TRACE(4, mConsoleName + "->prep_for_throw() pushing error object to stack");
+            duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
+            }
+        mRunningMain = false;
         }
     
     void message(int style, wxString message){
         void limitOutput(wxStyledTextCtrl* pText);
+        message = JScleanOutput(message);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(5,mConsoleName + "->message() " + message);
         Show(); // make sure console is visible
     	makeBigEnough();
@@ -959,6 +1034,10 @@ public:
         }
         
     void makeBigEnough(){	// ensure console at least minimum size
+    	if (isParked()){
+			unPark();
+			this->message(STYLE_ORANGE,"Console unparked to show message");	// recursing!
+			}
     	wxSize consoleSize = ToDIP(this->GetSize());	// using DIP size here
         if ((consoleSize.x < 200)|| (consoleSize.y < 400)){
         	consoleSize = FromDIP(wxSize(680,700));		// back to actual size
@@ -971,7 +1050,7 @@ public:
         // either there is an error object on the stack or a message
         m_explicitResult = true;    // supress result
         m_result = duk_safe_to_string(ctx, -1);
-        m_hadError = true;
+//      m_hadError = true;
         duk_pop(ctx);
         this->message(STYLE_RED, _("From display_error ") +  m_result);
         }
@@ -1039,23 +1118,8 @@ public:
         }
         else result = _("<nil>\n");
         return (result);
-    }
+    }      
 
-    void setTimedCallback(jsFunctionNameString_t functionName, wxString argument, wxDateTime timeToCall){
-        // create a callback entry to call fuction with argument at timeToCall
-        size_t timersCount = this->mTimes.GetCount();
-        if (timersCount >= MAX_TIMERS){
-            // should not get here unless something wrong
-            wxMessageBox(_("Number of timers exceeding safety limit"), _("JavaScript plugin - setTimedCallback"));
-            return;
-            }
-        TimeActions newAction;
-        newAction.functionName = functionName;
-        newAction.argument = argument;
-        newAction.timeToCall = timeToCall;
-        mTimes.Add(newAction);
-        }
-        
     void setConsoleMinClientSize(){
     	// store parameters in DIP but minSize set in physical size here
     	double scale = SCALE(this);
@@ -1068,46 +1132,112 @@ public:
     	SetMinClientSize(minSize);
     	}
     	
+    location getLocation(){	// capture current console position and size
+    	location now;
+    	now.size = GetSize();
+    	now.position = GetPosition();
+    	now.set = true;
+    	TRACE(25, wxString::Format("%s->getLocation()returning position\t%i\t%i\tsize %i\t%i", mConsoleName, now.position.x, now.position.y, now.size.x, now.size.y));
+    	return now;
+    	}
+    	
+    void setLocation (location loc){
+    	if (!loc.set){
+    	    message(STYLE_RED, _("setLocation called when not set - program error"));
+    	    }
+    	TRACE(25, wxString::Format("%s->setLocation() setting position\t%i\t%i\tsize %i\t%i", mConsoleName, loc.position.x, loc.position.y, loc.size.x, loc.size.y));
+    	SetSize(loc.size);
+    	SetPosition(loc.position);
+    	}
+    	
     void park(){	// park this console
-    	wxPoint screenToFrame(wxPoint pos);
-    	wxPoint frameToScreen(wxPoint pos);
-
+    	if (isParked()) { // was already parked
+    		setLocation(m_parkedLocation);	// might need re-minimizing
+    		return;
+    		}
+    	m_notParkedLocation = getLocation();	//remember our unparked location
         int rightMost {0};    // most right hand edge of a parked console relative to frame
         bool foundParked {false};
         TRACE(25, wxString::Format("%s->park() parking called with minSize X:%i  Y:%i",
         	mConsoleName, GetMinSize().x, GetMinSize().y)); 
 		wxSize size = GetMinClientSize();
 		size.y = 0;	// we are zeroing the client size
-    	SetClientSize(size);	
-    	if (isParked()) return;	// was already parked
-    	// find horizontal place available avoiding other parked consoles
-    	for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){
-    		// for each console
-    		int rhe;	// right hand edge within frame
-            if (pC == this) continue;	// omit ourselves console from check
-            if (!pC->isParked()) continue;	// ignore non-parked consoles
-            // this one is parked
-            foundParked = true;
-            wxPoint pCFramePos = screenToFrame(pC->GetPosition());	// position of this console in frame
-            rhe = pCFramePos.x + pC->GetMinSize().x;
-            if (rhe > rightMost) rightMost = rhe;
-            }   
-    	int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
-		m_parkedPosition = wxPoint(newX, pJavaScript_pi->m_parkingLevel);	// temp in actual px
-		Move(frameToScreen(m_parkedPosition));
-        TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedPosition.x, m_parkedPosition.y));
-		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
-        m_parked = true;
+#if defined(__LINUX__)
+		size.y = 1;	// Linux does not work if y is 0
+#endif
+    	SetClientSize(size);
+    	TRACE(25, wxString::Format("%s->park() readback of client size X:%i  Y:%i",
+        	mConsoleName, GetClientSize().x, GetClientSize().y)); 
+        TRACE(25, wxString::Format("%s->park() readback of size X:%i  Y:%i",
+        	mConsoleName, GetSize().x, GetSize().y));
+    	if (m_parkedLocation.set){	// have a parking slot
+    	    TRACE(25, wxString::Format("%s->park() reparking", mConsoleName));
+    		m_parkedLocation.size = GetSize();
+    		setLocation(m_parkedLocation);	// repark
+    		m_parked = true;
+    		TRACE(25, wxString::Format("%s->park() readback of parked size X:%i  Y:%i",
+        	mConsoleName, GetSize().x, GetSize().y));
+    		TRACE(25, wxString::Format("%s->park() finished re-parking", mConsoleName));
+    		return;
+    		}
+    	else {// first time parked - find horizontal place available avoiding other parked consoles
+    	    TRACE(25, wxString::Format("%s->park() parking first time", mConsoleName));
+    		for (Console* pC = pJavaScript_pi->mpFirstConsole; pC != nullptr; pC = pC->mpNextConsole){
+				// for each console
+				int rhe {0};	// right hand edge within frame
+				if (pC == this) continue;	// omit ourselves console from check            
+				if (pC->isParked()){
+					foundParked = true;
+					wxPoint pCFramePos = pC->GetPosition();
+					rhe = pCFramePos.x + pC->GetMinSize().x;
+					}
+				else if (pC->m_parkedLocation.set) {// not parked but has a parking place
+					foundParked = true;
+					rhe = pC->m_parkedLocation.position.x + pC->m_parkedLocation.size.x;
+					}
+				if (rhe > rightMost) rightMost = rhe;
+				} 
+			int newX = foundParked ? (rightMost + pJavaScript_pi->m_parkSep): pJavaScript_pi->m_parkFirstX;	// horizontal place for new parking in actual px
+			m_parkedLocation.position = wxPoint(newX, pJavaScript_pi->m_parkingLevel);
+			m_parkedLocation.size = GetSize();
+			m_parkedLocation.set = true;
+			setLocation(m_parkedLocation);
+			TRACE(25, wxString::Format("%s->park() parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
+	//		m_parkedPosition = ToDIP(m_parkedPosition);	// save in DIP
+	//		m_parkedLocation = getLocation();
+			m_parked = true;
+			}
     	}
     	
-    bool isParked(){ //	returns true if console is parked
-        wxPoint screenToFrame(wxPoint pos);
-        
-    	if (!m_parked) return false;
-    	wxPoint posNow = screenToFrame(GetPosition());	// pos rel to frame
-    	posNow = ToDIP(posNow);	// stored position in DIP
-    	if ((abs(posNow.y - m_parkedPosition.y) < 4)) return true; // still parked (allowing small margin for error )
+    void unPark(){	//unpark this Console
+    	TRACE(25, wxString::Format("%s->unpark() called with parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
+
+    	if (!isParked()) return;
+    	m_parkedLocation = getLocation();	// remember where we parked
+    	if (!m_notParkedLocation.set){	// have no unparked location - invent one
+			m_notParkedLocation.position = FromDIP(NEW_CONSOLE_POSITION);
+			m_notParkedLocation.size = FromDIP(NEW_CONSOLE_SIZE);
+			m_notParkedLocation.set = true;
+			}
+    	setLocation(m_notParkedLocation);
+    	TRACE(25, wxString::Format("%s->unpark() completed to X:%i   Y:%i frame", mConsoleName, m_notParkedLocation.position.x, m_notParkedLocation.position.y));
+
+    	m_parked = false;    	
+    	}
+    	
+    bool isParked(){ //	returns true if console is parked      
+    	if (!m_parked){
+    		TRACE(25, wxString::Format("%s->isParked() already false", mConsoleName));
+    		return false;
+    		}
+    	wxPoint posNow = GetPosition();
+    	if ((abs(posNow.y - m_parkedLocation.position.y) < 4)){  // still parked (allowing small margin for error )
+    		TRACE(25, wxString::Format("%s->isParked() found is parked", mConsoleName));
+ //   		m_parkedLocation.position = posNow;	// update in case position moved within park
+    		return true;
+    		}
     	m_parked = false;	// has been moved
+    	TRACE(25, wxString::Format("%s->isParked() found no longer parked", mConsoleName));
     	return false;
     	}
     
@@ -1141,7 +1271,6 @@ public:
     wxString consoleDump(){    // returns string being dump of selected information from console structure
         wxString ptrToString(Console* address);
         wxString statusesToString(status_t mStatus);
-        wxPoint screenToFrame(wxPoint);
         int i, count;
         wxString dump {""};
         dump += "Console name:\t\t" + mConsoleName + "\n";
@@ -1156,7 +1285,7 @@ public:
         dump += "mpMessageDialog:\t" +  ptrToString((Console *)mpMessageDialog) + "\n";
         dump += "isBusy():\t\t\t\t" + (this->isBusy()?_("true"):_("false")) + "\n";
         dump += "isWaiting():\t\t\t" + (this->isWaiting()?_("true"):_("false")) + "\n";
-        dump += "auto_run:\t\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
+        dump += "auto_run:\t\t\t" + (this->auto_run ->GetValue()? _("true"):_("false")) + "\n";
         wxPoint screenPosition = GetPosition();
         wxPoint DIPposition = ToDIP(screenPosition);
         dump += wxString::Format("position:\t\t\t\tscreen x:%i y:%i\tDIP x:%i y:%i\n", screenPosition.x, screenPosition.y, DIPposition.x, DIPposition.y );
@@ -1165,8 +1294,13 @@ public:
         wxSize minSize = GetMinSize();
         dump += wxString::Format("Size():\t\t\t\tx:%i y:%i\tDIP\tx:%i y:%i\tMinSize() x:%i y:%i\n",
         	size.x, size.y,DIPsize.x, DIPsize.y, minSize.x, minSize.y );
-        dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
-        dump += "isParked():\t\t\t" + (isParked() ?  _("true"):_("false")) + "\n";       
+//        dump += wxString::Format("m_parked:\t\t\t%s position x:%i y:%i\n", (m_parked ? _("true"):_("false")), m_parkedPosition.x, m_parkedPosition.y);
+        dump += wxString::Format("m_parked:\t\t\t%s\n", (m_parked ? _("true"):_("false")));
+        dump += "isParked():\t\t\t" + (isParked() ?  _("true"):_("false")) + "\n";
+        dump += !m_parkedLocation.set ? "No park location\n":
+        	wxString::Format("parked Location\t\t%i\t%i\tsize %i\t%i\n", m_parkedLocation.position.x, m_parkedLocation.position.y, m_parkedLocation.size.x, m_parkedLocation.size.y);     
+        dump += !m_notParkedLocation.set ? "No unparked location\n":
+        	wxString::Format("notParked location\t%i\t%i\tsize %i\t%i\n", m_notParkedLocation.position.x, m_notParkedLocation.position.y, m_notParkedLocation.size.x, m_notParkedLocation.size.y);      
         dump += _("Messages callback table\n");
         count =(int)this->mMessages.GetCount();
         if (count == 0) dump += _("\t(empty)\n");
@@ -1180,11 +1314,12 @@ public:
             }
         dump += "m_timerActionBusy:\t" + (this->mTimerActionBusy?_("true"):_("false")) + "\n";
         dump += _("Timers callback table\n");
-        count = (int)this->mTimes.GetCount();
+        count = mpTimersVector.size();
         if (count == 0) dump += _("\t(empty)\n");
         else {
             for (i = 0; i < count; i++){
-                dump += _("\t") + mTimes[i].timeToCall.FormatTime() + "\t" + this->mTimes[i].functionName +_("\t") + this->mTimes[i].argument + _("\n");
+                dump += _("\t") + ((mpTimersVector[i].timer->IsOneShot())?"One shot ": "Repeating") + "\t"
+                	 + mpTimersVector[i].functionName +_("\t") + mpTimersVector[i].parameter + _("\n");
                 }
             }
         dump += _("Menus callback table\n");
@@ -1225,6 +1360,7 @@ public:
 
         dump += "m_activeLegFunction:\t\t" + m_activeLegFunction + "\n";
         dump += "m_exitFunction:\t" + m_exitFunction + "\n";
+        dump += "m_closeButtonFunction:\t" + m_closeButtonFunction + "\n";
         dump += "m_explicitResult:\t\t" + (m_explicitResult?_("true"):_("false")) + "\n";
         dump += "m_result:\t\t\t\t" + m_result + "\n";
         dump += "mscriptToBeRun:\t" + (this->mscriptToBeRun?_("true"):_("false")) + "\n";
@@ -1309,7 +1445,10 @@ public:
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEA0183 within onExit function");
+        if (mStatus.test(INEXIT)){
+        	prep_for_throw(ctx, "OCPNonNMEA0183 within onExit function");
+        	duk_throw(ctx);
+        	}
         if (nargs == 0) { // empty call - cancel any waiting callbacks
 
         	m_NMEAmessageFunction = wxEmptyString;
@@ -1317,7 +1456,10 @@ public:
  			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NMEA0183);
             }
         else if (nargs == 1) {    // old-style general listen. Will be handled via th old mechanism 
-        	if (m_NMEAmessageFunction != wxEmptyString) throw_error(ctx, "OCPNonNMEA0183 called with general call outstanding");		
+        	if (m_NMEAmessageFunction != wxEmptyString){
+        		prep_for_throw(ctx, "OCPNonNMEA0183 called with general call outstanding");
+        		duk_throw(ctx);
+        		}		
             m_NMEAmessageFunction = extractFunctionName(ctx,0);
             m_NMEApersistance = persist;
             }
@@ -1328,8 +1470,10 @@ public:
 			messageCntl.messageType = MESSAGE_NMEA0183;
 			duk_require_string(ctx, 1);
 			wxString header = wxString(duk_to_string(ctx, 1));
-			if ((header.length() != 3) && (header.length() != 5))
-				throw_error(ctx, wxString::Format("OCPNonNMEA0183 called with identifier %s not 3 or 5 characters", header));
+			if ((header.length() != 3) && (header.length() != 5)){
+				prep_for_throw(ctx, wxString::Format("OCPNonNMEA0183 called with identifier %s not 3 or 5 characters", header));
+				duk_throw(ctx);
+				}
 			messageCntl.id0183 = wxString(header);
 			NMEA0183Id id(messageCntl.id0183.ToStdString());
 			wxDEFINE_EVENT(EVT_JAVASCRIPT, ObservedEvt);
@@ -1342,7 +1486,10 @@ public:
 				});
 			m_streamMessageCntlsVector.push_back(messageCntl);
 			}
-        else throw_error(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");   
+        else{
+        	prep_for_throw(ctx, "OCPNonNMEAsentence does not have 0, 1 or 2 args");
+        	duk_throw(ctx);
+        	}
 	    };
 	    
     void setupNMEA2k(duk_context *ctx, bool persist){
@@ -1351,7 +1498,10 @@ public:
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNMEA2k within onExit function");
+        if (mStatus.test(INEXIT)){
+        	prep_for_throw(ctx, "OCPNonNMEA2k within onExit function");
+        	duk_throw(ctx);
+        	}
         if (nargs == 0) { // empty call - cancel any waiting callbacks
  			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NMEA2K);
             }
@@ -1374,7 +1524,10 @@ public:
 				});
 			m_streamMessageCntlsVector.push_back(messageCntl);
 			}
-        else throw_error(ctx, "OCPNonNMEAsentence does not have 0 or 2 args");   
+        else{
+        	prep_for_throw(ctx, "OCPNonNMEAsentence does not have 0 or 2 args");
+        	duk_throw(ctx);
+        	}  
 	    };
     
     void setupNavigationStream(duk_context *ctx, bool persist){
@@ -1382,7 +1535,10 @@ public:
         wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
         void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which );
         
-        if (mStatus.test(INEXIT)) throw_error(ctx, "OCPNonNavigation within onExit function");
+        if (mStatus.test(INEXIT)){
+        	prep_for_throw(ctx, "OCPNonNavigation within onExit function");
+        	duk_throw(ctx);
+        	}
         duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
         if (nargs == 0) { // empty call - cancel any waiting callbacks
  			clearMessageCntlEntries(&m_streamMessageCntlsVector, MESSAGE_NAVIGATION);
@@ -1402,6 +1558,7 @@ public:
 			});
 		m_streamMessageCntlsVector.push_back(messageCntl); 
     	};
+    	
     	
 	};
 

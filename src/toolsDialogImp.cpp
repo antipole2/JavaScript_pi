@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -101,7 +101,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         return;
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-//	pConsole->floatOnTop(pJavaScript_pi->m_floatOnParent);
+	pConsole->setup();
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -116,6 +116,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     wxSize minSize, oldSize, newSize;
     wxString checkConsoleName(wxString name, Console* pConsole);
     Console* findConsoleByName(wxString name);
+    void reviewParking();
     Console *pConsole;
  
     this->m_ConsolesMessage->Clear();
@@ -141,12 +142,14 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     pConsole->SetLabel(newConsoleName);
     pConsole->mConsoleName = newConsoleName;
     TRACE(17, wxString::Format("onChangeName for parked console %s size was x:%i y:%i", oldConsoleName, GetSize().x, GetSize().y ));
+//    wxSize oldClientMinSize = pConsole->GetMinClientSize();
     pConsole->setConsoleMinClientSize();
-    if (pConsole->isParked()){	// shrink it
-    	wxSize size = pConsole->GetMinSize();
-    	TRACE(17, wxString::Format("onChangeName for parked console new name %s setting new size to x:%i y:%i", newConsoleName, size.x, size.y ));
-    	pConsole->SetSize(size);
-    	}
+	wxSize newMinSize = pConsole->GetMinSize();
+	if (pConsole->m_parkedLocation.set){
+		pConsole->m_parkedLocation.size.x = newMinSize.x;
+		}
+	if (pConsole->isParked()) pConsole->SetSize(newMinSize);	// shrink it
+	reviewParking();
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
     }
@@ -213,6 +216,10 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
+    dump += (wxString::Format("Platform\t%s\n", wxGetOsDescription()));
+#ifndef __LINUX__
+    dump += (wxString::Format("Architecture\t%s\n", wxGetNativeCpuArchitectureName()));	// not available under Linux
+#endif
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
@@ -291,7 +298,8 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     for (j = 0, i = text.begin(); i != text.end(); ++i, j++)
         {
         wxUniChar uni_ch = *i;
-            dumpTextCtrl->AppendText(wxString::Format("[%02d]%c ", j, uni_ch));
+        	wxString format = (uni_ch <= 0xFF) ? "[%02d]%c " : "[%04d]%c ";
+            dumpTextCtrl->AppendText(wxString::Format(format, j, uni_ch));
         if ((j > 0) && ((j+1)%10 == 0)) dumpTextCtrl->AppendText("\n");
         }
     dumpTextCtrl->AppendText(JS_dumpString("\nRaw", text));
@@ -316,7 +324,6 @@ void ToolsClass::onParkingRevert(wxCommandEvent& event){
 void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	// customise parking parameters
 	void appendStyledText(wxString text, wxStyledTextCtrl* window, int colour);
-	wxPoint screenToFrame(wxPoint);
 	m_parkingMessage->Clear();
 	wxString label = m_customiseButton->GetLabel();
 	TRACE(4, wxString::Format("In onParking with button %s", label));
@@ -362,8 +369,8 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 		double scale = SCALE(this);	// for DIP corrections
 		wxSize c1Size = pTestConsole1->GetClientSize();
 		wxSize c2Size = pTestConsole2->GetClientSize();
-		wxPoint c1Pos = screenToFrame(pTestConsole1->GetPosition());
-		wxPoint c2Pos = screenToFrame(pTestConsole2->GetPosition());
+		wxPoint c1Pos = pTestConsole1->GetPosition();
+		wxPoint c2Pos = pTestConsole2->GetPosition();
 		m_customiseButton->SetLabel("Retry");	// in case we have a problem
 		if ((c1Size.y > 40*scale) || (c2Size.y > 40*scale)){
 			m_parkingMessage->SetValue("You have not minimised the consoles\nDo so and try again");

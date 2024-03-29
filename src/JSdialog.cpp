@@ -3,7 +3,7 @@
  * Purpose:  JavaScript Plugin
  * Author:   Tony Voss
  *
- * Copyright Ⓒ 2020 by Tony Voss
+ * Copyright Ⓒ 2024 by Tony Voss
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, under which
@@ -27,11 +27,20 @@
 #include "wx/choice.h"
 #include "jsDialog.h"
 
+ wxString getStringFromDuk(duk_context *ctx){
+     // gets a string safely from top of duk stack and fixes º-symbol for Windose
+    wxString JScleanOutput(wxString given);
+     wxString string = wxString(duk_to_string(ctx, -1));
+     string = JScleanOutput(string);	// internally, we are using DEGREE to represent degree - convert any back
+     return string;
+     }
+
 void onButton(wxCommandEvent & event){  // here when any dialogue button clicked ****************************
     duk_context *ctx;
     wxWindow *window;
     jsButton *button;
     Console *pConsole;
+     wxString JScleanString(wxString given);
     wxString elementType, theData, functionName;
     std::vector<dialogElement>::const_iterator it;
     int i;
@@ -58,16 +67,16 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
             duk_push_string(ctx, elementType);
             duk_put_prop_string(ctx, -2, "type");
             if ((elementType == "caption") || (elementType == "text") || (elementType == "hLine")){
-                duk_push_string(ctx, it->stringValue);
+                duk_push_string(ctx, JScleanString(it->stringValue));
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "field"){
-                duk_push_string(ctx, it->label);
+                duk_push_string(ctx, JScleanString(it->label));
                 duk_put_prop_string(ctx, -2, "label");
-                duk_push_string(ctx, it->textValue);
+                duk_push_string(ctx, JScleanString(it->textValue));
                 duk_put_prop_string(ctx, -2, "value");
                 if (it->suffix != wxEmptyString){
-                    duk_push_string(ctx, it->suffix);
+                    duk_push_string(ctx, JScleanString(it->suffix));
                     duk_put_prop_string(ctx, -2, "suffix");
                     }
                 }
@@ -80,9 +89,9 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
             else if (elementType == "tickList"){
                 wxCheckListBox *tickListBox = wxDynamicCast(window->FindWindowById(it->itemID), wxCheckListBox);
                 duk_push_array(ctx);
-                for (int j = 0, k = 0; j < tickListBox->GetCount(); j++){
+                for (unsigned int j = 0, k = 0; j < tickListBox->GetCount(); j++){
                     if (tickListBox->IsChecked(j)){
-                        duk_push_string(ctx, tickListBox->GetString(j));
+                        duk_push_string(ctx, JScleanString(tickListBox->GetString(j)));
                         duk_put_prop_index(ctx, -2, k++);
                         }
                     }
@@ -93,20 +102,20 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 duk_push_string(ctx, it->label);
                 duk_put_prop_string(ctx, -2, "label");
                 radioBox = wxDynamicCast(window->FindWindowById(it->itemID), wxRadioBox);
-                theData = radioBox->GetString(radioBox->GetSelection());
+                theData =JScleanString(radioBox->GetString(radioBox->GetSelection()));
                 duk_push_string(ctx, theData);
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "choice"){
                 wxChoice* choice;
                 choice = wxDynamicCast(window->FindWindowById(it->itemID), wxChoice);
-                theData = choice->GetString(choice->GetSelection());
+                theData = JScleanString(choice->GetString(choice->GetSelection()));
                 duk_push_string(ctx, theData);
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "slider"){
                 wxSlider* slider;
-                duk_push_string(ctx, it->label);
+                duk_push_string(ctx, JScleanString(it->label));
                 duk_put_prop_string(ctx, -2, "label");
                 slider = wxDynamicCast(window->FindWindowById(it->itemID), wxSlider);
                 duk_push_number(ctx, slider->GetValue());
@@ -114,17 +123,20 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
                 }
             else if (elementType == "spinner"){
                 wxSpinCtrl* spinner;
-                duk_push_string(ctx, it->label);
+                duk_push_string(ctx, JScleanString(it->label));
                 duk_put_prop_string(ctx, -2, "label");
                 spinner = wxDynamicCast(window->FindWindowById(it->itemID), wxSpinCtrl);
                 duk_push_number(ctx, spinner->GetValue());
                 duk_put_prop_string(ctx, -2, "value");
                 }
             else if (elementType == "button"){
-                duk_push_string(ctx, button->GetLabel());
+                duk_push_string(ctx, JScleanString(button->GetLabel()));
                 duk_put_prop_string(ctx, -2, "label");
                 }
-            else pConsole->throw_error(ctx, "onDialog error: onButton found unexpected type " + elementType);
+            else {
+            	pConsole->prep_for_throw(ctx, "onDialog error: onButton found unexpected type " + elementType);
+            	duk_throw(ctx);
+            	}
             duk_put_prop_index(ctx, -2, i);
             }
         // now to add extra element for clicked-on button
@@ -138,7 +150,10 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
         TRACE(4,pConsole->mConsoleName + " Button processing - back from function");
         if (result != MORETODO) pConsole->wrapUp(result);
         }
-    else pConsole->throw_error(ctx, "JavaScript onDialogue data validation failed");
+    else {
+    	pConsole->prep_for_throw(ctx, "JavaScript onDialogue data validation failed");
+    	duk_throw(ctx);
+    	}
     }
 
 // create the dialog  *********************************
@@ -149,7 +164,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
     dialogElement anElement;
     bool hadButton {false};
     wxArrayString strings;
-    wxString getStringFromDuk(duk_context *ctx);
+//    wxString getStringFromDuk(duk_context *ctx);
     Console *findConsoleByCtx(duk_context *ctx);
     wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
     
@@ -174,8 +189,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         return 1;
         }
     
-    if ( dialog != nullptr) pConsole->throw_error(ctx, "onDialog error: called with another dialogue active");
-    if (nargs != 2) pConsole->throw_error(ctx, "onDialog error: creating dialogue requires two arguments");
+    if ( dialog != nullptr) {
+    	pConsole->prep_for_throw(ctx, "onDialog error: called with another dialogue active");
+    	duk_throw(ctx);
+    	}
+    if (nargs != 2) {
+    	pConsole->prep_for_throw(ctx, "onDialog error: creating dialogue requires two arguments");
+    	duk_throw(ctx);
+    	}
     duk_require_function(ctx, -2);  // first arugment must be function
     
     // ready to create new dialogue
@@ -204,8 +225,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         int fontSize = 12;    // default font size
         wxFont font = wxFontInfo(fontSize);
         duk_get_prop_index(ctx, -1, i);
-        if (duk_get_prop_literal(ctx, -1, "type") == 0)
-            pConsole->throw_error(ctx, wxString::Format("onDialog error: array index %i does not have type property", i));
+        if (duk_get_prop_literal(ctx, -1, "type") == 0){
+            pConsole->prep_for_throw(ctx, wxString::Format("onDialog error: array index %i does not have type property", i));
+            duk_throw(ctx);
+            }
 
         elementType = duk_get_string(ctx, -1);
         anElement.type = elementType;
@@ -317,7 +340,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else if (elementType == "tick"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
-                pConsole->throw_error(ctx, "onDialog error: tick requires value");
+                pConsole->prep_for_throw(ctx, "onDialog error: tick requires value");
+                duk_throw(ctx);
                 }
             else {
                 bool ticked = false;
@@ -337,16 +361,23 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else if (elementType == "tickList"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
-                pConsole->throw_error(ctx, "onDialog error: tickList requires value");
+                pConsole->prep_for_throw(ctx, "onDialog error: tickList requires value");
+                duk_throw(ctx);
                 }
             else {
-                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: tickList requires value array");
+                if (!duk_is_array(ctx, -1)) {
+                	pConsole->prep_for_throw(ctx, "onDialog error: tickList requires value array");
+                	duk_throw(ctx);                	
+                	}
                 else {
                     int maxChars = 0;
                     strings.Clear();
                     int listLength = (int) duk_get_length(ctx, -1);
-                    if (listLength < 1) pConsole->throw_error(ctx, "onDialog error: tickList has empty value array");
-                    for (int j = 0; j < listLength; j++) {
+                    if (listLength < 1) {
+                    	pConsole->prep_for_throw(ctx, "onDialog error: tickList has empty value array");
+                    	duk_throw(ctx);
+                    	}
+                    for (unsigned int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);
@@ -382,9 +413,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             
             // range attribute
             if (!duk_get_prop_literal(ctx, -1, "range"))
-                pConsole->throw_error(ctx, "onDialog error: slider requires range");
+                pConsole->prep_for_throw(ctx, "onDialog error: slider requires range");
             if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2))
-            	pConsole->throw_error(ctx, "onDialog error: slider requires range with 2 values");
+            	pConsole->prep_for_throw(ctx, "onDialog error: slider requires range with 2 values");
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -430,9 +461,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             
             // range attribute
             if (!duk_get_prop_literal(ctx, -1, "range"))
-                pConsole->throw_error(ctx, "onDialog error: spinner requires range");
+                pConsole->prep_for_throw(ctx, "onDialog error: spinner requires range");
             if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2))
-            	pConsole->throw_error(ctx, "onDialog error: spinner requires range with 2 values");
+            	pConsole->prep_for_throw(ctx, "onDialog error: spinner requires range with 2 values");
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -475,15 +506,15 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else if (elementType == "choice"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
-                pConsole->throw_error(ctx, "onDialog error: choice requires value");
+                pConsole->prep_for_throw(ctx, "onDialog error: choice requires value");
                 }
             else {
-                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: choice requires value array");
+                if (!duk_is_array(ctx, -1)) pConsole->prep_for_throw(ctx, "onDialog error: choice requires value array");
                 else {
                     int maxChars = 0;
                     strings.Clear();
                     int listLength = (int) duk_get_length(ctx, -1);
-                    if (listLength < 1) pConsole->throw_error(ctx, "onDialog error: choice has empty value array");
+                    if (listLength < 1) pConsole->prep_for_throw(ctx, "onDialog error: choice has empty value array");
                     for (int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
@@ -513,24 +544,30 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             else label = wxEmptyString;
             duk_pop(ctx);
-            if (!duk_get_prop_literal(ctx, -1, "value")) pConsole->throw_error(ctx, "onDialog error: radio requires value");
+            if (!duk_get_prop_literal(ctx, -1, "value")) pConsole->prep_for_throw(ctx, "onDialog error: radio requires value");
             else {
-                if (!duk_is_array(ctx, -1)) pConsole->throw_error(ctx, "onDialog error: radio requires value array");
+                if (!duk_is_array(ctx, -1)) pConsole->prep_for_throw(ctx, "onDialog error: radio requires value array");
                 else {
                     numberOfButtons = (int) duk_get_length(ctx, -1);
-                    if (numberOfButtons < 1) pConsole->throw_error(ctx, "onDialog error: radioButtons has empty value array");
+                    if (numberOfButtons < 1) pConsole->prep_for_throw(ctx, "onDialog error: radioButtons has empty value array");
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
                     int maxChars = 0;
+                    int defaultIndex = 0;
                     for (int j = 0; j < numberOfButtons; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);
+                        if (value.GetChar(0) == '*'){   // if first char is *, remove and make this default button
+							value.Remove(0, 1);
+							defaultIndex = j;
+							}
                         strings.Add(value);
                         if (value.Length() > maxChars) maxChars = (int) value.Length();
                         }
                     duk_pop_2(ctx);
                     anElement.itemID = wxNewId();
-                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaultSize /*wxSize(maxChars*10*scale+45*scale, numberOfButtons*23*scale+14*scale) */, strings, 1, wxRA_SPECIFY_COLS);
+                    radioBox = new wxRadioBox(dialog, anElement.itemID,label, wxDefaultPosition, wxDefaultSize , strings, 1, wxRA_SPECIFY_COLS);
+                    radioBox->SetSelection(defaultIndex);
                     boxSizer->Add(radioBox, 0, wxHORIZONTAL|wxALL, 2);
                     anElement.label = label;
                     }
@@ -554,7 +591,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_is_array(ctx, -1)){
                 // have array of buttons
                 int numberOfButtons = (int) duk_get_length(ctx, -1);
-                if (numberOfButtons < 1) pConsole->throw_error(ctx, "onDialog error: buttons has empty labels array");
+                if (numberOfButtons < 1) pConsole->prep_for_throw(ctx, "onDialog error: buttons has empty labels array");
                 for (int j = 0; j < numberOfButtons; j++) {
                     defaultButton = false;
                     duk_get_prop_index(ctx, -1, j);
@@ -588,7 +625,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             anElement.label = label;
             }
         else {
-            pConsole->throw_error(ctx, "onDialogue - unsupported element type: " + elementType);
+            pConsole->prep_for_throw(ctx, "onDialogue - unsupported element type: " + elementType);
             }
         pConsole->mDialog.dialogElementsArray.push_back(anElement);
         }

@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/09/2022
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -139,6 +139,7 @@ void pushSocketDescriptor(duk_context *ctx, int ID, int type, int status, int la
         duk_push_int(ctx, lastEvent);
             duk_put_prop_literal(ctx, -2, "lastEvent");
         }
+#endif
 
 /*
 duk_ret_t JSsocketAddServer(duk_context *ctx){ // JSsocketsAddServer(eventHandler, address, port) - returns socketID
@@ -176,7 +177,7 @@ duk_ret_t JSsocketAddServer(duk_context *ctx){ // JSsocketsAddServer(eventHandle
 	return 1;
 	}
 */
-	
+/*	
 duk_ret_t JSsocketAddServer(duk_context *ctx){ // JSsocketsAddServer(eventHandler, address, port) - returns socketID
 	Console *findConsoleByCtx(duk_context *ctx);
 	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
@@ -198,11 +199,10 @@ duk_ret_t JSsocketAddServer(duk_context *ctx){ // JSsocketsAddServer(eventHandle
 	pSocket->SetNotify(wxSOCKET_CONNECTION | wxSOCKET_INPUT_FLAG | wxSOCKET_OUTPUT| wxSOCKET_LOST_FLAG);
 	pSocket->Notify(true);
 //	{ wxSocketServer* pServer = (wxSocketServer*) pSocket; pServer->Connect(address, false);}
-/*
+
 	if (!pSocket->IsOk()){
 		pConsole->throw_error(ctx, wxString::Format("JSsocketAddSocket failed to open server"));
-		}
-*/		
+		}		
 	socket.pSocket = pSocket;
 	socket.socketID = pJavaScript_pi->nextID++;
 	socket.type = 1;
@@ -211,6 +211,7 @@ duk_ret_t JSsocketAddServer(duk_context *ctx){ // JSsocketsAddServer(eventHandle
 	pushSocketDescriptor(ctx, socket.socketID, 1, socket.pSocket->IsConnected()?1:0, 0);
 	return 1;
 	}
+8?
 	
 duk_ret_t JSsocketAddClient(duk_context *ctx){ // JSsocketsAddClient(eventHandler, address, port) - returns socketID
 	Console *findConsoleByCtx(duk_context *ctx);
@@ -336,7 +337,6 @@ duk_ret_t JSsocketStatus(duk_context *ctx){	// JSsocketsStatus(socketID)
 			}
 	return 1;
 	}
-#endif
 
 void register_sockets(duk_context *ctx){
     duk_push_global_object(ctx);
@@ -359,5 +359,4 @@ void register_sockets(duk_context *ctx){
 
     };
     
-#endif
 #endif

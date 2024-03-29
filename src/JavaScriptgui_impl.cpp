@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -43,54 +43,100 @@ int messageComp(MessagePair** arg1, MessagePair** arg2) {   // used when sorting
     return (strcmp((*arg1)->messageName, (*arg2)->messageName));}
 
 WX_DEFINE_OBJARRAY(MessagesArray);
-WX_DEFINE_OBJARRAY(TimesArray);
 WX_DEFINE_OBJARRAY(MenusArray);
 #ifdef SOCKETS
 WX_DEFINE_OBJARRAY(SocketRecordsArray);
 #endif
 WX_DEFINE_OBJARRAY(ConsoleRepliesArray);
 
+/*
 void Console::OnActivate(wxActivateEvent& event){
+	if (event.GetActive()){
+	    TRACE(110, "Activated");
+		if (m_clickFunction != wxEmptyString){
+			wxString function = m_clickFunction;
+			m_clickFunction = wxEmptyString;
+			Completions outcome = executeFunctionNargs(function, 0);
+			if (!isBusy()) wrapUp(outcome);
+			}
+		}
+	wxTextCtrl* what = (wxTextCtrl*) event.GetEventObject();
+	what->SetFocus();
+	event.Skip();
  	return;
     wxFrame* pConsole = wxDynamicCast(event.GetEventObject(), wxFrame);
     long int style = pConsole->GetWindowStyle();
     if (event.GetActive()) pConsole->SetWindowStyle(style | wxSTAY_ON_TOP); // bring console on top
 	pConsole->SetWindowStyle(style ^ wxSTAY_ON_TOP);    // but do not undo from v2.0.3
     };
-
+*/
+    
+/*
+void Console::OnLeftDClick(wxMouseEvent& event){
+    TRACE(110, "LeftEvent");
+	if (m_clickFunction != wxEmptyString){
+		wxString function = m_clickFunction;
+		m_clickFunction = wxEmptyString;
+		Completions outcome = executeFunctionNargs(function, 0);
+		if (!isBusy()) wrapUp(outcome);
+		}
+	// event.Skip();	// do rest of focussing
+	}
+*/
 
 void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString fileString;
     wxTextFile ourFile;
-    wxString lineOfData, script;
+    wxString lineOfData, script, result;
     wxString JScleanString(wxString line);
     wxString chooseFileString(Console*);
     wxString chooseLoadFile(Console*);
+    bool isURLfileString(wxString fileString);
     
     fileString = chooseFileString(this);
-    if (fileString == "**cancel**"){
-        TRACE(3, "Load cancelled");
-        return;
-        }
+	if (fileString == "**cancel**"){
+	TRACE(3, "Load cancelled");
+	return;
+	}
     if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
-    if (fileString != wxEmptyString){   // only if something now chosen
-        bool OK = ourFile.Open(fileString);
-        if (!OK){ // can't read file - it may have gone away
-            message(STYLE_RED, "File '" + fileString + "' not found or unreadable");
-            pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
-            return;
-            }
-        m_Script->ClearAll();   // clear old content
-        for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
-            script += lineOfData + "\n";
-            }
-        script = JScleanString(script);
-        m_Script->AppendText(script);
-        m_fileStringBox->SetValue(wxString(fileString));
-        auto_run->Show();
-        auto_run->SetValue(false);
-        updateRecentFiles(fileString);
-        }
+    else {   // only if something now chosen
+    	fileString.Trim(true);	// trim any whitespace both ends
+    	fileString.Trim(false);
+    	if (isURLfileString(fileString)){
+    		// it's a URL
+    		if (!OCPN_isOnline()) {
+    			message(STYLE_RED, "OpenCPN not on-line");
+    			return;
+    			}
+    		wxString getTextFile(wxString fileString, wxString* pText);
+    		result = getTextFile(fileString, &script);
+    		if (result != wxEmptyString){
+    		    TRACE(6, "URL not yielded file result:" + result + "\n" + script + "\n");
+    			message(STYLE_RED, result);
+    			pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
+    			return;
+    			}
+    		}
+    	else {
+			bool OK = ourFile.Open(fileString);
+			if (!OK){ // can't read file - it may have gone away
+				message(STYLE_RED, "File '" + fileString + "' not found or unreadable");
+				pJavaScript_pi->recentFiles.Remove(fileString); // remove from recents
+				return;
+				}
+			script = wxEmptyString;
+			for (lineOfData = ourFile.GetFirstLine(); !ourFile.Eof(); lineOfData = ourFile.GetNextLine()){
+				script += lineOfData + "\n";
+				}
+			}
+		}
+//	script = JScleanString(script);	// now do this on run command
+	m_Script->ClearAll();   // clear old content
+	m_Script->AppendText(script);
+	m_fileStringBox->SetValue(wxString(fileString));
+	auto_run->Show();
+	auto_run->SetValue(false);
+	updateRecentFiles(fileString);
     }
 
 void Console::OnSaveAs( wxCommandEvent& event ) {
@@ -102,8 +148,8 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
     wxDialog query;
     
     wxFileDialog SaveAsConsole( this, _( "Saving your script" ), wxEmptyString, wxEmptyString,
-                               _T("js files (*.js)|*.js|All files (*.*)|*.*"),
-                               wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxDD_NEW_DIR_BUTTON);
+    				"JavaScript files (*.js)|*.js",
+                    wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxDD_NEW_DIR_BUTTON);
     response = SaveAsConsole.ShowModal();
     if( response == wxID_OK ) {
         filePath = SaveAsConsole.GetPath();
@@ -127,7 +173,7 @@ void Console::OnSave( wxCommandEvent& event ) {
     wxDialog query;
     
     mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") && wxFileExists(   mFileString)) {
+    if ((   mFileString != "") && wxFileExists(   mFileString) && !isURLfileString(mFileString)) {
         // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
@@ -171,8 +217,7 @@ void Console::OnRun( wxCommandEvent& event ) {
 		message(STYLE_RED, "No script to run");
 		return;
 		}
-	wxString script = m_Script->GetText();
-	if (script == wxEmptyString)
+//	wxString script = JScleanString(m_Script->GetText());
     clearBrief();
     mConsoleRepliesAwaited = 0;
     doRunCommand(mBrief);
@@ -196,14 +241,30 @@ void Console::OnAutoRun(wxCommandEvent& event){   // Auto run tick box
     }
     
 void Console::OnPark( wxCommandEvent& event ){
-	TRACE(4, "OnPark");
+	TRACE(25, mConsoleName + " OnPark start");
     park();
+    TRACE(25, mConsoleName + " OnPark finished");
     }
 
 void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
+    void reviewParking();
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
     if (event.CanVeto()){
+		if (m_closeButtonFunction != wxEmptyString){
+			wxString function = m_closeButtonFunction;
+			m_closeButtonFunction = wxEmptyString;
+			Completions outcome = executeFunctionNargs(function, 0);
+			if (!isBusy()) wrapUp(outcome);
+			return;
+			}
+		if (isParked()){	// hit close button when parked and minimised
+			TRACE(25, wxString::Format("%s->onClose unparking", mConsoleName));
+			unPark();
+        	Raise();
+        	return;
+        	}
+
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
             // This is only console - decline
             this->message(STYLE_RED, "Console close: You cannot close the only console");
@@ -219,18 +280,22 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-        if (isParked() && ToDIP(GetClientSize()).y < 2){	// hit close button when parked and minimised
-        	makeBigEnough();
-        	Raise();
-        	return;
-        	}
         if (!this->m_Script->IsEmpty()) {
             // We will not delete a console with a script
             this->message(STYLE_RED, "Console close: clear the script first");
             event.Veto(true);
             return;
             }
+        if (this->m_remembered != wxEmptyString){
+        	wxString message = "You will lose what you have in _remember\nProceed anyway?";
+        	int choice = wxMessageBox(message, "Close console", wxYES_NO | wxYES_DEFAULT);
+        	if (choice == wxNO){
+        		event.Veto(true);
+        		return;
+        		}
+        	}
 		this->bin();
+		reviewParking();
 		// take care to remove from tools, if we have them open
 		ToolsClass *pTools = pJavaScript_pi->pTools;
 		if (pTools != nullptr) pTools->setConsoleChoices();
@@ -255,6 +320,25 @@ void Console::OnTools( wxCommandEvent& event){
     pJavaScript_pi->ShowTools(pJavaScript_pi->m_parent_window, 0);
     return;
     }
+    
+void Console::HandleTimer(wxTimerEvent& event){
+	TRACE(66, wxString::Format("in HandleTimer "));
+	int id = event.GetId();
+	if (mpTimersVector.empty()) return;
+	for (auto it = mpTimersVector.cbegin(); it < mpTimersVector.cend(); ++it){
+		auto entry = (*it);
+		if (entry.timer->GetId() == id){
+			wxString functionToCall = entry.functionName;
+			wxString parameter = entry.parameter;
+	    	if (entry.timer->IsOneShot()) mpTimersVector.erase(it);
+	    	duk_push_string(mpCtx, parameter.c_str());
+	    	Completions outcome = executeFunctionNargs(functionToCall, 1);
+	    	if (!isBusy()) wrapUp(outcome);
+	    	return;
+	    	}	    
+		}
+	message(STYLE_RED, "HandleTimer prog error: failed to match timer ID");
+	};
     
 
 void Console::HandleNMEA0183(ObservedEvt& ev, int messageCntlId) {

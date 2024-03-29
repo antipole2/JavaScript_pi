@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/04/2022
 *
-* Copyright Ⓒ 2023 by Tony Voss
+* Copyright Ⓒ 2024 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -64,25 +64,27 @@ wxString chooseLoadFile(Console* console){
 void onFilesButton(wxCommandEvent buttonEvent){
     // handles button click in recent files dialog
     // closes modal with return of:
-    // if Other...   -1
-    // if Cancel    -2
-    // if Organise favourites -3
-    // if file not located, -4
+    // if File...   -1
+    // if URL	-2
+    // if Cancel    -3
+    // if Organise favourites -4
+    // if file not located, -5
     // if Favourite the index in favouriteFiles
     // if Recent, the index in recentFiles + 1000000;
     wxButton* pbuttonPressed = wxDynamicCast(buttonEvent.GetEventObject(), wxButton);
     wxString label = pbuttonPressed->GetLabel();
     int index;
     TRACE(6, "Selected label " + label);
-    if (label == _("Other...")) index = -1;
-    else if (label == _("Cancel")) index = -2;
-    else if (label == _("Organise Favourites")) index = -3;
+    if (label == _("File...")) index = -1;
+    else if (label == "URL on clipboard") index = -2;
+    else if (label == _("Cancel")) index = -3;
+    else if (label == _("Organise Favourites")) index = -4;
     else {
         index = pJavaScript_pi->favouriteFiles.Index(label);
         if (index == wxNOT_FOUND){  // should be in recents
             index = pJavaScript_pi->recentFiles.Index(label);
             if (index == wxNOT_FOUND){
-                index = -4;
+                index = -5;
                 }
             else index += 1000000;
             }
@@ -118,8 +120,9 @@ void onOrganiserButton(wxCommandEvent buttonEvent){
     }
 
 wxBoxSizer* constructButtons(wxDialog* pdialog,  wxArrayString fileStrings, wxSize size, wxString caption){
-    // constructs a sizer comprsing a caption followed by buttons for each string in filestrings
+    // constructs a sizer comprising a caption followed by buttons for each string in filestrings
     // preceeded with a caption
+    bool isURLfileString(wxString fileString);
     TRACE(5, "Entered constructButtons with caption " + caption);
     wxButton* fileButton;
     wxBoxSizer* box = new wxBoxSizer(wxVERTICAL);
@@ -129,6 +132,7 @@ wxBoxSizer* constructButtons(wxDialog* pdialog,  wxArrayString fileStrings, wxSi
     box->Add(subhead);
     for (size_t i = 0; i < fileStrings.GetCount(); i++){
         fileButton = new wxButton(pdialog, wxID_ANY, fileStrings[i], wxDefaultPosition, size, wxBU_LEFT );
+        if (isURLfileString(fileStrings[i]) && !OCPN_isOnline()) fileButton->Disable();
         box->Add(fileButton, 0, wxALIGN_LEFT|wxALL, 5);
         }
     wxStaticLine* line = new wxStaticLine ( pdialog, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -186,6 +190,7 @@ bool organiseFavourites(Console* pConsole){ // returns true while more to organi
 wxString chooseFileString(Console* pConsole){
     // choose fileString from favourites or recents
     wxString fileString;
+    wxString urlButtonLabel = "URL on clipboard";
     int favouritesCount = pJavaScript_pi->favouriteFiles.GetCount();
     int recentsCount = pJavaScript_pi->recentFiles.GetCount();
     if ((favouritesCount + recentsCount) == 0) return wxEmptyString;    // nothing to choose from
@@ -209,10 +214,13 @@ wxString chooseFileString(Console* pConsole){
     wxBoxSizer* finalButtonBox = new wxBoxSizer(wxHORIZONTAL);
     boxSizer->Add(finalButtonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
     wxButton* cancelButton = new wxButton(pdialog, wxID_ANY, "Cancel");
-    wxButton* otherButton = new wxButton(pdialog, wxID_ANY, "Other...");
+    wxButton* webButton = new wxButton(pdialog, wxID_ANY, urlButtonLabel);    
+    wxButton* otherButton = new wxButton(pdialog, wxID_ANY, "File...");
     otherButton->SetDefault();
-    finalButtonBox->Add(cancelButton, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-    finalButtonBox->Add(otherButton, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+    finalButtonBox->Add(cancelButton, 0, /* wxALIGN_CENTER_HORIZONTAL| */ wxALL, 5);
+    finalButtonBox->Add(webButton, 0, /* wxALIGN_CENTER_HORIZONTAL| */ wxALL, 5);
+    if (!OCPN_isOnline()) webButton->Disable();   
+    finalButtonBox->Add(otherButton, 0, /* wxALIGN_CENTER_HORIZONTAL| */ wxALL, 5);
     if ((favouritesCount + recentsCount)  > 0){
         // add organiser button, which needs to stand apart
         wxButton* organiserButton = new wxButton(pdialog, wxID_ANY, "Organise Favourites", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
@@ -229,14 +237,26 @@ wxString chooseFileString(Console* pConsole){
     if (index == -1){   // to load Other
         fileString = chooseLoadFile(pConsole);
         }
-    else if (index == -2){  // cancelled
+    else if (index == -2){// get from URL on clipboard
+    	wxString getClipboardString(Console* pConsole);
+    	wxString url = getClipboardString(pConsole);
+		// check valid url
+		if (((url.substr(0, 6) != "https:") && (url.substr(0, 5) != "http:"))
+			|| url.Right(3) != ".js"){
+			pConsole->message(STYLE_RED, wxString::Format("Clipboard is not valid URL to .js URL: '%s'", url));
+			fileString = "**cancel**";
+			return fileString;
+			}
+		fileString = url;		
+    	}
+    else if (index == -3){  // cancelled
         fileString = "**cancel**";
         }
-    else if (index == -3){  // organise favourites
+    else if (index == -4){  // organise favourites
         while (organiseFavourites(pConsole)) {};
         fileString = chooseFileString(pConsole);    // recursing!
         }
-    else if (index < -3){
+    else if (index < -4){
         pConsole->message(STYLE_RED, wxString("Failed to find fileString - logic error in chooseFileString"));
         fileString = wxEmptyString;
         }
