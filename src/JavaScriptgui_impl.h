@@ -46,6 +46,7 @@ MAYBE_DUK_DUMP
 using namespace std;
 typedef wxString jsFunctionNameString_t;
 typedef wxString messageNameString_t;
+wxString JScleanOutput(wxString given);
 
 extern JavaScript_pi *pJavaScript_pi;
 bool isURLfileString(wxString);
@@ -1000,7 +1001,7 @@ public:
         // either there is an error object on the stack or a message
         // Because of Windows, the actual throw has to be done after return
         // ! do not call otherwise
-        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+        message = JScleanOutput(message);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(4, mConsoleName + "->prep_for_throw() " + message);
         m_result = wxEmptyString;    // supress result
         m_explicitResult = true;    // supress result
@@ -1014,7 +1015,7 @@ public:
     
     void message(int style, wxString message){
         void limitOutput(wxStyledTextCtrl* pText);
-        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+        message = JScleanOutput(message);	// internally, we are using DEGREE to represent degree - convert any back
         TRACE(5,mConsoleName + "->message() " + message);
         Show(); // make sure console is visible
     	makeBigEnough();

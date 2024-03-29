@@ -112,15 +112,18 @@ void fatal_error_handler(void *udata, const char *msg) {
      }
 
  // This function only needed with Windose
- #ifdef __WINDOWS__
+
  wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
+#ifdef __WINDOWS__
      // As far as we know this only occurs with º symbol on Windows
      const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
      const wxString A_stringOrd{ "\u00C2\u00ba"};    // Â ordinal
      given.Replace(A_stringDeg, "\u00b0", true);
+#endif     
+     given.Replace(PSEUDODEGREE, DEGREE);  
      return (given);
      }
- #endif
+
 
 /*
 wxString getStringFromDuk(duk_context *ctx){

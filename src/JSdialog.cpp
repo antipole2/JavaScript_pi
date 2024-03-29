@@ -29,12 +29,9 @@
 
  wxString getStringFromDuk(duk_context *ctx){
      // gets a string safely from top of duk stack and fixes º-symbol for Windose
+    wxString JScleanOutput(wxString given);
      wxString string = wxString(duk_to_string(ctx, -1));
-     string.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
- #ifdef __WXMSW__
-     const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
-     string.Replace(A_stringDeg, "\u00b0", true);
- #endif
+     string = JScleanOutput(string);	// internally, we are using DEGREE to represent degree - convert any back
      return string;
      }
 

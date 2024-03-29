@@ -54,6 +54,7 @@ Console* findConsoleByName(wxString name);
 void throwErrorByCtx(duk_context *ctx, wxString message);
 wxString resolveFileName(wxString inputName, Console* pConsole, int options);
 wxString getTextFile(wxString fileString, wxString* text);
+wxString JScleanOutput(wxString given);
 
 void limitOutput(wxStyledTextCtrl* pText){
 	// given output text area, ensure does not exceed size limit and scroll to end
@@ -104,18 +105,7 @@ wxString js_formOutput(duk_context *ctx){
                 findConsoleByCtx(ctx)->prep_for_throw(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
 	        }
     	}
-//    wxString what;
-//    what = wxString::Format("PSEUDODEGREE is %s", PSEUDODEGREE);
-//   TRACE(123, what);
-//    what = wxString::Format("DEGREE is %s",DEGREE);
-//    TRACE(123, what);
-//    TRACE(123, "Before: " + output);
-	output.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
-//	TRACE(123, "After: " + output);
-#ifdef __WXMSW__
-    wxString JScleanOutput(wxString given);
-    output = JScleanOutput(output); // clean for Windows only
-#endif
+	output = JScleanOutput(output);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
     return(output);
 }
 
@@ -290,7 +280,7 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
 		duk_throw(ctx);
 	}
     wxString message = duk_get_string(ctx, 0);
-    message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
+    message = JScleanOutput(message);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
     if (nargs > 1){
         wxString arg2 = duk_get_string(ctx,1);
         if (arg2 == yesNo) buttonType = arg2;
@@ -415,7 +405,7 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
     Console *pConsole = findConsoleByCtx(ctx);
     
     text = duk_to_string(ctx, 0);
-    text.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+    text = JScleanOutput(text);
     fileNameGiven = duk_to_string(ctx,1);
     int access = (FileOptions)duk_to_int(ctx, 2);
     duk_pop_3(ctx);  // finished with arguments
@@ -792,6 +782,7 @@ static duk_ret_t duk_copy(duk_context *ctx){
 		duk_throw(ctx);
 		}
 	wxString data = duk_get_string(ctx, 0);
+	data = JScleanOutput(data);
 	data.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
 	wxTheClipboard->SetData(new wxTextDataObject(data));
 	wxTheClipboard->Close();		
@@ -1054,7 +1045,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			int id = duk_get_number(ctx, 1);
 			wxString data = duk_get_string(ctx, 2);
 			duk_pop_n(ctx, nargs);	// clear call args
-			data.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+			data = JScleanOutput(data);
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
 			bool OK = control.pFile->Write(data);
 			duk_push_boolean(ctx, OK);
