@@ -770,10 +770,12 @@ public:
 		}
     
 	void wrapUp(Completions reason) {    // clean down and maybe destroy ctx
+		TRACE(4, wxString::Format("%s->wrapUp() called with reason %d", mConsoleName, reason));
 		wrapUpWorks(reason);
 		if (!isBusy()){
+			TRACE(4, wxString::Format("%s->wrapUp() ending with reason %d", mConsoleName, reason));
 			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
-				if (reason == DONE){	// save the enduring variable
+				if ((reason == DONE) || (reason == STOPPED) || (reason == TOCHAIN) || (reason == CLOSED)) {	// save the enduring variable
 					TRACE(4, mConsoleName + "->wrapUp() will save _remember");
 					duk_push_global_object(mpCtx);
 					int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
