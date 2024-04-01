@@ -55,9 +55,8 @@ export OPENSSL_ROOT_DIR='/usr/local'
 
 # Build and package
 cd build-osx
-# was "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-Release}" \
 cmake \
-  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-Release} \
+  "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-Release}" \
   -DCMAKE_INSTALL_PREFIX= \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET} \
   -DOCPN_TARGET_TUPLE="darwin-wx32;10;universal" \
@@ -75,18 +74,10 @@ fi
 make VERBOSE=1 tarball || make VERBOSE=1 tarball
 
 # Install cloudsmith needed by upload script
-# was python3 -m pip install -q --user cloudsmith-cli
-python3 -m pip install -q --user --break-system-packages cloudsmith-cli
+python3 -m pip install -q --user cloudsmith-cli
 
 # Required by git-push
-# was python3 -m pip install -q --user cryptography
-python3 -m pip install -q --user --break-system-packages cryptography
-
-# python3 installs in odd place not on PATH, teach upload.sh to use it:
-pyvers=$(python3 --version | awk '{ print $2 }')
-pyvers=$(echo $pyvers | sed -E 's/[\.][0-9]+$//')    # drop last .z in x.y.z
-py_dir=$(ls -d  /Users/*/Library/Python/$pyvers/bin)
-echo "export PATH=\$PATH:$py_dir" >> ~/.uploadrc
+python3 -m pip install -q --user cryptography
 
 # Create the cached /usr/local archive
 if [ -n "$CI"  ]; then
