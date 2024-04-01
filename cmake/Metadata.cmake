@@ -52,10 +52,10 @@ elseif (NOT "$ENV{APPVEYOR_BUILD_NUMBER}" STREQUAL "")
     "/$ENV{APPVEYOR_ACCOUNT_NAME}/$ENV{APPVEYOR_PROJECT_SLUG}"
     "/builds/$ENV{APPVEYOR_BUILD_ID}"
   )
-elseif (NOT "$ENV{DRONE_BUILD_NUMBER}" STREQUAL "")
-  set(_build_id "$ENV{DRONE_BUILD_NUMBER}")
+elseif (NOT "$ENV{GITHUB_RUN_NUMBER}" STREQUAL "")
+  set(_build_id "$ENV{GITHUB_RUN_NUMBER}")
   set(_pkg_build_info
-    "https://cloud.drone.io/$ENV{DRONE_REPO}/$ENV{DRONE_BUILD_NUMBER}"
+    "https://github.com/OpenCPN/OpenCPN/actions/runs/$ENV{GITHUB_RUN_ID}"
   )
 else ()
   string(TIMESTAMP _build_id "%y%m%d%H%M" UTC)
@@ -70,16 +70,15 @@ else ()
 endif ()
 
 if (WIN32)
-  set(_pkg_arch "win32")
-else ()
-  if(APPLE AND CMAKE_OSX_ARCHITECTURES)
-    string(REPLACE ";" "-" _pkg_arch "${CMAKE_OSX_ARCHITECTURES}")
-    set(target_arch "${CMAKE_OSX_ARCHITECTURES}")
-  else()
-    set(_pkg_arch "${ARCH}")
-    set(target_arch "${ARCH}")
-  endif()
-endif ()
+  set(_pkg_arch "x86")
+  set(target_arch "x86")
+elseif (APPLE AND CMAKE_OSX_ARCHITECTURES)
+  string(REPLACE ";" "-" _pkg_arch "${CMAKE_OSX_ARCHITECTURES}")
+  set(target_arch "${CMAKE_OSX_ARCHITECTURES}")
+else()
+  set(_pkg_arch "${ARCH}")
+  set(target_arch "${ARCH}")
+endif()
 
 # pkg_build_info: Info about build host (link to log if available).
 set(pkg_build_info ${_pkg_build_info})
