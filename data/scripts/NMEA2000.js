@@ -7,7 +7,7 @@
 //	16	10000	byte/bit decoding
 //	32  100000	byte/bit encoding
 
-function NMEA2000(arg, data, options){
+function NMEA2000(arg, data, options){	
 	// do not include the following when enumerating the NMEA2000 object
 	Object.defineProperty(this, "descriptor", {enumerable: false, writable: true});
 	Object.defineProperty(this, "trace", {enumerable: false, writable: true});
@@ -21,7 +21,7 @@ function NMEA2000(arg, data, options){
 		if (options.hasOwnProperty("trace")) this.trace = options.trace;
 		if (options.hasOwnProperty("undefined")) this.undefined = options.undefined;
 		}
-	trace = this.trace;	// for convenience
+	var trace = this.trace;	// for convenience
 	if (trace & 1) printOrange("NMEA2000 called with arg type ", typeof(arg), "\n");
 	switch (typeof(arg)){
 		case "number":
@@ -67,7 +67,7 @@ function NMEA2000(arg, data, options){
 	// now for the methods
 
 	this.decode = function(data){
-		trace = this.trace;
+		var trace = this.trace;
 		desc = this.descriptor;
 		repeat1Size = desc.RepeatingFieldSet1Size;
 		repeat1StartField = desc.RepeatingFieldSet1StartField;
@@ -77,7 +77,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	this.encode = function(options){
-		trace = this.trace;
+		var trace = this.trace;
 		if (typeof(options) == "object") undefineTimestamp = true;
 		else undefineTimestamp = false;
 		desc = this.descriptor;
@@ -173,6 +173,7 @@ function NMEA2000(arg, data, options){
 	return this;	// end of constructor ---------------------------------------------------
 
 	function buildBare(us){	// create empty attributes
+		var trace = this.trace;
 		if (trace & 1) printOrange("buildEmpty for pgn ", us.PGN, "\n");
 //		ud = us.undefined ? "undefined" : undefined;
 		ud = "undefined";
@@ -204,6 +205,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function parse(us, data){	// parse
+		var trace = this.trace;
 		if (trace & 1) printOrange("parse for pgn ", us.PGN, "\n");
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
@@ -304,6 +306,7 @@ function NMEA2000(arg, data, options){
 
 	function decodeValue(data, desc) {
 		// to understand how values are expressed, see https://canboat.github.io/canboat/canboat.html#ft-NUMBER
+		var trace = this.trace;
 		if (trace & 4) printBlue("Decode data:", data, "\tndesc:", desc, "\n");
 		switch (desc.Type){
 			case "Integer":
@@ -401,6 +404,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
+		var trace = this.trace;
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
 		BytesToGet = Math.ceil(bitLength/8);
@@ -429,6 +433,7 @@ function NMEA2000(arg, data, options){
 		}
 		
 	function getBytes(v, start, bytes){	// little endean!
+		var trace = this.trace;
 		offset = start+bytes-1;
 		result = v[offset--];
 		if (trace & 16) {
@@ -445,6 +450,7 @@ function NMEA2000(arg, data, options){
 		};
 
 	function encodeBytes(what, nbytes){// encode into nbytes little endean
+		var trace = this.trace;
 		if (trace & 32) printOrange("encodeBytes what:", what, " nbytes:", nbytes, "\n");
 		var result = [];
 		while (nbytes--){
@@ -455,6 +461,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function encodeBits(what, BitOffset, bitLength, bitStart){	// put bits into encoded array
+		var trace = this.trace;
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		if (BitOffset == void 0) BitOffset = 0;	// for when no bitOffset in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
@@ -506,6 +513,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function encodeValue(us, field){
+		var trace = this.trace;
 		Id = field.Id;
 		if ((Id.slice(0,8) == "reserved")|| (Id == "spare")){
 			encodeBits(0xffff, field.BitOffset, field.BitLength, field.BitStart);
@@ -599,6 +607,7 @@ function NMEA2000(arg, data, options){
 		// See here for special meaning of some numbers https://canboat.github.io/canboat/canboat.html#field-types
 		// in JavaScript, bit ops are only available up to 32 bits
 		// so to be 64 bit safe, we have to manage without bit shift and bit flip (:-#)
+		var trace = this.trace;
 		toShift = bits;
 		if (isSigned) toShift--;	// signed numbers have one less max value
 		max = (2 ** toShift) - 1;	// maximum possible value
