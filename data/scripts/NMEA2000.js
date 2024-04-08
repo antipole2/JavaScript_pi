@@ -173,9 +173,8 @@ function NMEA2000(arg, data, options){
 	return this;	// end of constructor ---------------------------------------------------
 
 	function buildBare(us){	// create empty attributes
-		var trace = this.trace;
+		var trace = us.trace;
 		if (trace & 1) printOrange("buildEmpty for pgn ", us.PGN, "\n");
-//		ud = us.undefined ? "undefined" : undefined;
 		ud = "undefined";
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
