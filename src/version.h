@@ -17,7 +17,7 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "Test with all subs"
+#define     PLUGIN_VERSION_COMMENT "Test with __DUK_F_WINDOWS__"
 
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\n\
@@ -32,11 +32,11 @@ Changes are highlighted in the User Guide and listed in its Appendix A"
 #endif
 
 #define	DEGREE		  "\u00B0"	// real degree character
-#ifdef __WINDOWS__
+#ifdef __DUK_F_WINDOWS__
 #define PSEUDODEGREE  "\u0007"	// substitute character for degree - bell
 #else
-//#define PSEUDODEGREE  DEGREE	// keep it as real degree
-#define PSEUDODEGREE  "\u0007"	// substitue with all buods as test
+#define PSEUDODEGREE  DEGREE	// keep it as real degree
+// #define PSEUDODEGREE  "\u0007"	// unless we are doing a special build for Windows 7
 #endif
 
 #endif		// version_h
