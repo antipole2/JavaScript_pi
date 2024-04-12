@@ -1,6 +1,6 @@
 function checkVersion(version, checkDays,
 		scriptURL, versionCheckURL){
-	var trace = true;
+	var trace = false;
 	var conf = OCPNgetPluginConfig();
 	var pluginVersion = Number(conf.PluginVersionMajor + "." + conf.PluginVersionMinor);
 	if (trace) print("Plugin version: ", pluginVersion, "\n");
