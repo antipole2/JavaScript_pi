@@ -7,7 +7,7 @@
 //	16	10000	byte/bit decoding
 //	32  100000	byte/bit encoding
 
-function NMEA2000(arg, data, options){
+function NMEA2000(arg, data, options){	
 	// do not include the following when enumerating the NMEA2000 object
 	Object.defineProperty(this, "descriptor", {enumerable: false, writable: true});
 	Object.defineProperty(this, "trace", {enumerable: false, writable: true});
@@ -21,7 +21,7 @@ function NMEA2000(arg, data, options){
 		if (options.hasOwnProperty("trace")) this.trace = options.trace;
 		if (options.hasOwnProperty("undefined")) this.undefined = options.undefined;
 		}
-	trace = this.trace;	// for convenience
+	var trace = this.trace;	// for convenience
 	if (trace & 1) printOrange("NMEA2000 called with arg type ", typeof(arg), "\n");
 	switch (typeof(arg)){
 		case "number":
@@ -67,7 +67,7 @@ function NMEA2000(arg, data, options){
 	// now for the methods
 
 	this.decode = function(data){
-		trace = this.trace;
+		var trace = this.trace;
 		desc = this.descriptor;
 		repeat1Size = desc.RepeatingFieldSet1Size;
 		repeat1StartField = desc.RepeatingFieldSet1StartField;
@@ -77,7 +77,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	this.encode = function(options){
-		trace = this.trace;
+		var trace = this.trace;
 		if (typeof(options) == "object") undefineTimestamp = true;
 		else undefineTimestamp = false;
 		desc = this.descriptor;
@@ -173,8 +173,8 @@ function NMEA2000(arg, data, options){
 	return this;	// end of constructor ---------------------------------------------------
 
 	function buildBare(us){	// create empty attributes
+		var trace = us.trace;
 		if (trace & 1) printOrange("buildEmpty for pgn ", us.PGN, "\n");
-//		ud = us.undefined ? "undefined" : undefined;
 		ud = "undefined";
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
@@ -204,6 +204,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function parse(us, data){	// parse
+		var trace = this.trace;
 		if (trace & 1) printOrange("parse for pgn ", us.PGN, "\n");
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
@@ -304,6 +305,7 @@ function NMEA2000(arg, data, options){
 
 	function decodeValue(data, desc) {
 		// to understand how values are expressed, see https://canboat.github.io/canboat/canboat.html#ft-NUMBER
+		var trace = this.trace;
 		if (trace & 4) printBlue("Decode data:", data, "\tndesc:", desc, "\n");
 		switch (desc.Type){
 			case "Integer":
@@ -348,7 +350,7 @@ function NMEA2000(arg, data, options){
 				value = checkNumber(value, desc.Signed, desc.BitLength);
 				if (value == "undefined") return value;
 				if (trace & 8) printOrange(desc.Id, " Lookup table value ", value, "\n");
-				if (typeof desc.EnumValues == "undefined") return value;	// if no lookup values provided
+				if (typeof desc.EnumValues == "undefined") return {"value": value};	// if no lookup values provided
 				max = (1 << desc.BitLength) -1;	// maximumm possible value
 				if (value == max) us[desc.Id]= "not available";
 				else if ((desc.BitLength >= 4) && (value == max-1)) return "has error";
@@ -357,10 +359,10 @@ function NMEA2000(arg, data, options){
 					for (e = 0; e < desc.EnumValues.length; e++){
 						if (desc.EnumValues[e].value == value) {
 							name = desc.EnumValues[e].name;
-							return name;
+							return {"value": value, "name": name};
 							}
 						}
-					if (name) return name;
+					if (name) return {"name": name};
 					else return "undefined";
 					}
 			case "ASCII text":
@@ -401,6 +403,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
+		var trace = this.trace;
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
 		BytesToGet = Math.ceil(bitLength/8);
@@ -429,6 +432,7 @@ function NMEA2000(arg, data, options){
 		}
 		
 	function getBytes(v, start, bytes){	// little endean!
+		var trace = this.trace;
 		offset = start+bytes-1;
 		result = v[offset--];
 		if (trace & 16) {
@@ -445,6 +449,7 @@ function NMEA2000(arg, data, options){
 		};
 
 	function encodeBytes(what, nbytes){// encode into nbytes little endean
+		var trace = this.trace;
 		if (trace & 32) printOrange("encodeBytes what:", what, " nbytes:", nbytes, "\n");
 		var result = [];
 		while (nbytes--){
@@ -455,6 +460,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function encodeBits(what, BitOffset, bitLength, bitStart){	// put bits into encoded array
+		var trace = this.trace;
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		if (BitOffset == void 0) BitOffset = 0;	// for when no bitOffset in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
@@ -506,6 +512,7 @@ function NMEA2000(arg, data, options){
 		}
 
 	function encodeValue(us, field){
+		var trace = this.trace;
 		Id = field.Id;
 		if ((Id.slice(0,8) == "reserved")|| (Id == "spare")){
 			encodeBits(0xffff, field.BitOffset, field.BitLength, field.BitStart);
@@ -531,6 +538,11 @@ function NMEA2000(arg, data, options){
 			case "Lookup table":
 			case "Manufacturer Code":
 			case "Manufacturer code":
+				if (typeof value == "object"){
+					if (trace & 32) printOrange("field.Type is object\n");
+					encodeBits(value.value, field.BitOffset, field.BitLength, field.BitStart);
+					return;
+					}
 				if (((typeof field.EnumValues) != "undefined") &&
 					((typeof value) == "string")){ // only if lookup table included in desc and it is a string
 					if (trace & 32) printOrange("field.EnumValues.length: " + field.EnumValues.length, "\n");
@@ -599,6 +611,7 @@ function NMEA2000(arg, data, options){
 		// See here for special meaning of some numbers https://canboat.github.io/canboat/canboat.html#field-types
 		// in JavaScript, bit ops are only available up to 32 bits
 		// so to be 64 bit safe, we have to manage without bit shift and bit flip (:-#)
+		var trace = this.trace;
 		toShift = bits;
 		if (isSigned) toShift--;	// signed numbers have one less max value
 		max = (2 ** toShift) - 1;	// maximum possible value

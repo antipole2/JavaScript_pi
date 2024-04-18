@@ -78,11 +78,11 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString degreeText   {"&#xb0"};
      const wxString backprime    {"\u0060"};
 //     const wxString bell		{"\u0007"};		// Bell used for internal representation of º
- #ifndef __WXMSW__   // Don't try this one on Windows
+ #ifndef DUK_F_WINDOWS   // Don't try this one on Windows
      const wxString prime        {"\u2032"};
      given.Replace(prime, apostrophe, true);
  #endif  // __WXMSW__
- #ifdef __WINDOWS__
+ #ifdef DUK_F_WINDOWS
 	 const wxString o_umlaut	{"\u00F6"};		// ö
 	 const wxString O_umlaut	{"\u00D6"};		// ö
 	 const wxString u_umlaut	{"\u00FC"};	// ü
@@ -101,7 +101,7 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(rightSquote, apostrophe, true);
      given.Replace(leftSquote, apostrophe, true);
      given.Replace(ordinal, DEGREE, true);
-#ifndef	__WINDOWS__
+#ifndef	DUK_F_WINDOWS
 	 given.Replace(superScript0, DEGREE, true);
 #endif
 	 given.Replace(DEGREE, PSEUDODEGREE, true);	// use substitute character
@@ -114,8 +114,9 @@ void fatal_error_handler(void *udata, const char *msg) {
  // This function only needed with Windose
 
  wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
-#ifdef __WINDOWS__
-     // As far as we know this only occurs with º symbol on Windows
+
+#ifdef DUK_F_WINDOWS
+     // We know this only occurs with º symbol on Windows
      const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
      const wxString A_stringOrd{ "\u00C2\u00ba"};    // Â ordinal
      given.Replace(A_stringDeg, "\u00b0", true);

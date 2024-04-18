@@ -466,6 +466,7 @@ public:
 		mDialog.functionName = wxEmptyString;
 		mAlert.palert = nullptr;
 		mAlert.alertText = wxEmptyString;
+		m_closeButtonFunction = wxEmptyString;
 		mpMessageDialog = nullptr;
 		mConsoleRepliesAwaited = 0;
 		m_exitFunction = wxEmptyString;
