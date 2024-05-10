@@ -204,13 +204,13 @@ function NMEA2000(arg, data, options){
 		}
 
 	function parse(us, data){	// parse
-		var trace = this.trace;
+		var trace = us.trace;
 		if (trace & 1) printOrange("parse for pgn ", us.PGN, "\n");
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
 		count = data[12];
-		if (trace & 4) printOrange("count in data: ", count, "\n");
-		if (count != data.length-13) throw ("NMEA2000 byte count in data does not match actuality");
+		if (trace & 4) printOrange("count in data: ", count, " data length is ", data.length-13, "\n");
+//		if (count != data.length-13) throw ("NMEA2000 byte count in data does not match actuality");
 		us["timestamp"] = 0;	// get this in now to establish position in enumeration
 		nextByte = 2;
 		us["priority"] = data[nextByte++];
@@ -312,8 +312,10 @@ function NMEA2000(arg, data, options){
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
 				nextBitIndex += desc.BitLength;
 				value = checkNumber(value, desc.Signed, desc.BitLength);
-				if (value > desc.RangeMax) printRed("Data for " + desc.Id + " is " + value + " exceeds maximum");
-				else if (value < desc.RangeMin) printRed("Data for " + desc.Id + " is " + value + " below minimum");
+				if (this.PGN != 60928){	// Address claim regularly fails, so omit
+					if (value > desc.RangeMax) printRed("Data for " + desc.Id + " is " + value + " exceeds maximum");
+					else if (value < desc.RangeMin) printRed("Data for " + desc.Id + " is " + value + " below minimum");
+					}
 				return value;
 			case "Number":
 			case "Latitude":

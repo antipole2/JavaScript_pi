@@ -604,13 +604,12 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
     for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
         if (m_pConsole == nullptr) continue;  // ignore if not ready
         if (!m_pConsole->isWaiting()) continue;
-
+        thisFunction = m_pConsole->m_NMEAmessageFunction;
+        if (thisFunction == wxEmptyString) continue;	// this one not waiting for us
         if (m_pConsole->mJSrunning){
             m_pConsole->message(STYLE_RED, "NMEA callback while JS active - ignored\n");
             return;
             }
-        thisFunction = m_pConsole->m_NMEAmessageFunction;
-        if (thisFunction == wxEmptyString) continue;	// this one not waiting for us
         if (!haveDoneChecksum){
 			// check checksum and set OK accordingly
 			// we do this in the console loop to avoid when none waiting for us
