@@ -250,6 +250,11 @@ int JavaScript_pi::GetPlugInVersionMinor()
     return PLUGIN_VERSION_MINOR;
 }
 
+int JavaScript_pi::GetPlugInVersionPatch()
+{
+    return PLUGIN_VERSION_PATCH;
+}
+
 wxBitmap *JavaScript_pi::GetPlugInBitmap()
 {
     return &m_panelBitmap;
