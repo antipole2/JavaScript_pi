@@ -3,6 +3,7 @@ function checkVersion(version, checkDays,
 	function compareVersions(first, second){
 		// compare two version strings, e.g. 1.2.34
 		// if second > first return 1, == 0,  < -1
+		if (trace) print("compareVersions first: ", first, "\tsecond: ", second, "\n");
 		a = first.toString().split(".");
 		b = second.toString().split(".");
 		while (a.length < b.length) a.push(0);
@@ -15,7 +16,8 @@ function checkVersion(version, checkDays,
 	}
 	var trace = false;
 	var conf = OCPNgetPluginConfig();
-	var pluginVersion = Number(conf.PluginVersionMajor + "." + conf.PluginVersionMinor);
+	if (trace) print("conf: ", conf, "\n");
+	var pluginVersion = conf.PluginVersionMajor + "." + conf.PluginVersionMinor;
 	if (trace) print("Plugin version: ", pluginVersion, "\n");
 	if (pluginVersion < 3.0) throw(scriptName + " requires plugin v3.0 or later.");
 	if (!OCPNisOnline()) return;
@@ -36,6 +38,7 @@ function checkVersion(version, checkDays,
 	if (trace) print("versionControl.lastCheck updated to ", now, "\n");
 	details = JSON.parse(readTextFile(versionCheckURL));
 	if (trace) print("Version control:\n", JSON.stringify(details, null, "\t"), "\n");
+/*
 	if (compareVersions(pluginVersion, details.pluginMinVersion) > 0){
 //	if (details.pluginMinVersion > pluginVersion){
 		message = "You have script version " + scriptVersion
@@ -51,7 +54,8 @@ function checkVersion(version, checkDays,
 		else if (response == 1) _remember.versionControl.lastCheck += now + checkDays*24*60*60*1000;
 		}
 //	else if (scriptVersion < details.version){
-	else if (compareVersions(scriptVersion, details.version) > 0){
+*/
+	if (compareVersions(scriptVersion, details.version) > 0){
 		message = "You have script version " + scriptVersion
 			+ "\nUpdate to version " + details.version + " available."
 			+ "\nDate: " + details.date + "\nNew: " + details.new
