@@ -302,13 +302,14 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
 		return dialog.GetPath();
     	}
     // file exists and we did not use dialogue - check access mode
-    if (wxMode ==  wxFile::write_excl){
-    	pConsole->prep_for_throw(pConsole->mpCtx, "File " + fullPath + " already exists");
-    	duk_throw(pConsole->mpCtx);
-    	}
-    if (((wxMode == wxFile::write) || (wxMode == wxFile::read_write)) && !filePath.IsFileWritable ()){
-    	pConsole->prep_for_throw(pConsole->mpCtx, "File " + fullPath + " no write access");
-    	duk_throw(pConsole->mpCtx);
+    if (fileExists){
+    	if (wxMode ==  wxFile::write_excl){
+    		pConsole->prep_for_throw(pConsole->mpCtx, "File " + fullPath + " already exists");
+    		duk_throw(pConsole->mpCtx);}
+    	if (((wxMode == wxFile::write) || (wxMode == wxFile::read_write)) && !filePath.IsFileWritable ()){
+    		pConsole->prep_for_throw(pConsole->mpCtx, "File " + fullPath + " no write access");
+    		duk_throw(pConsole->mpCtx);
+    		}
     	}
     return fullPath;
     };

@@ -24,10 +24,10 @@ function Position(lat, lon){
         latAbs = Math.abs(this.latitude);
         lonAbs = Math.abs(this.longitude);
         return (
-            ("00" + parseInt(latAbs)).slice(-2) + "\º " +
+            ("00" + parseInt(latAbs)).slice(-2) + "\xb0 " +
             ("00" + (latAbs % 1 * 60).toFixed(3)).slice(-6) + "'" +
             ((this.latitude < 0) ? "S " : "N ") +
-            ("00" + parseInt(lonAbs)).slice(-3) + "\º " +
+            ("00" + parseInt(lonAbs)).slice(-3) + "\xb0 " +
             (lonAbs % 1 * 60).toFixed(3) + "'" +
             ((this.longitude < 0) ? "W" : "E")
 	        )}
@@ -102,7 +102,7 @@ function Position(lat, lon){
 			// squeeze out all spaces
 			parseText = parseText.replace(/\s/g, ''); // squeeze out all spaces
 			// degrees minutes & seconds ?
-			dmsPattern = /([0-9]{1,3})\º([0-9]{1,2})'([0-9][0-9]?.?[0-9]?)"/;
+			dmsPattern = /([0-9]{1,3})\xb0([0-9]{1,2})'([0-9][0-9]?.?[0-9]?)"/;
 			dms = parseText.match(dmsPattern);
 			if (dms != null){ // is degrees, minutes & seconds
 				if (trace) print("DMS\t", dms, "\n");
@@ -122,7 +122,7 @@ function Position(lat, lon){
 			parseText = parseText.replace(",", ".");	// and replace , if any
 			parseText = parseText.replace("..", ".");	// this could have led to double .
 			if (trace) print("After fixes: ", parseText, "\n");
-			dmPattern = /([0-9]{1,3})\º([0-9][0-9]?([\.\']?[0-9][0-9]*)?)'?/;
+			dmPattern = /([0-9]{1,3})\xb0([0-9][0-9]?([\.\']?[0-9][0-9]*)?)'?/;
 			dm = parseText.match(dmPattern);
 			if (trace) print(dm, "\n");	//  Fix here
 			if (dm != null){ // is degrees, minutes

@@ -422,13 +422,18 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
     	}
 //    std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
     wxFile* theFile = new wxFile();
-    bool OK = theFile->Open(fileString, mode);
+    bool OK;
+    if (access == 0) OK = theFile->Create(fileString, false);	// must not exist
+    else if (access == 1) OK = theFile->Create(fileString, true);	// may exist and overwrite
+    else OK = theFile->Open(fileString, wxFile::write_append);	// open for append
     if (!OK) {
+    	delete theFile;	// delete because throw seems not to clean up
 		pConsole->prep_for_throw(ctx, "writeTextFile failed to open file");
 		duk_throw(ctx);
 		}
     OK = theFile->Write(text);
     if (!OK) {
+        delete theFile;
 		pConsole->prep_for_throw(ctx, "writeTextFile failed to write text");
 		duk_throw(ctx);
 		}
@@ -940,6 +945,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			control.pFile = new wxFile;
 			bool ok;
 			if (mode == 1) ok = control.pFile->Create(filePath, true);	// overwrite any existing file
+			else if (mode == 5) ok = control.pFile->Create(filePath, false);	// create - file must not exist
 			else ok = control.pFile->Open(filePath, openMode[mode]);
 			if (!ok) {
 //				pConsole->prep_for_throw(ctx, "_wxFile unable to open file " + filePath);

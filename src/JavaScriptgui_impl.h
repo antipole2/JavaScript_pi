@@ -470,6 +470,7 @@ public:
 		mpMessageDialog = nullptr;
 		mConsoleRepliesAwaited = 0;
 		m_exitFunction = wxEmptyString;
+		m_activeLegFunction = wxEmptyString;
 		m_streamMessageCntlsVector.clear();
 		mpTimersVector.clear();
 		// just in case file controls not finalised from any previous run

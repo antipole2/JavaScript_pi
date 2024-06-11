@@ -1,5 +1,4 @@
-function checkVersion(version, checkDays,
-		scriptURL, versionCheckURL){
+function checkVersion(version, checkDays, scriptURL, versionCheckURL){
 	function compareVersions(first, second){
 		// compare two version strings, e.g. 1.2.34
 		// if second > first return 1, == 0,  < -1
@@ -12,8 +11,8 @@ function checkVersion(version, checkDays,
 			if (b[i] > a[i]) return 1;
 			if (b[i] < a[i]) return -1;
 			}
-	return 0;
-	}
+		return 0;
+		}
 	var trace = false;
 	var conf = OCPNgetPluginConfig();
 	if (trace) print("conf: ", conf, "\n");
@@ -38,23 +37,6 @@ function checkVersion(version, checkDays,
 	if (trace) print("versionControl.lastCheck updated to ", now, "\n");
 	details = JSON.parse(readTextFile(versionCheckURL));
 	if (trace) print("Version control:\n", JSON.stringify(details, null, "\t"), "\n");
-/*
-	if (compareVersions(pluginVersion, details.pluginMinVersion) > 0){
-//	if (details.pluginMinVersion > pluginVersion){
-		message = "You have script version " + scriptVersion
-			+ "\nUpdate to version " + details.version + " available."
-			+ "\nDate: " + details.date + "\nNew: " + details.new
-			+ "\n \nRequires plugin minimum version " + details.pluginMinVersion
-			+ "\nYou have version " + pluginVersion
-			+ "\nChoose 'Yes' to check again on next run"
-			+ "\n'No' to check again in " + checkDays +  " days"
-			+ "\nTo supress all checks, disable the call to checkForUpdates";
-		response = messageBox(message, "YesNo");
-		if (response == 2) _remember.versionControl.lastCheck = 0;
-		else if (response == 1) _remember.versionControl.lastCheck += now + checkDays*24*60*60*1000;
-		}
-//	else if (scriptVersion < details.version){
-*/
 	if (compareVersions(scriptVersion, details.version) > 0){
 		message = "You have script version " + scriptVersion
 			+ "\nUpdate to version " + details.version + " available."
