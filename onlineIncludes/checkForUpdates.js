@@ -21,7 +21,7 @@ function checkVersion(version, checkDays, scriptURL, versionCheckURL){
 	if (pluginVersion < 3.0) throw(scriptName + " requires plugin v3.0 or later.");
 	if (!OCPNisOnline()) return;
 	if (_remember == undefined) _remember = {};
-	now = Date.now();
+	now = new Date().getTime();
 	if (trace) print("Now: ", now, "\n");
 	if (_remember.hasOwnProperty("versionControl")){
 		lastCheck = _remember.versionControl.lastCheck;
