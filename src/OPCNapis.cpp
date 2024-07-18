@@ -430,8 +430,8 @@ void setupAIS(duk_context *ctx, bool persist){
     if (nargs == 0) { // empty call - cancel any waiting callback
         pConsole->m_AISmessageFunction = wxEmptyString;
         pConsole->mWaitingCached = false;
+        return;
         }
-
     if (pConsole->m_AISmessageFunction != wxEmptyString){
         // request already outstanding        
         pConsole->prep_for_throw(ctx, "OCPNonAIS called with call outstanding");
@@ -440,6 +440,7 @@ void setupAIS(duk_context *ctx, bool persist){
     else{
         duk_require_function(ctx, 0);
         pConsole->m_AISmessageFunction = extractFunctionName(ctx,0);
+        pConsole->m_AISpersistance = persist;
         pConsole->mWaitingCached = pConsole->mWaiting = true;
         }
 	}
