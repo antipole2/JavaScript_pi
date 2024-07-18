@@ -255,7 +255,9 @@ public:
     AlertDetails    mAlert;        // details of alert dialog
     wxDialog* 		mpMessageDialog;	// the wxWidgets message dialogue if there is one
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
+    jsFunctionNameString_t  m_AISmessageFunction;  // function to invoke on receipt of AIS message, else ""
     bool m_NMEApersistance;		//true of old-style NMEA0183 listening is to be persistent
+    bool m_AISpersistance;		//true if AIS listening is to be persistent
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
     jsFunctionNameString_t m_closeButtonFunction;  // function to call on activating console window, else ""
@@ -685,6 +687,7 @@ public:
             (mSockets.GetCount() > 0) ||
 #endif
             (m_NMEAmessageFunction != wxEmptyString) ||
+            (m_AISmessageFunction != wxEmptyString) ||
             (!m_streamMessageCntlsVector.empty()) ||
             (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
@@ -748,6 +751,7 @@ public:
 		  duk_push_global_object(mpCtx);  // get our compiled script
 		  if (
 				 functionMissing(m_NMEAmessageFunction) ||
+				 functionMissing(m_AISmessageFunction) ||
 				 functionMissing(mDialog.functionName) ||
 				 functionMissing(m_activeLegFunction)
 			 )
@@ -954,6 +958,7 @@ public:
 		clearMenus();
 		m_streamMessageCntlsVector.clear();
 		m_NMEAmessageFunction = wxEmptyString;  // function to invoke on receipt of NMEA message, else ""
+		m_AISmessageFunction = wxEmptyString;  // function to invoke on receipt of AIS message, else ""
     	m_activeLegFunction = wxEmptyString;  // function to invoke on receipt of active leg, else ""
 		m_exitFunction = wxEmptyString;  // function to call on exit, else ""
 		m_closeButtonFunction = wxEmptyString;  // function to call on click, else ""
@@ -1347,6 +1352,7 @@ public:
         dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format("Active with %d elements",  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
+        dump += "m_AISmessageFunction:\t\t" + m_AISmessageFunction + "\n";
 
         dump += "m_streamMessageCntlsVector\t";
         if (m_streamMessageCntlsVector.empty()) dump += "<empty>\n";

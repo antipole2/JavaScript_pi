@@ -639,6 +639,55 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence)
 		outcome = m_pConsole->executeFunction(thisFunction);		
 		if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
         }   // end for this console
+    }
+    
+void JavaScript_pi::SetAISSentence(wxString &sentence)
+{    // AIS sentence received
+	wxString NMEAchecksum(wxString sentence);
+    wxString thisFunction, checksum, correctChecksum;
+    size_t starPos;
+    bool OK {false};
+    Completions outcome;
+    duk_context *ctx;
+    wxUniChar star = '*';
+    Console *m_pConsole;
+    void JSduk_start_exec_timeout(Console);
+    void  JSduk_clear_exec_timeout(Console);
+    bool haveDoneChecksum = false;
+
+    for (m_pConsole = pJavaScript_pi->mpFirstConsole; m_pConsole != nullptr; m_pConsole = m_pConsole->mpNextConsole){    // work through all consoles
+        if (m_pConsole == nullptr) continue;  // ignore if not ready
+        if (!m_pConsole->isWaiting()) continue;
+        thisFunction = m_pConsole->m_AISmessageFunction;
+        if (thisFunction == wxEmptyString) continue;	// this one not waiting for us
+        if (m_pConsole->mJSrunning){
+            m_pConsole->message(STYLE_RED, "AIS callback while JS active - ignored\n");
+            return;
+            }
+        if (!haveDoneChecksum){
+			// check checksum and set OK accordingly
+			// we do this in the console loop to avoid when none waiting for us
+			sentence.Trim();
+			starPos = sentence.find(star); // position of *
+			if (starPos != wxNOT_FOUND){ // yes there is one
+				checksum = sentence.Mid(starPos + 1, 2);
+				sentence = sentence.SubString(0, starPos-1); // truncate at * onwards
+				}
+			correctChecksum = NMEAchecksum(sentence);
+			OK = (checksum == correctChecksum) ? true : false;
+			sentence = sentence.BeforeFirst('*');   // drop * onwards
+			haveDoneChecksum = true;
+        	}
+        ctx = m_pConsole->mpCtx;
+		duk_push_object(ctx);
+		duk_push_string(ctx, sentence.c_str());
+		duk_put_prop_literal(ctx, -2, "value");
+		duk_push_boolean(ctx, OK);
+		duk_put_prop_literal(ctx, -2, "OK");
+		if (!m_pConsole->m_AISpersistance) m_pConsole->m_AISmessageFunction = wxEmptyString;	// only once
+		outcome = m_pConsole->executeFunction(thisFunction);		
+		if (!m_pConsole->isBusy()) m_pConsole->wrapUp(outcome);
+        }   // end for this console
     }  
 
 void JavaScript_pi::SetPositionFixEx(PlugIn_Position_Fix_Ex &pfix)

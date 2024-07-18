@@ -102,6 +102,7 @@ public:
     void OnTimer            (wxTimerEvent& tick);
     void SetPluginMessage             (wxString &message_id, wxString &message_body);
     void SetNMEASentence               (wxString &sentence);
+    void SetAISSentence               (wxString &sentence);
     void SetPositionFixEx              (PlugIn_Position_Fix_Ex &pfix);
     void SetActiveLegInfo   ( Plugin_Active_Leg_Info &leg_info);
     void OnJavaScriptConsoleClose   ();

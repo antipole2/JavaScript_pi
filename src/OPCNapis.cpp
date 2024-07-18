@@ -420,6 +420,41 @@ static duk_ret_t onNMEA2kPersist(duk_context *ctx) {  // to wait for NMEA2k mess
     return 0;
 	};
 	
+void setupAIS(duk_context *ctx, bool persist){
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)){
+    	 pConsole->prep_for_throw(ctx, "OCPNonAISsentence within onExit function");
+    	 duk_throw(ctx);
+    	 }    	 
+    if (nargs == 0) { // empty call - cancel any waiting callback
+        pConsole->m_AISmessageFunction = wxEmptyString;
+        pConsole->mWaitingCached = false;
+        }
+
+    if (pConsole->m_AISmessageFunction != wxEmptyString){
+        // request already outstanding        
+        pConsole->prep_for_throw(ctx, "OCPNonAIS called with call outstanding");
+        duk_throw(ctx);
+        }
+    else{
+        duk_require_function(ctx, 0);
+        pConsole->m_AISmessageFunction = extractFunctionName(ctx,0);
+        pConsole->mWaitingCached = pConsole->mWaiting = true;
+        }
+	}
+	
+static duk_ret_t onAIS(duk_context *ctx) {  // to wait for AIS message - save function to call
+    setupAIS(ctx, false);
+    return 0;
+	};
+	
+static duk_ret_t onAISpersist(duk_context *ctx) {  // to wait for AIS message - save function to call
+    setupAIS(ctx, true);
+    return 0;
+	};
+	
+	
 /*	for testing in development
     static const char hex_digits[] = "0123456789ABCDEF";
 	auto payload = make_shared<std::vector<uint8_t>>();
@@ -1529,6 +1564,15 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNonAllNMEA0183");
     duk_push_c_function(ctx, onNMEA0183Persist, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonAIS");
+    duk_push_c_function(ctx, onAIS, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonAllAIS");
+    duk_push_c_function(ctx, onAISpersist, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
 
     
     duk_push_string(ctx, "OCPNonNMEA2000");
