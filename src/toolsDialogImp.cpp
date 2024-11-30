@@ -68,17 +68,18 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
     	m_rememberToggleStatus->SetValue(pJavaScript_pi->mRememberToggleStatus);
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
-        page->Fit();
+		page->Fit();
 
         wxSize pageClientSize = ToDIP(page->GetClientSize());
-        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageClientSize.x, pageClientSize.y));
+        TRACE(6, wxString::Format("Tools Page %d GetClientSize gave DIP %d x %d", pageNumber, pageClientSize.x, pageClientSize.y));
         pageClientSize.x = 590;	// force width
 		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
-		page->Fit(); // Adjusts to page size but this makes window too tight, so...
+//		page->Fit(); // Adjusts to page size but this makes window too tight, so...
 		size = ToDIP(GetSize());
 		size.x = 600;	// Force the window size
 		size.y += 10;
-		SetSize(FromDIP(size));		
+		SetSize(FromDIP(size));
+		TRACE(6, wxString::Format("Tools Page %d final size DIP %d x %d", pageNumber, size.x, size.y));
 		Show();
         Raise();
         }        
@@ -154,6 +155,25 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     setConsoleChoices();    // update
     }
     
+void ToolsClass::onFindAllConsoles( wxCommandEvent& event ){	// make all consoles visible
+	wxPoint position = FromDIP(wxPoint(NEW_CONSOLE_POSITION));
+	wxSize  size = FromDIP(wxSize(NEW_CONSOLE_SIZE));
+	for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){	// work though all consoles
+		if (pCon->isParked()) pCon->unPark();
+		// shift by random amount
+	    pCon->SetPosition(position);
+		pCon->Move(position);		
+		pCon->SetSize(size);
+		pCon->Show();
+		pCon->Raise();
+		// now shift so next console does not exactly overlap
+		int x, y;
+		pCon->GetPosition(&x, &y);
+		x += 20; y+= 25;
+		position = wxPoint(x, y);
+		}
+	}
+    
 void ToolsClass::onFloatOnParent(wxCommandEvent& event) {
     Console *pConsole;
 	pJavaScript_pi->m_floatOnParent = m_floatOnParent->GetValue();
@@ -228,6 +248,15 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     svg = "Using svg";
 #endif
     dump += (svg + "\n");
+    
+	// display location of built-in scripts
+	wxFileName filePath;
+	wxString fileString = GetPluginDataDir("JavaScript_pi");
+    filePath.SetPath(fileString);
+    filePath.AppendDir("data");
+    filePath.AppendDir("scripts");
+    dump += "Built in scripts folder: " + filePath.GetPath() + "\n";
+
     dump += "pJavaScript_pi->m_pconfig\t\t\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
 	dump += "pJavaScript_pi->m_floatOnTop\t\t\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";

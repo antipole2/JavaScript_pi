@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <unordered_map>
 #include <vector>
+#include <wx/socket.h>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
 WX_DEFINE_LIST(Plugin_WaypointList);		// used by API16 for tracks
@@ -1439,7 +1440,35 @@ TRACE(999, soundFile);
         }
         
 static duk_ret_t isOnline(duk_context *ctx) {   // check if online
-	duk_push_boolean(ctx, OCPN_isOnline());
+	// OCPNisOnline(timeout)	// timeout parameter optional
+	bool outcome;
+	int timeOut = 2;	// default timeout
+	wxIPV4address addr;
+	wxSocketClient socket;
+	
+	if (duk_get_top(ctx) > 0) { // number of args in call
+		timeOut = duk_get_int(ctx, 0);
+		duk_pop(ctx);
+		}
+	TRACE(123, wxString::Format("Entered isOnLine with timeout %d", timeOut));
+	
+	if (timeOut == 0){	// only check if have a connection
+		duk_push_boolean(ctx, OCPN_isOnline());
+		return 1;
+		}
+
+	addr.Hostname("8.8.8.8"); // Google DNS server (public, reliable)
+	addr.Service(53);         // DNS service port
+	// we will wait to see if the connect works.  But system overrides SetTimeout, so we will do it other ways
+	socket.SetFlags(wxSOCKET_NOWAIT); // Set non-blocking mode
+	// Attempt to connect to the server 
+	socket.Connect(addr, false); // Non-blocking connect
+	if (socket.WaitOnConnect(timeOut)) {	// wait for connection with our time out
+		outcome = socket.IsConnected() ? true : false;
+		 }
+	else outcome = false;	// timed out
+	TRACE(123, wxString::Format("Result isOnLine final result is: %s", outcome?"true":"false"));
+	duk_push_boolean(ctx, outcome);
 	return 1;
 	}
 	
@@ -1462,7 +1491,7 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 	std::unordered_map<std::string, std::string> :: iterator i;
 	DriverHandle handle;
 	
-//	duk_require_number(ctx, 0);
+	duk_require_string(ctx, 0);
 	handle = duk_get_string(ctx, 0);
 	duk_pop(ctx);		
 	attributeMap = GetAttributes(handle);
@@ -1725,7 +1754,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNisOnline");
-    duk_push_c_function(ctx, isOnline, 0 /* 0 arg */);
+    duk_push_c_function(ctx, isOnline, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetCanvasView");

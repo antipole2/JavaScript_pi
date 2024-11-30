@@ -287,7 +287,7 @@ public:
     int			mStreamEventCntlId;	// where the event constructor picks up the StreamEventCntlId
     std::vector<wxFileFcb> m_wxFileFcbs;	// will hold file fcb entries
     
-    wxString	m_remembered {""};	// _remember variable saved as JSON-like string - initially undefined
+    wxString	m_remembered {"{}"};	// _remember variable saved as JSON-like string - initially empty structure
 
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
@@ -403,9 +403,9 @@ public:
             if (isURLfileString(fileString)){
             	if (!OCPN_isOnline()) message(STYLE_RED, _("Load file " + fileString + "OpenCPN not on-line"));
 				else {
-					wxString getTextFile(wxString fileString, wxString* pText);
+					wxString getTextFile(wxString fileString, wxString* pText, int timeout);
 					wxString script;
-					wxString result = getTextFile(fileString, &script);
+					wxString result = getTextFile(fileString, &script, 10);
 					if (result == wxEmptyString){	// looking good
 						m_Script->ClearAll();
 						m_Script->WriteText(script);
@@ -982,28 +982,6 @@ public:
 		mWaitingCached = false;
 		run_button->SetLabel(_("Run"));
 		}
-		
-/*
-    void throw_error(duk_context *ctx, wxString message){
-        // throw an error from within c++ code called from running script
-        // either there is an error object on the stack or a message
-        // ! do not call otherwise
-        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
-        TRACE(4, mConsoleName + "->throw_error() " + message);
-        m_result = wxEmptyString;    // supress result
-        m_explicitResult = true;    // supress result
-        if (!duk_is_error(ctx, -1)){
-            // we do not have an error object on the stack
-            TRACE(4, mConsoleName + "->throw_error() pushing error object to stack");
-            int n = duk_get_top(ctx);  // number of items on stack
-            if (n > 0) duk_pop_n(ctx, n);	// clear stack
-            duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
-            }
-//      m_hadError = true;
-        mRunningMain = false;
-        duk_throw(ctx);   // we don't come back from this
-        }
-*/
 
     void prep_for_throw(duk_context *ctx, wxString message){
         // throw an error from within c++ code called from running script
@@ -1219,6 +1197,7 @@ public:
     	}
     	
     void unPark(){	//unpark this Console
+    	void reviewParking();
     	TRACE(25, wxString::Format("%s->unpark() called with parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
 
     	if (!isParked()) return;
@@ -1229,6 +1208,11 @@ public:
 			m_notParkedLocation.set = true;
 			}
     	setLocation(m_notParkedLocation);
+    	
+    	if (wxGetKeyState(WXK_SHIFT)){ // if shift key dow, vacate parked location
+    			m_parkedLocation.set = false;
+    			reviewParking();
+    			}
     	TRACE(25, wxString::Format("%s->unpark() completed to X:%i   Y:%i frame", mConsoleName, m_notParkedLocation.position.x, m_notParkedLocation.position.y));
 
     	m_parked = false;    	

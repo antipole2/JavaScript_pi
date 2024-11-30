@@ -53,7 +53,7 @@ Console* findConsoleByCtx(duk_context *ctx);
 Console* findConsoleByName(wxString name);
 void throwErrorByCtx(duk_context *ctx, wxString message);
 wxString resolveFileName(wxString inputName, Console* pConsole, int options);
-wxString getTextFile(wxString fileString, wxString* text);
+wxString getTextFile(wxString fileString, wxString* text, int timeOut);
 wxString JScleanOutput(wxString given);
 
 void limitOutput(wxStyledTextCtrl* pText){
@@ -388,7 +388,7 @@ static duk_ret_t duk_read_text_file(duk_context *ctx) {  // read in a text file
 		pConsole->prep_for_throw(ctx, result);
 		duk_throw(ctx);
 		}
-    result = getTextFile(filePath, &text);
+    result = getTextFile(filePath, &text, 10);
     if (result != wxEmptyString) {
 		pConsole->prep_for_throw(ctx, result);
 		duk_throw(ctx);
@@ -489,7 +489,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
         resolved = resolveFileName(fileNameGiven, pConsole, 0);
         }
     TRACE(45, "Require - resolved to: " + resolved);
-    outcome = getTextFile(resolved, &script);
+    outcome = getTextFile(resolved, &script, 10);
     if (outcome != wxEmptyString){
     	pConsole->prep_for_throw(ctx, "require readTextFile error: " + outcome);
 		duk_throw(ctx);
@@ -724,7 +724,7 @@ duk_ret_t chain_script(duk_context* ctx){
         }
     duk_pop(ctx);
     
-    outcome = getTextFile(fileString, &script);
+    outcome = getTextFile(fileString, &script, 10);
     if(outcome != wxEmptyString) {
 		pConsole->prep_for_throw(ctx, _("getBrief found no brief"));
 		duk_throw(ctx);
@@ -788,7 +788,8 @@ static duk_ret_t duk_copy(duk_context *ctx){
 		}
 	wxString data = duk_get_string(ctx, 0);
 	data = JScleanOutput(data);
-	data.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
+	SUBDEGREE(data, PSEUDODEGREE, DEGREE);
+//	data.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
 	wxTheClipboard->SetData(new wxTextDataObject(data));
 	wxTheClipboard->Close();		
 	return 0;
@@ -1176,7 +1177,25 @@ static duk_ret_t NMEAchecksum(duk_context *ctx){
 	return 1;
 	}
 
-    
+static duk_ret_t keyboardState(duk_context *ctx){
+	// state = keyboardState();
+    duk_push_object(ctx);
+        duk_push_boolean(ctx, wxGetKeyState(WXK_SHIFT));
+            duk_put_prop_literal(ctx, -2, "shift");
+		// the following is a confusing mess between MacOS and Windows
+/*
+#ifdef __WXMAC__
+		duk_push_boolean(ctx, wxGetKeyState(WXK_MENU));
+            duk_put_prop_literal(ctx, -2, "control");
+#endif
+*/
+        duk_push_boolean(ctx, wxGetKeyState(WXK_ALT));
+            duk_put_prop_literal(ctx, -2, "option");
+        duk_push_boolean(ctx, wxGetKeyState(WXK_CONTROL));
+            duk_put_prop_literal(ctx, -2, "menu");            
+    return 1;
+    }
+	   
 void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     extern duk_ret_t duk_dialog(duk_context *ctx);
     duk_idx_t duk_push_c_function(duk_context *ctx, duk_c_function func, duk_idx_t nargs);
@@ -1326,6 +1345,11 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_push_string(ctx, "cleanString");
     duk_push_c_function(ctx, cleanString, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "keyboardState");
+    duk_push_c_function(ctx, keyboardState, 0);	// no args
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
 
     
 	// set up the _remember variable
@@ -1345,11 +1369,9 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
 	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);
 
 
-#if 0
-	// experiment only
-    duk_push_string(ctx, "APImenu");
-    duk_ret_t APImenu(duk_context *ctx);
-    duk_push_c_function(ctx, APImenu , DUK_VARARGS /* arguments*/);
+#if 0	
+    duk_push_string(ctx, "test");
+    duk_push_c_function(ctx, test , DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 #endif
 

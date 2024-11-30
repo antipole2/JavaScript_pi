@@ -344,7 +344,7 @@ bool JavaScript_pi::LoadConfig(void)
 		TRACE(2, "Current Directory set to " + mCurrentDirectory);
 		mRememberToggleStatus = (pConf->Read ( _T ( "RememberToggle" ), "0" ) == "0")?false:true;
 		if (mRememberToggleStatus) mShowingConsoles = (pConf->Read ( _T ( "ShowingConsoles" ), "0" ) == "0")?false:true;
-		else mShowingConsoles = false;
+		else mShowingConsoles = true;
 		TRACE(2,wxString::Format("JavaScript_pi->LoadConfig() setting mShowingConsoles  %s", (mShowingConsoles ? "true":"false")));
 #ifdef __DARWIN__
 		m_floatOnParent = (pConf->Read ( _T ( "FloatOnParent" ), "0" ) == "0")?false:true;
@@ -410,7 +410,7 @@ bool JavaScript_pi::LoadConfig(void)
 				newConsole->Move(newConsole->FromDIP(consolePosition));
 				newConsole->SetSize(newConsole->FromDIP(consoleSize));
 				TRACE(2, wxString::Format("Post-construction  %s->Move x:%d y:%d", name, consolePosition.x, consolePosition.y));
-				newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T(""));
+				newConsole->m_remembered = pConf->Read ( name + _T ( ":_remember" ), _T("{}"));
 				// set up the locations
 				bool set = (pConf->Read ( name + _T ( ":UnparkedLocationSet" ), "0" ) == "1")? true:false;
 				if (set){  // set up unparked location               

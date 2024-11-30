@@ -49,6 +49,7 @@ class ToolsClassBase : public wxFrame
 		wxChoice* m_oldNames;
 		wxStaticText* m_staticText15;
 		wxTextCtrl* m_changedName;
+		wxButton* m_findAllButton;
 		wxTextCtrl* m_ConsolesMessage;
 		wxCheckBox* m_floatOnParent;
 		wxCheckBox* m_rememberToggleStatus;
@@ -99,6 +100,7 @@ class ToolsClassBase : public wxFrame
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onFindAllConsoles( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onFloatOnParent( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onToggleStatus( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }

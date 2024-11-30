@@ -575,7 +575,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else if (elementType == "hLine"){
             anElement.type = elementType;
-            wxStaticLine* line = new wxStaticLine ( dialog, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+//			wxStaticLine gives a line so thin it is not visible.  Instead we create a narrow box using wxPanel
+//          wxStaticLine* line = new wxStaticLine ( dialog, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+            wxPanel* line = new wxPanel(dialog, wxID_ANY, wxDefaultPosition, wxSize(-1, 2));
+			line->SetBackgroundColour(*wxBLACK);
             boxSizer->Add(line, 0, wxGROW|wxALL, 5*scale);
             duk_pop(ctx);
             }

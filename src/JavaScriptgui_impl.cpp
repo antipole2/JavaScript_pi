@@ -108,8 +108,8 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     			message(STYLE_RED, "OpenCPN not on-line");
     			return;
     			}
-    		wxString getTextFile(wxString fileString, wxString* pText);
-    		result = getTextFile(fileString, &script);
+    		wxString getTextFile(wxString fileString, wxString* pText, int timeout);
+    		result = getTextFile(fileString, &script, 10);
     		if (result != wxEmptyString){
     		    TRACE(6, "URL not yielded file result:" + result + "\n" + script + "\n");
     			message(STYLE_RED, result);
@@ -213,7 +213,7 @@ void Console::OnRun( wxCommandEvent& event ) {
         message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
-	if (m_Script->IsEmpty()) {
+	if (m_Script->IsEmpty() && (run_button->GetLabel() == "Run")) {
 		message(STYLE_RED, "No script to run");
 		return;
 		}
@@ -250,12 +250,15 @@ void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     void reviewParking();
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
-    if (event.CanVeto()){
-		if (m_closeButtonFunction != wxEmptyString){
-			wxString function = m_closeButtonFunction;
-			m_closeButtonFunction = wxEmptyString;
-			Completions outcome = executeFunctionNargs(function, 0);
-			if (!isBusy()) wrapUp(outcome);
+    if (event.CanVeto()){	// only if can take control
+    	if ( wxGetKeyState(WXK_CONTROL)){
+			if (m_closeButtonFunction != wxEmptyString){
+				wxString function = m_closeButtonFunction;
+				m_closeButtonFunction = wxEmptyString;
+				Completions outcome = executeFunctionNargs(function, 0);
+				if (!isBusy()) wrapUp(outcome);
+				}
+			event.Veto(true);
 			return;
 			}
 		if (isParked()){	// hit close button when parked and minimised
@@ -263,6 +266,7 @@ void Console::OnClose(wxCloseEvent& event) {
 			unPark();
         	Raise();
         	return;
+		    event.Veto(true);
         	}
 
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
@@ -286,7 +290,7 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-        if (this->m_remembered != wxEmptyString){
+        if ((this->m_remembered != wxEmptyString) && (this->m_remembered != "{}")){
         	wxString message = "You will lose what you have in _remember\nProceed anyway?";
         	int choice = wxMessageBox(message, "Close console", wxYES_NO | wxYES_DEFAULT);
         	if (choice == wxNO){

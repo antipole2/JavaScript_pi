@@ -27,6 +27,7 @@ public:
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
     void onChangeName( wxCommandEvent& event );
+    void onFindAllConsoles( wxCommandEvent& event );
     void onFloatOnParent( wxCommandEvent& event );
     void onToggleStatus( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
@@ -97,11 +98,11 @@ public:
 		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
 
 		// Consoles tab
-		Consoles->SetSize(FromDIP(Consoles->GetSize()));
 		m_newConsoleName->SetMinSize(FromDIP(m_newConsoleName->GetSize()));
 		m_oldNames->SetMinSize(FromDIP(m_oldNames->GetSize()));
 		m_changedName->SetMinSize(FromDIP(m_changedName->GetSize()));		
 		m_ConsolesMessage->SetMinSize(FromDIP(m_ConsolesMessage->GetSize()));
+//		Consoles->SetSize(FromDIP(Consoles->GetSize()));
 
 		// Directory tab
 		Directory->SetSize(FromDIP(Directory->GetSize()));

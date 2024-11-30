@@ -87,6 +87,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             writeTextFile\
             require\
             timeAlloc\
+            keyboardState\
             scriptResult\
             consoleHide\
             consoleShow\

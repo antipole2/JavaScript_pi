@@ -196,7 +196,7 @@ duk_ret_t console_close(duk_context* ctx){
 duk_ret_t console_load(duk_context* ctx){
     // consoleLoad(consoleName,  script) into console
     wxString fileString, script, consoleName, outcome;
-    wxString getTextFile(wxString fileString, wxString* fetched);
+    wxString getTextFile(wxString fileString, wxString* fetched, int timeout);
 	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
     wxString JScleanString(wxString given);
     Console* pConsole;
@@ -213,7 +213,7 @@ duk_ret_t console_load(duk_context* ctx){
     if (pConsole->mpCtx) pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
     if (fileString.EndsWith(".js")){   // we are to try and load a file
         fileString = resolveFileName(fileString, pConsole, 0);
-        outcome = getTextFile( fileString, &script);
+        outcome = getTextFile( fileString, &script, 10);
         if (outcome != wxEmptyString)  throwErrorByCtx(ctx, outcome);
         script = JScleanString(script);
         pConsole->m_Script->ClearAll();
