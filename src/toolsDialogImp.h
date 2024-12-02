@@ -111,6 +111,7 @@ public:
 		// NMEA tab
 		NMEA->SetSize(FromDIP(NMEA->GetSize()));
 		m_NMEAmessage->SetMinSize(FromDIP(m_NMEAmessage->GetSize()));
+		m_NMEAReceiveMessageButton->SetMinSize(FromDIP(m_NMEAReceiveMessageButton->GetSize()));
 
 		// Message tab
 		Message->SetSize(FromDIP(Message->GetSize()));
@@ -134,6 +135,7 @@ public:
 		// Diagnostics tab
 		Diagnostics->SetSize(FromDIP(Diagnostics->GetSize()));
 		m_charsToClean->SetMinSize(FromDIP(m_charsToClean->GetSize()));
+		m_cleanButton->SetMinSize(FromDIP(m_cleanButton->GetSize()));
 		}
     	    
 	};
