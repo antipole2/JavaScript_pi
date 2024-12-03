@@ -209,8 +209,13 @@ void Console::OnClearOutput( wxCommandEvent& event ){
 void Console::OnRun( wxCommandEvent& event ) {
 #if TRACE_YES
     extern JavaScript_pi *pJavaScript_pi;
-    if (!pJavaScript_pi->mTraceLevelStated)
-        message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));
+    if (!pJavaScript_pi->mTraceLevelStated){
+    	wxString traceMessage = "Tracing levels";
+    	if (TRACE_LEVEL_0) traceMessage += " 0";
+    	if (TRACE_THIS != 0) traceMessage +=  wxString::Format(" %d", TRACE_THIS);
+    	if (TRACE_MAX >= TRACE_MIN) traceMessage += wxString::Format(" %d - %d",  TRACE_MIN, TRACE_MAX);
+        message(STYLE_ORANGE,traceMessage);
+        }
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
 	if (m_Script->IsEmpty() && (run_button->GetLabel() == "Run")) {

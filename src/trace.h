@@ -19,8 +19,8 @@
 #define TRACE_YES 	false // if true, include TRACE code. Should be false in release
 #define TRACE_LEVEL_0	true	// whether to trace level
 #define TRACE_THIS  6	// specific explicit level to trace, else 0
-#define TRACE_MIN	999	// specify a range of levels to trace
-#define TRACE_MAX	0	// set TRACE_MIN to > TRACE_MAX to avoid tracing range
+#define TRACE_MIN	50	// specify a range of levels to trace
+#define TRACE_MAX	49	// set TRACE_MIN to > TRACE_MAX to avoid tracing range
 #define TRACE_TO_WINDOW true     // if true, trace will be to a window
 //                                 if false, then to the log file or if in the harness to stdout
 #if TRACE_TO_WINDOW
