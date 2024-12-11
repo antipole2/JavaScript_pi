@@ -101,8 +101,10 @@ wxString js_formOutput(duk_context *ctx){
 				break;
             case DUK_TYPE_UNDEFINED:
                 findConsoleByCtx(ctx)->prep_for_throw(ctx, "output - arg " + to_string(i) + " is undefined");
+                duk_throw(ctx);
             default:
                 findConsoleByCtx(ctx)->prep_for_throw(ctx, "output - arg " + to_string(i) + " of unexpected type " + to_string(type));
+                duk_throw(ctx);
 	        }
     	}
 	output = JScleanOutput(output);	// internally, we are using PSEUDODEGREE to represent degree - convert any back
@@ -285,7 +287,10 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
         wxString arg2 = duk_get_string(ctx,1);
         if (arg2 == yesNo) buttonType = arg2;
         else if ((arg2 == ok) || (arg2 == wxEmptyString)) buttonType = ok;
-        else pConsole->prep_for_throw(ctx, "messageBox invalid 2nd arg");
+        else {
+        	pConsole->prep_for_throw(ctx, "messageBox invalid 2nd arg");
+        	duk_throw(ctx);
+        	}
         }
     else buttonType = ok;
     if (nargs > 2) caption = duk_get_string(ctx, 2);
@@ -312,7 +317,10 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
 		jsButton* No = new jsButton(pConsole, dialog, wxID_NO, "No",wxDefaultPosition);
 		buttonBoxSizer->Add(No, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 		}
-	else pConsole->prep_for_throw(ctx, "messageBox invalid 2nd arg");
+	else {
+		pConsole->prep_for_throw(ctx, "messageBox invalid 2nd arg");
+		duk_throw(ctx);
+		}
 	boxSizer->Add(buttonBoxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 2);
 	dialog->Bind(wxEVT_BUTTON, &onMessageButton, wxID_ANY);
 	dialog->Fit();
@@ -324,7 +332,7 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
     		// now fall through to get out
         case wxID_CANCEL:
             pConsole->prep_for_throw(ctx, "messageBox cancelled");
-            break;
+            duk_throw(ctx);
         case wxID_OK:
             answer = 1;
             break;
@@ -334,7 +342,9 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
         case wxID_NO:
             answer = 3;
             break;
-        default: pConsole->prep_for_throw(ctx, "messageBox logic error");
+        default:
+        	pConsole->prep_for_throw(ctx, "messageBox logic error");
+        	duk_throw(ctx);
         }
 	pConsole->mpMessageDialog->Destroy();
     pConsole->mpMessageDialog = nullptr;
@@ -537,6 +547,7 @@ void setupSeconds(duk_context *ctx, bool persistant){
 		}
 	if (pConsole->mpTimersVector.size() > MAX_TIMERS){
 		pConsole->prep_for_throw(ctx, wxString::Format("onSeconds already have maximum %i timers outstanding", MAX_TIMERS));   // safety limit of timers);
+		duk_throw(ctx);
 		}
 	// ready to go
 	wxString argument = wxEmptyString;
@@ -679,7 +690,7 @@ static duk_ret_t duk_consoleName(duk_context *ctx) {
     
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console* pConsole = findConsoleByCtx(ctx);
-    if (nargs > 1){pConsole->prep_for_throw(ctx, "consoleName has more than 1 argument");}
+    if (nargs > 1){pConsole->prep_for_throw(ctx, "consoleName has more than 1 argument"); duk_throw(ctx);}
     if (nargs == 1){	// have proposed new name
     	newName = duk_get_string(ctx, 0);
     	duk_pop(ctx);
@@ -896,6 +907,7 @@ int findFileIndex(Console *pConsole, int id){
 		if (pConsole->m_wxFileFcbs[index].id == id) return index;
 		}
 	pConsole->prep_for_throw(pConsole->mpCtx, "_wxFile failed to match id");
+	duk_throw(pConsole->mpCtx);
 	return 1;	// to keep compiler happy
 	}
 	
@@ -949,9 +961,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			else if (mode == 5) ok = control.pFile->Create(filePath, false);	// create - file must not exist
 			else ok = control.pFile->Open(filePath, openMode[mode]);
 			if (!ok) {
-//				pConsole->prep_for_throw(ctx, "_wxFile unable to open file " + filePath);
 				pConsole->prep_for_throw(ctx, wxString::Format("_wxFile unable to open file %s error %d", filePath, control.pFile->GetLastError()));
-
 				duk_throw(ctx);
 				}
 			pConsole->m_wxFileFcbs.push_back(control);
@@ -976,9 +986,9 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			if (offset >= 0) offset =  control.pFile->Seek(offset);
 			else offset =  control.pFile->SeekEnd();
 			if (offset == wxInvalidOffset) {
-		pConsole->prep_for_throw(ctx, "_wxFile invalid offset");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile invalid offset");
+				duk_throw(ctx);
+				}
 			duk_push_int(ctx, offset);
 			return 1;
 			}
@@ -988,9 +998,9 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
 			wxFileOffset offset = control.pFile->Tell();
 			if (offset == wxInvalidOffset) {
-		pConsole->prep_for_throw(ctx, "_wxFile invalid offset");
-		duk_throw(ctx);
-		}
+				pConsole->prep_for_throw(ctx, "_wxFile invalid offset");
+				duk_throw(ctx);
+				}
 			duk_push_int(ctx, offset);
 			return 1;
 			}
@@ -1067,13 +1077,13 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			TRACE(100, wxString::Format("Write buffer size:%i", bufferSize));
 			wxFileFcb control = pConsole->m_wxFileFcbs[findFileIndex(pConsole, id)];
 			if (bufferSize < 1) {
-		pConsole->prep_for_throw(ctx, "_wxFile write invalid data length");
-		duk_throw(ctx);
+				pConsole->prep_for_throw(ctx, "_wxFile write invalid data length");
+				duk_throw(ctx);
 		}
 			size_t wrote = control.pFile->Write(ptr, bufferSize);
 			if (wrote != bufferSize) {
-		pConsole->prep_for_throw(ctx, "_wxFile write wrong length");
-		duk_throw(ctx);
+				pConsole->prep_for_throw(ctx, "_wxFile write wrong length");
+				duk_throw(ctx);
 		}
 			return 0;
 			}
@@ -1086,6 +1096,7 @@ We achieve this by setting up a finaliser 'clearFileEntry' for the JavaScript Fi
 			}						
 		default:
 			pConsole->prep_for_throw(ctx, "_wxFile invalid action");
+			duk_throw(ctx);
 		}
 	
 	duk_pop_n(ctx, nargs);
@@ -1148,13 +1159,16 @@ static duk_ret_t duk_onCloseButton(duk_context *ctx){
 	if (nargs == 0) pConsole-> m_closeButtonFunction = wxEmptyString;
 	else if (nargs == 1){
 		if (pConsole-> m_closeButtonFunction != wxEmptyString) {
-		pConsole->prep_for_throw(ctx, "onCloseButton already set");
-		duk_throw(ctx);
-		}
+			pConsole->prep_for_throw(ctx, "onCloseButton already set");
+			duk_throw(ctx);
+			}
 		pConsole-> m_closeButtonFunction = extractFunctionName(ctx, 0);
 		duk_pop(ctx);
 		}
-	else pConsole->prep_for_throw(ctx, "onCloseButton requires just one argument");
+	else {
+		pConsole->prep_for_throw(ctx, "onCloseButton requires just one argument");
+		duk_throw(ctx);
+		}
 	return 0;
 	}
 

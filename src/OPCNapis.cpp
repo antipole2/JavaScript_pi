@@ -565,9 +565,11 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     menuCount = pConsole->mMenus.GetCount();
     if (menuCount >= MAX_MENUS){
         pConsole->prep_for_throw(ctx, "OCPNonContextMenu already have maximum menus outstanding");
+        duk_throw(ctx);
         }
     if ((nargs < 2) || (nargs > 3)){
         pConsole->prep_for_throw(ctx, "OCPNonContextMenu requires two or three arguments");
+        duk_throw(ctx);
         }
     menuAction.functionName = extractFunctionName(ctx, 0);
     if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
@@ -576,6 +578,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     for (int i = 0; i < menuCount; i++){
          if (pConsole->mMenus[i].menuName == menuName)
              pConsole->prep_for_throw(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
+             duk_throw(ctx);
         }
     menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
     menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);

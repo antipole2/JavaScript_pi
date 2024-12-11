@@ -72,7 +72,7 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
 
         wxSize pageClientSize = ToDIP(page->GetClientSize());
         
-        TRACE(6, wxString::Format("Tools Page %d GetClientSize gave DIP %d x %d", pageNumber, pJavaScript_pi->pTools->Diagnostics->GetId(), pageClientSize.x, pageClientSize.y));
+ //       TRACE(6, wxString::Format("Tools Page %d GetClientSize gave DIP %d x %d", pageNumber, pJavaScript_pi->pTools->Diagnostics->GetId(), pageClientSize.x, pageClientSize.y));
         pageClientSize.x = 590;	// force width
 		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
 //		page->Fit(); // Adjusts to page size but this makes window too tight, so...
@@ -83,12 +83,12 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
 		TRACE(6, wxString::Format("Tools Page %d final size DIP %d x %d", pageNumber, size.x, size.y));
 		Show();
         Raise();
-        TRACE(6, wxString::Format("Page %d of %d", pageNumber, pJavaScript_pi->pTools->m_notebook->GetPageCount()));
-        if (pageNumber == pJavaScript_pi->pTools->m_notebook->GetPageCount()-1){	// on last panel - assumed to be diagnostics
+        if (pJavaScript_pi->pTools == nullptr) return;	// be safe - skip next if pTools not yet set up.  It seems to be called before we are ready
+        TRACE(6, wxString::Format("Page %d of %d", pageNumber, pJavaScript_pi->pTools->m_notebook->GetPageCount()-1));
+        if (pageNumber == (pJavaScript_pi->pTools->m_notebook->GetPageCount()-1)){	// on last panel - assumed to be diagnostics
         	// following to be set to ‟Fancy quotes” degrees°º⁰ primes ‘’‛’′´` but Windows screws this up, so will set explicitly here
-        	m_charsToClean->ChangeValue("\u201FFancy quotes\u201D degrees\u00B0\u00BA\u2070 primes \u2018\u2019\u201B\u2019\u2032\u00B4\u0060");
+	       	m_charsToClean->ChangeValue("\u201FFancy quotes\u201D degrees\u00B0\u00BA\u2070 primes \u2018\u2019\u201B\u2019\u2032\u00B4\u0060");
         	}
-        
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){

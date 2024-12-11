@@ -16,7 +16,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* TopSizer;
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
-	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,400 ), 0 );
+	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,460 ), 0 );
 	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,255 ), 0 );
@@ -150,7 +150,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	Consoles->SetSizer( ConsolesSizer );
 	Consoles->Layout();
-	m_notebook->AddPage( Consoles, wxT("Consoles"), true );
+	m_notebook->AddPage( Consoles, wxT("Consoles"), false );
 	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,150 ), 0 );
 	Directory->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Directory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -227,6 +227,12 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 
 	NMEASizer->Add( ReceivedMessageButtonSizer, 1, wxEXPAND, 5 );
+
+	wxStaticBoxSizer* sbSizer28;
+	sbSizer28 = new wxStaticBoxSizer( new wxStaticBox( NMEA, wxID_ANY, wxEmptyString ), wxVERTICAL );
+
+
+	NMEASizer->Add( sbSizer28, 1, wxEXPAND, 5 );
 
 
 	NMEA->SetSizer( NMEASizer );
@@ -478,7 +484,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* diagnosticAdviceSizer;
 	diagnosticAdviceSizer = new wxStaticBoxSizer( new wxStaticBox( Diagnostics, wxID_ANY, wxEmptyString ), wxVERTICAL );
 
-	m_diagnosticAdvice = new wxStaticText( diagnosticAdviceSizer->GetStaticBox(), wxID_ANY, wxT("For help using these functions, see the section ‘Tools panel diagnostics tab’  in the plugin technical guide."), wxDefaultPosition, wxDefaultSize, 0 );
+	m_diagnosticAdvice = new wxStaticText( diagnosticAdviceSizer->GetStaticBox(), wxID_ANY, wxT("For help using these functions, see the section Tools panel diagnostics tab  in the plugin technical guide."), wxDefaultPosition, wxDefaultSize, 0 );
 	m_diagnosticAdvice->Wrap( -1 );
 	m_diagnosticAdvice->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	m_diagnosticAdvice->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
@@ -530,13 +536,19 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	cleanSizer->Add( CharsTopSizer, 0, wxEXPAND, 0 );
 
+	wxStaticBoxSizer* sbSizer29;
+	sbSizer29 = new wxStaticBoxSizer( new wxStaticBox( cleanSizer->GetStaticBox(), wxID_ANY, wxEmptyString ), wxVERTICAL );
 
-	DiagnosticsTpSizer->Add( cleanSizer, 0, 0, 5 );
+
+	cleanSizer->Add( sbSizer29, 1, wxEXPAND, 0 );
+
+
+	DiagnosticsTpSizer->Add( cleanSizer, 0, 0, 0 );
 
 
 	Diagnostics->SetSizer( DiagnosticsTpSizer );
 	Diagnostics->Layout();
-	m_notebook->AddPage( Diagnostics, wxT("Diagnostics"), false );
+	m_notebook->AddPage( Diagnostics, wxT("Diagnostics"), true );
 
 	TopSizer->Add( m_notebook, 1, wxEXPAND, 5 );
 

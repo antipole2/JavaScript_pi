@@ -208,9 +208,14 @@ duk_ret_t console_load(duk_context* ctx){
     duk_pop_2(ctx);
     pConsole = findConsoleByName(consoleName);
     if (!pConsole) throwErrorByCtx(ctx, "Console " + consoleName + " does not exist");
-    if (pConsole == pConsoleBeingTimed)
+    if (pConsole == pConsoleBeingTimed){
         pConsole->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " cannot load into own console");
-    if (pConsole->mpCtx) pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
+        duk_throw(ctx);
+        }
+    if (pConsole->mpCtx){
+    	pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
+    	duk_throw(ctx);
+    	}
     if (fileString.EndsWith(".js")){   // we are to try and load a file
         fileString = resolveFileName(fileString, pConsole, 0);
         outcome = getTextFile( fileString, &script, 10);
@@ -247,9 +252,14 @@ duk_ret_t console_run(duk_context* ctx){
         }
     duk_pop(ctx);
     pConsole = findConsoleByName(consoleName);
-    if (pConsole == pConsoleBeingTimed)
+    if (pConsole == pConsoleBeingTimed){
         pConsole->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " cannot run own console");
-    if (pConsole->mpCtx) pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " is busy");
+        duk_throw(ctx);
+        }
+    if (pConsole->mpCtx) {
+    	pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " is busy");
+    	duk_throw(ctx);
+    	}
     pConsole->mBrief.reply = false;
     if (haveBrief){
         pConsole->mBrief.theBrief = brief;
@@ -271,7 +281,10 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     pCallingConsole = pConsoleBeingTimed;
  
-    if (nargs < 2) pCallingConsole->prep_for_throw(ctx, "onConsoleResult called with insufficient args");
+    if (nargs < 2) {
+    	pCallingConsole->prep_for_throw(ctx, "onConsoleResult called with insufficient args");
+    	duk_throw(ctx);
+    	}
     duk_require_string(ctx, 0);
     duk_require_object(ctx, 1);
     consoleName = wxString(duk_get_string(ctx, 0));
@@ -283,10 +296,13 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     	}
     duk_pop_2(ctx); // first and second args
     pConsole = findConsoleByName(consoleName);
-    if (pConsole->mRunningMain || pConsole->isWaiting())
+    if (pConsole->mRunningMain || pConsole->isWaiting()){
         pCallingConsole->prep_for_throw(ctx, "onConsoleResult target console " + pConsole->mConsoleName + " is busy");
+        duk_throw(ctx);
+        }
     if (pCallingConsole->mConsoleRepliesAwaited > MAX_TIMERS){
         pCallingConsole->prep_for_throw(ctx, "onConsoleResult error: already have maximum callbacks outstanding");
+        duk_throw(ctx);
         }
     // OK - ready to go
     pConsole->mBrief.briefingConsoleName = pCallingConsole->mConsoleName;

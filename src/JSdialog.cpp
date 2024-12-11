@@ -412,10 +412,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             int start, end;
             
             // range attribute
-            if (!duk_get_prop_literal(ctx, -1, "range"))
+            if (!duk_get_prop_literal(ctx, -1, "range")){
                 pConsole->prep_for_throw(ctx, "onDialog error: slider requires range");
-            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2))
+                duk_throw(ctx);
+                }
+            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)){
             	pConsole->prep_for_throw(ctx, "onDialog error: slider requires range with 2 values");
+            	duk_throw(ctx);
+            	}
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -460,10 +464,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             int start, end;
             
             // range attribute
-            if (!duk_get_prop_literal(ctx, -1, "range"))
+            if (!duk_get_prop_literal(ctx, -1, "range")){
                 pConsole->prep_for_throw(ctx, "onDialog error: spinner requires range");
-            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2))
+                duk_throw(ctx);
+                }
+            if (!duk_is_array(ctx, -1) || (duk_get_length(ctx, -1) != 2)){
             	pConsole->prep_for_throw(ctx, "onDialog error: spinner requires range with 2 values");
+            	duk_throw(ctx);
+            	}
             duk_get_prop_index(ctx, -1, 0);
             start = duk_get_number(ctx, -1);
             duk_pop(ctx);
@@ -507,14 +515,21 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         else if (elementType == "choice"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
                 pConsole->prep_for_throw(ctx, "onDialog error: choice requires value");
+                duk_throw(ctx);
                 }
             else {
-                if (!duk_is_array(ctx, -1)) pConsole->prep_for_throw(ctx, "onDialog error: choice requires value array");
+                if (!duk_is_array(ctx, -1)){
+                	 pConsole->prep_for_throw(ctx, "onDialog error: choice requires value array");
+                	 duk_throw(ctx);
+                	 }
                 else {
                     int maxChars = 0;
                     strings.Clear();
                     int listLength = (int) duk_get_length(ctx, -1);
-                    if (listLength < 1) pConsole->prep_for_throw(ctx, "onDialog error: choice has empty value array");
+                    if (listLength < 1) {
+                    	pConsole->prep_for_throw(ctx, "onDialog error: choice has empty value array");
+                    	duk_throw(ctx);
+                    	}
                     for (int j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
@@ -544,12 +559,21 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             else label = wxEmptyString;
             duk_pop(ctx);
-            if (!duk_get_prop_literal(ctx, -1, "value")) pConsole->prep_for_throw(ctx, "onDialog error: radio requires value");
+            if (!duk_get_prop_literal(ctx, -1, "value")){
+            	pConsole->prep_for_throw(ctx, "onDialog error: radio requires value");
+            	duk_throw(ctx);
+            	}
             else {
-                if (!duk_is_array(ctx, -1)) pConsole->prep_for_throw(ctx, "onDialog error: radio requires value array");
+                if (!duk_is_array(ctx, -1)){
+                	pConsole->prep_for_throw(ctx, "onDialog error: radio requires value array");
+                	duk_throw(ctx);
+                	}
                 else {
                     numberOfButtons = (int) duk_get_length(ctx, -1);
-                    if (numberOfButtons < 1) pConsole->prep_for_throw(ctx, "onDialog error: radioButtons has empty value array");
+                    if (numberOfButtons < 1) {
+                    	pConsole->prep_for_throw(ctx, "onDialog error: radioButtons has empty value array");
+                    	duk_throw(ctx);
+                    	}
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
                     int maxChars = 0;
                     int defaultIndex = 0;
@@ -594,7 +618,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             if (duk_is_array(ctx, -1)){
                 // have array of buttons
                 int numberOfButtons = (int) duk_get_length(ctx, -1);
-                if (numberOfButtons < 1) pConsole->prep_for_throw(ctx, "onDialog error: buttons has empty labels array");
+                if (numberOfButtons < 1){
+                	pConsole->prep_for_throw(ctx, "onDialog error: buttons has empty labels array");
+                	duk_throw(ctx);
+                	}
                 for (int j = 0; j < numberOfButtons; j++) {
                     defaultButton = false;
                     duk_get_prop_index(ctx, -1, j);
@@ -629,6 +656,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             }
         else {
             pConsole->prep_for_throw(ctx, "onDialogue - unsupported element type: " + elementType);
+            duk_throw(ctx);
             }
         pConsole->mDialog.dialogElementsArray.push_back(anElement);
         }
