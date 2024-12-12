@@ -147,6 +147,12 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	ConsolesSizer->Add( sbSizer18, 0, wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP|wxEXPAND, 0 );
 
+	wxStaticBoxSizer* sbSizer30;
+	sbSizer30 = new wxStaticBoxSizer( new wxStaticBox( Consoles, wxID_ANY, wxT("label") ), wxVERTICAL );
+
+
+	ConsolesSizer->Add( sbSizer30, 1, wxEXPAND, 0 );
+
 
 	Consoles->SetSizer( ConsolesSizer );
 	Consoles->Layout();
