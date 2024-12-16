@@ -223,11 +223,13 @@ duk_ret_t console_load(duk_context* ctx){
         script = JScleanString(script);
         pConsole->m_Script->ClearAll();
         pConsole->m_Script->AppendText(	script + "\n");
+        pConsole->m_Script->DiscardEdits();	// mark as saved
         pConsole->m_fileStringBox->SetValue(fileString);
         pConsole->auto_run->Show();
         }
     else {
     	pConsole->m_Script->SetText(fileString);   // we were passed a script
+        pConsole->m_Script->DiscardEdits();	// mark as saved    	
     	pConsole->m_fileStringBox->SetValue(wxEmptyString);
         pConsole->auto_run->Hide();
 		}

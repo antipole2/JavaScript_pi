@@ -93,11 +93,17 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString chooseLoadFile(Console*);
     bool isURLfileString(wxString fileString);
     
+    if (m_Script->IsModified() && !wxGetKeyState(WXK_SHIFT)){
+    	wxMessageDialog dialog(this, "(Shift key down supresses this check)\n\nScript pane has unsaved script - overwrite?", "Load script",wxYES_NO | wxICON_QUESTION); 
+    	if (dialog.ShowModal() == wxID_NO) return;
+    	}
+    
     fileString = chooseFileString(this);
 	if (fileString == "**cancel**"){
-	TRACE(3, "Load cancelled");
-	return;
-	}
+		TRACE(3, "Load cancelled");
+		return;
+		}
+	
     if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
     else {   // only if something now chosen
     	fileString.Trim(true);	// trim any whitespace both ends
@@ -133,6 +139,7 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
 //	script = JScleanString(script);	// now do this on run command
 	m_Script->ClearAll();   // clear old content
 	m_Script->AppendText(script);
+	m_Script->DiscardEdits();
 	m_fileStringBox->SetValue(wxString(fileString));
 	auto_run->Show();
 	auto_run->SetValue(false);
@@ -155,6 +162,7 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
         filePath = SaveAsConsole.GetPath();
         if (!filePath.EndsWith(".js")) filePath += ".js";
         m_Script->SaveFile(filePath, wxTEXT_TYPE_ANY);
+        m_Script->DiscardEdits();	// mark as saved
         m_fileStringBox->SetValue(wxString(filePath));
         auto_run->Show();
         updateRecentFiles(filePath);
@@ -176,6 +184,7 @@ void Console::OnSave( wxCommandEvent& event ) {
     if ((   mFileString != "") && wxFileExists(   mFileString) && !isURLfileString(mFileString)) {
         // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
+        m_Script->DiscardEdits();	// mark as saved
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
         auto_run->Show();
         updateRecentFiles(mFileString);
@@ -194,7 +203,12 @@ void Console::OnCopyAll(wxCommandEvent& event) {
     }
 
 void Console::OnClearScript( wxCommandEvent& event ){
+    if (m_Script->IsModified() && !wxGetKeyState(WXK_SHIFT)){
+    	wxMessageDialog dialog(this, "(Shift key down supresses this check)\n\nScript pane has unsaved script - overwrite?", "Clear script",wxYES_NO | wxICON_QUESTION); 
+    	if (dialog.ShowModal() == wxID_NO) return;
+    	}
     m_Script->ClearAll();
+    m_Script->DiscardEdits();
     m_Script->SetFocus();
     m_fileStringBox->SetValue(wxEmptyString);
     mFileString = wxEmptyString;

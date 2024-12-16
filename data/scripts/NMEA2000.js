@@ -312,10 +312,12 @@ function NMEA2000(arg, data, options){
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
 				nextBitIndex += desc.BitLength;
 				value = checkNumber(value, desc.Signed, desc.BitLength);
+/* should be fixed so allow this
 				if (this.PGN != 60928){	// Address claim regularly fails, so omit
 					if (value > desc.RangeMax) printRed("Data for " + desc.Id + " is " + value + " exceeds maximum");
 					else if (value < desc.RangeMin) printRed("Data for " + desc.Id + " is " + value + " below minimum");
 					}
+*/
 				return value;
 			case "Number":
 			case "Latitude":
@@ -405,7 +407,6 @@ function NMEA2000(arg, data, options){
 		}
 
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
-		var trace = this.trace;
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
 		BytesToGet = Math.ceil(bitLength/8);
@@ -415,6 +416,11 @@ function NMEA2000(arg, data, options){
 		chunk = getBytes(data, startByteIndex, BytesToGet);
 		// bit ops are good for 32 bits only, so only do this next if needed - will leave 64 bits untouched
 		if (bitLength <= 8){	// nibbles are little endon
+			nibble = chunk >> bitStart;
+			mask = (1 << bitLength) - 1;
+			nibble &= mask;
+			}
+		else if (bitLength <= 31){	// added for issue #108 13 Dec 2024
 			nibble = chunk >> bitStart;
 			mask = (1 << bitLength) - 1;
 			nibble &= mask;

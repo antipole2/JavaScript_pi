@@ -409,6 +409,7 @@ public:
 					if (result == wxEmptyString){	// looking good
 						m_Script->ClearAll();
 						m_Script->WriteText(script);
+						m_Script->DiscardEdits();	// mark as saved
 						}
 					else message(STYLE_RED, _("Load file cannot download " + fileString + " - " + result));
 					}
@@ -429,6 +430,7 @@ public:
         	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR\
         			<<  patchString  << " " << PLUGIN_VERSION_COMMENT << " " << PLUGIN_VERSION_DATE << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
+            m_Script->DiscardEdits();	// Let this be cleared without check
             }
         m_fileStringBox->SetValue(fileString);
         auto_run->SetValue(autoRun);

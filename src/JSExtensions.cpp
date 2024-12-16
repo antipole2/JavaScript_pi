@@ -1203,6 +1203,8 @@ static duk_ret_t keyboardState(duk_context *ctx){
             duk_put_prop_literal(ctx, -2, "control");
 #endif
 */
+        duk_push_boolean(ctx, wxGetKeyState(WXK_RAW_CONTROL));
+            duk_put_prop_literal(ctx, -2, "control");
         duk_push_boolean(ctx, wxGetKeyState(WXK_ALT));
             duk_put_prop_literal(ctx, -2, "option");
         duk_push_boolean(ctx, wxGetKeyState(WXK_CONTROL));

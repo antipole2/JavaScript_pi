@@ -17,7 +17,7 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "alpha build 15	"
+#define     PLUGIN_VERSION_COMMENT "beta build 1"
 
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\n\
@@ -38,7 +38,5 @@ Changes are highlighted in the User Guide and listed in its Appendix A"
 #else
 #define SUBDEGREE(what, in, out)
 #endif
-
-
 
 #endif		// version_h

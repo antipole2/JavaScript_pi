@@ -66,6 +66,7 @@ tests = [ // test table format
 	{name:"Load from URL", functionToUse:loadRunWait, script:"48_load_from_url.js", time:30, result:"Load from URL OK"},
 	{name:"Files object", functionToUse:loadRunWait, script:"43_files.js", time:3, result:"Files OK"},
 	{name:"Park console", functionToUse:loadRunWait, script:"44_parking.js", time:30, result:"Parking completed"},
+	{name:"Keyboard states", functionToUse:loadRunWait, script:"120_keyboard_states.js", time:30, result:"States pass"},
 	{name:"onCloseButton", functionToUse:loadRunWait, script:"46_close_button.js", time:18, result:"Succeeded"},
 	{name:"Stop main", functionToUse:loadRunWait, script:"50_stop_main.js", time:1, result:"undefined"},
 	{name:"Stop result", functionToUse:loadRunWait, script:"52_stop_result_main.js", time:1, result:"Stop result"},
@@ -113,7 +114,7 @@ onDialogue(action, control);
 // end of buttons construction
 
 function action(dialog){	// match button to tests
-	consoleClearOutput();
+//	consoleClearOutput();
 	button = dialog[dialog.length-1].label;
 	for (i = 0; i < tests.length; i++){
 		if (button == tests[i].name){
@@ -166,7 +167,8 @@ function oneDone(handback){
 	shouldBe = tests[testIndex].result;
 	success = (lastLine.indexOf(shouldBe) >= 0);	// compare with expected result
 	message = tests[testIndex].name + " test   ";
-	if (success) message += "PASSED";
+	if (lastLine == "Skipped") message += "SKIPPED";
+	else if (success) message += "PASSED";
 	else message += "FAILED - " + lastLine;
 	control[control.length-1].value = message;
 	onDialogue(action, control);

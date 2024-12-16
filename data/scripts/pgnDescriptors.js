@@ -4,14 +4,15 @@
     "Comment":"See https://github.com/canboat/canboat for the full source code",
     "CreatorCode":"Canboat NMEA2000 Analyzer",
     "License":"Apache License Version 2.0",
-    "Version":"5.0.3",
+    "Version":"5.5.0",
     
 	Descriptors copied from here: https://github.com/canboat/canboat/blob/master/analyzer/pgns.json
-	Last updated to v5.0.3 on 9 Mar 2024.
+	Last updated to v5.5.0 on 13 Dec 2024.
 
 	To update, copy the descriptors inside the PGNs array [ ] and paste this replacing all within the [ } of the descriptors definition.
 	Be sure to leave the code beyondthe last descriptor.
-	Then run this script to check it compiles without errors.
+	Edit out PGN 129541
+	Then run this script to check it compiles without errors bby copying into a console and running.
 	For extra confidence, run the N2k decode/encode tests in the test scripts.
 	*/
 
@@ -20,7 +21,9 @@
 	{pgn:129541, reason:"This does not work on Windows - load as custom descriptor - see https://github.com/antipole2/JavaScripts-shared/blob/main/descriptor129541/descriptor129541.adoc"},
 	];
 
-	descriptors = [{
+	descriptors = [
+	/* start of Canboat JSON */
+	      {
         "PGN":59392,
         "Id":"isoAcknowledgement",
         "Description":"ISO Acknowledgement",
@@ -6027,9 +6030,17 @@
             "BitLength":16,
             "BitOffset":16,
             "BitStart":0,
-            "Type":"Binary data",
+            "Type":"Lookup table",
             "Resolution":1,
-            "Signed":false},
+            "Signed":false,
+            "RangeMin":0,
+            "RangeMax":65533,
+            "EnumValues":[
+              {"name": "Standby", "value": 0},
+              {"name": "Auto, compass commanded", "value": 64},
+              {"name": "Vane, Wind Mode", "value": 256},
+              {"name": "Track Mode", "value": 384},
+              {"name": "No Drift, COG referenced (In track, course changes)", "value": 385}]},
           {
             "Order":5,
             "Id":"subMode",
@@ -23344,6 +23355,7 @@
             "BitStart":4,
             "Resolution":1,
             "Signed":false}]},
+      
       {
         "PGN":129542,
         "Id":"gnssPseudorangeNoiseStatistics",
@@ -25891,7 +25903,7 @@
           "Fields",
           "FieldLengths",
           "Resolution"],
-        "Length":12,
+        "Length":19,
         "Fields":[
           {
             "Order":1,
@@ -25923,21 +25935,19 @@
             "Order":3,
             "Id":"radioChannel",
             "Name":"Radio Channel",
-            "BitLength":8,
+            "BitLength":48,
             "BitOffset":64,
             "BitStart":0,
-            "Type":"Integer",
-            "Resolution":1,
-            "Signed":false,
-            "RangeMin":0,
-            "RangeMax":253},
+            "Type":"ASCII text",
+            "Signed":false},
           {
             "Order":4,
             "Id":"txPower",
             "Name":"Tx Power",
             "BitLength":8,
-            "BitOffset":72,
+            "BitOffset":112,
             "BitStart":0,
+            "Units":"W",
             "Type":"Integer",
             "Resolution":1,
             "Signed":false,
@@ -25947,26 +25957,27 @@
             "Order":5,
             "Id":"mode",
             "Name":"Mode",
-            "BitLength":8,
-            "BitOffset":80,
+            "BitLength":16,
+            "BitOffset":120,
             "BitStart":0,
             "Type":"Integer",
             "Resolution":1,
             "Signed":false,
             "RangeMin":0,
-            "RangeMax":253},
+            "RangeMax":65533},
           {
             "Order":6,
             "Id":"channelBandwidth",
             "Name":"Channel Bandwidth",
-            "BitLength":8,
-            "BitOffset":88,
+            "BitLength":16,
+            "BitOffset":136,
             "BitStart":0,
-            "Type":"Integer",
+            "Units":"Hz",
+            "Type":"Number",
             "Resolution":1,
             "Signed":false,
             "RangeMin":0,
-            "RangeMax":253}]},
+            "RangeMax":65533}]},
       {
         "PGN":129800,
         "Id":"aisUtcDateInquiry",
@@ -45804,7 +45815,9 @@
             "Signed":false,
             "RangeMin":0,
             "RangeMax":253}]}
-	];
+	]
+	/* end of Canboat JSON */
+	;
 
 	returnAll = false
 	if (arguments.length < 1) return descriptors;

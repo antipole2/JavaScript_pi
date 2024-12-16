@@ -47,6 +47,13 @@ function step3(){
 	result = messageBox("Console between '" + consoleNames[0] + "' and '" + consoleNames[2] + "' has been shortened from '" + maximumLengthName + "' to '" + extras[0] + "'\nHave parked consoles adjusted to accommodate this?", "YesNo");
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
+	consoleClose("ConsoleC__Long");
+	onSeconds(step4, 1);
+	}
+function step4(){
+	result = messageBox("Console ConsoleC__Long has been deleted\nOther parked consoles should have closed up", "YesNo");
+	if (result == 0) throw("Parking tests cancelled");
+	if (result != 2) throw("Parking tests reported wrong");
 	onSeconds(waitforit, 1);
 	scriptResult("Parking completed");
 	}
