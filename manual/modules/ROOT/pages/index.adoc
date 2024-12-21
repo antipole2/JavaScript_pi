@@ -1,11 +1,8 @@
 = Javascript Plugin
-:toc:
 
 image::js_icon_full_size_.png[]
 
-== Aim
-
-To provide a plugin that allows users to write scripts that extend the
+Allows you to write scripts in JavaScript that extend the
 functioning of OpenCPN without getting into the complexity of writing a
 plugin.
 
@@ -89,7 +86,7 @@ https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_
 
 https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_user_guide.epub[User guide as .epub]
 
-There is also a https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_technical_guide.pdf[technical guide] for those wanting to undestand the internal functioning of the plugin or maintain it.
+There is also a https://github.com/antipole2/JavaScript_pi/blob/master/documentation/JavaScript_plugin_technical_guide.pdf[technical guide] for those wanting to understand the internal functioning of the plugin or maintain it.
 This is not relevant for plugin users.
 
 https://www.cruisersforum.com/forums/f134/javascript-plugin-v2-thread-after-25-jan-23-a-272422.html#post3735034[Cruisers Forum Thread]
@@ -99,6 +96,8 @@ https://github.com/antipole2/JavaScript_pi[Github Repository]
 == Support
 
 For discussion on applications of the plugin, use the forum thread.
+
+There is a https://github.com/antipole2/JavaScript_pi/discussions[discussion forum] where you can ask questions such as "How can I do x?" It also contains release notices for updates to the plugin.
 
 For problems with the plugin or feature requests, please https://github.com/antipole2/JavaScript_pi/issues[raise an issue here].
 
@@ -110,7 +109,7 @@ Start with a simple example and build up by trying things.
 Have a look at the examples in the https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc[script library].
 
 There is a good reference guide https://www.w3schools.com/js/js_statements.asp[here].
-JavaScript is much used in programming web sites and many of the examples in the tutorials assume that.  Ignore examples accessing the document object, such as
+JavaScript is much used in programming websites and many of the examples in the tutorials assume that.  Ignore examples accessing the document object, such as
 _document.getElementById("demo").innerHTML_
 The reference material is very good but some of the latest JavaScript constructs are not supported by the plugin.
 See the plugin user guide.
@@ -119,7 +118,7 @@ See the plugin user guide.
 
 Read the user guide which documents the APIs that allow a script to interact with OpenCPN.
 Have a look at the library of sample scripts, which may help you see how to do what you want.
-If you cannot find what you need, ask in the plugin forum.
+If you cannot find what you need, ask in the https://github.com/antipole2/JavaScript_pi/discussions[discussions forum].
 
 *It cannot do what I need - can that be added?*
 
