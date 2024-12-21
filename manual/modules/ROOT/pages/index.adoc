@@ -2,6 +2,8 @@
 
 image::js_icon_full_size_.png[]
 
+== Aim
+
 Allows you to write scripts in JavaScript that extend the
 functioning of OpenCPN without getting into the complexity of writing a
 plugin.
