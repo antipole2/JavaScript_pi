@@ -18,7 +18,7 @@ for (i = 0; i < consoleNames.length; i++){
 	consoleAdd(console);
 	consolePark(console);
 	}
-onSeconds(step1, 1);
+onSeconds(step1, 2);
 
 function step1(){
 	result = messageBox(consoleNames.length + " consoles should have been created and parked\nWidth of minimized windows with different name lengths  correct?", "YesNo");
@@ -29,7 +29,7 @@ function step1(){
 	consoleLoad(console, growYourself);
 	consoleRun(console);
 	consoleNames.push(maximumLengthName);	// this one might be hanging around so add to ones to be deleted
-	onSeconds(step2,1);
+	onSeconds(step2,2);
 	}
 
 function step2(){
@@ -40,7 +40,7 @@ function step2(){
 	consoleLoad(console, shrinkYourself);
 	consoleRun(console);
 	consoleNames.push(console);	// this one might be hanging around so add to ones to be deleted
-	onSeconds(step3, 1);
+	onSeconds(step3, 2);
 	}
 
 function step3(){
@@ -48,7 +48,7 @@ function step3(){
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
 	consoleClose("ConsoleC__Long");
-	onSeconds(step4, 1);
+	onSeconds(step4, 2);
 	}
 function step4(){
 	result = messageBox("Console ConsoleC__Long has been deleted\nOther parked consoles should have closed up", "YesNo");
@@ -66,5 +66,6 @@ function deleteConsoles(){
 		if (consoleExists(console)) consoleClose(console);
 		}
 	}
+
 
 

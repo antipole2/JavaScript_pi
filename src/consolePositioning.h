@@ -31,10 +31,10 @@ THese positions and sizes are all in DIP
 #define PARK_SEP 2L
 
 #elif defined(__LINUX__)
-#define CONSOLE_STUB 45L
-#define PARK_LEVEL 27L
-#define PARK_FIRST_X 100L
-#define PARK_SEP 20L
+#define CONSOLE_STUB 152L
+#define PARK_LEVEL 69L
+#define PARK_FIRST_X 76L
+#define PARK_SEP 10L
 
 #else
 //includes MacOS

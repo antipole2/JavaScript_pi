@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b)
+// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -132,15 +132,15 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer18->SetMinSize( wxSize( -1,70 ) );
 	m_floatOnParent = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Float consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_floatOnParent->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_floatOnParent->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	m_floatOnParent->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
+	m_floatOnParent->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
+	m_floatOnParent->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
 
 	sbSizer18->Add( m_floatOnParent, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 	m_rememberToggleStatus = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Remember toggle status"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_rememberToggleStatus->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_rememberToggleStatus->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	m_rememberToggleStatus->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
+	m_rememberToggleStatus->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
+	m_rememberToggleStatus->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
 
 	sbSizer18->Add( m_rememberToggleStatus, 0, wxALL, 5 );
 
@@ -156,7 +156,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	Consoles->SetSizer( ConsolesSizer );
 	Consoles->Layout();
-	m_notebook->AddPage( Consoles, wxT("Consoles"), false );
+	m_notebook->AddPage( Consoles, wxT("Consoles"), true );
 	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,150 ), 0 );
 	Directory->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Directory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -554,7 +554,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	Diagnostics->SetSizer( DiagnosticsTpSizer );
 	Diagnostics->Layout();
-	m_notebook->AddPage( Diagnostics, wxT("Diagnostics"), true );
+	m_notebook->AddPage( Diagnostics, wxT("Diagnostics"), false );
 
 	TopSizer->Add( m_notebook, 1, wxEXPAND, 5 );
 
