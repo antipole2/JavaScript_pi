@@ -458,6 +458,7 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
     wxString JScleanString(wxString line);
     bool loadComponent(duk_context *ctx, wxString name);
     Console *pConsole = findConsoleByCtx(ctx);
+    wxString extension = "";
     
     if (pConsole->mStatus.test(INEXIT)) {
 		pConsole->prep_for_throw(ctx, "require within onExit function");
@@ -479,7 +480,11 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
             filePath.SetPath(fileString);
             filePath.AppendDir("data");
             filePath.AppendDir("scripts");
-            filePath.SetFullName(fileNameGiven + ".js");	// .js added Nov 2023
+            if (fileNameGiven == "canboat"){	// special case added Dec 2024
+				extension = ".json";
+            	}
+            else extension = ".js";
+            filePath.SetFullName(fileNameGiven + extension);
             TRACE(45, "Require - looking to load built-in script: " + filePath.GetFullPath());
             if (!filePath.FileExists()){
                 pConsole->prep_for_throw(ctx, "require - " + fileNameGiven + " not in built-in scripts");
@@ -505,7 +510,9 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
 		duk_throw(ctx);
     	}
     script = JScleanString(script);
-    duk_push_string(ctx, script);
+    duk_push_string(ctx, script);	// text of file on stack
+    if (extension == ".json") return 1;// Just return text
+    // else we will compile js
     duk_push_string(ctx, resolved); // the file name for trace back
     if (duk_pcompile(ctx, DUK_COMPILE_FUNCTION)){
         pConsole->prep_for_throw(ctx, duk_safe_to_string(ctx, -1));
@@ -1383,6 +1390,12 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
 	duk_push_string(ctx, "_remember");
 	duk_swap_top(ctx, -2);		
 	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);
+	
+	// set up  the _canboat variable - initially undefined
+	duk_push_string(ctx, "_canboat");
+	duk_push_undefined(ctx);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);
+	
 
 
 #if 0	

@@ -409,6 +409,8 @@ void register_keyboard(duk_context *ctx){
 // void register_drivers(duk_context *ctx);
 
 bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
+	// returns true if only C-code from here
+	// returns false if shoukld ontinue to load .js component
     bool result {false};
     
     if (name == "Consoles") {register_console(ctx); result = true;}

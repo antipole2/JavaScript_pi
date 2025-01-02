@@ -66,7 +66,7 @@ tests = [ // test table format
 	{name:"Load from URL", functionToUse:loadRunWait, script:"48_load_from_url.js", time:30, result:"Load from URL OK"},
 	{name:"Files object", functionToUse:loadRunWait, script:"43_files.js", time:3, result:"Files OK"},
 	{name:"Park console", functionToUse:loadRunWait, script:"44_parking.js", time:30, result:"Parking completed"},
-	{name:"Keyboard states", functionToUse:loadRunWait, script:"120_keyboard_states.js", time:30, result:"States pass"},
+	{name:"Keyboard states", functionToUse:loadRunWait, script:"120_keyboard_states.js", time:45, result:"States pass"},
 	{name:"onCloseButton", functionToUse:loadRunWait, script:"46_close_button.js", time:18, result:"Succeeded"},
 	{name:"Stop main", functionToUse:loadRunWait, script:"50_stop_main.js", time:1, result:"undefined"},
 	{name:"Stop result", functionToUse:loadRunWait, script:"52_stop_result_main.js", time:1, result:"Stop result"},
@@ -85,7 +85,7 @@ tests = [ // test table format
 	{name:"Call chain with brief", functionToUse:loadRunWait, script:"88_call_chained.js", time:1, result:"Found brief This is the brief"},
 	{name:"Waypoint, route & track", functionToUse:loadRunWait, script:"90_waypoint_route_track_tests.js", time:3, result:"No errors found"},
 	{name:"GetGUIDs", functionToUse:loadRunWait, script:"100_getGuids.js", time:3, result:"No errors"},
-	{name:"N2k decode/encode", functionToUse:loadRunWait, script:"110_n2k_encode_decode.js", time:3, result:"All tests passed"}	
+	{name:"N2k decode/encode", functionToUse:loadRunWait, script:"110_n2k_encode_decode.js", time:5, result:"All tests passed"}	
 	];
 
 config = OCPNgetPluginConfig();

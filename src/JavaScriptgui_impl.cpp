@@ -149,12 +149,22 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
 void Console::OnSaveAs( wxCommandEvent& event ) {
     int response = wxID_CANCEL;
     wxArrayString file_array;
-    wxString filename, filePath;
+    wxString fileName, filePath;
     wxTextFile ourFile;
     wxString lineOfData;
+    wxFileName fileDirectory("");
+    wxFileName savedPath(m_fileStringBox->GetValue());
     wxDialog query;
     
-    wxFileDialog SaveAsConsole( this, _( "Saving your script" ), wxEmptyString, wxEmptyString,
+    if (m_Script->IsEmpty()) return;    
+    fileName = savedPath.GetName();	// pick up filename if one exists, else em empty string
+	if (wxGetKeyState(WXK_SHIFT) && wxGetKeyState(WXK_ALT)){	// To save to built-in directory
+		fileDirectory.SetPath(GetPluginDataDir("JavaScript_pi"));
+		fileDirectory.AppendDir("data");
+		fileDirectory.AppendDir("scripts");
+		}		
+       
+    wxFileDialog SaveAsConsole( this, _( "Saving your script" ), fileDirectory.GetPath(), fileName,
     				"JavaScript files (*.js)|*.js",
                     wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxDD_NEW_DIR_BUTTON);
     response = SaveAsConsole.ShowModal();
@@ -175,13 +185,14 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
 
 void Console::OnSave( wxCommandEvent& event ) {
     wxArrayString file_array;
-    wxString filename;
+    wxString fileName;
     wxTextFile ourFile;
     wxString lineOfData;
     wxDialog query;
-    
-    mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") && wxFileExists(   mFileString) && !isURLfileString(mFileString)) {
+//printBlue(wxString::Fprmat("mFileString:%s\twxFileExists:%s\tisURLfileString%s\n", mFileString, wxFileExists(   mFileString)?"true":"false", isURLfileString(mFileString)?"true":"false"));
+	if (m_Script->IsEmpty()) return;
+	mFileString = m_fileStringBox->GetValue();
+    if ((   mFileString != "") && wxFileExists(mFileString) && !isURLfileString(mFileString)) {
         // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
         m_Script->DiscardEdits();	// mark as saved
