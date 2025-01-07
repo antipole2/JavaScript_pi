@@ -1223,7 +1223,11 @@ public:
 			m_notParkedLocation.size = FromDIP(NEW_CONSOLE_SIZE);
 			m_notParkedLocation.set = true;
 			}
-    	setLocation(m_notParkedLocation);
+    	setLocation(m_notParkedLocation);    	
+    	if (wxGetKeyState(WXK_SHIFT)){ // if shift key down, vacate parked location
+    			m_parkedLocation.set = false;
+    			reviewParking();
+    			}
     	TRACE(25, wxString::Format("%s->unpark() completed to X:%i   Y:%i frame", mConsoleName, m_notParkedLocation.position.x, m_notParkedLocation.position.y));
 
     	m_parked = false;    	
