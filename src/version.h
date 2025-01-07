@@ -17,12 +17,12 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "build c"
+#define     PLUGIN_VERSION_COMMENT "build a"
 
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\n\
 Release notice at https://github.com/antipole2/JavaScript_pi/discussions\n\nSee the Help panel right for documentation.\n\
-Changes are highlighted in the User Guide and listed in its Appendix A"
+Changes are highlighted in the User Guide and listed in its Appendix C"
 
 // screen resolution support only available in wxWidgets 3.2 or later
 #if wxCHECK_VERSION(3,2,0)
