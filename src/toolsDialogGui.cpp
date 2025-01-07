@@ -17,7 +17,8 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
 	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,460 ), 0 );
-	m_notebook->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	m_notebook->SetForegroundColour( wxColour( 0, 0, 0 ) );
+	m_notebook->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
 	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,255 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
@@ -132,15 +133,16 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer18->SetMinSize( wxSize( -1,70 ) );
 	m_floatOnParent = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Float consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_floatOnParent->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_floatOnParent->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-	m_floatOnParent->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
+	m_floatOnParent->SetForegroundColour( wxColour( 0, 0, 0 ) );
+	m_floatOnParent->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
 	sbSizer18->Add( m_floatOnParent, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 	m_rememberToggleStatus = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Remember toggle status"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_rememberToggleStatus->SetValue(true);
 	m_rememberToggleStatus->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_rememberToggleStatus->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-	m_rememberToggleStatus->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
+	m_rememberToggleStatus->SetForegroundColour( wxColour( 0, 0, 0 ) );
+	m_rememberToggleStatus->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
 	sbSizer18->Add( m_rememberToggleStatus, 0, wxALL, 5 );
 
@@ -426,7 +428,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
 
-	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it.  It also contains release notices for versions of the plugin."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText111->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText111, 0, wxALL|wxEXPAND, 5 );
 
