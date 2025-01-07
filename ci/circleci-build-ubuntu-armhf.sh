@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build for Debian armhf in a docker container
+# Build for Ubuntu armhf in a docker container
 #
 # Copyright (c) 2021 Alec Leamas
 #
@@ -26,39 +26,26 @@ git submodule update --init opencpn-libs
 
 cat > $ci_source/build.sh << "EOF"
 
-set -x
+# The  docker images are updated and have installed devscripts and equivs
+# i. e., what is required for mk-build-deps.
 
-apt -y update
-apt -y install devscripts equivs wget git lsb-release
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4
+export DEBIAN_FRONTEND=noninteractive
+apt -q update
+mk-build-deps  /ci-source/build-deps/control
+apt -y install ./opencpn-build-deps_1.0_all.deb
+sudo apt-get -q --allow-unauthenticated install -f
 
-mk-build-deps /ci-source/build-deps/control
-apt install -q -y ./opencpn-build-deps*deb
-apt-get -q --allow-unauthenticated install -f
-
-debian_rel=$(lsb_release -sc)
-
-if [ "$debian_rel" = bullseye ]; then
-    echo "deb http://deb.debian.org/debian bullseye-backports main" \
-      >> /etc/apt/sources.list
-    apt update
-    apt install -y cmake/bullseye-backports
-elif [ "$debian_rel" = buster ]; then
-    url='https://dl.cloudsmith.io/public/alec-leamas/opencpn-plugins-stable'
-    wget --no-verbose \
-        $url/deb/debian/pool/buster/main/c/cm/cmake-data_3.19.3-0.1_all.deb
-    wget --no-verbose \
-        $url/deb/debian/pool/buster/main/c/cm/cmake_3.19.3-0.1_armhf.deb
-    apt install -y ./cmake_3.19.3-0.1_armhf.deb ./cmake-data_3.19.3-0.1_all.deb
-else
-    echo "Unknown debian release: $debian_rel"
-fi
+# cmake 3.20/3.22 is installed in the docker images before uploading to
+# dockerhub. Alternatively, cmake could be installed at configure time
+# as described in  https://apt.kitware.com/
 
 cd /ci-source
-rm -rf build-debian; mkdir build-debian; cd build-debian
+rm -rf build-ubuntu; mkdir build-ubuntu; cd build-ubuntu
 cmake -DCMAKE_BUILD_TYPE=Release -DOCPN_TARGET_TUPLE="@TARGET_TUPLE@" ..
 make -j $(nproc) VERBOSE=1 tarball
 ldd  app/*/lib/opencpn/*.so
-chown --reference=.. .
+sudo chown --reference=.. .
 EOF
 
 sed -i "s/@TARGET_TUPLE@/$TARGET_TUPLE/" $ci_source/build.sh
@@ -78,8 +65,7 @@ docker run --platform linux/arm/v7 --privileged \
     -e "CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM" \
     -e "TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER" \
     -v "$ci_source:/ci-source:rw" \
-    -v /usr/bin/qemu-arm-static:/usr/bin/qemu-arm-static \
-    arm32v7/debian:$OCPN_TARGET /bin/bash -xe /ci-source/build.sh
+    ${DOCKER_IMAGE:-opencpn/ubuntu-focal-armhf:v1} /bin/bash -xe /ci-source/build.sh
 rm -f $ci_source/build.sh
 
 
