@@ -1214,6 +1214,7 @@ public:
     	}
     	
     void unPark(){	//unpark this Console
+    	void reviewParking();
     	TRACE(25, wxString::Format("%s->unpark() called with parking at X:%i  Y:%i frame", mConsoleName, m_parkedLocation.position.x, m_parkedLocation.position.y));
 
     	if (!isParked()) return;
