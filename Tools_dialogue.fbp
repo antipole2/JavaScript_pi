@@ -19,7 +19,7 @@
     <property name="lua_skip_events">1</property>
     <property name="lua_ui_table">UI</property>
     <property name="name">JavaScrip_pi tools</property>
-    <property name="path">D:\Documents\Github\JavaScript_pi\src</property>
+    <property name="path">/Users/Tony/OpenCPN_project/JavaScript-project/JavaScript_pi/src</property>
     <property name="php_disconnect_events">0</property>
     <property name="php_disconnect_mode">source_name</property>
     <property name="php_skip_events">1</property>
@@ -3384,7 +3384,7 @@
                       <property name="gripper">0</property>
                       <property name="hidden">0</property>
                       <property name="id">wxID_ANY</property>
-                      <property name="label">The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it.</property>
+                      <property name="label">The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it.  It also contains release notices for versions of the plugin.</property>
                       <property name="markup">0</property>
                       <property name="max_size"></property>
                       <property name="maximize_button">0</property>

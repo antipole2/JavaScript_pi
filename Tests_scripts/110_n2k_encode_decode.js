@@ -1,5 +1,6 @@
 // NMEA2000 object tests
 
+require("pluginVersion")(3.1);
 runAnalyser = false;	// whether to also run the canboat analyser
 analyzer = "/Users/Tony/OpenCPN_project/canboat/rel/darwin-arm64/analyzer";// where to find analyzer
 
