@@ -1212,7 +1212,7 @@ public:
 
     	setLocation(m_notParkedLocation);
     	
-    	if (wxGetKeyState(WXK_SHIFT)){ // if shift key dow, vacate parked location
+    	if (wxGetKeyState(WXK_SHIFT)){ // if shift key down, vacate parked location
     			m_parkedLocation.set = false;
     			reviewParking();
     			}
