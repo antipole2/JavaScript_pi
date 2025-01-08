@@ -16,6 +16,7 @@
 #include "JavaScript_pi.h"
 #include "JavaScriptgui_impl.h"
 #include "wx/dirdlg.h"
+#include "wx/utils.h"
 
 Console* pTestConsole1 = nullptr;
 Console* pTestConsole2 = nullptr;
@@ -217,8 +218,9 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
     dump += (wxString::Format("Platform\t%s\n", wxGetOsDescription()));
+    dump += (wxString::Format("Architecture\t%s\n", wxGetCpuArchitectureName()));
 #ifndef __LINUX__
-    dump += (wxString::Format("Architecture\t%s\n", wxGetNativeCpuArchitectureName()));	// not available under Linux
+    dump += (wxString::Format("Native architecture\t%s\n", wxGetNativeCpuArchitectureName()));	// not available under Linux
 #endif
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
