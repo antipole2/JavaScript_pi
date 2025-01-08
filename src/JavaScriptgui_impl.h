@@ -255,7 +255,9 @@ public:
     AlertDetails    mAlert;        // details of alert dialog
     wxDialog* 		mpMessageDialog;	// the wxWidgets message dialogue if there is one
     jsFunctionNameString_t  m_NMEAmessageFunction;  // function to invoke on receipt of NMEA message, else ""
+    jsFunctionNameString_t  m_AISmessageFunction;  // function to invoke on receipt of AIS message, else ""
     bool m_NMEApersistance;		//true of old-style NMEA0183 listening is to be persistent
+    bool m_AISpersistance;		//true if AIS listening is to be persistent
     jsFunctionNameString_t  m_activeLegFunction;  // function to invoke on receipt of active leg, else ""
     jsFunctionNameString_t m_exitFunction;  // function to call on exit, else ""
     jsFunctionNameString_t m_closeButtonFunction;  // function to call on activating console window, else ""
@@ -285,7 +287,7 @@ public:
     int			mStreamEventCntlId;	// where the event constructor picks up the StreamEventCntlId
     std::vector<wxFileFcb> m_wxFileFcbs;	// will hold file fcb entries
     
-    wxString	m_remembered {""};	// _remember variable saved as JSON-like string - initially undefined
+    wxString	m_remembered {"{}"};	// _remember variable saved as JSON-like string - initially empty structure
 
     void OnClearScript( wxCommandEvent& event );
     void OnCopyAll( wxCommandEvent& event );
@@ -401,12 +403,13 @@ public:
             if (isURLfileString(fileString)){
             	if (!OCPN_isOnline()) message(STYLE_RED, _("Load file " + fileString + "OpenCPN not on-line"));
 				else {
-					wxString getTextFile(wxString fileString, wxString* pText);
+					wxString getTextFile(wxString fileString, wxString* pText, int timeout);
 					wxString script;
-					wxString result = getTextFile(fileString, &script);
+					wxString result = getTextFile(fileString, &script, 10);
 					if (result == wxEmptyString){	// looking good
 						m_Script->ClearAll();
 						m_Script->WriteText(script);
+						m_Script->DiscardEdits();	// mark as saved
 						}
 					else message(STYLE_RED, _("Load file cannot download " + fileString + " - " + result));
 					}
@@ -427,6 +430,7 @@ public:
         	wxString welcome = wxString(_("print(\"Hello from the JavaScript plugin v")) << PLUGIN_VERSION_MAJOR << "." << PLUGIN_VERSION_MINOR\
         			<<  patchString  << " " << PLUGIN_VERSION_COMMENT << " " << PLUGIN_VERSION_DATE << " JS v" << DUK_VERSION << ("\\n\");\n\"All OK\";");
             m_Script->AddText(welcome); // some initial script
+            m_Script->DiscardEdits();	// Let this be cleared without check
             }
         m_fileStringBox->SetValue(fileString);
         auto_run->SetValue(autoRun);
@@ -685,6 +689,7 @@ public:
             (mSockets.GetCount() > 0) ||
 #endif
             (m_NMEAmessageFunction != wxEmptyString) ||
+            (m_AISmessageFunction != wxEmptyString) ||
             (!m_streamMessageCntlsVector.empty()) ||
             (m_activeLegFunction != wxEmptyString) ||
             (mDialog.pdialog != nullptr) ||
@@ -748,6 +753,7 @@ public:
 		  duk_push_global_object(mpCtx);  // get our compiled script
 		  if (
 				 functionMissing(m_NMEAmessageFunction) ||
+				 functionMissing(m_AISmessageFunction) ||
 				 functionMissing(mDialog.functionName) ||
 				 functionMissing(m_activeLegFunction)
 			 )
@@ -954,6 +960,7 @@ public:
 		clearMenus();
 		m_streamMessageCntlsVector.clear();
 		m_NMEAmessageFunction = wxEmptyString;  // function to invoke on receipt of NMEA message, else ""
+		m_AISmessageFunction = wxEmptyString;  // function to invoke on receipt of AIS message, else ""
     	m_activeLegFunction = wxEmptyString;  // function to invoke on receipt of active leg, else ""
 		m_exitFunction = wxEmptyString;  // function to call on exit, else ""
 		m_closeButtonFunction = wxEmptyString;  // function to call on click, else ""
@@ -977,28 +984,6 @@ public:
 		mWaitingCached = false;
 		run_button->SetLabel(_("Run"));
 		}
-		
-/*
-    void throw_error(duk_context *ctx, wxString message){
-        // throw an error from within c++ code called from running script
-        // either there is an error object on the stack or a message
-        // ! do not call otherwise
-        message.Replace(PSEUDODEGREE, DEGREE, true);	// internally, we are using DEGREE to represent degree - convert any back
-        TRACE(4, mConsoleName + "->throw_error() " + message);
-        m_result = wxEmptyString;    // supress result
-        m_explicitResult = true;    // supress result
-        if (!duk_is_error(ctx, -1)){
-            // we do not have an error object on the stack
-            TRACE(4, mConsoleName + "->throw_error() pushing error object to stack");
-            int n = duk_get_top(ctx);  // number of items on stack
-            if (n > 0) duk_pop_n(ctx, n);	// clear stack
-            duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
-            }
-//      m_hadError = true;
-        mRunningMain = false;
-        duk_throw(ctx);   // we don't come back from this
-        }
-*/
 
     void prep_for_throw(duk_context *ctx, wxString message){
         // throw an error from within c++ code called from running script
@@ -1224,8 +1209,10 @@ public:
 			m_notParkedLocation.size = FromDIP(NEW_CONSOLE_SIZE);
 			m_notParkedLocation.set = true;
 			}
-    	setLocation(m_notParkedLocation);    	
-    	if (wxGetKeyState(WXK_SHIFT)){ // if shift key down, vacate parked location
+
+    	setLocation(m_notParkedLocation);
+    	
+    	if (wxGetKeyState(WXK_SHIFT)){ // if shift key dow, vacate parked location
     			m_parkedLocation.set = false;
     			reviewParking();
     			}
@@ -1352,6 +1339,7 @@ public:
         dump += "m_dialog:\t\t\t" + ((this->mDialog.pdialog == nullptr)?_("None"):wxString::Format("Active with %d elements",  this->mDialog.dialogElementsArray.size()) ) + "\n";
         dump += "m_alert:\t\t\t\t" + ((this->mAlert.palert == nullptr)?_("None"):_("Active")) + "\n";
         dump += "m_NMEAmessageFunction:\t\t" + m_NMEAmessageFunction + "\n";
+        dump += "m_AISmessageFunction:\t\t" + m_AISmessageFunction + "\n";
 
         dump += "m_streamMessageCntlsVector\t";
         if (m_streamMessageCntlsVector.empty()) dump += "<empty>\n";

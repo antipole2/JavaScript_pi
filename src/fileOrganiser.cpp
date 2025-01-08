@@ -50,9 +50,15 @@ wxSize getButtonSize(Console* pConsole) { // determine a size for the fileString
 
 wxString chooseLoadFile(Console* console){
     // use dialogue to choose file for loading.
-    // returns fiestring else  string "**cancel**" if cancelled
+    // returns filestring else  string "**cancel**" if cancelled
+    wxFileName fileDirectory("");
     wxString fileString;
-    wxFileDialog openConsole( console, _( "File to load" ), _(""), _(""),
+	if (wxGetKeyState(WXK_SHIFT) && wxGetKeyState(WXK_ALT)){	// To load from built-in directory
+		fileDirectory.SetPath(GetPluginDataDir("JavaScript_pi"));
+		fileDirectory.AppendDir("data");
+		fileDirectory.AppendDir("scripts");
+		}		
+    wxFileDialog openConsole( console, _( "File to load" ), fileDirectory.GetPath(), _(""),
                              _( "*.js" ),
                              wxFD_OPEN);
     int response = openConsole.ShowModal();

@@ -16,6 +16,15 @@ MANIFEST=$(cd flatpak; ls org.opencpn.OpenCPN.Plugin*yaml)
 echo "Using manifest file: $MANIFEST"
 set -x
 
+if [[ "$BRANCH" == beta ]]; then
+  export SDK=24.08
+  export FLATHUB_REPO=flathub-beta
+else
+  export SDK=22.08
+  export FLATHUB_REPO=flathub
+fi
+
+
 # Load local environment if it exists i. e., this is a local build
 if [ -f ~/.config/local-build.rc ]; then source ~/.config/local-build.rc; fi
 if [ -d /ci-source ]; then cd /ci-source; fi
@@ -53,25 +62,27 @@ flatpak remote-add --user --if-not-exists flathub-beta \
     https://flathub.org/beta-repo/flathub-beta.flatpakrepo
 flatpak remote-add --user --if-not-exists \
     flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-
 flatpak install --user -y --noninteractive \
-    flathub org.freedesktop.Sdk//20.08
+    flathub org.freedesktop.Sdk//${SDK:-22.08}
+
+set -x
+cd $builddir
+
+# Patch the manifest to use correct branch and runtime unconditionally
+manifest=$(ls ../flatpak/org.opencpn.OpenCPN.Plugin*yaml)
+sed -i  '/^runtime-version/s/:.*/:'" ${BRANCH:-stable}/"  $manifest
+sed -i  '/^sdk:/s|//.*|//'"${SDK:-22.08}|"  $manifest
+
+flatpak install --user -y --or-update --noninteractive \
+    ${FLATHUB_REPO:-flathub}  org.opencpn.OpenCPN
 
 # Configure and build the plugin tarball and metadata.
-cd $builddir
-if [ -n "$BUILD_WX31" ]; then
-    manifest=$(ls ../flatpak/org.opencpn.OpenCPN.Plugin*yaml)
-    sed -i  '/STRING=TARBALL/s/$/ -DOCPN_WX_ABI=wx315/' $manifest
-    sed -i  '/runtime-version/s/stable/beta/'  $manifest
-    flatpak install --user -y --or-update --noninteractive \
-        flathub-beta  org.opencpn.OpenCPN//beta
-    cmake -DCMAKE_BUILD_TYPE=Release -DOCPN_WX_ABI=wx315  ..
-else
-    flatpak install --user -y --or-update --noninteractive \
-        flathub  org.opencpn.OpenCPN
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-fi
-make -j $(nproc) VERBOSE=1 flatpak
+cmake \
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-Release} \
+    -DOCPN_TARGET_TUPLE="flatpak-$(uname -m);${SDK};$(uname -m)" \
+    ..
+# Do not build flatpak in parallel; make becomes unreliable
+make -j 1 VERBOSE=1 flatpak
 
 # Restore permissions and owner in build tree.
 if [ -d /ci-source ]; then sudo chown --reference=/ci-source -R . ../cache; fi

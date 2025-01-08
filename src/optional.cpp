@@ -196,7 +196,7 @@ duk_ret_t console_close(duk_context* ctx){
 duk_ret_t console_load(duk_context* ctx){
     // consoleLoad(consoleName,  script) into console
     wxString fileString, script, consoleName, outcome;
-    wxString getTextFile(wxString fileString, wxString* fetched);
+    wxString getTextFile(wxString fileString, wxString* fetched, int timeout);
 	wxString resolveFileName(wxString inputName, Console* pConsole, int mode);
     wxString JScleanString(wxString given);
     Console* pConsole;
@@ -208,21 +208,28 @@ duk_ret_t console_load(duk_context* ctx){
     duk_pop_2(ctx);
     pConsole = findConsoleByName(consoleName);
     if (!pConsole) throwErrorByCtx(ctx, "Console " + consoleName + " does not exist");
-    if (pConsole == pConsoleBeingTimed)
+    if (pConsole == pConsoleBeingTimed){
         pConsole->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " cannot load into own console");
-    if (pConsole->mpCtx) pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
+        duk_throw(ctx);
+        }
+    if (pConsole->mpCtx){
+    	pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Load console " + pConsole->mConsoleName + " is busy");
+    	duk_throw(ctx);
+    	}
     if (fileString.EndsWith(".js")){   // we are to try and load a file
         fileString = resolveFileName(fileString, pConsole, 0);
-        outcome = getTextFile( fileString, &script);
+        outcome = getTextFile( fileString, &script, 10);
         if (outcome != wxEmptyString)  throwErrorByCtx(ctx, outcome);
         script = JScleanString(script);
         pConsole->m_Script->ClearAll();
         pConsole->m_Script->AppendText(	script + "\n");
+        pConsole->m_Script->DiscardEdits();	// mark as saved
         pConsole->m_fileStringBox->SetValue(fileString);
         pConsole->auto_run->Show();
         }
     else {
     	pConsole->m_Script->SetText(fileString);   // we were passed a script
+        pConsole->m_Script->DiscardEdits();	// mark as saved    	
     	pConsole->m_fileStringBox->SetValue(wxEmptyString);
         pConsole->auto_run->Hide();
 		}
@@ -247,9 +254,14 @@ duk_ret_t console_run(duk_context* ctx){
         }
     duk_pop(ctx);
     pConsole = findConsoleByName(consoleName);
-    if (pConsole == pConsoleBeingTimed)
+    if (pConsole == pConsoleBeingTimed){
         pConsole->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " cannot run own console");
-    if (pConsole->mpCtx) pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " is busy");
+        duk_throw(ctx);
+        }
+    if (pConsole->mpCtx) {
+    	pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " is busy");
+    	duk_throw(ctx);
+    	}
     pConsole->mBrief.reply = false;
     if (haveBrief){
         pConsole->mBrief.theBrief = brief;
@@ -271,7 +283,10 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     pCallingConsole = pConsoleBeingTimed;
  
-    if (nargs < 2) pCallingConsole->prep_for_throw(ctx, "onConsoleResult called with insufficient args");
+    if (nargs < 2) {
+    	pCallingConsole->prep_for_throw(ctx, "onConsoleResult called with insufficient args");
+    	duk_throw(ctx);
+    	}
     duk_require_string(ctx, 0);
     duk_require_object(ctx, 1);
     consoleName = wxString(duk_get_string(ctx, 0));
@@ -283,10 +298,13 @@ duk_ret_t onConsoleResult(duk_context* ctx){
     	}
     duk_pop_2(ctx); // first and second args
     pConsole = findConsoleByName(consoleName);
-    if (pConsole->mRunningMain || pConsole->isWaiting())
+    if (pConsole->mRunningMain || pConsole->isWaiting()){
         pCallingConsole->prep_for_throw(ctx, "onConsoleResult target console " + pConsole->mConsoleName + " is busy");
+        duk_throw(ctx);
+        }
     if (pCallingConsole->mConsoleRepliesAwaited > MAX_TIMERS){
         pCallingConsole->prep_for_throw(ctx, "onConsoleResult error: already have maximum callbacks outstanding");
+        duk_throw(ctx);
         }
     // OK - ready to go
     pConsole->mBrief.briefingConsoleName = pCallingConsole->mConsoleName;
@@ -391,6 +409,8 @@ void register_keyboard(duk_context *ctx){
 // void register_drivers(duk_context *ctx);
 
 bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
+	// returns true if only C-code from here
+	// returns false if shoukld ontinue to load .js component
     bool result {false};
     
     if (name == "Consoles") {register_console(ctx); result = true;}

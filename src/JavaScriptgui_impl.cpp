@@ -93,11 +93,17 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString chooseLoadFile(Console*);
     bool isURLfileString(wxString fileString);
     
+    if (m_Script->IsModified() && !wxGetKeyState(WXK_SHIFT)){
+    	wxMessageDialog dialog(this, "(Shift key down supresses this check)\n\nScript pane has unsaved script - overwrite?", "Load script",wxYES_NO | wxICON_QUESTION); 
+    	if (dialog.ShowModal() == wxID_NO) return;
+    	}
+    
     fileString = chooseFileString(this);
 	if (fileString == "**cancel**"){
-	TRACE(3, "Load cancelled");
-	return;
-	}
+		TRACE(3, "Load cancelled");
+		return;
+		}
+	
     if (fileString == wxEmptyString) fileString = chooseLoadFile(this);  // if no favourite or recent ask for new
     else {   // only if something now chosen
     	fileString.Trim(true);	// trim any whitespace both ends
@@ -108,8 +114,8 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     			message(STYLE_RED, "OpenCPN not on-line");
     			return;
     			}
-    		wxString getTextFile(wxString fileString, wxString* pText);
-    		result = getTextFile(fileString, &script);
+    		wxString getTextFile(wxString fileString, wxString* pText, int timeout);
+    		result = getTextFile(fileString, &script, 10);
     		if (result != wxEmptyString){
     		    TRACE(6, "URL not yielded file result:" + result + "\n" + script + "\n");
     			message(STYLE_RED, result);
@@ -133,6 +139,7 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
 //	script = JScleanString(script);	// now do this on run command
 	m_Script->ClearAll();   // clear old content
 	m_Script->AppendText(script);
+	m_Script->DiscardEdits();
 	m_fileStringBox->SetValue(wxString(fileString));
 	auto_run->Show();
 	auto_run->SetValue(false);
@@ -142,12 +149,22 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
 void Console::OnSaveAs( wxCommandEvent& event ) {
     int response = wxID_CANCEL;
     wxArrayString file_array;
-    wxString filename, filePath;
+    wxString fileName, filePath;
     wxTextFile ourFile;
     wxString lineOfData;
+    wxFileName fileDirectory("");
+    wxFileName savedPath(m_fileStringBox->GetValue());
     wxDialog query;
     
-    wxFileDialog SaveAsConsole( this, _( "Saving your script" ), wxEmptyString, wxEmptyString,
+    if (m_Script->IsEmpty()) return;    
+    fileName = savedPath.GetName();	// pick up filename if one exists, else em empty string
+	if (wxGetKeyState(WXK_SHIFT) && wxGetKeyState(WXK_ALT)){	// To save to built-in directory
+		fileDirectory.SetPath(GetPluginDataDir("JavaScript_pi"));
+		fileDirectory.AppendDir("data");
+		fileDirectory.AppendDir("scripts");
+		}		
+       
+    wxFileDialog SaveAsConsole( this, _( "Saving your script" ), fileDirectory.GetPath(), fileName,
     				"JavaScript files (*.js)|*.js",
                     wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxDD_NEW_DIR_BUTTON);
     response = SaveAsConsole.ShowModal();
@@ -155,6 +172,7 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
         filePath = SaveAsConsole.GetPath();
         if (!filePath.EndsWith(".js")) filePath += ".js";
         m_Script->SaveFile(filePath, wxTEXT_TYPE_ANY);
+        m_Script->DiscardEdits();	// mark as saved
         m_fileStringBox->SetValue(wxString(filePath));
         auto_run->Show();
         updateRecentFiles(filePath);
@@ -167,15 +185,17 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
 
 void Console::OnSave( wxCommandEvent& event ) {
     wxArrayString file_array;
-    wxString filename;
+    wxString fileName;
     wxTextFile ourFile;
     wxString lineOfData;
     wxDialog query;
-    
-    mFileString = m_fileStringBox->GetValue();
-    if ((   mFileString != "") && wxFileExists(   mFileString) && !isURLfileString(mFileString)) {
+//printBlue(wxString::Fprmat("mFileString:%s\twxFileExists:%s\tisURLfileString%s\n", mFileString, wxFileExists(   mFileString)?"true":"false", isURLfileString(mFileString)?"true":"false"));
+	if (m_Script->IsEmpty()) return;
+	mFileString = m_fileStringBox->GetValue();
+    if ((   mFileString != "") && wxFileExists(mFileString) && !isURLfileString(mFileString)) {
         // Have a 'current' file, so can just save to it
         m_Script->SaveFile(mFileString);
+        m_Script->DiscardEdits();	// mark as saved
         TRACE(3, wxString::Format("Saved to  %s",mFileString));
         auto_run->Show();
         updateRecentFiles(mFileString);
@@ -194,7 +214,12 @@ void Console::OnCopyAll(wxCommandEvent& event) {
     }
 
 void Console::OnClearScript( wxCommandEvent& event ){
+    if (m_Script->IsModified() && !wxGetKeyState(WXK_SHIFT)){
+    	wxMessageDialog dialog(this, "(Shift key down supresses this check)\n\nScript pane has unsaved script - overwrite?", "Clear script",wxYES_NO | wxICON_QUESTION); 
+    	if (dialog.ShowModal() == wxID_NO) return;
+    	}
     m_Script->ClearAll();
+    m_Script->DiscardEdits();
     m_Script->SetFocus();
     m_fileStringBox->SetValue(wxEmptyString);
     mFileString = wxEmptyString;
@@ -209,11 +234,16 @@ void Console::OnClearOutput( wxCommandEvent& event ){
 void Console::OnRun( wxCommandEvent& event ) {
 #if TRACE_YES
     extern JavaScript_pi *pJavaScript_pi;
-    if (!pJavaScript_pi->mTraceLevelStated)
-        message(STYLE_ORANGE, wxString::Format("Tracing levels %d - %d",TRACE_MIN, TRACE_MAX));
+    if (!pJavaScript_pi->mTraceLevelStated){
+    	wxString traceMessage = "Tracing levels";
+    	if (TRACE_LEVEL_0) traceMessage += " 0";
+    	if (TRACE_THIS != 0) traceMessage +=  wxString::Format(" %d", TRACE_THIS);
+    	if (TRACE_MAX >= TRACE_MIN) traceMessage += wxString::Format(" %d - %d",  TRACE_MIN, TRACE_MAX);
+        message(STYLE_ORANGE,traceMessage);
+        }
     pJavaScript_pi->mTraceLevelStated = true;
 #endif
-	if (m_Script->IsEmpty()) {
+	if (m_Script->IsEmpty() && (run_button->GetLabel() == "Run")) {
 		message(STYLE_RED, "No script to run");
 		return;
 		}
@@ -250,12 +280,15 @@ void Console::OnClose(wxCloseEvent& event) {
     extern JavaScript_pi *pJavaScript_pi;
     void reviewParking();
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
-    if (event.CanVeto()){
-		if (m_closeButtonFunction != wxEmptyString){
-			wxString function = m_closeButtonFunction;
-			m_closeButtonFunction = wxEmptyString;
-			Completions outcome = executeFunctionNargs(function, 0);
-			if (!isBusy()) wrapUp(outcome);
+    if (event.CanVeto()){	// only if can take control
+    	if ( wxGetKeyState(WXK_CONTROL)){
+			if (m_closeButtonFunction != wxEmptyString){
+				wxString function = m_closeButtonFunction;
+				m_closeButtonFunction = wxEmptyString;
+				Completions outcome = executeFunctionNargs(function, 0);
+				if (!isBusy()) wrapUp(outcome);
+				}
+			event.Veto(true);
 			return;
 			}
 		if (isParked()){	// hit close button when parked and minimised
@@ -263,6 +296,7 @@ void Console::OnClose(wxCloseEvent& event) {
 			unPark();
         	Raise();
         	return;
+		    event.Veto(true);
         	}
 
         if ((this == pJavaScript_pi->mpFirstConsole) && (this->mpNextConsole == nullptr)) {
@@ -286,7 +320,7 @@ void Console::OnClose(wxCloseEvent& event) {
             event.Veto(true);
             return;
             }
-        if (this->m_remembered != wxEmptyString){
+        if ((this->m_remembered != wxEmptyString) && (this->m_remembered != "{}")){
         	wxString message = "You will lose what you have in _remember\nProceed anyway?";
         	int choice = wxMessageBox(message, "Close console", wxYES_NO | wxYES_DEFAULT);
         	if (choice == wxNO){

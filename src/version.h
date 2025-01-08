@@ -34,8 +34,9 @@ Changes are highlighted in the User Guide and listed in its Appendix C"
 #define	DEGREE		  "\u00B0"	// real degree character
 #ifdef DUK_F_WINDOWS
 #define PSEUDODEGREE  "\u0007"	// substitute character for degree - bell
+#define SUBDEGREE(what, in, out) what.Replace(in, out, true)
 #else
-#define PSEUDODEGREE  DEGREE	// keep it as real degree
+#define SUBDEGREE(what, in, out)
 #endif
 
 #endif		// version_h

@@ -27,6 +27,7 @@ public:
     void onPageChanged( wxNotebookEvent& event );
     void onAddConsole( wxCommandEvent& event );
     void onChangeName( wxCommandEvent& event );
+    void onFindAllConsoles( wxCommandEvent& event );
     void onFloatOnParent( wxCommandEvent& event );
     void onToggleStatus( wxCommandEvent& event );
     void onRecieveNMEAmessage( wxCommandEvent& event );
@@ -40,7 +41,7 @@ public:
     void onParkingCustomise(wxCommandEvent& event);
     void onParkingReveal(wxCommandEvent& event);
     void cleanupParking();
-    void setupPage(int pageNumber);
+    void setupPage(unsigned int pageNumber);
 	
     ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY)
         :ToolsClassBase(parent, id)
@@ -97,11 +98,11 @@ public:
 		m_notebook->SetSize(FromDIP(m_notebook->GetSize()));
 
 		// Consoles tab
-		Consoles->SetSize(FromDIP(Consoles->GetSize()));
 		m_newConsoleName->SetMinSize(FromDIP(m_newConsoleName->GetSize()));
 		m_oldNames->SetMinSize(FromDIP(m_oldNames->GetSize()));
 		m_changedName->SetMinSize(FromDIP(m_changedName->GetSize()));		
 		m_ConsolesMessage->SetMinSize(FromDIP(m_ConsolesMessage->GetSize()));
+//		Consoles->SetSize(FromDIP(Consoles->GetSize()));
 
 		// Directory tab
 		Directory->SetSize(FromDIP(Directory->GetSize()));
@@ -110,6 +111,7 @@ public:
 		// NMEA tab
 		NMEA->SetSize(FromDIP(NMEA->GetSize()));
 		m_NMEAmessage->SetMinSize(FromDIP(m_NMEAmessage->GetSize()));
+		m_NMEAReceiveMessageButton->SetMinSize(FromDIP(m_NMEAReceiveMessageButton->GetSize()));
 
 		// Message tab
 		Message->SetSize(FromDIP(Message->GetSize()));
@@ -133,6 +135,7 @@ public:
 		// Diagnostics tab
 		Diagnostics->SetSize(FromDIP(Diagnostics->GetSize()));
 		m_charsToClean->SetMinSize(FromDIP(m_charsToClean->GetSize()));
+		m_cleanButton->SetMinSize(FromDIP(m_cleanButton->GetSize()));
 		}
     	    
 	};

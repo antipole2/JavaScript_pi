@@ -42,7 +42,7 @@ void ToolsClass::onClose( wxCloseEvent& event ){
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     // The different pages need to be different sizes - this does it
-    int pageNumber;
+    unsigned int pageNumber;
 
     pageNumber = event.GetSelection();
     setupPage(pageNumber);
@@ -54,7 +54,7 @@ void ToolsClass::cleanupParking(){
 		if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
 		}
 
-void ToolsClass::setupPage(int pageNumber){	// display this page of tools
+void ToolsClass::setupPage(unsigned int pageNumber){	// display this page of tools
     	extern JavaScript_pi* pJavaScript_pi;
         wxWindow *page;
         wxSize size;
@@ -69,19 +69,27 @@ void ToolsClass::setupPage(int pageNumber){	// display this page of tools
     	m_rememberToggleStatus->SetValue(pJavaScript_pi->mRememberToggleStatus);
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
-        page->Fit();
+		page->Fit();
 
         wxSize pageClientSize = ToDIP(page->GetClientSize());
-        TRACE(6, wxString::Format("Dialogue GetSize gave DIP %d x %d", pageClientSize.x, pageClientSize.y));
+        
+ //       TRACE(6, wxString::Format("Tools Page %d GetClientSize gave DIP %d x %d", pageNumber, pJavaScript_pi->pTools->Diagnostics->GetId(), pageClientSize.x, pageClientSize.y));
         pageClientSize.x = 590;	// force width
 		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
-		page->Fit(); // Adjusts to page size but this makes window too tight, so...
+//		page->Fit(); // Adjusts to page size but this makes window too tight, so...
 		size = ToDIP(GetSize());
 		size.x = 600;	// Force the window size
 		size.y += 10;
-		SetSize(FromDIP(size));		
+		SetSize(FromDIP(size));
+		TRACE(6, wxString::Format("Tools Page %d final size DIP %d x %d", pageNumber, size.x, size.y));
 		Show();
         Raise();
+        if (pJavaScript_pi->pTools == nullptr) return;	// be safe - skip next if pTools not yet set up.  It seems to be called before we are ready
+        TRACE(6, wxString::Format("Page %d of %d", pageNumber, pJavaScript_pi->pTools->m_notebook->GetPageCount()-1));
+        if (pageNumber == (pJavaScript_pi->pTools->m_notebook->GetPageCount()-1)){	// on last panel - assumed to be diagnostics
+        	// following to be set to ‟Fancy quotes” degrees°º⁰ primes ‘’‛’′´` but Windows screws this up, so will set explicitly here
+	       	m_charsToClean->ChangeValue("\u201FFancy quotes\u201D degrees\u00B0\u00BA\u2070 primes \u2018\u2019\u201B\u2019\u2032\u00B4\u0060");
+        	}
         }        
 
 void ToolsClass::onAddConsole( wxCommandEvent& event ){
@@ -155,6 +163,25 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     setConsoleChoices();    // update
     }
     
+void ToolsClass::onFindAllConsoles( wxCommandEvent& event ){	// make all consoles visible
+	wxPoint position = FromDIP(wxPoint(NEW_CONSOLE_POSITION));
+	wxSize  size = FromDIP(wxSize(NEW_CONSOLE_SIZE));
+	for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){	// work though all consoles
+		if (pCon->isParked()) pCon->unPark();
+		// shift by random amount
+	    pCon->SetPosition(position);
+		pCon->Move(position);		
+		pCon->SetSize(size);
+		pCon->Show();
+		pCon->Raise();
+		// now shift so next console does not exactly overlap
+		int x, y;
+		pCon->GetPosition(&x, &y);
+		x += 20; y+= 25;
+		position = wxPoint(x, y);
+		}
+	}
+    
 void ToolsClass::onFloatOnParent(wxCommandEvent& event) {
     Console *pConsole;
 	pJavaScript_pi->m_floatOnParent = m_floatOnParent->GetValue();
@@ -218,9 +245,11 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
     dump += (wxString::Format("Platform\t%s\n", wxGetOsDescription()));
-    dump += (wxString::Format("Architecture\t%s\n", wxGetCpuArchitectureName()));
-#ifndef __LINUX__
-    dump += (wxString::Format("Native architecture\t%s\n", wxGetNativeCpuArchitectureName()));	// not available under Linux
+#if wxVERSION_NUMBER >= 3105
+    dump += (wxString::Format("Architecture\t\t\t%s\n", wxGetCpuArchitectureName())); // available from v3.1.5
+#endif
+#if wxVERSION_NUMBER >= 3106
+    dump += (wxString::Format("Native architecture\t%s\n", wxGetNativeCpuArchitectureName()));	//  available from v3.1.6
 #endif
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
@@ -230,23 +259,32 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     svg = "Using svg";
 #endif
     dump += (svg + "\n");
+    
+	// display location of built-in scripts
+	wxFileName filePath;
+	wxString fileString = GetPluginDataDir("JavaScript_pi");
+    filePath.SetPath(fileString);
+    filePath.AppendDir("data");
+    filePath.AppendDir("scripts");
+    dump += "Built in scripts folder: " + filePath.GetPath() + "\n";
+
     dump += "pJavaScript_pi->m_pconfig\t\t\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_pconfig) + "\n";
     dump += "pJavaScript_pi->m_parent_window\t\t\t" + ptrToString((Console *)pJavaScript_pi->m_parent_window) + "\n"; 
 	dump += "pJavaScript_pi->m_floatOnTop\t\t\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";
 	dump += "pJavaScript_pi->mRememberToggleStatus\t" + (pJavaScript_pi->mRememberToggleStatus ? _("true"):_("false")) + "\n";
     dump += "favouriteFiles:\n";
-    for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
+    for (unsigned int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
     dump += "recentFiles:\n";
-    for (int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
+    for (unsigned int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
     int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
     dump += "N2K pgn registrations:";
     if (pgn_reg_count > 0){
     	dump += "\n";
-    	for (int h = 0; h < pgn_reg_count; h++){
+    	for (unsigned int h = 0; h < pgn_reg_count; h++){
     		dump += "\tHandle\t" + pJavaScript_pi->m_pgnRegistrations[h].handle + "\n";
-    		for (int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
+    		for (unsigned int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
     			dump += wxString::Format("\t\t%d", pJavaScript_pi->m_pgnRegistrations[h].pgns[p]);
     			}
     		dump += "\n";

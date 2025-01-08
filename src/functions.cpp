@@ -104,7 +104,8 @@ void fatal_error_handler(void *udata, const char *msg) {
 #ifndef	DUK_F_WINDOWS
 	 given.Replace(superScript0, DEGREE, true);
 #endif
-	 given.Replace(DEGREE, PSEUDODEGREE, true);	// use substitute character
+	 SUBDEGREE(given, DEGREE, PSEUDODEGREE);
+//	 given.Replace(DEGREE, PSEUDODEGREE, true);	// use substitute character
 //   given.Replace(degree, degreeText, true);
      given.Replace(backprime, apostrophe, true);
      given.Replace("\r\n", "\n", true);	// drop CR inserted by Windows for new line  v3
@@ -120,8 +121,9 @@ void fatal_error_handler(void *udata, const char *msg) {
      const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
      const wxString A_stringOrd{ "\u00C2\u00ba"};    // Â ordinal
      given.Replace(A_stringDeg, "\u00b0", true);
-#endif     
-     given.Replace(PSEUDODEGREE, DEGREE);  
+#endif 
+    SUBDEGREE(given, PSEUDODEGREE, DEGREE);
+//     given.Replace(PSEUDODEGREE, DEGREE);  
      return (given);
      }
 
@@ -338,8 +340,9 @@ wxString getClipboardString(Console* pConsole){  // return string from clipboard
 	return data;
 	}
 
-wxString getTextFile(wxString fileString, wxString* pText){
+wxString getTextFile(wxString fileString, wxString* pText, int timeout){
     // gets contents of a text file
+    // timeout in seconds applies for on-line access only
     // if error, returns message, else empty string
     wxFileName filePath;
     wxString tmp_file_name = wxEmptyString;

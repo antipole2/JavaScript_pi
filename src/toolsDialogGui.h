@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b)
+// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -33,7 +33,6 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ToolsClassBase
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,6 +48,7 @@ class ToolsClassBase : public wxFrame
 		wxChoice* m_oldNames;
 		wxStaticText* m_staticText15;
 		wxTextCtrl* m_changedName;
+		wxButton* m_findAllButton;
 		wxTextCtrl* m_ConsolesMessage;
 		wxCheckBox* m_floatOnParent;
 		wxCheckBox* m_rememberToggleStatus;
@@ -99,6 +99,7 @@ class ToolsClassBase : public wxFrame
 		virtual void onPageChanged( wxNotebookEvent& event ) { event.Skip(); }
 		virtual void onAddConsole( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeName( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onFindAllConsoles( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onFloatOnParent( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onToggleStatus( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }

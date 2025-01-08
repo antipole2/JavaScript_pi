@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <unordered_map>
 #include <vector>
+#include <wx/socket.h>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
 WX_DEFINE_LIST(Plugin_WaypointList);		// used by API16 for tracks
@@ -420,6 +421,42 @@ static duk_ret_t onNMEA2kPersist(duk_context *ctx) {  // to wait for NMEA2k mess
     return 0;
 	};
 	
+void setupAIS(duk_context *ctx, bool persist){
+	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
+    Console *pConsole = findConsoleByCtx(ctx);
+    if (pConsole->mStatus.test(INEXIT)){
+    	 pConsole->prep_for_throw(ctx, "OCPNonAISsentence within onExit function");
+    	 duk_throw(ctx);
+    	 }    	 
+    if (nargs == 0) { // empty call - cancel any waiting callback
+        pConsole->m_AISmessageFunction = wxEmptyString;
+        pConsole->mWaitingCached = false;
+        return;
+        }
+    if (pConsole->m_AISmessageFunction != wxEmptyString){
+        // request already outstanding        
+        pConsole->prep_for_throw(ctx, "OCPNonAIS called with call outstanding");
+        duk_throw(ctx);
+        }
+    else{
+        duk_require_function(ctx, 0);
+        pConsole->m_AISmessageFunction = extractFunctionName(ctx,0);
+        pConsole->m_AISpersistance = persist;
+        pConsole->mWaitingCached = pConsole->mWaiting = true;
+        }
+	}
+	
+static duk_ret_t onAIS(duk_context *ctx) {  // to wait for AIS message - save function to call
+    setupAIS(ctx, false);
+    return 0;
+	};
+	
+static duk_ret_t onAISpersist(duk_context *ctx) {  // to wait for AIS message - save function to call
+    setupAIS(ctx, true);
+    return 0;
+	};
+	
+	
 /*	for testing in development
     static const char hex_digits[] = "0123456789ABCDEF";
 	auto payload = make_shared<std::vector<uint8_t>>();
@@ -528,9 +565,11 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     menuCount = pConsole->mMenus.GetCount();
     if (menuCount >= MAX_MENUS){
         pConsole->prep_for_throw(ctx, "OCPNonContextMenu already have maximum menus outstanding");
+        duk_throw(ctx);
         }
     if ((nargs < 2) || (nargs > 3)){
         pConsole->prep_for_throw(ctx, "OCPNonContextMenu requires two or three arguments");
+        duk_throw(ctx);
         }
     menuAction.functionName = extractFunctionName(ctx, 0);
     if (nargs > 2) argument = wxString(duk_to_string(ctx,2));  //if user included 3rd argument, use it
@@ -539,6 +578,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     for (int i = 0; i < menuCount; i++){
          if (pConsole->mMenus[i].menuName == menuName)
              pConsole->prep_for_throw(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
+             duk_throw(ctx);
         }
     menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
     menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
@@ -1403,7 +1443,35 @@ TRACE(999, soundFile);
         }
         
 static duk_ret_t isOnline(duk_context *ctx) {   // check if online
-	duk_push_boolean(ctx, OCPN_isOnline());
+	// OCPNisOnline(timeout)	// timeout parameter optional
+	bool outcome;
+	int timeOut = 2;	// default timeout
+	wxIPV4address addr;
+	wxSocketClient socket;
+	
+	if (duk_get_top(ctx) > 0) { // number of args in call
+		timeOut = duk_get_int(ctx, 0);
+		duk_pop(ctx);
+		}
+	TRACE(123, wxString::Format("Entered isOnLine with timeout %d", timeOut));
+	
+	if (timeOut == 0){	// only check if have a connection
+		duk_push_boolean(ctx, OCPN_isOnline());
+		return 1;
+		}
+
+	addr.Hostname("8.8.8.8"); // Google DNS server (public, reliable)
+	addr.Service(53);         // DNS service port
+	// we will wait to see if the connect works.  But system overrides SetTimeout, so we will do it other ways
+	socket.SetFlags(wxSOCKET_NOWAIT); // Set non-blocking mode
+	// Attempt to connect to the server 
+	socket.Connect(addr, false); // Non-blocking connect
+	if (socket.WaitOnConnect(timeOut)) {	// wait for connection with our time out
+		outcome = socket.IsConnected() ? true : false;
+		 }
+	else outcome = false;	// timed out
+	TRACE(123, wxString::Format("Result isOnLine final result is: %s", outcome?"true":"false"));
+	duk_push_boolean(ctx, outcome);
 	return 1;
 	}
 	
@@ -1426,7 +1494,7 @@ duk_ret_t getDriverAttributes(duk_context* ctx){
 	std::unordered_map<std::string, std::string> :: iterator i;
 	DriverHandle handle;
 	
-//	duk_require_number(ctx, 0);
+	duk_require_string(ctx, 0);
 	handle = duk_get_string(ctx, 0);
 	duk_pop(ctx);		
 	attributeMap = GetAttributes(handle);
@@ -1529,6 +1597,15 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNonAllNMEA0183");
     duk_push_c_function(ctx, onNMEA0183Persist, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonAIS");
+    duk_push_c_function(ctx, onAIS, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonAllAIS");
+    duk_push_c_function(ctx, onAISpersist, DUK_VARARGS /* args */);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
 
     
     duk_push_string(ctx, "OCPNonNMEA2000");
@@ -1680,7 +1757,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNisOnline");
-    duk_push_c_function(ctx, isOnline, 0 /* 0 arg */);
+    duk_push_c_function(ctx, isOnline, DUK_VARARGS);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNgetCanvasView");

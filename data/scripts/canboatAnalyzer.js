@@ -7,8 +7,10 @@ function canboatAnalyzer(payload, shellString, analyzer){
 	pipeline = "echo \"" + canboatString + "\" | " + analyzer + " -json";
 	if (trace) printOrange("cA3:pipeline ", pipeline, "\n");
 	outcome = shell(pipeline, shellString, true);
-//	print("stderr: ", outcome.stderr, "\n");
+	print("stderr: ", outcome.stderr, "\n");
+	if (outcome.stderr.indexOf("ERROR") >= 0) return(outcome.stderr);
 	outcome = outcome.stdout;
+	if (trace) printOrange("outcome:", outcome, "\n");
 	offset = outcome.indexOf("{", 3);	// where real stuff starts
 	real = outcome.slice(offset);
 	return JSON.parse(real);
