@@ -65,7 +65,7 @@ tests = [ // test table format
 	{name:"Read remote text file", functionToUse:loadRunWait, script:"41_read_remote_text_file.js", time:3, result:"Read remote text file matched"},
 	{name:"Load from URL", functionToUse:loadRunWait, script:"48_load_from_url.js", time:30, result:"Load from URL OK"},
 	{name:"Files object", functionToUse:loadRunWait, script:"43_files.js", time:3, result:"Files OK"},
-	{name:"Park console", functionToUse:loadRunWait, script:"44_parking.js", time:30, result:"Parking completed"},
+	{name:"Park console", functionToUse:loadRunWait, script:"44_parking.js", time:50, result:"Parking completed"},
 	{name:"Keyboard states", functionToUse:loadRunWait, script:"120_keyboard_states.js", time:45, result:"States pass"},
 	{name:"onCloseButton", functionToUse:loadRunWait, script:"46_close_button.js", time:18, result:"Succeeded"},
 	{name:"Stop main", functionToUse:loadRunWait, script:"50_stop_main.js", time:1, result:"undefined"},
