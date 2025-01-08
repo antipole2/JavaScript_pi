@@ -41,7 +41,7 @@ void ToolsClass::onClose( wxCloseEvent& event ){
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     // The different pages need to be different sizes - this does it
-    int pageNumber;
+    unsigned int pageNumber;
 
     pageNumber = event.GetSelection();
     setupPage(pageNumber);
@@ -53,7 +53,7 @@ void ToolsClass::cleanupParking(){
 		if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
 		}
 
-void ToolsClass::setupPage(int pageNumber){	// display this page of tools
+void ToolsClass::setupPage(unsigned int pageNumber){	// display this page of tools
     	extern JavaScript_pi* pJavaScript_pi;
         wxWindow *page;
         wxSize size;
@@ -244,9 +244,11 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
     dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
     dump += (wxString::Format("Platform\t%s\n", wxGetOsDescription()));
-    dump += (wxString::Format("Architecture       \t%s\n", wxGetCpuArchitectureName()));
-#ifndef __LINUX__
-    dump += (wxString::Format("Native architecture\t%s\n", wxGetNativeCpuArchitectureName()));	// not available under Linux
+#if wxVERSION_NUMBER >= 3105
+    dump += (wxString::Format("Architecture\t\t\t%s\n", wxGetCpuArchitectureName())); // available from v3.1.5
+#endif
+#if wxVERSION_NUMBER >= 3106
+    dump += (wxString::Format("Native architecture\t%s\n", wxGetNativeCpuArchitectureName()));	//  available from v3.1.6
 #endif
     dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
@@ -270,18 +272,18 @@ void ToolsClass::onDump( wxCommandEvent& event ){
 	dump += "pJavaScript_pi->m_floatOnTop\t\t\t\t" + (pJavaScript_pi->m_floatOnParent ? _("true"):_("false")) + "\n";
 	dump += "pJavaScript_pi->mRememberToggleStatus\t" + (pJavaScript_pi->mRememberToggleStatus ? _("true"):_("false")) + "\n";
     dump += "favouriteFiles:\n";
-    for (int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
+    for (unsigned int i = 0; i < pJavaScript_pi->favouriteFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->favouriteFiles[i] + "\n");
     dump += "recentFiles:\n";
-    for (int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
+    for (unsigned int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
     int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
     dump += "N2K pgn registrations:";
     if (pgn_reg_count > 0){
     	dump += "\n";
-    	for (int h = 0; h < pgn_reg_count; h++){
+    	for (unsigned int h = 0; h < pgn_reg_count; h++){
     		dump += "\tHandle\t" + pJavaScript_pi->m_pgnRegistrations[h].handle + "\n";
-    		for (int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
+    		for (unsigned int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
     			dump += wxString::Format("\t\t%d", pJavaScript_pi->m_pgnRegistrations[h].pgns[p]);
     			}
     		dump += "\n";
