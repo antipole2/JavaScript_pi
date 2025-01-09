@@ -4,7 +4,7 @@ prompts = [
 	"Test with control key down\n(Windows/Linux: Windows)",
 	"Test with option key down\n(Windows/Linux: Alt)",
 	"Test with command key down\n(Windows/Linux: Ctrl)",
-	"Test with shift, option & command keys down\nWindows/Linux: Shift & Alt & Ctrl)"
+	"Test with shift, option & command keys down\nWindows/Linux: Windows)"
 	];
 
 dialogue = [
