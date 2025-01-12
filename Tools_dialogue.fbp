@@ -128,7 +128,7 @@
             <object class="notebookpage" expanded="true">
               <property name="bitmap"></property>
               <property name="label">Consoles</property>
-              <property name="select">1</property>
+              <property name="select">0</property>
               <object class="wxPanel" expanded="true">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
@@ -2913,7 +2913,7 @@
             <object class="notebookpage" expanded="true">
               <property name="bitmap"></property>
               <property name="label">Help</property>
-              <property name="select">0</property>
+              <property name="select">1</property>
               <object class="wxPanel" expanded="true">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
@@ -3097,7 +3097,7 @@
                           <property name="minimize_button">0</property>
                           <property name="minimum_size"></property>
                           <property name="moveable">1</property>
-                          <property name="name">m_hyperlink1</property>
+                          <property name="name">m_userGuidePdf</property>
                           <property name="normal_color"></property>
                           <property name="pane_border">1</property>
                           <property name="pane_position"></property>
@@ -3129,11 +3129,11 @@
                           <property name="width">0</property>
                         </object>
                       </object>
-                      <object class="sizeritem" expanded="false">
+                      <object class="sizeritem" expanded="true">
                         <property name="border">5</property>
                         <property name="flag">wxALL</property>
                         <property name="proportion">0</property>
-                        <object class="wxHyperlinkCtrl" expanded="false">
+                        <object class="wxHyperlinkCtrl" expanded="true">
                           <property name="BottomDockable">1</property>
                           <property name="LeftDockable">1</property>
                           <property name="RightDockable">1</property>
@@ -3171,7 +3171,7 @@
                           <property name="minimize_button">0</property>
                           <property name="minimum_size"></property>
                           <property name="moveable">1</property>
-                          <property name="name">m_hyperlink11</property>
+                          <property name="name">m_userGuideEpub</property>
                           <property name="normal_color"></property>
                           <property name="pane_border">1</property>
                           <property name="pane_position"></property>
@@ -3808,7 +3808,7 @@
                           <property name="minimize_button">0</property>
                           <property name="minimum_size"></property>
                           <property name="moveable">1</property>
-                          <property name="name">m_hyperlink101</property>
+                          <property name="name">m_techGuidePdf</property>
                           <property name="normal_color"></property>
                           <property name="pane_border">1</property>
                           <property name="pane_position"></property>
@@ -3882,7 +3882,7 @@
                           <property name="minimize_button">0</property>
                           <property name="minimum_size"></property>
                           <property name="moveable">1</property>
-                          <property name="name">m_hyperlink1011</property>
+                          <property name="name">m_techGuideEpub</property>
                           <property name="normal_color"></property>
                           <property name="pane_border">1</property>
                           <property name="pane_position"></property>

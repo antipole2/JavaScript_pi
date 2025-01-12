@@ -158,7 +158,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	Consoles->SetSizer( ConsolesSizer );
 	Consoles->Layout();
-	m_notebook->AddPage( Consoles, wxT("Consoles"), true );
+	m_notebook->AddPage( Consoles, wxT("Consoles"), false );
 	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,150 ), 0 );
 	Directory->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
 	Directory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
@@ -400,14 +400,14 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	sbSizer24->Add( 0, 0, 1, wxEXPAND, 0 );
 
-	m_hyperlink1 = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
-	sbSizer24->Add( m_hyperlink1, 0, wxALL, 5 );
+	m_userGuidePdf = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
+	sbSizer24->Add( m_userGuidePdf, 0, wxALL, 5 );
 
 
 	sbSizer24->Add( 0, 0, 1, 0, 5 );
 
-	m_hyperlink11 = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
-	sbSizer24->Add( m_hyperlink11, 0, wxALL, 5 );
+	m_userGuideEpub = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
+	sbSizer24->Add( m_userGuideEpub, 0, wxALL, 5 );
 
 
 	sbSizer24->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -463,14 +463,14 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_hyperlink101 = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
-	sbSizer33->Add( m_hyperlink101, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+	m_techGuidePdf = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	sbSizer33->Add( m_techGuidePdf, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
 	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_hyperlink1011 = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
-	sbSizer33->Add( m_hyperlink1011, 0, wxALL, 5 );
+	m_techGuideEpub = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	sbSizer33->Add( m_techGuideEpub, 0, wxALL, 5 );
 
 
 	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -481,7 +481,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	Help->SetSizer( HelpSizer1 );
 	Help->Layout();
-	m_notebook->AddPage( Help, wxT("Help"), false );
+	m_notebook->AddPage( Help, wxT("Help"), true );
 	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,200 ), wxTAB_TRAVERSAL );
 	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );

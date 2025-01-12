@@ -56,11 +56,18 @@ public:
         validator = (wxTextValidator*)m_changedName->GetValidator();
         validator->AddCharIncludes("_");
 #endif
+
+		// fix up the links to documentation to use required branch in repositary
+		fixBranch(m_userGuidePdf, BRANCH);
+		fixBranch(m_userGuideEpub, BRANCH);
+		fixBranch(m_techGuidePdf, BRANCH);
+		fixBranch(m_techGuideEpub, BRANCH);		
+
         m_notebook->SetSelection(0);	//start on required page
         };
         
 #if !SCREEN_RESOLUTION_AVAILABLE
-	    // provide dummy methods for those not available
+	    // provide dummy methods for (those not available
 		// needs to work with wxPoint & wxSize
 		template <typename T>
 		T ToDIP(T point){
@@ -137,6 +144,13 @@ public:
 		m_charsToClean->SetMinSize(FromDIP(m_charsToClean->GetSize()));
 		m_cleanButton->SetMinSize(FromDIP(m_cleanButton->GetSize()));
 		}
+		
+		void fixBranch(wxHyperlinkCtrl* urlName, wxString branch){
+			// fix up the URL to point to the given branch instead of master
+			wxString url = urlName->GetURL();
+			url.Replace("master", branch);
+			urlName->SetURL(url);
+			}
     	    
 	};
 
