@@ -1,20 +1,6 @@
 function checkForScriptUpdates(scriptName, scriptVersion, checkDays, versionCheckURL, scriptURL){
 	var trace = false;
-	function _compareVersions(first, second){
-		// compare two version strings, e.g. 1.2.34
-		// if second > first return 1, == 0,  < -1
-//		if (trace) print("compareVersions first: ", first, "\tsecond: ", second, "\n");
-		a = first.toString().split(".");
-		b = second.toString().split(".");
-		while (a.length < b.length) a.push(0);
-		while (b.length < a.length) b.push(0);
-//		if (trace) print("compareVersions a:", a, "\tb:", b, "\n");
-		for (var i = 0; i < a.length; i++){
-			if (b[i] > a[i]) return 1;
-			if (b[i] < a[i]) return -1;
-			}
-		return 0;
-		}
+
 	if (!OCPNisOnline()) return;
 	now = new Date().getTime();
 	if (trace) print("Now: ", now, "\n");
@@ -38,7 +24,7 @@ function checkForScriptUpdates(scriptName, scriptVersion, checkDays, versionChec
 	_remember.versionControl.lastCheck = now;
 	if (trace) print("versionControl.lastCheck updated to ", now, "\n");
 	details = JSON.parse(readTextFile(versionCheckURL));
-	if (trace) print("Version control:\n", JSON.stringify(details, null, "\t"), "\n");
+	if (trace) print("VersionControl:\n", JSON.stringify(details, null, "\t"), "\n");
 	if (details.name != scriptName) throw("checkForUpdates checking wrong JSON updates control file");
 	if (details.pluginVersion != undefined){
 		// only proceed if plugin version sufficient
@@ -47,41 +33,58 @@ function checkForScriptUpdates(scriptName, scriptVersion, checkDays, versionChec
 		minor = plugin.PluginVersionMinor;
 		patch = plugin.patch;
 		pluginCombined = major + "." + minor + "." + patch;
-		if (_compareVersions(details.pluginVersion, pluginCombined) < 0) return;
+		if (_compareVersions(details.pluginVersion, pluginCombined) < 0){
+			printOrange("JavaScript plugin needs to be updated before you can update the ", scriptName, " script\n");
+			return;
+			}
 		}
 
 	if (_compareVersions(scriptVersion, details.version) > 0){
+		// we can update this script if desired
 		if (details.new != undefined) news = "\nNew: " + details.new;
 		else news = "";
 		message = "You have script version " + scriptVersion
 			+ "\nUpdate to version " + details.version + " available."
 			+ "\nDate: " + details.date
 			+ news
-			+ "\n \nUpdating will lose any local changes you have made"
-			+ "\nHave you local changes to save?"
-			+ "\n'Cancel' to ignore and continue with this script run"
-			+ "\n'Yes' to save your own updates"
-			+ "\n'No' to proceed to update";
-		response = messageBox(message, "YesNo");
-		if (response == 3){
-			// if no script (3rd) argument in call, use scipt location from JSON
-			if (arguments.length < 5) scriptURL = details.script;
-			require("Consoles");
-			consoleLoad(consoleName(), scriptURL);
-			message = "Script updated.\nYou need to save it locally if you want to run it off-line"
-				+ "\nYou can now run the updated script.";
-			messageBox(message);
-			stopScript("Script updated");
+			+ "\nGet updated script?";
+		try {
+			response = messageBox(message, "YesNo");
 			}
-		else if (response == 2){
-			message = "Use or create a spare console and copy your script into it"
-				+ "\nYou may want to save that somewhere"
-				+ "\nThen start this script again and choose 'No' in previous step"
-				+ "\nto obtain updated script";
-			messageBox(message);
-			stopScript("Bring your updates to the updated script once it is loaded");
+		catch (err){	// treat Cancel as "No"
+			response = 3;
 			}
-		else _remember.versionControl.lastCheck = now;
+		if (response == 3) return;
+		if (response != 2) throw("checkForUpdates logic error");
+		// go ahead with update
+		require("Consoles");
+		newVersionLength = details.version.toString().length;
+		newConsoleName = (scriptName.substr(0, 13-newVersionLength) + "_" + details.version).replace(/\./g, "_");
+		if (consoleExists(newConsoleName)){
+			alert("Console for updated script ", newConsoleName, " already exists\nClose it before getting update");
+			return;
+			}
+		consoleAdd(newConsoleName);
+		if (scriptURL == undefined) scriptURL = details.script;
+		consoleLoad(newConsoleName, scriptURL);
+		alert("Console ", newConsoleName, " contains new version ", details.version, " of script ", scriptName, "\n\nIf you have modified your script, you need to incorporate these changes into the new version\nIf you want to run this script off-line, you need to save it to a local file");
 		}
 	else if (trace) print("Version already up to date\n");
+	_remember.versionControl.lastCheck = now;
+
+	function _compareVersions(first, second){
+		// compare two version strings, e.g. 1.2.34
+		// if second > first return 1, == 0,  < -1
+//		if (trace) print("compareVersions first: ", first, "\tsecond: ", second, "\n");
+		a = first.toString().split(".");
+		b = second.toString().split(".");
+		while (a.length < b.length) a.push(0);
+		while (b.length < a.length) b.push(0);
+//		if (trace) print("compareVersions a:", a, "\tb:", b, "\n");
+		for (var i = 0; i < a.length; i++){
+			if (b[i] > a[i]) return 1;
+			if (b[i] < a[i]) return -1;
+			}
+		return 0;
+		}
 	}

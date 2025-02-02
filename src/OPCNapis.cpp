@@ -540,7 +540,7 @@ static duk_ret_t onActiveLeg(duk_context *ctx) {  // to wait for active leg mess
 static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context menu
     extern JavaScript_pi *pJavaScript_pi;
     wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    duk_ret_t result = 0;
+//    duk_ret_t result = 0;
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     MenuActions menuAction;
     wxString argument = wxEmptyString;
@@ -552,7 +552,7 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     if (nargs == 0) { // empty call - cancel all menus
         pConsole->clearMenus();
         pConsole->mWaitingCached = false;   // force full isWaiting check
-        return(result);
+        return 0;
         }
     if (pConsole->mStatus.test(INEXIT)) {
 		pConsole->prep_for_throw(ctx, "OCPNonContextMenu within onExit function");
@@ -576,17 +576,19 @@ static duk_ret_t onContextMenu(duk_context *ctx) {  // call function on context 
     menuName = wxString(duk_to_string(ctx,1));
     // check menuName not already in use
     for (int i = 0; i < menuCount; i++){
-         if (pConsole->mMenus[i].menuName == menuName)
+         if (pConsole->mMenus[i].menuName == menuName){
              pConsole->prep_for_throw(ctx, "OCPNonContextMenu menu name '" + menuName + "' already in use");
              duk_throw(ctx);
+             }
         }
+    duk_pop_n(ctx, nargs);
     menuAction.pmenuItem = new wxMenuItem(&dummy_menu, -1, menuName);
     menuAction.menuID = AddCanvasContextMenuItem(menuAction.pmenuItem, pJavaScript_pi);
     menuAction.menuName = menuName;
     menuAction.argument = argument;
     pConsole->mMenus.Add(menuAction);  // add this menu to array
     pConsole->mWaitingCached = pConsole->mWaiting = true;
-    return(result);
+    return 0;
     }
 
 static duk_ret_t getNavigation(duk_context *ctx) {  // gets latest navigation data and constructs navigation object
@@ -1621,7 +1623,7 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
     duk_push_string(ctx, "OCPNonContextMenu");
-    duk_push_c_function(ctx, onContextMenu, DUK_VARARGS);
+    duk_push_c_function(ctx, onContextMenu, DUK_VARARGS /* args */);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "OCPNgetARPgpx");
