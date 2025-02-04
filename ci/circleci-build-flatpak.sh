@@ -29,6 +29,7 @@ fi
 if [ -f ~/.config/local-build.rc ]; then source ~/.config/local-build.rc; fi
 if [ -d /ci-source ]; then cd /ci-source; fi
 
+git config --global protocol.file.allow always
 git submodule update --init opencpn-libs
 
 # Set up build directory and a visible link in /
@@ -48,7 +49,17 @@ if [ -n "$CI" ]; then
     # Avoid using outdated TLS certificates, see #210.
     sudo apt install --reinstall  ca-certificates
 
-    # Install flatpak and flatpak-builder
+    # Handle possible outdated key for google packages, see #486
+    wget -q -O - https://cli-assets.heroku.com/apt/release.key \
+        | sudo apt-key add -
+    wget -q -O - https://dl.google.com/linux/linux_signing_key.pub \
+        | sudo apt-key add -
+
+    # Use updated flatpak (#457)
+    #sudo add-apt-repository -y ppa:alexlarsson/flatpak
+    #sudo apt update
+
+    # Install or update flatpak and flatpak-builder
     sudo apt install flatpak flatpak-builder
 fi
 
