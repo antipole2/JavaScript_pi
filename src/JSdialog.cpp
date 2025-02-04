@@ -399,7 +399,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     duk_pop(ctx);
                     
                     wxCheckListBox *checkListBox =  new wxCheckListBox(dialog, anElement.itemID, wxDefaultPosition,
-                    	pConsole->FromDIP(wxSize((maxChars*9+45), listLength*22)), strings, wxLB_EXTENDED);
+                    	pConsole->FromDIP(wxSize((maxChars*10+75), listLength*22)), strings, wxLB_EXTENDED);
                     checkListBoxBox->Add(checkListBox, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
                     checkListBox->SetFont(font);
                     checkListBox->Fit();
