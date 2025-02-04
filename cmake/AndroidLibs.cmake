@@ -36,7 +36,7 @@ if (NOT EXISTS ${OCPN_ANDROID_CACHEDIR}/master.zip)
       https://github.com/bdbcat/OCPNAndroidCommon/archive/master.zip
       ${OCPN_ANDROID_CACHEDIR}/master.zip
     EXPECTED_HASH
-      SHA256=ac36afaf4f026e9b2624a963f5356f5b1fb2c45dec1134209333a8b46fb05ca0
+      SHA256=b6359260ecfb44b96c0dd4052e41aac505c9e3c4eb7a798b29c17ddbc3c939b3
     SHOW_PROGRESS
   )
 endif ()
@@ -67,14 +67,14 @@ if ("${Qt_Build}" MATCHES "arm64")
     ${_master_base}/wxWidgets/libarm64/wx/include/arm-linux-*-static-*
   )
   set(_qt_include  ${_master_base}/qt5/build_arm64_O3/qtbase/include)
-  set(_libgorp ${_master_base}/opencpn/API-117/libarm64/libgorp.so)
+  set(_libgorp ${_master_base}/opencpn/API-118/libarm64/libgorp.so)
   set(_qtlibs  ${_master_base}/qt5/build_arm64_O3/qtbase/lib)
 else ()
   file(GLOB _wx_setup
     ${_master_base}/wxWidgets/libarmhf/wx/include/arm-linux-*-static-*
   )
   set(_qt_include ${_master_base}/qt5/build_arm32_19_O3/qtbase/include)
-  set(_libgorp ${_master_base}/opencpn/API-117/libarmhf/libgorp.so)
+  set(_libgorp ${_master_base}/opencpn/API-118/libarmhf/libgorp.so)
   set(_qtlibs  ${_master_base}/qt5/build_arm32_19_O3/qtbase/lib)
 endif ()
 
@@ -100,9 +100,6 @@ target_link_libraries(${PACKAGE_NAME}
 )
 add_compile_definitions(
   __WXQT__
-  __OCPN__ANDROID__
-  ANDROID
-  ARMHF
   BUILDING_PLUGIN
   OCPN_USE_WRAPPER
   ocpnUSE_GLES
