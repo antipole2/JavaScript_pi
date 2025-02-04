@@ -11,7 +11,7 @@
 ::
 if not exist "%HomeDrive%%HomePath%\.local\bin\pathman.exe" (
     pushd "%HomeDrive%%HomePath%"
-    curl.exe -sA "MS" https://webinstall.dev/pathman | powershell
+    curl.exe https://webi.ms/pathman | powershell
     popd
 )
 pathman list > nul 2>&1
@@ -21,19 +21,19 @@ pathman add %HomeDrive%%HomePath%\.local\bin >nul
 :: Install choco cmake and add it's persistent user path element
 ::
 set CMAKE_HOME=C:\Program Files\CMake
-if not exist "%CMAKE_HOME%\bin\cmake.exe" choco install -y cmake
+if not exist "%CMAKE_HOME%\bin\cmake.exe" choco install --no-progress -y cmake
 pathman add "%CMAKE_HOME%\bin" > nul
 
 :: Install choco poedit and add it's persistent user path element
 ::
 set POEDIT_HOME=C:\Program Files (x86)\Poedit\Gettexttools
-if not exist "%POEDIT_HOME%" choco install -y poedit
+if not exist "%POEDIT_HOME%" choco install --no-progress -y poedit
 pathman add "%POEDIT_HOME%\bin" > nul
 
 :: Update required python stuff
 ::
 python --version > nul 2>&1 && python -m ensurepip > nul 2>&1
-if errorlevel 1 choco install -y python
+if errorlevel 1 choco install --no-progress -y python
 python --version
 python -m ensurepip
 python -m pip install --upgrade pip
@@ -44,15 +44,22 @@ python -m pip install -q cryptography
 :: Install pre-compiled wxWidgets and other DLL; add required paths.
 ::
 set SCRIPTDIR=%~dp0
-set WXWIN=%SCRIPTDIR%..\cache\wxWidgets-3.1.2
+set WXWIN=%SCRIPTDIR%..\cache\wxWidgets
 set wxWidgets_ROOT_DIR=%WXWIN%
 set wxWidgets_LIB_DIR=%WXWIN%\lib\vc_dll
 if not exist "%WXWIN%" (
-  wget --version > nul 2>&1 || choco install -y wget
-  wget https://download.opencpn.org/s/E2p4nLDzeqx4SdX/download ^
-      -O wxWidgets-3.1.2.7z
+  wget --version > nul 2>&1 || choco install --no-progress -y wget
+  wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.2.1/wxWidgets-3.2.2.1-headers.7z ^
+      -O wxWidgetsHeaders.7z
+  wget -q https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.2.1/wxMSW-3.2.2_vc14x_ReleaseDLL.7z ^
+      -O wxWidgetsDLL.7z
+  wget -q https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.2.1/wxMSW-3.2.2_vc14x_Dev.7z ^
+      -O wxWidgetsDev.7z
   7z i > nul 2>&1 || choco install -y 7zip
-  7z x wxWidgets-3.1.2.7z -o%WXWIN%
+  7z x -aoa wxWidgetsHeaders.7z -o%WXWIN%
+  7z x -aoa wxWidgetsDLL.7z -o%WXWIN%
+  7z x -aoa wxWidgetsDev.7z -o%WXWIN%
+  ren "%WXWIN%\lib\vc14x_dll" vc_dll
 )
 pathman add "%WXWIN%" > nul
 pathman add "%wxWidgets_LIB_DIR%" > nul
