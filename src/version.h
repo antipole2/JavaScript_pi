@@ -17,7 +17,7 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "build y alpha"
+#define     PLUGIN_VERSION_COMMENT "build b"
 
 #define		BRANCH	"v3.1"	// The branch name to use for documentation links from Tools Help
 
