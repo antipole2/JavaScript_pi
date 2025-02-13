@@ -370,9 +370,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 	duk_throw(ctx);                	
                 	}
                 else {
-                    int maxChars = 0;
+                    unsigned int maxChars = 0;
                     strings.Clear();
-                    int listLength = (int) duk_get_length(ctx, -1);
+                    unsigned int listLength = duk_get_length(ctx, -1);
                     if (listLength < 1) {
                     	pConsole->prep_for_throw(ctx, "onDialog error: tickList has empty value array");
                     	duk_throw(ctx);
@@ -382,7 +382,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);
                         strings.Add(value);
-                        if (value.Length() > maxChars) maxChars = (int) value.Length();
+                        if (value.Length() > maxChars) maxChars = value.Length();
                         }
                     duk_pop(ctx);
                     anElement.itemID = wxNewId();
@@ -523,14 +523,14 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 	 duk_throw(ctx);
                 	 }
                 else {
-                    int maxChars = 0;
+                    duk_size_t maxChars = 0;
                     strings.Clear();
-                    int listLength = (int) duk_get_length(ctx, -1);
+                    duk_size_t listLength = duk_get_length(ctx, -1);
                     if (listLength < 1) {
                     	pConsole->prep_for_throw(ctx, "onDialog error: choice has empty value array");
                     	duk_throw(ctx);
                     	}
-                    for (int j = 0; j < listLength; j++) {
+                    for (duk_size_t j = 0; j < listLength; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);
@@ -552,7 +552,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
         else if (elementType == "radio"){
             wxString label;
             wxRadioBox *radioBox;
-            int numberOfButtons = (int) duk_get_length(ctx, -1);
+            duk_size_t numberOfButtons = duk_get_length(ctx, -1);
             strings.Clear();
             if (duk_get_prop_literal(ctx, -1, "label")){
                 label = getStringFromDuk(ctx);
@@ -569,7 +569,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 	duk_throw(ctx);
                 	}
                 else {
-                    numberOfButtons = (int) duk_get_length(ctx, -1);
+                    numberOfButtons = duk_get_length(ctx, -1);
                     if (numberOfButtons < 1) {
                     	pConsole->prep_for_throw(ctx, "onDialog error: radioButtons has empty value array");
                     	duk_throw(ctx);
@@ -577,7 +577,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
                     int maxChars = 0;
                     int defaultIndex = 0;
-                    for (int j = 0; j < numberOfButtons; j++) {
+                    for (duk_size_t j = 0; j < numberOfButtons; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);
                         duk_pop(ctx);
