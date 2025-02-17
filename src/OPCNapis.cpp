@@ -765,10 +765,10 @@ static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on st
 	pgn_t pgn = duk_get_int(ctx, 1);
 	bool matchedHandle = false;
 	bool matchedPgn = false;
-	for (int h = 0; h < pJavaScript_pi->m_pgnRegistrations.size(); h++){	// look for existing handle
+	for (unsigned int h = 0; h < pJavaScript_pi->m_pgnRegistrations.size(); h++){	// look for existing handle
 		if (pJavaScript_pi->m_pgnRegistrations[h].handle == handle){	// matched handle
 			matchedHandle = true;
-			for (int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
+			for (unsigned int p = 0; p < pJavaScript_pi->m_pgnRegistrations[h].pgns.size(); p++){
 				if (pJavaScript_pi->m_pgnRegistrations[h].pgns[p] == pgn){	//matched pgn
 					matchedPgn = true;
 					break;
@@ -906,8 +906,7 @@ p_track->pWaypointList->clear();
 static duk_ret_t getWaypointGUIDs(duk_context *ctx){ // get waypoing GUID array
     wxArrayString guidArray;
     duk_idx_t arr_idx;
-    int i;
-    size_t count;
+    size_t i, count;
     
     guidArray = GetWaypointGUIDArray(determinGUIDtype(ctx));
     arr_idx = duk_push_array(ctx);
@@ -995,14 +994,13 @@ static duk_ret_t deleteSingleWaypoint(duk_context *ctx) {  // given a GUID, dele
 static duk_ret_t getRouteGUIDs(duk_context *ctx){ // get routes GUID array
     wxArrayString guidArray;
     duk_idx_t arr_idx;
-    int i;
     size_t count;
     
     guidArray = GetRouteGUIDArray(determinGUIDtype(ctx));
     arr_idx = duk_push_array(ctx);
     if (!guidArray.IsEmpty()){
         count = guidArray.GetCount();
-        for (i = 0; i < count; i++){
+        for (size_t i = 0; i < count; i++){
             duk_push_string(ctx, guidArray[i]);
             duk_put_prop_index(ctx, arr_idx, i);
             }
@@ -1099,8 +1097,7 @@ static duk_ret_t deleteRoute(duk_context *ctx) {  // given a GUID, deletes route
 static duk_ret_t getTrackGUIDs(duk_context *ctx){ // get tracks GUID array
     wxArrayString guidArray;
     duk_idx_t arr_idx;
-    int i;
-    size_t count;
+    size_t i, count;
     
     guidArray = GetTrackGUIDArray(determinGUIDtype(ctx));
     arr_idx = duk_push_array(ctx);

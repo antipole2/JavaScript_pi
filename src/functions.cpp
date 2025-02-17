@@ -448,7 +448,7 @@ void reviewParking(){	// adjust parking space sizes and remove any gaps (console
 	
 	// now adjust location of each lot, shuffling left it needed
 	int xPos = pJavaScript_pi->m_parkFirstX;
-	for (int i = 0; i < lots.size(); i++){
+	for (unsigned int i = 0; i < lots.size(); i++){
 		aLot = lots[i];
 		aLot.pConsole->m_parkedLocation.position.x = xPos;
 		xPos += aLot.pConsole->m_parkedLocation.size.x + pJavaScript_pi->m_parkSep;	// next place

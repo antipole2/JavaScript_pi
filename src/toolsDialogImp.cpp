@@ -278,7 +278,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += "recentFiles:\n";
     for (unsigned int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
-    int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
+    unsigned int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
     dump += "N2K pgn registrations:";
     if (pgn_reg_count > 0){
     	dump += "\n";

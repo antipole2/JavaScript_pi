@@ -724,9 +724,8 @@ public:
 		// we check for this before other types of error
 		// For now we will mark not busy in case the following are true
 		wxString result;
-//		wxString getStringFromDuk(duk_context *ctx);
 		Completions outcome;
-        wxString statusesToString(status_t mStatus);
+//        wxString statusesToString(status_t mStatus);
 		
         TRACE(4, wxString::Format("%s->afterwards() with dukOutcome %d and status now %s",mConsoleName, dukOutcome, statusesToString(mStatus)));
         mWaiting = false;
