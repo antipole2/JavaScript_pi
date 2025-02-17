@@ -800,7 +800,7 @@ public:
 
     void wrapUpWorks(Completions reason) {    // consider clearing down and destroying context etc.
     	// this is guts of wrapUp as sub-function to allow multiple returns to wrapUp
-        wxString statusesToString(status_t mStatus);
+       // wxString statusesToString(status_t mStatus);
         wxString formErrorMessage(duk_context *ctx);
         mStatus.reset(MORETODO);
         mStatus.set(reason);

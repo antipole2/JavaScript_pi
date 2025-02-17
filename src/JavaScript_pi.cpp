@@ -178,7 +178,7 @@ bool JavaScript_pi::DeInit(void) {
         try{
         	delete pTools;
         	}
-        catch (int i){i = i;}	// do nothing - just avoid throwing error
+        catch (int i){i = i++;}	// do nothing - just avoid throwing error and suppress warning
         pTools = nullptr;
         }
 
@@ -475,7 +475,7 @@ bool JavaScript_pi::SaveConfig(void)
 {
     wxFileConfig *pConf = (wxFileConfig *)m_pconfig;
     Console *pConsole;
-    wxPoint screenToFrame(wxPoint pos);
+//    wxPoint screenToFrame(wxPoint pos);
 
     TRACE(3,"JavaScript_pi->SaveConfig() entered");
 
@@ -805,7 +805,7 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
     Completions outcome;
     Console *m_pConsole;
     extern JavaScript_pi *pJavaScript_pi;
-    wxString statusesToString(status_t mStatus);
+//    wxString statusesToString(status_t mStatus);
     TRACE(15,"Entered SetPlugin Message message_id: " + message_id + " message:" + message_body);
     if (message_id == "OpenCPN Config"){
         // capture this while we can

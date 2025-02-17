@@ -801,7 +801,7 @@ static duk_ret_t NMEA2kPush(duk_context *ctx) {  // pushes NMEA2k sentence on st
 	std::shared_ptr <std::vector<uint8_t>> payload = std::make_shared<std::vector<uint8_t>>();
 	duk_size_t length = duk_get_length(ctx, 4);
 	duk_uint_t val;
-	for (duk_idx_t i = 0; i < length; i++) {
+	for (duk_idx_t i = 0; i < (duk_idx_t) length; i++) {
 		duk_get_prop_index(ctx, 4, i);
 		val = duk_get_uint(ctx, -1);
 		payload->push_back(val);

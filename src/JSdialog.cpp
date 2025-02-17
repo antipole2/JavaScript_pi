@@ -575,8 +575,8 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     	duk_throw(ctx);
                     	}
                     numberOfButtons = numberOfButtons>50 ? 50: numberOfButtons; // place an upper limit
-                    int maxChars = 0;
-                    int defaultIndex = 0;
+                    unsigned int maxChars = 0;
+                    duk_size_t defaultIndex = 0;
                     for (duk_size_t j = 0; j < numberOfButtons; j++) {
                         duk_get_prop_index(ctx, -1, j);
                         value = getStringFromDuk(ctx);

@@ -88,7 +88,7 @@ void Console::OnLoad( wxCommandEvent& event ) { // we are to load a script
     wxString fileString;
     wxTextFile ourFile;
     wxString lineOfData, script, result;
-    wxString JScleanString(wxString line);
+//    wxString JScleanString(wxString line);
     wxString chooseFileString(Console*);
     wxString chooseLoadFile(Console*);
     bool isURLfileString(wxString fileString);
