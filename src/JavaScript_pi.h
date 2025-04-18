@@ -68,7 +68,7 @@ public:
     double lat; double lon;
     };
 
-class JavaScript_pi : public opencpn_plugin_118
+class JavaScript_pi : public opencpn_plugin_120	// was 118
 {
 public:
     JavaScript_pi(void *ppimgr);
