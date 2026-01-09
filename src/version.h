@@ -17,9 +17,10 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "build 11"
+#define		PLUGIN_VERSION_PATCH 0 
+#define     PLUGIN_VERSION_COMMENT "build beta 1"
 
-#define		BRANCH	"v3.1"	// The branch name to use for documentation links from Tools Help
+#define		BRANCH	"v4.0"	// The branch name to use for documentation links from Tools Help
 
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\n\

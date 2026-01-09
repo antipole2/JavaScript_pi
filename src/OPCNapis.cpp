@@ -1836,8 +1836,8 @@ duk_ret_t navToPosition(duk_context* ctx){
 	if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNnavToPosition longitude missing or invalid");
 	double lon = duk_get_number(ctx, -1);
 	duk_pop(ctx);
-	wxString outcome = NavToHerePI(lat, lon);
-	duk_push_string(ctx, outcome);
+//	wxString outcome = NavToHerePI(lat, lon);
+//	duk_push_string(ctx, outcome);
 	return 1;
 	}
 	

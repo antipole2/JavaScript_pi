@@ -50,7 +50,7 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p){
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
-:opencpn_plugin_120	 (ppimgr)  // was 18
+:opencpn_plugin_121 (ppimgr)  // was 18
 {
 #ifndef IN_HARNESS
     // Create the PlugIn icons
