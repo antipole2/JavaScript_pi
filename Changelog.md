@@ -1,3 +1,30 @@
+3.4.3 Dec 28, 2025
+* update-templates: syntax bugfix
+
+3.4.2 Nov 13, 2025
+* .circleci/config: Formatting bugfix
+
+3.4.1 Nov 13, 2025
+* CI: update macos to build intel legacy and universal.
+* build-deps/control: Handle outdated libunarr-dev dependency
+* opencpn-libs: Update, fixes annoying cmake warnings - #605
+
+3.4.0 Sep13, 2025
+
+* Updating opencpn-libs to latest version.#0559aae
+* appveyor.bat: remove call to not existing wx-config.bat
+* buildwin: wxwidgets version 3.2.2.1 -> 3.2.6
+* build: appveyor: Install pathman.exe from buildwin (#617)
+* buildwin: Add pathman.exe
+* build: Trixie builds (#614)
+* build-deps/control: Use modern libarchive i s f linunarr
+* fix time interval calculation
+
+3.4.0-beta2 Aug 06, 2025
+
+* Remove bullseye-armhf, wx32-armhf, wx32-arm64 , wx32-armhf
+* flatpak - build with 24.08 (#612)
+
 3.4.0-beta1 Apr 17, 2025
 
 * Revert to API118
