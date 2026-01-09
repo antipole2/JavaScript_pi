@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/04/2022
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,14 +17,14 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define     PLUGIN_VERSION_COMMENT "build 0"
+#define     PLUGIN_VERSION_COMMENT "build 11"
 
 #define		BRANCH	"v3.1"	// The branch name to use for documentation links from Tools Help
 
 #define     PLUGIN_FIRST_TIME_WELCOME "Welcome to the JavaScript plugin\n\nRun your first script by clicking on the run button above.\n\nSee the Help panel right for documentation"
 #define     PLUGIN_UPDATE_WELCOME "Plugin has been updated.\n\n\
 Release notice at https://github.com/antipole2/JavaScript_pi/discussions\n\nSee the Help panel right for documentation.\n\
-Changes are highlighted in the User Guide and listed in its Appendix C"
+Changes are highlighted yellow in the User Guide\n"
 
 // screen resolution support only available in wxWidgets 3.2 or later
 #if wxCHECK_VERSION(3,2,0)

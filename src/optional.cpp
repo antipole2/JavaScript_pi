@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -23,6 +23,7 @@
 extern JavaScript_pi* pJavaScript_pi;
 extern Console* pConsoleBeingTimed;
 void throwErrorByCtx(duk_context *ctx, wxString message);
+Console* findConsoleByCtx(duk_context* ctx);
 Console* findConsoleByName(wxString name);
 
 duk_ret_t console_get_details(duk_context *ctx){
@@ -109,7 +110,6 @@ duk_ret_t console_busy(duk_context *ctx){
 duk_ret_t console_clearOutput(duk_context *ctx){
     // clear output pane
     Console* pConsole;
-    Console *findConsoleByCtx(duk_context *ctx);
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs>1) throwErrorByCtx(ctx, "consoleClearOutput bad call (too many arguments)");
     if (nargs == 0){    // clearing our own output
@@ -130,7 +130,6 @@ duk_ret_t console_getOutput(duk_context *ctx){
     // clear output pane
     duk_require_string(ctx, 0);
     Console* pConsole;
-    Console *findConsoleByCtx(duk_context *ctx);
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     if (nargs>1) throwErrorByCtx(ctx, "consoleClearOutput bad call (too many arguments)");
     if (nargs == 0){    // clearing our own output
@@ -161,6 +160,7 @@ duk_ret_t console_add(duk_context *ctx){
     if (outcome !="") throwErrorByCtx(ctx, outcome);
     pConsole = new Console(pJavaScript_pi->m_parent_window, name);
     pConsole->setup();
+    pJavaScript_pi->m_consoles.push_back(pConsole);
     pConsole->CenterOnScreen();
     pConsole->setConsoleMinClientSize();
     // to prevent multiple new consoles hiding eachother completely, we will shift each randomly
@@ -173,23 +173,32 @@ duk_ret_t console_add(duk_context *ctx){
     };
 
 duk_ret_t console_close(duk_context* ctx){
-    Console *findConsoleByCtx(duk_context *ctx);
-    void reviewParking();
     duk_require_string(ctx, 0);
     wxString name = duk_get_string(ctx, 0);
     duk_pop(ctx);
-    Console* pConsole = findConsoleByName(name);
-    if (!pConsole) throwErrorByCtx(ctx, "Console " + name + " does not exist");
-    if (pConsole == findConsoleByCtx(ctx)) throwErrorByCtx(ctx, "Console " + name + " cannot close yourself");
-    if (pConsole->mpMessageDialog != nullptr){ 
-    	pConsole->mpMessageDialog->EndModal(-1);	// close modal with special outcome
+    Console* pConsoleToClose = findConsoleByName(name);
+    wxString ptrToString(Console* address);
+    TRACE(66, wxString::Format("In closeConsole name to close '%s' Console* %s", name, ptrToString(pConsoleToClose)));
+    if (!pConsoleToClose) throwErrorByCtx(ctx, "Console " + name + " does not exist");
+    if (pConsoleToClose == findConsoleByCtx(ctx)) throwErrorByCtx(ctx, "Console " + name + " cannot close itself");
+    if (pConsoleToClose->mpMessageDialog != nullptr){
+    	TRACE(66, name + " consoleClose closing modal");
+    	pConsoleToClose->mpMessageDialog->EndModal(-1);	// close modal with special outcome
     	}
 	else {
-		pConsole->clearCallbacks();
+		TRACE(66, name + " closeConsole about to clear its callbacks");
+		pConsoleToClose->clearCallbacks();
+		TRACE(66, name + " closeConsole finished clearing its callbacks");
 		}
-	pConsole->bin();
-	reviewParking();
-	if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();	// update if tools open
+	TRACE(66, name + " before cleanup duktape stack " + pConsoleToClose->dukDump());	
+	wxString outcome = pConsoleToClose->deleteMe();
+	TRACE(66, name + " consoleClose - deletMe outcome '" + outcome + "'");
+	if (outcome != wxEmptyString){
+		Console* pConsole = findConsoleByCtx(ctx);
+		THROWCONSOLE("Unable to close console " + name + " - " + outcome);
+		}
+	duk_push_string(ctx, outcome);
+	TRACE(66, name + " consoleClose all finished");
     return 0;
     }
 
@@ -262,7 +271,6 @@ duk_ret_t console_run(duk_context* ctx){
     	pConsoleBeingTimed->prep_for_throw(pConsoleBeingTimed->mpCtx, "Run console " + pConsole->mConsoleName + " is busy");
     	duk_throw(ctx);
     	}
-    pConsole->mBrief.reply = false;
     if (haveBrief){
         pConsole->mBrief.theBrief = brief;
         pConsole->mBrief.hasBrief = true;
@@ -272,57 +280,52 @@ duk_ret_t console_run(duk_context* ctx){
     pConsole->CallAfter(&Console::doRunCommand, pConsole->mBrief);
     return 0;
     }
-    
-duk_ret_t onConsoleResult(duk_context* ctx){
-    // onConsoleResult(consoleName, function [, brief])
-    Console* findConsoleByCtx(duk_context* ctx);
-    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    wxString consoleName, functionName, brief;
-    Console* pConsole, *pCallingConsole;
-    bool haveBrief {false};
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    pCallingConsole = pConsoleBeingTimed;
- 
-    if (nargs < 2) {
-    	pCallingConsole->prep_for_throw(ctx, "onConsoleResult called with insufficient args");
-    	duk_throw(ctx);
-    	}
-    duk_require_string(ctx, 0);
-    duk_require_object(ctx, 1);
-    consoleName = wxString(duk_get_string(ctx, 0));
-    functionName = extractFunctionName(ctx, 1);
-    if (nargs>2){
-    	brief = duk_get_string(ctx, 2);
-    	haveBrief = true;
-    	duk_pop(ctx);   // the third arg
-    	}
-    duk_pop_2(ctx); // first and second args
-    pConsole = findConsoleByName(consoleName);
-    if (pConsole->mRunningMain || pConsole->isWaiting()){
-        pCallingConsole->prep_for_throw(ctx, "onConsoleResult target console " + pConsole->mConsoleName + " is busy");
-        duk_throw(ctx);
-        }
-    if (pCallingConsole->mConsoleRepliesAwaited > MAX_TIMERS){
-        pCallingConsole->prep_for_throw(ctx, "onConsoleResult error: already have maximum callbacks outstanding");
-        duk_throw(ctx);
-        }
-    // OK - ready to go
-    pConsole->mBrief.briefingConsoleName = pCallingConsole->mConsoleName;
-    pConsole->mBrief.reply = true;
-    pConsole->mBrief.function = functionName;
-    if (haveBrief){
-        pConsole->mBrief.theBrief = brief;
-        pConsole->mBrief.hasBrief = true;
-        }
-    else pConsole->mBrief.hasBrief = false;
-    pConsole->mscriptToBeRun = true;
-    pCallingConsole->mConsoleRepliesAwaited++;
-    pCallingConsole->setWaiting();
-    TRACE(4, "onConsoleResult about to run " + consoleName + " with haveBrief " + (haveBrief?("true and brief: " + pConsole->mBrief.theBrief):"false"));
-    pConsole->CallAfter(&Console::doRunCommand, pConsole->mBrief);
-    return 0;
+
+ duk_ret_t onConsoleResult(duk_context* ctx){
+    // onConsoleResult(handler, consoleName [, brief])  or for backward compatibility onConsoleName(consoleName, handler [, brief])
+    // onConsoleResult(id) to cancel callback
+    void cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString callbackName);
+    duk_idx_t nargs = duk_get_top(ctx);   // number of arguments in call
+    Console* pConsole = findConsoleByCtx(ctx);
+	if (pConsole->mStatus.test(INEXIT)){
+		throwErrorByCtx(ctx, "OCPNonConsoleResult within onExit");
+		}
+    if (nargs == 1) cancelCallbackPerCtx(ctx, pConsole, CB_AIS, "OCPNonConsoleResult");
+    else {
+    	wxString otherConsoleName;
+    	Console* otherConsole;
+    	Brief brief;
+    	std::shared_ptr<callbackEntry> pEntry = pConsole->newCallbackEntry(CB_CONSOLE);
+    	if (duk_is_callable(ctx, 1)){ 
+    		// old style call with handler second argument
+    		duk_swap(ctx, 0, 1);	// amend to present order
+    		}
+   		pEntry->func_heapptr = duk_get_heapptr(ctx, 0);
+    	otherConsoleName = duk_get_string(ctx, 1);    	
+        otherConsole = findConsoleByName(otherConsoleName);
+        if (otherConsole == nullptr){
+        	pConsole->prep_for_throw(ctx, "onConsoleResult target console not found");
+			duk_throw(ctx);
+        	}
+        if (otherConsole->mRunningMain || otherConsole->isWaiting()){
+			pConsole->prep_for_throw(ctx, "onConsoleResult target console " + otherConsole->mConsoleName + " is busy");
+			duk_throw(ctx);
+			}        
+    	if (nargs == 3){
+    		brief.theBrief = duk_get_string(ctx, 2);
+    		brief.hasBrief = true;
+    		}
+    	else brief.hasBrief = false;
+    	brief.callbackId = pEntry->id;
+    	brief.ConsoleNameToCallback = pConsole->mConsoleName;
+		duk_pop_n(ctx, nargs);	// finished with call args
+		TRACE(4, "onConsoleResult about to run " + otherConsoleName);
+		otherConsole->CallAfter(&Console::doRunCommand, brief);
+		duk_push_int(ctx, pEntry->id);
+		}
+    return 1;
     }
- 
+
 /*
 // this not working.  It's incredibly simple.
 // Can only think OPCN may be preventing it 
@@ -405,8 +408,6 @@ void register_keyboard(duk_context *ctx){
     duk_pop(ctx);
     }
 #endif
-
-// void register_drivers(duk_context *ctx);
 
 bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
 	// returns true if only C-code from here

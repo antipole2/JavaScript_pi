@@ -100,7 +100,7 @@ function timeStampOK(waypoint){	// checks creationDateTime is within 1 second of
 	else return true;
 	}
 
-startTime = Math.round(new Date()/1000);	// present time in whole seconds
+startTime = Math.round((new Date().setUTCMilliseconds())/1000);	// present time in whole seconds
 errorCount = 0;
 var caught;
 

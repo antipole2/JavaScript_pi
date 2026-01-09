@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,6 +17,7 @@
 #include "version.h"
 #include "buildConfig.h"
 #include "wx/wx.h"
+#include "trace.h"
 #include <wx/fileconf.h>
 #include "ocpn_plugin.h" //Required for OCPN plugin functions
 #include "JavaScriptgui.h"
@@ -24,6 +25,20 @@
 #include <bitset>
 #include "config.h"
 #include "consolePositioning.h"
+
+#define THROWCONSOLE(msg)               \
+    do {                                \
+        pConsole->prep_for_throw(pConsole->mpCtx, (msg)); \
+        duk_throw(pConsole->mpCtx);                 \
+    } while (0)
+    
+#define THROWTHISCONSOLE(msg)               \
+    do {                                \
+        prep_for_throw(mpCtx, (msg)); \
+        duk_throw(mpCtx);                 \
+    } while (0)
+    
+#define MAGIC_CBOR 0xD9		// use this as prefix to identify CBOR data in socket data
 
 typedef enum FileOptions{
     DONT_CARE,
@@ -46,8 +61,27 @@ typedef enum Completions {
     CLOSING,    // needing to stop but unable to release ctx yet
     Completions_count
     } Completions;
+typedef std::bitset<Completions_count> status_t;
 
-typedef  std::bitset<Completions_count> status_t;
+typedef enum CallbackType {	// types of callback 
+	CB_TIMER,
+	CB_MESSAGE,
+	CB_CONTEXT_MENU,
+	CB_CONTEXT_SUBMENU,
+	CB_NOTIFICATION,
+	CB_N0183,
+	CB_N2K,
+	CB_SOCKET,
+	CB_CLOSE,
+	CB_NAVIGATION,
+	CB_ACTIVELEG,
+	CB_AIS,
+	CB_DIALOGUE,
+	CB_CONSOLE,
+	CallbackTypes_count
+	} CallbackType;
+typedef	std::bitset<CallbackTypes_count> setActive_t;			//status for optimising set-type callbacks
+typedef int callbackID;
 typedef	int pgn_t;
 
 struct pgn_registration {	// entry recording pgns registered for given handle
@@ -59,7 +93,7 @@ struct pgn_registration {	// entry recording pgns registered for given handle
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
 
- #define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
+#define CONSOLE_POSITION    -1          // Request default positioning of toolbar tool
 
 class Console;
 
@@ -78,7 +112,6 @@ public:
 //  The required PlugIn Methods
     int Init(void);
     bool DeInit(void);
-
     int GetAPIVersionMajor();
     int GetAPIVersionMinor();
     int GetPlugInVersionMajor();
@@ -92,19 +125,17 @@ public:
 //  The required override PlugIn Methods
     int GetToolbarToolCount(void);
     void OnToolbarToolCallback(int id);
-    void OnContextMenuItemCallback(int id);
+    void OnContextMenuItemCallbackExt(int menuID, std::string identifier, std::string objectType, double lat, double lon);
     void SetCursorLatLon(double lat, double lon);
 
 //  Optional plugin overrides
     void SetColorScheme(PI_ColorScheme cs);
 
 //  Other public methods
-    void OnTimer            (wxTimerEvent& tick);
     void SetPluginMessage             (wxString &message_id, wxString &message_body);
     void SetNMEASentence               (wxString &sentence);
     void SetAISSentence               (wxString &sentence);
     void SetPositionFixEx              (PlugIn_Position_Fix_Ex &pfix);
-    void SetActiveLegInfo   ( Plugin_Active_Leg_Info &leg_info);
     void OnJavaScriptConsoleClose   ();
     bool SaveConfig			(void);	// so we can do saves
     void ShowPreferencesDialog (wxWindow* m_parent_window);
@@ -113,9 +144,7 @@ public:
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
-
-    Console*		mpFirstConsole;   // pointer to the first console
-    Console*        mpBin;      // the bin for consoles to be deleted
+    std::vector<Console*> m_consoles;	// array of the consoles
     bool            mpPluginActive {false};
     wxWindow        *m_parent_window;
     bool            mShowingConsoles;
@@ -129,7 +158,12 @@ public:
     PlugIn_ViewPort m_currentViewPort;
     bool			m_showHelp {false};		// show help during first showing of consoles
     bool			m_floatOnParent {true};	//set the wxSTAY_ON_TOP style for windows
-    
+    bool			m_ODready {false};		// true if OpenDraw ready
+    wxString		m_ODconfigString {""};		//	The OD config received in initial response
+    wxString		m_lastMessage {""};		// last message through set method.
+    setActive_t		m_SetActive;			// status bits for optimising handling of plugin callbacks
+    std::vector<wxString> m_messages;		// vector of messages received
+        
     // console parking all stored in DIP units
     bool			m_parkingBespoke {false};	// true if using bespoke parking parameters
     int				m_parkingStub {CONSOLE_STUB};				// minimum width were name zero length
@@ -137,12 +171,9 @@ public:
     int				m_parkFirstX {PARK_FIRST_X};			// inset of first park place from left edge of frame
     int				m_parkSep {PARK_SEP};					// separation between parked consoles
     
-    wxTimer         mTimer;
     bool            mTraceLevelStated {false};  // will be set true after first run of a script
-    int				nextID = 1;		// used to generate unique IDs
     wxString        openCPNConfig {wxEmptyString};  // to store the OpenCPN config JSON
-	bool			m_bShowJavaScript;
-	
+	bool			m_bShowJavaScript;	
 	std::vector<pgn_registration> m_pgnRegistrations;	// will hold N2K pgn registrations here
 	
 #if TRACE_YES

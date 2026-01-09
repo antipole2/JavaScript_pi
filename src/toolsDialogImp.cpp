@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -17,43 +17,39 @@
 #include "JavaScriptgui_impl.h"
 #include "wx/dirdlg.h"
 #include "wx/utils.h"
+#include <wx/versioninfo.h>
 
 Console* pTestConsole1 = nullptr;
 Console* pTestConsole2 = nullptr;
 
 void ToolsClass::setConsoleChoices(){
-    Console *pConsole;
     m_oldNames->Clear();
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+    for (auto* pConsole : pJavaScript_pi->m_consoles){
         m_oldNames->Append(pConsole->mConsoleName);
         }
     }
+    
+void ToolsClass::cleanupParking(){
+		m_customiseButton->SetLabel("Start");
+		if (pTestConsole1) {delete pTestConsole1; pTestConsole1 = nullptr;};
+		if (pTestConsole2) {delete pTestConsole2; pTestConsole2 = nullptr;};		
+		}
 
 void ToolsClass::onClose( wxCloseEvent& event ){
     extern JavaScript_pi* pJavaScript_pi;
-
-   	if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
-	if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
+	cleanupParking();
 	m_parkingMessage->Clear();
 	pJavaScript_pi->pTools = nullptr;
-   //  this->Hide();
     Destroy();
     }
 
 void ToolsClass::onPageChanged( wxNotebookEvent& event ) {
     // The different pages need to be different sizes - this does it
     unsigned int pageNumber;
-
     pageNumber = event.GetSelection();
     setupPage(pageNumber);
     }
     
-void ToolsClass::cleanupParking(){
-		m_customiseButton->SetLabel("Start");
-		if (pTestConsole1 != nullptr){ pTestConsole1->bin(); pTestConsole1 = nullptr; }
-		if (pTestConsole2 != nullptr){ pTestConsole2->bin(); pTestConsole2 = nullptr; }
-		}
-
 void ToolsClass::setupPage(unsigned int pageNumber){	// display this page of tools
     	extern JavaScript_pi* pJavaScript_pi;
         wxWindow *page;
@@ -70,10 +66,9 @@ void ToolsClass::setupPage(unsigned int pageNumber){	// display this page of too
 		m_notebook->ChangeSelection(pageNumber);
         page = m_notebook->GetPage(pageNumber);
 		page->Fit();
-
         wxSize pageClientSize = ToDIP(page->GetClientSize());
         
- //       TRACE(6, wxString::Format("Tools Page %d GetClientSize gave DIP %d x %d", pageNumber, pJavaScript_pi->pTools->Diagnostics->GetId(), pageClientSize.x, pageClientSize.y));
+       TRACE(60, wxString::Format("Tools Page %d GetClientSize gave DIP %d x %d", pageNumber,/* pJavaScript_pi->pTools->Diagnostics->GetId(),*/ pageClientSize.x, pageClientSize.y));
         pageClientSize.x = 590;	// force width
 		SetClientSize(FromDIP(pageClientSize));	// allow for screen resolution
 //		page->Fit(); // Adjusts to page size but this makes window too tight, so...
@@ -81,11 +76,11 @@ void ToolsClass::setupPage(unsigned int pageNumber){	// display this page of too
 		size.x = 600;	// Force the window size
 		size.y += 10;
 		SetSize(FromDIP(size));
-		TRACE(6, wxString::Format("Tools Page %d final size DIP %d x %d", pageNumber, size.x, size.y));
+		TRACE(60, wxString::Format("Tools Page %d final size DIP %d x %d", pageNumber, size.x, size.y));
 		Show();
         Raise();
         if (pJavaScript_pi->pTools == nullptr) return;	// be safe - skip next if pTools not yet set up.  It seems to be called before we are ready
-        TRACE(6, wxString::Format("Page %d of %d", pageNumber, pJavaScript_pi->pTools->m_notebook->GetPageCount()-1));
+        TRACE(60, wxString::Format("Page %d of %d", pageNumber, pJavaScript_pi->pTools->m_notebook->GetPageCount()-1));
         if (pageNumber == (pJavaScript_pi->pTools->m_notebook->GetPageCount()-1)){	// on last panel - assumed to be diagnostics
         	// following to be set to ‟Fancy quotes” degrees°º⁰ primes ‘’‛’′´` but Windows screws this up, so will set explicitly here
 	       	m_charsToClean->ChangeValue("\u201FFancy quotes\u201D degrees\u00B0\u00BA\u2070 primes \u2018\u2019\u201B\u2019\u2032\u00B4\u0060");
@@ -111,6 +106,8 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
 	pConsole->setup();
+//	pConsole->hookConsole();
+	pJavaScript_pi->m_consoles.push_back(pConsole);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
     pConsole->SetPosition(wxPoint(x, y));
@@ -151,7 +148,6 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
     pConsole->SetLabel(newConsoleName);
     pConsole->mConsoleName = newConsoleName;
     TRACE(17, wxString::Format("onChangeName for parked console %s size was x:%i y:%i", oldConsoleName, GetSize().x, GetSize().y ));
-//    wxSize oldClientMinSize = pConsole->GetMinClientSize();
     pConsole->setConsoleMinClientSize();
 	wxSize newMinSize = pConsole->GetMinSize();
 	if (pConsole->m_parkedLocation.set){
@@ -166,7 +162,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
 void ToolsClass::onFindAllConsoles( wxCommandEvent& event ){	// make all consoles visible
 	wxPoint position = FromDIP(wxPoint(NEW_CONSOLE_POSITION));
 	wxSize  size = FromDIP(wxSize(NEW_CONSOLE_SIZE));
-	for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){	// work though all consoles
+	for (auto* pCon : pJavaScript_pi->m_consoles){
 		if (pCon->isParked()) pCon->unPark();
 		// shift by random amount
 	    pCon->SetPosition(position);
@@ -183,9 +179,8 @@ void ToolsClass::onFindAllConsoles( wxCommandEvent& event ){	// make all console
 	}
     
 void ToolsClass::onFloatOnParent(wxCommandEvent& event) {
-    Console *pConsole;
 	pJavaScript_pi->m_floatOnParent = m_floatOnParent->GetValue();
-	for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
+	for (auto* pConsole : pJavaScript_pi->m_consoles){
 		pConsole->floatOnParent(pJavaScript_pi->m_floatOnParent);
         }
 	} 
@@ -224,7 +219,6 @@ void ToolsClass::onChangeDirectory( wxCommandEvent& event ){
 void ToolsClass::onDump( wxCommandEvent& event ){
     cout << "Dumping\n";
     wxString ptrToString(Console* address);
-    Console *pConsole;
     wxFrame* dumpWindow;
     wxTextCtrl *dumpTextCtrl;
     extern JavaScript_pi *pJavaScript_pi;
@@ -251,7 +245,11 @@ void ToolsClass::onDump( wxCommandEvent& event ){
 #if wxVERSION_NUMBER >= 3106
     dump += (wxString::Format("Native architecture\t%s\n", wxGetNativeCpuArchitectureName()));	//  available from v3.1.6
 #endif
-    dump += (wxString::Format("wxWidgets version %d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
+    dump += (wxString::Format("wxWidgets plugin compile-time version\t%d.%d.%d.%d or %d\n", wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER, wxSUBRELEASE_NUMBER, wxVERSION_NUMBER));
+	wxVersionInfo runtimeVersion = wxGetLibraryVersionInfo();
+	wxString runTimeInfo = runtimeVersion.ToString();
+	runTimeInfo.Replace("\n", "\n\t");
+	dump += (wxString::Format("wxWidgets run-time info\n\t%s\n", runTimeInfo));
     dump += (wxString::Format("OCPN API version %d.%d\n", API_VERSION_MAJOR, API_VERSION_MINOR));
     dump += (wxString::Format("Duktape version %d\n", DUK_VERSION));
     wxString svg {"Not using svg"};
@@ -278,6 +276,9 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     dump += "recentFiles:\n";
     for (unsigned int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
+    dump+= "Received message ids:\n";
+    for (unsigned int i = 0; i < pJavaScript_pi->m_messages.size(); i++)
+    	dump += "\t" + pJavaScript_pi->m_messages[i] + "\n";
     unsigned int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
     dump += "N2K pgn registrations:";
     if (pgn_reg_count > 0){
@@ -291,21 +292,17 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     		}
     	}
     else dump += " none\n";
-    dump += "pJavaScript_pi->mpFirstConsole\t" + ptrToString(pJavaScript_pi->mpFirstConsole) + "\n";
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += ("\n----------Console " + pConsole->mConsoleName + "----------\n");
+    dump+= wxString::Format("SetActive bits\t%s\n",pJavaScript_pi->m_SetActive.to_string());
+    dump+= wxString::Format("m_consoles.size\t%d\n\n", pJavaScript_pi->m_consoles.size());
+    for (auto* pConsole : pJavaScript_pi->m_consoles){
+    	dump += ("\n----------Console " + pConsole->mConsoleName + "----------\n");
         dump += (pConsole->consoleDump());
-        }
-    dump += "\n----------------------------------------------------\n";
-    dump += "\npJavaScript_pi->mpBin\t\t" + ptrToString(pJavaScript_pi->mpBin) + "\n";
-    for (pConsole = pJavaScript_pi->mpBin; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        dump += ("\n----------Console in bin " + pConsole->mConsoleName + "----------\n");
-        dump += (pConsole->consoleDump());
-        }
+    	}
     dump += ("\nEnd of dump\n");
-    dumpTextCtrl->AppendText(dump);
     dumpWindow->SetSize(FromDIP(wxSize(700, 1000)));
     dumpWindow->Show();
+    dumpTextCtrl->SetValue(dump);
+	dumpTextCtrl->ShowPosition(0);
     }
 
 wxString JS_dumpString(wxString identifier, wxString string){
@@ -331,7 +328,6 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     wxString text = this->m_charsToClean->GetValue();
     if (text == wxEmptyString) return;
     stringWindow = new wxFrame(this /* pJavaScript_pi->m_parent_window */, wxID_ANY, "JavaScript text cleaning", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT );
-
     dumpTextCtrl = new wxTextCtrl(stringWindow, wxID_NEW,
                           wxEmptyString, wxDefaultPosition, wxSize(240, 100),
                           wxTE_MULTILINE);
@@ -370,32 +366,33 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 	if (label == "Start"){
 		// check if have parked consoles
 		int x, y;
-		Console* pConsole;
 		int numberParked = 0;
-		for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){// for each console
+		for (auto* pConsole : pJavaScript_pi->m_consoles){
 			if (pConsole->isParked()){
-				if (numberParked == 0) m_parkingMessage->SetValue("Unpark the parked console(s)\n");
+				if (numberParked == 0) m_parkingMessage->SetValue("Unpark the parked console(s)\n\n");
 				m_parkingMessage->AppendText(wxString::Format("%s\n", pConsole->mConsoleName));
 				numberParked++;
 				}
 			}
 		if (numberParked > 0){
-			m_parkingMessage->AppendText("and then try again");
+			m_parkingMessage->AppendText("\nand then try again");
 			return;
 			}
-		// create fist test console
-		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M",FromDIP(wxPoint(250,250)), FromDIP(wxSize(700,300)));
+		// create the test consoles
+		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM" /*,FromDIP(wxPoint(300,600)), FromDIP(wxSize(700,300)) */);
+		pTestConsole2->setup();
+		pTestConsole2->GetPosition(&x, &y);
+		pTestConsole2->SetPosition(wxPoint(x+20, y+15));
+		pTestConsole2->SetMinSize(wxSize(1,1));
+		pTestConsole2->SetBackgroundColour(*wxGREEN);
+		pTestConsole2->Show();
+		pTestConsole1 = new Console(pJavaScript_pi->m_parent_window, "M" /*,FromDIP(wxPoint(250,250)), FromDIP(wxSize(700,300))*/);
+		pTestConsole1->setup();
 		pTestConsole1->GetPosition(&x, &y);
 		pTestConsole1->SetPosition(wxPoint(x, y));
 		pTestConsole1->SetMinSize(wxSize(1,1));
 		pTestConsole1->SetBackgroundColour(*wxBLUE);
 		pTestConsole1->Show();
-		pTestConsole2 = new Console(pJavaScript_pi->m_parent_window, "MMMMMMMMMMMMMM",FromDIP(wxPoint(300,600)), FromDIP(wxSize(700,300)));
-		pTestConsole2->GetPosition(&x, &y);
-		pTestConsole2->SetPosition(wxPoint(x, y));
-		pTestConsole2->SetMinSize(wxSize(1,1));
-		pTestConsole2->SetBackgroundColour(*wxGREEN);
-		pTestConsole2->Show();
 		m_parkingMessage->SetValue("Minimize the blue console M so that it has the minimum height and is just wide enough to see its name\n");
 		m_parkingMessage->AppendText("Then move it into the desired left most parking position\n\n");
 		m_parkingMessage->AppendText("Next minimize the green console MMMMMMMMMMMMMM so that it has minimum height and is just wide enough to see its name\n");
@@ -432,7 +429,11 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 		pJavaScript_pi->m_parkSep = (c2Pos.x - (c1Pos.x + c1Size.x))/scale;
 		pJavaScript_pi->m_parkingBespoke = true;
 		pJavaScript_pi->SaveConfig();
-		m_parkingMessage->SetValue("Custom parking parameters set and saved");
+		m_parkingMessage->SetValue("Custom parking parameters set and saved\n\n");
+		m_parkingMessage->AppendText(wxString::Format(
+			"#define CONSOLE_STUB %iL\n#define PARK_LEVEL %iL\n#define PARK_FIRST_X %iL\n#define PARK_SEP %iL",
+			pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));	
+		m_parkingMessage->AppendText("\n\nThe above are all in DIP pixels");	
 		cleanupParking();
 		m_customiseButton->SetLabel("Start");		
 		}

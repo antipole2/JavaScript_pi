@@ -17,13 +17,8 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	TopSizer = new wxBoxSizer( wxVERTICAL );
 
 	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxSize( 590,460 ), 0 );
-	m_notebook->SetForegroundColour( wxColour( 0, 0, 0 ) );
-	m_notebook->SetBackgroundColour( wxColour( 255, 255, 255 ) );
-
 	Consoles = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,255 ), 0 );
 	Consoles->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
-	Consoles->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	Consoles->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	wxBoxSizer* ConsolesSizer;
 	ConsolesSizer = new wxBoxSizer( wxVERTICAL );
@@ -33,8 +28,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_prompt = new wxStaticText( ConsolesChoiceSizer->GetStaticBox(), wxID_ANY, wxT("Add a new console with name  "), wxDefaultPosition, wxDefaultSize, 0|wxBORDER_NONE );
 	m_prompt->Wrap( -1 );
-	m_prompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	ConsolesChoiceSizer->Add( m_prompt, 0, wxALL, 5 );
 
 	m_newConsoleName = new wxTextCtrl( ConsolesChoiceSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 120,-1 ), 0 );
@@ -66,8 +59,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_rename_prompt = new wxStaticText( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxT("Change name of console"), wxDefaultPosition, wxDefaultSize, 0|wxBORDER_NONE );
 	m_rename_prompt->Wrap( -1 );
-	m_rename_prompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	ConsolesRenameSizer->Add( m_rename_prompt, 0, wxALL, 5 );
 
 	wxArrayString m_oldNamesChoices;
@@ -77,8 +68,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_staticText15 = new wxStaticText( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxT("to"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText15->Wrap( -1 );
-	m_staticText15->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	ConsolesRenameSizer->Add( m_staticText15, 0, wxALL, 5 );
 
 	m_changedName = new wxTextCtrl( ConsolesRenameSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 120,-1 ), 0 );
@@ -119,8 +108,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_ConsolesMessage = new wxTextCtrl( ConsolesMessageSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 550,20 ), 0|wxBORDER_NONE );
 	m_ConsolesMessage->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
-	m_ConsolesMessage->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-	m_ConsolesMessage->SetBackgroundColour( wxColour( 242, 242, 242 ) );
 
 	ConsolesMessageSizer->Add( m_ConsolesMessage, 0, wxALL, 5 );
 
@@ -133,16 +120,14 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	sbSizer18->SetMinSize( wxSize( -1,70 ) );
 	m_floatOnParent = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Float consoles on top"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_floatOnParent->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_floatOnParent->SetForegroundColour( wxColour( 0, 0, 0 ) );
-	m_floatOnParent->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+	m_floatOnParent->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_INFOTEXT ) );
 
 	sbSizer18->Add( m_floatOnParent, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 	m_rememberToggleStatus = new wxCheckBox( sbSizer18->GetStaticBox(), wxID_ANY, wxT("Remember toggle status"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_rememberToggleStatus->SetValue(true);
 	m_rememberToggleStatus->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
-	m_rememberToggleStatus->SetForegroundColour( wxColour( 0, 0, 0 ) );
-	m_rememberToggleStatus->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+	m_rememberToggleStatus->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_INFOTEXT ) );
 
 	sbSizer18->Add( m_rememberToggleStatus, 0, wxALL, 5 );
 
@@ -161,8 +146,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_notebook->AddPage( Consoles, wxT("Consoles"), false );
 	Directory = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,150 ), 0 );
 	Directory->SetFont( wxFont( 13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
-	Directory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	Directory->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 
 	wxBoxSizer* DirectorySizer1;
 	DirectorySizer1 = new wxBoxSizer( wxVERTICAL );
@@ -172,16 +155,12 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	mCurrentDirectory = new wxStaticText( DirectorySizer->GetStaticBox(), wxID_ANY, wxT("Current directory"), wxDefaultPosition, wxDefaultSize, 0|wxBORDER_NONE );
 	mCurrentDirectory->Wrap( -1 );
-	mCurrentDirectory->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	DirectorySizer->Add( mCurrentDirectory, 0, wxALL, 5 );
 
 
 	DirectorySizer->Add( 130, 0, 1, wxEXPAND, 5 );
 
 	mDirectoryChangeButton = new wxButton( DirectorySizer->GetStaticBox(), wxID_ANY, wxT("Change..."), wxDefaultPosition, wxDefaultSize, 0 );
-	mDirectoryChangeButton->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNTEXT ) );
-
 	DirectorySizer->Add( mDirectoryChangeButton, 0, wxALL|wxEXPAND, 5 );
 
 
@@ -192,9 +171,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	mCurrentDirectoryString = new wxStaticText( DrectoryStringSizer->GetStaticBox(), wxID_ANY, wxT("Will be directory string"), wxDefaultPosition, wxSize( 560,-1 ), 0 );
 	mCurrentDirectoryString->Wrap( -1 );
-	mCurrentDirectoryString->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNTEXT ) );
-	mCurrentDirectoryString->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-
 	DrectoryStringSizer->Add( mCurrentDirectoryString, 0, wxALL|wxEXPAND, 5 );
 
 
@@ -205,8 +181,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Directory->Layout();
 	m_notebook->AddPage( Directory, wxT("Directory"), false );
 	NMEA = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,160 ), 0 );
-	NMEA->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-
 	wxBoxSizer* NMEASizer;
 	NMEASizer = new wxBoxSizer( wxVERTICAL );
 
@@ -247,8 +221,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	NMEA->Layout();
 	m_notebook->AddPage( NMEA, wxT("NMEA"), false );
 	Message = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,320 ), 0 );
-	Message->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-
 	wxBoxSizer* MessageSizer;
 	MessageSizer = new wxBoxSizer( wxVERTICAL );
 
@@ -261,8 +233,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_MessageIDText1 = new wxStaticText( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("Message ID"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_MessageIDText1->Wrap( -1 );
-	m_MessageIDText1->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	MessageIDSizer->Add( m_MessageIDText1, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
 	m_MessageID = new wxTextCtrl( MessageIDSizer->GetStaticBox(), wxID_ANY, wxT("EXAMPLE_MESSAGE_ID"), wxDefaultPosition, wxSize( 300,-1 ), 0 );
@@ -282,8 +252,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_MessageText11 = new wxStaticText( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("Message"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_MessageText11->Wrap( -1 );
-	m_MessageText11->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	MessageBodySizer1->Add( m_MessageText11, 0, wxALL, 5 );
 
 	m_MessageBody = new wxTextCtrl( MessageBodySizer1->GetStaticBox(), wxID_ANY, wxT("\"Latitude\" : 61.234,\n\"Longitude\" : -1.234"), wxDefaultPosition, wxSize( 580,250 ), wxTE_MULTILINE|wxTE_WORDWRAP|wxVSCROLL );
@@ -297,9 +265,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Message->Layout();
 	m_notebook->AddPage( Message, wxT("Message"), false );
 	Parking = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,300 ), wxTAB_TRAVERSAL );
-	Parking->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	Parking->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-
 	wxBoxSizer* ParkingTopSizer1;
 	ParkingTopSizer1 = new wxBoxSizer( wxVERTICAL );
 
@@ -309,7 +274,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_buttonAdvice = new wxStaticText( parkingAdviceSizer1->GetStaticBox(), wxID_ANY, wxT("Configure custom parking details\nChanges will be preserved on normal  plugin/OpenCPN deactivation"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonAdvice->Wrap( -1 );
 	m_buttonAdvice->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
-	m_buttonAdvice->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
 
 	parkingAdviceSizer1->Add( m_buttonAdvice, 0, wxALL, 0 );
 
@@ -321,8 +285,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_revertPrompt = new wxStaticText( RevertTopSizer1->GetStaticBox(), wxID_ANY, wxT("Revert to platform defaults"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_revertPrompt->Wrap( -1 );
-	m_revertPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	RevertTopSizer1->Add( m_revertPrompt, 0, wxALL, 5 );
 
 
@@ -339,8 +301,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_customPrompt = new wxStaticText( CustomTopSizer1->GetStaticBox(), wxID_ANY, wxT("Customise parking settings"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_customPrompt->Wrap( -1 );
-	m_customPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	CustomTopSizer1->Add( m_customPrompt, 0, wxALL, 5 );
 
 
@@ -357,8 +317,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_revealPrompt = new wxStaticText( RevealTopSizer->GetStaticBox(), wxID_ANY, wxT("Show parameters for consolePositioning.h"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_revealPrompt->Wrap( -1 );
-	m_revealPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	RevealTopSizer->Add( m_revealPrompt, 0, wxALL, 5 );
 
 
@@ -385,8 +343,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Parking->Layout();
 	m_notebook->AddPage( Parking, wxT("Parking"), false );
 	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,600 ), 0 );
-	Help->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-
 	wxBoxSizer* HelpSizer1;
 	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
 
@@ -483,9 +439,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Help->Layout();
 	m_notebook->AddPage( Help, wxT("Help"), true );
 	Diagnostics = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,200 ), wxTAB_TRAVERSAL );
-	Diagnostics->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	Diagnostics->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_APPWORKSPACE ) );
-
 	wxBoxSizer* DiagnosticsTpSizer;
 	DiagnosticsTpSizer = new wxBoxSizer( wxVERTICAL );
 
@@ -495,7 +448,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_diagnosticAdvice = new wxStaticText( diagnosticAdviceSizer->GetStaticBox(), wxID_ANY, wxT("For help using these functions, see the section Tools panel diagnostics tab  in the plugin technical guide."), wxDefaultPosition, wxDefaultSize, 0 );
 	m_diagnosticAdvice->Wrap( -1 );
 	m_diagnosticAdvice->SetFont( wxFont( 10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Lucida Grande") ) );
-	m_diagnosticAdvice->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
 
 	diagnosticAdviceSizer->Add( m_diagnosticAdvice, 0, wxALL, 0 );
 
@@ -507,8 +459,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_dumpPrompt = new wxStaticText( DumpTopSizer->GetStaticBox(), wxID_ANY, wxT("Plugin and consoles diagnostic information"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_dumpPrompt->Wrap( -1 );
-	m_dumpPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	DumpTopSizer->Add( m_dumpPrompt, 0, wxALL, 5 );
 
 
@@ -531,8 +481,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_cleanPrompt = new wxStaticText( CharsTopSizer->GetStaticBox(), wxID_ANY, wxT("Clean and dump string"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_cleanPrompt->Wrap( -1 );
-	m_cleanPrompt->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_CAPTIONTEXT ) );
-
 	CharsTopSizer->Add( m_cleanPrompt, 0, wxALL, 5 );
 
 

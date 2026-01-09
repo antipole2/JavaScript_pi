@@ -30,9 +30,6 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	wxBoxSizer* bSizer10;
 	bSizer10 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_clearScript = new wxButton( m_scriptSizer, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer10->Add( m_clearScript, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
 	copy_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Copy all"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer10->Add( copy_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -41,6 +38,9 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 
 	save_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Save"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer10->Add( save_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_clearScript = new wxButton( m_scriptSizer, wxID_ANY, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer10->Add( m_clearScript, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	save_as_button = new wxButton( m_scriptSizer, wxID_ANY, wxT("Save as..."), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer10->Add( save_as_button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -236,10 +236,10 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	m_splitter->Connect( wxEVT_LEAVE_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Connect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Connect( wxEVT_MOUSEWHEEL, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_clearScript->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnClearScript ), NULL, this );
 	copy_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnCopyAll ), NULL, this );
 	load_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnLoad ), NULL, this );
 	save_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSave ), NULL, this );
+	m_clearScript->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnClearScript ), NULL, this );
 	save_as_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSaveAs ), NULL, this );
 	run_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnRun ), NULL, this );
 	auto_run->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
@@ -247,25 +247,6 @@ m_Console::m_Console( wxWindow* parent, wxWindowID id, const wxString& title, co
 	park_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnPark ), NULL, this );
 	tools_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
 	Help->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnHelp ), NULL, this );
-	m_Script->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_MIDDLE_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_RIGHT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_AUX1_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_AUX1_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_AUX2_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_AUX1_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_MOTION, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_MIDDLE_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_RIGHT_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_AUX1_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_AUX2_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_LEAVE_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Connect( wxEVT_MOUSEWHEEL, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_outputSizer->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_outputSizer->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_outputSizer->Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
@@ -311,10 +292,10 @@ m_Console::~m_Console()
 	m_splitter->Disconnect( wxEVT_LEAVE_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Disconnect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_splitter->Disconnect( wxEVT_MOUSEWHEEL, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_clearScript->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnClearScript ), NULL, this );
 	copy_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnCopyAll ), NULL, this );
 	load_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnLoad ), NULL, this );
 	save_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSave ), NULL, this );
+	m_clearScript->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnClearScript ), NULL, this );
 	save_as_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnSaveAs ), NULL, this );
 	run_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnRun ), NULL, this );
 	auto_run->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( m_Console::OnAutoRun ), NULL, this );
@@ -322,25 +303,6 @@ m_Console::~m_Console()
 	park_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnPark ), NULL, this );
 	tools_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnTools ), NULL, this );
 	Help->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( m_Console::OnHelp ), NULL, this );
-	m_Script->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_MIDDLE_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_RIGHT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_AUX1_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_AUX1_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_AUX2_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_AUX1_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_MOTION, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_MIDDLE_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_RIGHT_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_AUX1_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_AUX2_DCLICK, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_LEAVE_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
-	m_Script->Disconnect( wxEVT_MOUSEWHEEL, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_outputSizer->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_outputSizer->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( m_Console::onMouse ), NULL, this );
 	m_outputSizer->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( m_Console::onMouse ), NULL, this );

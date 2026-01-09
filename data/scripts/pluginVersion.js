@@ -1,7 +1,7 @@
 function pluginVersion(needed){
 	// check needed plugin version number v1.0
 
-	// check argumment and develop numeric array of it
+	// check argument and develop numeric array of it
 	if (arguments.length != 1) throw("pluginVersion requires 1 argument");
 	given = needed.toString().split(".");
 	if (given.length > 3) throw("pluginVersion argument not valid version");

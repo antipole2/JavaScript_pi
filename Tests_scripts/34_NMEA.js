@@ -21,24 +21,24 @@ if (handleTest){
 	}
 
 onSeconds(stage1, 1);
-OCPNonNMEAsentence(get1);
+OCPNonNMEA0183(get1);
 
-function stage1() {OCPNpushNMEA(sentence1);}
+function stage1() {OCPNpushNMEA0183(sentence1);}
 
 function get1(result){
 	if (!result.OK) stopScript("NMEA stage 1 checksum error");
 	else if (result.value != sentence1) stopScript("NMEA test 1 failed");
 	OK1 = true
 	print("Complete 1\n");
-	OCPNonNMEAsentence(receiveXYZ, "XYTRE");	// should not be received
-	OCPNonNMEAsentence(receiveXYZ, "ABXYZ");
-	OCPNonNMEAsentence(receiveGHI, "GHI");
+	OCPNonNMEA0183(receiveXYZ, "XYTRE");	// should not be received
+	OCPNonNMEA0183(receiveXYZ, "ABXYZ");
+	OCPNonNMEA0183(receiveGHI, "GHI");
 	if (handleTest){
-		OCPNonNMEAsentence(receiveGHI, "MLN");
+		OCPNonNMEA0183(receiveGHI, "MLN");
 		OCPNpushText(sentence4, handle);
 		}
-	OCPNpushNMEA(sentence2);
-	OCPNpushNMEA(sentence3);
+	OCPNpushNMEA0183(sentence2);
+	OCPNpushNMEA0183(sentence3);
 	onSeconds(sumup,1);
 	}
 

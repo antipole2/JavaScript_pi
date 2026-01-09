@@ -8,5 +8,6 @@ onConsoleResult(name, done);
 function done(result){
 	print("Done called\n");
 	scriptResult(result.value);
-	consoleClose(name);
+	onSeconds(function(){consoleClose(name);}, 0.01);
 	}
+

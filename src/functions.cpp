@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -23,27 +23,70 @@
 #include "algorithm"
 
 extern JavaScript_pi *pJavaScript_pi;
+void throwErrorByCtx(duk_context *ctx, wxString message);
+
+Console* findConsoleByName(wxString name){ // find console by console name - return nullptr if none
+    for (auto* pConsole : pJavaScript_pi->m_consoles)
+    	if (pConsole->mConsoleName == name) return pConsole;
+    return nullptr;
+    }
+    
+Console* findConsoleByCtx(duk_context *ctx){ // given a duktape context, return pointer to the console
+    for (auto* pConsole : pJavaScript_pi->m_consoles){
+    	if (pConsole->mpCtx == ctx) return pConsole;
+    	}
+    // failed to match - emit an error message - we don't have a console so use message box
+    wxMessageBox( wxString::Format("findConsoleByCtx failed to match console with ctx %#012x", ctx), wxT("JavaScript_pi program error"), wxICON_ERROR);
+    return nullptr;
+	}
+
+void cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString callbackName	){
+	// handle cancelling of callback via API
+	// user's request on stack or if no argument cancel all of type
+	// returns success true unless a specified id cannot be found.
+	void throwErrorByCtx(duk_context *ctx, wxString message);	
+	duk_idx_t nargs = duk_get_top(ctx);   // number of arguments in call
+	if ((nargs == 1) && (wxString(duk_get_string(ctx, 0)).IsSameAs("?"))){ // return all ids as an array
+		duk_idx_t arr_idx = duk_push_array(ctx);
+		duk_idx_t i = 0;
+		for (auto it = pConsole->mCallbacks.begin(); it != pConsole->mCallbacks.end(); ++it) {
+			if ((*it)->type == type){
+				duk_push_int(ctx, (*it)->id);
+				duk_put_prop_index(ctx, arr_idx, i++);
+				}
+			}
+		return;
+		}
+	else if (
+		((nargs == 0) || ((nargs == 1) && duk_is_boolean(ctx, 0) && !duk_get_boolean(ctx, 0)))){ // cancel all of this type
+		std::shared_ptr<callbackEntry> pEntry;
+		do {
+			pEntry = pConsole->getCallbackEntryByType(type, true);	// force deletion
+			if (pEntry) {TRACE(987, wxString::Format("cancelCallbackPerCtx cancelling id %d", pEntry->id));}
+			else {TRACE(987, "cancelCallbackPerCtx failed to match by type");}
+			} while (pEntry);		
+		}
+	else if (nargs == 1){	// cancel this id
+		int id = duk_get_int(ctx, 0);
+		duk_pop(ctx);
+		auto pEntry = pConsole->getCallbackEntry(id, true);	// force deletion
+		if (!pEntry) duk_push_boolean(ctx, false);
+		else {
+			duk_push_boolean(ctx, true);
+			}
+		return;
+		}
+	else {
+		throwErrorByCtx(ctx, "Cancel " + callbackName + " callbacks has invalid call");
+		return;	// this never executed - here to suppress compiler warning about result unused
+		}
+	duk_pop_n(ctx, nargs);
+	duk_push_boolean(ctx, true);
+	}
 
 bool isURLfileString(wxString fileString){
 	if ((fileString.substr(0, 6) == "https:") /* || (fileString.substr(0, 5) == "http:") */) return true;	// presently recognising https only
 	else return false;
-	}
-
-void clearMessageCntlEntries(std::vector<streamMessageCntl>* pv, STREAM_MESSAGE_TYPES which ){
-	// remove all entries in vector of type which
-	if (pv->empty()) return;
-/*	this is the best solution and requires C++17 not yet available on some platforms, so we have to do it the hard way
-	pv->erase(
-		std::remove_if(pv->begin(),
-			 pv->end(),
-			 [which](streamMessageCntl x) {return(x.messageType == which);}),
-			 pv->end()
-		);
-*/		 
-	//  hard way - reverse down vector as we remove elements
-	for (int i = pv->size() - 1; i >= 0; i-- ){
-			if (pv->at(i).messageType == which) pv->erase(pv->begin()+i);
-			}			 
 	}
 
 void fatal_error_handler(void *udata, const char *msg) {
@@ -56,7 +99,7 @@ void fatal_error_handler(void *udata, const char *msg) {
      fflush(stderr);
      *((volatile unsigned int *) 0) = (unsigned int) 0xdeadbeefUL;
      abort();
- }
+ 	}
 
 
  wxString JScleanString(wxString given){ // cleans script string of unacceptable characters
@@ -114,8 +157,7 @@ void fatal_error_handler(void *udata, const char *msg) {
 
  // This function only needed with Windose
 
- wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
-
+wxString JScleanOutput(wxString given){ // clean unacceptable characters in output
 #ifdef DUK_F_WINDOWS
      // We know this only occurs with º symbol on Windows
      const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
@@ -123,28 +165,14 @@ void fatal_error_handler(void *udata, const char *msg) {
      given.Replace(A_stringDeg, "\u00b0", true);
 #endif 
     SUBDEGREE(given, PSEUDODEGREE, DEGREE);
-//     given.Replace(PSEUDODEGREE, DEGREE);  
      return (given);
      }
-
-
-/*
-wxString getStringFromDuk(duk_context *ctx){
-     // gets a string safely from top of duk stack and fixes º-symbol for Windose
-     wxString string = wxString(duk_to_string(ctx, -1));
- #ifdef __WXMSW__
-     const wxString A_stringDeg{ "\u00C2\u00b0"};    // Âº
-     string.Replace(A_stringDeg, "\u00b0", true);
- #endif
-     return string;
-     }
-*/
 
 wxString ptrToString(Console* address){
     // format pointer to string
     if (address == nullptr) return "nullptr";
     return wxString::Format("%#012x", address);
-}
+	}
 
 Console* pConsoleBeingTimed {nullptr};  // no other way of finding which console - only one at a time?
 
@@ -166,9 +194,9 @@ duk_bool_t JSduk_timeout_check(void *udata) {
             pConsoleBeingTimed->m_result = wxEmptyString;    // supress result
             }
         return 1;
-    }
+    	}
     return 0;
-}
+	}
 
 wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the screen
 	// NB This works in Logical Pixels, not DIP    
@@ -177,35 +205,10 @@ wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the 
     return point;
     }
 
-Console* findConsoleByCtx(duk_context *ctx){
-    // given a duktape context, return pointer to the console
-    void throwErrorByCtx(duk_context *ctx, wxString message);
-    Console* pConsole;
-    
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole != nullptr; pConsole = pConsole->mpNextConsole){
-        if (pConsole->mpCtx == ctx) return pConsole;
-        }
-    // failed to match - emit an error message
-    wxMessageBox( wxT("findConsoleByCtx failed to match console"), wxT("JavaScript_pi program error"), wxICON_ERROR);
-    // or maybe we will return the first console anyway
-    return pJavaScript_pi->mpFirstConsole;	//to avoid crash
-}
-
 void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw error message
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->prep_for_throw(ctx, message);
     duk_throw(ctx);
-    }
-
-#include "wx/tokenzr.h"
-jsFunctionNameString_t extractFunctionName(duk_context *ctx, duk_idx_t idx){
-    // extract function name from call on JS stack
-    // This does not work if in method in class not substantiated, so is here    
-    wxStringTokenizer tokens( wxString(duk_to_string(ctx, idx)), " (");
-    if (tokens.GetNextToken() != "function") {
-        throwErrorByCtx(ctx, "on.. error: must supply function name");
-        }
-    return (tokens.GetNextToken());
     }
 
 #if TRACE_YES
@@ -294,7 +297,6 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
     	{	// need dialogue
     	TRACE(101, wxString::Format("resolveFileName prompting mode %i toPrompt %i prompt %s", mode, toPrompt, prompt));
 		auto style = wxDEFAULT_DIALOG_STYLE;
-//		if ((wxMode == wxFile::write) || (wxMode == wxFile::write_append))	// need save dialogue
 		if (mode == 4)	style |= wxFD_SAVE | wxFD_OVERWRITE_PROMPT; // need save dialogue			
 		wxFileDialog dialog(pConsole, prompt, pJavaScript_pi->mCurrentDirectory, wxEmptyString, wxFileSelectorDefaultWildcardStr, style);
 		if (dialog.ShowModal() == wxID_CANCEL){
@@ -329,6 +331,14 @@ wxString NMEAchecksum(wxString sentence){
 		 calculated_checksum ^= static_cast<unsigned char> (*i);
 	return( wxString::Format("%02X", calculated_checksum) );
 	};
+	
+bool checkNMEAsum(wxString sentence){	// check if NMEA0183 checksum is correct
+	sentence.Trim();
+	size_t starPos = sentence.find("*"); // position of *
+	if (starPos == wxNOT_FOUND) return false;
+	wxString checksum = sentence.Mid(starPos + 1, 2);
+	return (checksum == NMEAchecksum(sentence)) ? true : false;
+	}
 	
 wxString getClipboardString(Console* pConsole){  // return string from clipboard
 	if (!wxTheClipboard->Open())return "getClipboardString clipboard is busy - logic error?";
@@ -379,15 +389,6 @@ wxString getTextFile(wxString fileString, wxString* pText, int timeout){
     return wxEmptyString;
     }
 
-Console* findConsoleByName(wxString name){
-    // find console by console name - return nullptr if none
-    Console* pConsole;
-    pConsole = pJavaScript_pi->mpFirstConsole;
-    for (pConsole = pJavaScript_pi->mpFirstConsole; pConsole; pConsole = pConsole->mpNextConsole)
-    if (pConsole->mConsoleName.IsSameAs(name, false)) return pConsole;
-    return nullptr;
-    }
-
 wxString statusesToString(status_t mStatus){
     // returns the statuses in status as string
     // statuses defined in JavaScript_pi.h
@@ -420,10 +421,10 @@ wxString checkConsoleName(wxString newName, Console* pConsole){
             && (code != 95))
         return("consoleName new name must only be alphanumeric or _");
     }
-    //check for existing console with this name (ignoring case)
-    for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
+    //check for existing console with this name (ignoring case)    
+    for (auto* pCon : pJavaScript_pi->m_consoles){
         if (pCon == pConsole) continue;    // don't check this console to allow repeated renaming
-        if (newName.IsSameAs(pCon->mConsoleName, false)) return("New console name " + newName + " already taken by another console");
+        if (newName == pCon->mConsoleName) return("New console name " + newName + " already taken by another console");
         }
     return(wxEmptyString);
     }
@@ -436,7 +437,7 @@ void reviewParking(){	// adjust parking space sizes and remove any gaps (console
 	std::vector<lot> lots;
 	lot aLot;	// working space
 	// build array of places and sort
-	for (Console* pCon = pJavaScript_pi->mpFirstConsole; pCon != nullptr; pCon = pCon->mpNextConsole){
+	for (auto* pCon : pJavaScript_pi->m_consoles){
 		if (pCon->m_parkedLocation.set){	// this one has a lot
 			aLot.pConsole = pCon;
 			aLot.place = pCon->m_parkedLocation;
@@ -457,6 +458,7 @@ void reviewParking(){	// adjust parking space sizes and remove any gaps (console
 	}
     
 #include "wx/regex.h"
+#include "wx/tokenzr.h"
 // The following could be Duktape release dependent
 wxRegEx parse(" *at ([^ ]*).*:([0-9]*)"); // parses function and line number
 wxString formErrorMessage(duk_context *ctx){
@@ -496,7 +498,7 @@ wxString formErrorMessage(duk_context *ctx){
     else message = error;   // only the error itself available
     duk_pop(ctx);   // the error text/object
     return message;
-}
+	}
     
 //#if DUKDUMP
 wxString dukdump_to_string(duk_context* ctx){

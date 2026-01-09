@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -93,13 +93,15 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             consoleShow\
             consoleName\
             consolePark\
-            onSeconds\
-            onAllSeconds\
-            onDialogue\
+            onSeconds onAllSeconds\
+            onSocketEvent socketSend\
+            onDialogue onAllDialogue\
             onExit\
-            onCloseButton\
+            onCloseButton, onAllCloseButton\
+            readDialogue\
             stopScript\
             messageBox\
+            modalDialogue\
             toClipboard\
             fromClipboard\
             cleanString\
@@ -120,6 +122,15 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetARPgpx\
             OCPNonActiveLeg\
             OCPNonContextMenu\
+            OCPNonAllContextMenu\
+            OCPNonWaypointContextMenu\
+            OCPNonAllWaypointContextMenu\
+            OCPNonRouteContextMenu\
+            OCPNonAllRouteContextMenu\
+            OCPNonTrackContextMenu\
+            OCPNonAllTrackContextMenu\
+            OCPNonAISContextMenu\
+            OCPNonAllAISContextMenu\
             OCPNgetNewGUID\
             OCPNgetWaypointGUIDs\
             OCPNgetPluginConfig\
@@ -149,6 +160,11 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNgetGCdistance\
             OCPNsoundAlarm\
             OCPNisOnline\
+            OCPNraiseNotification\
+            OCPNgetNotifications\
+            OCPNackNotification\
+            OCPNonNotificationAction\
+            OCPNonAllNotificationAction\
             consoleExists\
             consoleBusy\
             consoleClearOutput\

@@ -1,5 +1,6 @@
 // updated 2 Nov 2020 to accept position pair and to fix bug in formatted when minutes < 1 
 // updated 18 Mar 2024 to add parsing formatted position
+// updated 28 Jul 2025 to use new OCPNformatLatLon and hence user format choice
 function Position(lat, lon){
 	if (arguments.length == 1){
 		if (typeof arguments[0] != "string"){
@@ -21,6 +22,9 @@ function Position(lat, lon){
 	enumerable: false,
 	configurable: false,
 	get: function () {
+		return(niceify(OCPNformatDMS(1, this.latitude,true)) + " " + niceify(OCPNformatDMS(2, this.longitude,true)));
+		}
+/*	This was how it used to be done
         latAbs = Math.abs(this.latitude);
         lonAbs = Math.abs(this.longitude);
         return (
@@ -31,8 +35,9 @@ function Position(lat, lon){
             (lonAbs % 1 * 60).toFixed(3) + "'" +
             ((this.longitude < 0) ? "W" : "E")
 	        )}
+*/
 	    });
-		
+
 	Object.defineProperty(this, "NMEA",{   // format as in NMEA sentence
 	enumerable: false,
 	configurable: false,
@@ -77,7 +82,7 @@ function Position(lat, lon){
 
 	return this;
 
-      function parsePosition(text){
+	function parsePosition(text){
 		// parse lat & long into position object
 		trace = false;
 		title = arguments.callee.name;	// remember for error reporting
@@ -87,9 +92,14 @@ function Position(lat, lon){
 		if (parts == null) bail("not lat long pair");	
 		if (trace) print("Halves: ", parts, "\n");
 		if (parts.length != 5) bail("parse error 1");
+		position = {};
+		position.latitude = OCPNparseDMS(parts[1]+parts[2]);
+		position.longitude = OCPNparseDMS(parts[3]+parts[3]);
+		return position;
+/* this is how we used to do it
 		latSign = parts[2].match(/N/i)?1:-1;
 		lonSign = parts[4].match(/E/i)?1:-1;
-		position = {};
+
 		position.latitude = parse(parts[1], "lat") * latSign;
 		position.longitude = parse(parts[3], "lon") * lonSign;
 		return position;
@@ -144,9 +154,31 @@ function Position(lat, lon){
 			if (value < 0 || value > max) bail("out of range");
 			return value;
 			};
-
+		}
+*/
 		function bail(message){
 			throw(title + " " + phase + " " + message);
 			};
 		}
+
+		function niceify(string){	// ajust precision to my liking
+		parts = string.split(" ");
+		switch (parts.length){
+			case 1:	// Decimal degrees - do nothing
+				return(string);
+			case 2:	// should not be
+				return("Nonsense formatting of decimal degrees");
+			case 3:	// degrees and decimal minutes
+				value = parts[1].slice(0,-1)* 1;
+				parts[1] = value.toFixed(3) + "'";			
+				return parts.join(" ");
+			case 4:	// degrees minutes and decimal seconds
+				value = parts[2].slice(0,-1)* 1;
+				parts[2] = value.toFixed(1) + "\"";			
+				return parts.join(" ");
+			default: break;
+			}			
+		return("Invalid formatted string from OCPN");;
+		}
+
     };

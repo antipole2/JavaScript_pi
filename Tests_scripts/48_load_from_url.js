@@ -14,7 +14,6 @@ function urlLoaded(dialog){
 	button = dialog[dialog.length-1].label;
 	if (button == "Loaded script OK"){
 		onConsoleResult(urlConsole, hasRun);
-		consoleRun(urlConsole);
 		}
 	else scriptResult("Load from URL failed");
 	}

@@ -17,11 +17,13 @@ function NMEA2000(arg, data, options){
 
 	// examine the arguments
 	this.descriptor = false;	// no descriptor yet
+	// printOrange("NMEA2000 options arg:", options, "\ttypeof: ", typeof(options),"\n");
 	if (typeof(options) == "object"){
 		if (options.hasOwnProperty("trace")) this.trace = options.trace;
 		if (options.hasOwnProperty("undefined")) this.undefined = options.undefined;
 		}
 	var trace = this.trace;	// for convenience
+	// printOrange("NMEA2000 called with trace:", this.trace, "\n");
 	if (trace & 1) printOrange("NMEA2000 called with arg type ", typeof(arg), "\n");
 	switch (typeof(arg)){
 		case "number":
@@ -172,8 +174,9 @@ function NMEA2000(arg, data, options){
 		if ((this.priority == void 0) || (this.priority == "undefined"))
 			priority = 3;
 		else priority = this.destination;
-		OCPNpushNMEA2000(this.handle, this.PGN, destination, priority, payload);
-		return;
+		if (this.trace & 1) print("NMEA2000 about to push with handle:", this.handle, "\tPGN:", this.PGN, "\tdest:", destination, "\tpri:", priority, "\npayload:", payload, "\n");
+		outcome = OCPNpushNMEA2000(this.handle, this.PGN, destination, priority, payload);
+		return outcome;
 		}
 
 	return this;	// end of constructor ---------------------------------------------------
@@ -398,7 +401,12 @@ throw("Type integer");
 				nextBitIndex += desc.BitLength;
 				if (trace & 8) printOrange("Decoding binary data.  value:", value, "\tlength:", desc.BitLength, "\n");
 				return numberToBinary(value, desc.BitLength);
-			default: { printGreen(desc, "\n");throw("Unsupported field type " + desc.FieldType);}
+			case "SPARE":
+				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+				nextBitIndex += desc.BitLength;
+				if (trace & 8) printOrange("Spare  value:", value, "\tlength:", desc.BitLength, "\n");
+				return value;
+			default: { printGreen("Unsupported field type:", desc, "\n");throw("Unsupported field type " + desc.FieldType);}
 			}
 		result = "The result";
 		return result;

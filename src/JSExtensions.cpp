@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -27,6 +27,7 @@
 #include <wx/arrstr.h>
 #include <wx/utils.h>
 #include "jsDialog.h"
+#include <wx/socket.h>
 
 /*  On hold for now - cannot find a way of handling the variable arguments
  // sprintf function
@@ -55,6 +56,7 @@ void throwErrorByCtx(duk_context *ctx, wxString message);
 wxString resolveFileName(wxString inputName, Console* pConsole, int options);
 wxString getTextFile(wxString fileString, wxString* text, int timeOut);
 wxString JScleanOutput(wxString given);
+bool cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString callbackName);
 
 void limitOutput(wxStyledTextCtrl* pText){
 	// given output text area, ensure does not exceed size limit and scroll to end
@@ -325,7 +327,9 @@ static duk_ret_t duk_message(duk_context *ctx) {   // show modal dialogue
 	dialog->Bind(wxEVT_BUTTON, &onMessageButton, wxID_ANY);
 	dialog->Fit();
 	pConsole->mpMessageDialog = dialog;
+	pConsole->mModalCount++;
 	answer = dialog->ShowModal();
+	pConsole->mModalCount--;
     switch (answer) {
     	case -1:	// modal was closed by consoleClose()
     		pConsole->mStatus.set(CLOSING); // note special case
@@ -430,7 +434,6 @@ static duk_ret_t duk_write_text_file(duk_context *ctx) {  // write a text file
     	// if file already exists and we are here, user must have chosen to overwrite it, so we allow it to overwrite in next bit
     	mode = wxFile::write;	
     	}
-//    std::vector<wxFile::OpenMode> openMode {wxFile::read, wxFile::write, wxFile::read_write, wxFile::write_append, wxFile::write_excl};	
     wxFile* theFile = new wxFile();
     bool OK;
     if (access == 0) OK = theFile->Create(fileString, false);	// must not exist
@@ -520,72 +523,44 @@ duk_ret_t duk_require(duk_context *ctx){ // the module search function
         }
     return(1);
     };
-
+	
 void setupSeconds(duk_context *ctx, bool persistant){
 	// create a callback entry to call fuction with argument at timeToCall
 	// called with onSeconds(function, time [, parameter])
-	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-	int matched = -1;
     Console* pConsole = findConsoleByCtx(ctx);
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-	if (nargs < 2){
-		if (nargs == 0) { // empty call - cancel all timers
-			pConsole->mpTimersVector.clear();
-			pConsole->mTimerActionBusy = false;
-			pConsole->mWaitingCached = false;   // force full isWaiting check
-			matched = 0;
+	if (duk_is_callable(ctx, 0) && duk_is_number(ctx, 1)){
+		wxString argument = wxEmptyString;
+		if (pConsole->mStatus.test(INEXIT)) {
+			pConsole->prep_for_throw(ctx, "onSeconds within onExit function");
+			duk_throw(ctx);
 			}
-		else if (nargs == 1){ // cancel specified timer
-			duk_require_number(ctx, 0);
-			int id = duk_get_int(ctx, 0);
-			duk_pop(ctx);
-			if (pConsole->mpTimersVector.empty()) return;
-			for (auto it = pConsole->mpTimersVector.cbegin(); it != pConsole->mpTimersVector.cend(); ++it){
-				auto entry = (*it);
-				if (entry.timer->GetId() == id){
-					pConsole->mpTimersVector.erase(it);
-					matched = 1;
-					break;
-					}
-				}
+		if (!duk_is_callable(ctx, 0)) {
+			pConsole->prep_for_throw(ctx, "onSeconds first argument must be callable");
+			duk_throw(ctx);
 			}
-		duk_push_int(ctx, matched);
-		return;
+		if (nargs > 3) {
+			pConsole->prep_for_throw(ctx, "onSeconds requires no more than three arguments");
+			duk_throw(ctx);
+			}
+		int timeInt = (int) (duk_get_number(ctx, 1) * 1000);	//interval in msec
+		if (nargs == 3) argument = duk_to_string(ctx, 2);
+		std::shared_ptr<callbackEntry> pEntry = pConsole->newCallbackEntry(CB_TIMER);
+		pEntry->func_heapptr = duk_get_heapptr(ctx, 0);
+		pEntry->parameter = argument;
+		pEntry->timer = make_shared<wxTimer>();
+		pEntry->id = pEntry->timer->GetId();
+		pEntry->persistant = persistant;	// not actually used with timer but record for dump etc.
+		pEntry->timer->Start(timeInt, persistant ? wxTIMER_CONTINUOUS : wxTIMER_ONE_SHOT);
+		pEntry->timer->Bind(wxEVT_TIMER, &Console::HandleTimer, pConsole);
+//		pConsole->// mCallbacks.push_back(pEntry);
+		pConsole->mWaitingCached = false;
+		TRACE(66, wxString::Format("setTimedCallback time %i,  argument %s mCallBacks length %i",
+			timeInt, argument, pConsole->mCallbacks.size()));
+		duk_pop_n(ctx, nargs);	// finished with call
+		duk_push_int(ctx, pEntry->id); 	
 		}
-	if (pConsole->mpTimersVector.size() > MAX_TIMERS){
-		pConsole->prep_for_throw(ctx, wxString::Format("onSeconds already have maximum %i timers outstanding", MAX_TIMERS));   // safety limit of timers);
-		duk_throw(ctx);
-		}
-	// ready to go
-	wxString argument = wxEmptyString;
-	if (pConsole->mStatus.test(INEXIT)) {
-		pConsole->prep_for_throw(ctx, "onSeconds within onExit function");
-		duk_throw(ctx);
-		}
-	if (!duk_is_function(ctx, 0)) {
-		pConsole->prep_for_throw(ctx, "onSeconds first argument must be function");
-		duk_throw(ctx);
-		}
-	if (nargs > 3) {
-		pConsole->prep_for_throw(ctx, "onSeconds requires no more than three arguments");
-		duk_throw(ctx);
-		}
-	jsFunctionNameString_t functionToCall = extractFunctionName(ctx, 0);
-	int timeInt = (int) (duk_get_number(ctx, 1) * 1000);	//interval in msec
-	if (nargs == 3) argument = duk_to_string(ctx, 2);
-	duk_pop_n(ctx, nargs);	// finished with call
-	bool shots = persistant ? wxTIMER_CONTINUOUS : wxTIMER_ONE_SHOT;
-	timerEntry entry;
-	entry.functionName = functionToCall;
-	entry.parameter = argument;
-	entry.timer = make_shared<wxTimer>();
-	int id = entry.timer->GetId();
-	entry.timer->Bind(wxEVT_TIMER, &Console::HandleTimer, pConsole);
-	entry.timer->Start(timeInt, shots);
-	pConsole->mpTimersVector.push_back(entry);
-	TRACE(66, wxString::Format("setTimedCallback time %i, function %s  argument %s mpTimersVector length %i",
-		timeInt, functionToCall, argument, pConsole->mpTimersVector.size())); 
-	duk_push_int(ctx, id); 
+	else cancelCallbackPerCtx(ctx, pConsole, CB_TIMER, "onTimer");
 	}
 
 static duk_ret_t onSeconds(duk_context *ctx) {  // call function after milliseconds elapsed
@@ -615,17 +590,23 @@ static duk_ret_t duk_timeAlloc(duk_context *ctx) {   // time allocation
 static duk_ret_t duk_stopScript(duk_context *ctx) {
     duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
     Console *pConsole = findConsoleByCtx(ctx);
-    
+    pConsole->mStatus.set(STOPPED);
+    if (pConsole->mModalCount > 0){
+    	// There is a modal window about - cannot stop
+    	pConsole->message(STYLE_RED, _("stopScript - cannot stop as have modal window"));
+    	return 0;
+    	}
     if (pConsole->mStatus.test(INEXIT)) {
 		pConsole->prep_for_throw(ctx, "stopScript within onExit function");
 		duk_throw(ctx);
 		}
+	pConsole->clearCallbacks(); 
     if (nargs > 0){
         pConsole->m_result = duk_safe_to_string(ctx, -1);
         pConsole->m_explicitResult = true;
         duk_pop(ctx);
         }
-    pConsole->mStatus.set(STOPPED);
+    // no prep_for_throw here.  Is that OK for Windows?
     duk_throw(ctx);
     return 0;  //never executed but keeps compiler happy
     }
@@ -752,10 +733,8 @@ duk_ret_t chain_script(duk_context* ctx){
     pConsole->auto_run->Show();
     pConsole->auto_run->SetValue(false);
     if (haveBrief){
-        pConsole->mBrief.fresh = true;
         pConsole->mBrief.theBrief = brief;
         pConsole->mBrief.hasBrief = true;
-        pConsole->mBrief.fresh = true;
         }
     else pConsole->mBrief.hasBrief = false;
     // ready to go
@@ -770,25 +749,26 @@ static duk_ret_t duk_getBrief(duk_context *ctx) {
     // get any brief left for this script
     extern JavaScript_pi *pJavaScript_pi;
     Console *pConsole = findConsoleByCtx(ctx);
-    wxString brief;
-    if ( !pConsole->mBrief.hasBrief) {
-		pConsole->prep_for_throw(ctx, _("getBrief found no brief"));
+    if (pConsole->mBrief.hasBrief){
+    	duk_push_string(ctx, pConsole->mBrief.theBrief);
+   		pConsole->mBrief.hasBrief = false;	// only provide once
+    	}
+    else {
+    	pConsole->prep_for_throw(ctx, _("getBrief found no brief"));
 		duk_throw(ctx);
-		}
-    duk_push_string(ctx, pConsole->mBrief.theBrief);
+    	}
     return 1;
     }
 
 static duk_ret_t duk_onExit(duk_context *ctx){
-    // set an onExit function
-    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
+    // set an onExit handler
     extern JavaScript_pi *pJavaScript_pi;
     Console *pConsole = findConsoleByCtx(ctx);
     if (pConsole->mStatus.test(INEXIT)) {
 		pConsole->prep_for_throw(ctx, "onExit within onExit function");
 		duk_throw(ctx);
 		}
-    pConsole->m_exitFunction = extractFunctionName(ctx, -1);
+    pConsole->m_exitHandler = duk_get_heapptr(ctx, 0);
     duk_pop(ctx);
     return 0;
     }
@@ -837,7 +817,6 @@ static duk_ret_t duk_execute(duk_context *ctx){
 	command = duk_get_string(ctx, 0);
 	duk_idx_t env_obj_idx {1};	// where the env object is if present
 	if(duk_is_object_coercible(ctx, env_obj_idx)){	// yes - given environment variables
-//	 	wxArrayString keys = {"PATH", "PWD"};	// possible keys supported
 		wxArrayString keys;
 		keys.Add("PATH");
 		keys.Add("PWD");
@@ -848,7 +827,6 @@ static duk_ret_t duk_execute(duk_context *ctx){
 			if (duk_get_prop(ctx, env_obj_idx)){	// key exists
 				wxString value = duk_get_string(ctx, -1);
 				if (key == "PWD") execEnv.cwd = value;
-//				else execEnv.env.SetEnv(key, value);
 				else execEnv.env[key] = value;
 				}
 			}
@@ -1159,24 +1137,32 @@ duk_ret_t safe_decode_JSON(duk_context *ctx, void *udata) {	// function for safe
 	    return 1;	// returns with decoded object on stack if OK
 		}
 		
-static duk_ret_t duk_onCloseButton(duk_context *ctx){
-	wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    Console *pConsole = findConsoleByCtx(ctx);
+void onCloseButtonGuts(duk_context *ctx, bool persistant){
 	duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-	if (nargs == 0) pConsole-> m_closeButtonFunction = wxEmptyString;
-	else if (nargs == 1){
-		if (pConsole-> m_closeButtonFunction != wxEmptyString) {
-			pConsole->prep_for_throw(ctx, "onCloseButton already set");
-			duk_throw(ctx);
-			}
-		pConsole-> m_closeButtonFunction = extractFunctionName(ctx, 0);
+    Console *pConsole = findConsoleByCtx(ctx);
+	if ((nargs == 1) && duk_is_callable(ctx, 0)){	// setting up a callback
+		if (pConsole->mStatus.test(INEXIT)){
+        	throwErrorByCtx(ctx, "onClose within onExit");
+        	}
+        std::shared_ptr<callbackEntry> pEntry = pConsole->newCallbackEntry(CB_CLOSE);
+        pEntry->persistant = persistant;
+        pEntry->func_heapptr = duk_get_heapptr(ctx, 0);
 		duk_pop(ctx);
+		duk_push_int(ctx,pEntry->id);
+		pConsole->mWaitingCached = false;
 		}
-	else {
-		pConsole->prep_for_throw(ctx, "onCloseButton requires just one argument");
-		duk_throw(ctx);
-		}
-	return 0;
+	else cancelCallbackPerCtx(ctx, pConsole, CB_CLOSE, "onClose");
+	return;
+	}
+
+duk_ret_t duk_onCloseButton(duk_context *ctx){
+	onCloseButtonGuts(ctx, false);
+	return 1;
+	}
+	
+duk_ret_t duk_onAllCloseButton(duk_context *ctx){
+	onCloseButtonGuts(ctx, true);
+	return 1;
 	}
 
 static duk_ret_t cleanString(duk_context *ctx){
@@ -1187,8 +1173,7 @@ static duk_ret_t cleanString(duk_context *ctx){
 	duk_push_string(ctx, JScleanString(string));
 	return 1;
 	}
-	
-	
+		
 static duk_ret_t NMEAchecksum(duk_context *ctx){
 	// checkChars = NMEAchecksum(sentence)
 	wxString NMEAchecksum(wxString sentence);	
@@ -1218,9 +1203,103 @@ static duk_ret_t keyboardState(duk_context *ctx){
             duk_put_prop_literal(ctx, -2, "menu");            
     return 1;
     }
+    
+static duk_ret_t onSocketEvent(duk_context *ctx){ 
+	// returns result on duktape stack
+	duk_idx_t nargs = duk_get_top(ctx);   // number of arguments in call
+	Console* pConsole = findConsoleByCtx(ctx);
+	if ((nargs >= 2) && duk_is_callable(ctx, 0)){
+		// id = onSocketEvent(handler, port)
+		if (pConsole->mStatus.test(INEXIT)){
+        	throwErrorByCtx(ctx, "onSocketEvent within onExit");
+        	}
+        std::shared_ptr<callbackEntry> pEntry = pConsole->newCallbackEntry(CB_SOCKET);
+        pEntry->persistant = true;
+		pEntry->func_heapptr = duk_get_heapptr(ctx, 0);
+		int port = duk_get_number(ctx, 1);
+		int pollInterval = 500;	//polling interval in msec
+		if (nargs == 3) pollInterval = duk_get_number(ctx, 2);		
+		duk_pop_n(ctx, nargs);
+		wxIPV4address addr;
+		addr.AnyAddress();
+		addr.Service(port);
+		pEntry->datagram.lastSender.Clear();
+		pEntry->datagram.socket = make_unique<wxDatagramSocket>(addr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR | wxSOCKET_BROADCAST);
+//		pEntry->datagram.sendAddress = addr;	// would override 255.255.255.255
+//		pEntry->pSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR | wxSOCKET_BROADCAST);
+		if (!pEntry->datagram.socket->IsOk()){
+			pConsole->prep_for_throw(ctx, wxString::Format("onSocketEvent failed to create socket on port %d", port));
+			duk_throw(ctx);
+			}
+		pEntry->timer = make_shared<wxTimer>();
+		pEntry->id = pEntry->timer->GetId();
+		pEntry->timer->Start(pollInterval, wxTIMER_CONTINUOUS);
+		pEntry->timer->Bind(wxEVT_TIMER, &Console::PollSocket, pConsole);
+		duk_push_int(ctx, pEntry->id);
+		pConsole->mWaitingCached = false;
+	    }
+	else cancelCallbackPerCtx(ctx, pConsole, CB_SOCKET, "onSocketEvent");
+	return 1;
+	};
+	
+static duk_ret_t socketSend(duk_context *ctx){ 
+	// socketSend(id, data [, port, address]);
+	duk_idx_t nargs = duk_get_top(ctx);   // number of arguments in call
+	Console* pConsole = findConsoleByCtx(ctx);
+	callbackID id =  duk_get_number(ctx, 0);
+	std::shared_ptr<callbackEntry> pEntry = pConsole->getCallbackEntry(id, false);
+	if (!pEntry) THROWCONSOLE(wxString::Format("socketSend - %d not valid socket id", id));
+	wxIPV4address addr = pEntry->datagram.lastSender;
+	bool OK;
+	if (nargs == 2){
+		bool hasSender = !pEntry->datagram.lastSender.IPAddress().IsEmpty() && pEntry->datagram.lastSender.Service() != 0;
+		if (hasSender) addr = pEntry->datagram.lastSender;
+		else THROWCONSOLE("socketSend - nothing to reply to");
+		}
+	else if (nargs >= 3){
+		uint service = duk_get_number(ctx, 2);
+		OK = addr.Service(service);	// port specified
+		if (!OK) THROWCONSOLE(wxString::Format("socketSend - invalid service %d", service));
+		addr.Hostname("255.255.255.255");
+		}	
+	if (nargs >= 4){
+		wxString host = duk_get_string(ctx, 3);
+		OK = addr.Hostname(host);	// address specified
+		if (!OK) THROWCONSOLE(wxString::Format("socketSend - invalid host %s", host));	
+		}
+	if (duk_is_string(ctx, 1)){
+		wxString text = duk_get_string(ctx, 1);
+		int length = text.size();
+		if (length > 512) THROWCONSOLE(wxString::Format("socketSend - message length %d exceeds maximum 512", length));	
+		wxCharBuffer buf = text.ToUTF8();
+		TRACE(12345, wxString::Format("Will send text: %s with count of %d", text, buf.length()));
+		pEntry->datagram.socket->SendTo(addr, buf.data(), buf.length());
+		}
+	else {	// We have buffer - assume with CBOR data and flag it as such
+		duk_size_t length;
+		void* data = duk_get_buffer_data(ctx, 1, &length);
+		if (!data || length == 0){ 	// nothing to send
+			duk_pop_n(ctx, nargs);
+			duk_push_number(ctx, 0);
+			return 1;
+			 }
+		wxMemoryBuffer framed;
+		framed.AppendByte(MAGIC_CBOR);
+		framed.AppendData(data, static_cast<size_t>(length));
+		TRACE(12345, wxString::Format("Will send CBOR data with count of %d", framed.GetDataLen()));
+		pEntry->datagram.socket->SendTo(addr, framed.GetData(), framed.GetDataLen());
+		}
+	if (pEntry->datagram.socket->Error()){
+		wxSocketError errorCode = pEntry->datagram.socket->LastError();	
+		THROWCONSOLE(wxString::Format("socketSend failed with error %d", errorCode));
+		}
+	wxUint32 sentCount = pEntry->datagram.socket->LastWriteCount();
+	duk_pop_n(ctx, nargs);
+	duk_push_number(ctx, sentCount);
+	return 1;
+	}
 	   
 void duk_extensions_init(duk_context *ctx, Console* pConsole) {
-    extern duk_ret_t duk_dialog(duk_context *ctx);
     duk_idx_t duk_push_c_function(duk_context *ctx, duk_c_function func, duk_idx_t nargs);
 
     duk_push_global_object(ctx);
@@ -1284,8 +1363,24 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 
     duk_push_string(ctx, "onDialogue");
+    duk_ret_t duk_dialog(duk_context *ctx);
     duk_push_c_function(ctx, duk_dialog, DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "onAllDialogue");
+    duk_ret_t duk_dialog_persist(duk_context *ctx);
+    duk_push_c_function(ctx, duk_dialog_persist, DUK_VARARGS /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "modalDialogue");
+    duk_ret_t duk_dialog_modal(duk_context *ctx);
+    duk_push_c_function(ctx, duk_dialog_modal, 1 /* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "readDialogue");
+    duk_ret_t duk_read_dialog(duk_context *ctx);
+    duk_push_c_function(ctx, duk_read_dialog, 1/* arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);    
 
 #if 0
     duk_push_string(ctx, "format");
@@ -1365,6 +1460,10 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_push_c_function(ctx, duk_onCloseButton, DUK_VARARGS /* variable arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+    duk_push_string(ctx, "onAllCloseButton");
+    duk_push_c_function(ctx, duk_onAllCloseButton, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
     duk_push_string(ctx, "cleanString");
     duk_push_c_function(ctx, cleanString, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
@@ -1372,14 +1471,21 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_push_string(ctx, "keyboardState");
     duk_push_c_function(ctx, keyboardState, 0);	// no args
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
-
     
+    duk_push_string(ctx, "onSocketEvent");
+    duk_push_c_function(ctx, onSocketEvent, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "socketSend");
+    duk_push_c_function(ctx, socketSend, DUK_VARARGS /* variable arguments*/);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+       
 	// set up the _remember variable
 	// the JSON string could be invalid - need to catch any error	
     json_safe_args args;
+    duk_int_t rc;
     args.jsonString = pConsole->m_remembered;
-    duk_int_t rc = duk_safe_call(ctx, safe_decode_JSON, (void *) &args, 0 /*nargs*/, 1 /*nrets*/);
+    rc  = duk_safe_call(ctx, safe_decode_JSON, (void *) &args, 0 /*nargs*/, 1 /*nrets*/);
     if (rc != DUK_EXEC_SUCCESS) {	// JSON decode error
     	duk_pop(ctx);	// pop off invalid JSON result
     	duk_push_undefined(ctx);	// replace with undefined
@@ -1391,20 +1497,31 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
 	duk_swap_top(ctx, -2);		
 	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);
 	
+	// set up the _versionControl variable
+	// the JSON string could be invalid - need to catch any error	
+    args.jsonString = pConsole->m_versionControl;
+    rc = duk_safe_call(ctx, safe_decode_JSON, (void *) &args, 0 /*nargs*/, 1 /*nrets*/);
+    if (rc != DUK_EXEC_SUCCESS) {	// JSON decode error
+    	duk_pop(ctx);	// pop off invalid JSON result
+    	duk_push_undefined(ctx);	// replace with undefined
+    	if (pConsole->m_versionControl != wxEmptyString){// this was a real error in the JSON}
+    		pConsole->message(STYLE_ORANGE, "_versionControl saved value invalid JSON - have set to undefined");
+    		}
+    	}	
+	duk_push_string(ctx, "_versionControl");
+	duk_swap_top(ctx, -2);		
+	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);	
+	
 	// set up  the _canboat variable - initially undefined
 	duk_push_string(ctx, "_canboat");
 	duk_push_undefined(ctx);
 	duk_def_prop(ctx, -3, DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_HAVE_VALUE);
 	
-
-
 #if 0	
     duk_push_string(ctx, "test");
     duk_push_c_function(ctx, test , DUK_VARARGS /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
 #endif
-
-
 
 #if DUK_DUMP
     duk_push_string(ctx, "JS_throw_test");
@@ -1422,8 +1539,7 @@ void duk_extensions_init(duk_context *ctx, Console* pConsole) {
     duk_push_string(ctx, "JS_mainThread");
     duk_push_c_function(ctx, duk_mainThread, 0 /* arguments*/);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
 #endif
 
     duk_pop(ctx);
-}
+	}

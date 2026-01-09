@@ -1,6 +1,6 @@
 require("Consoles");
 consoleHide();
-
+TimeToWait = 0.5;	// allow this seconds for screen to refresh
 consoleNames = ["ConsoleA", "1", "ConsoleC__Long", "ConsoleD", "ConsoleE"];
 maximumLengthName = "MaximumLength"
 shrinkYourself = "consoleName('2');scriptResult('');";
@@ -18,7 +18,7 @@ for (i = 0; i < consoleNames.length; i++){
 	consoleAdd(console);
 	consolePark(console);
 	}
-onSeconds(step1, 2);
+onSeconds(step1, TimeToWait);
 
 function step1(){
 	result = messageBox(consoleNames.length + " consoles should have been created and parked\nWidth of minimized windows with different name lengths  correct?", "YesNo");
@@ -29,7 +29,7 @@ function step1(){
 	consoleLoad(console, growYourself);
 	consoleRun(console);
 	consoleNames.push(maximumLengthName);	// this one might be hanging around so add to ones to be deleted
-	onSeconds(step2,2);
+	onSeconds(step2,TimeToWait);
 	}
 
 function step2(){
@@ -40,7 +40,7 @@ function step2(){
 	consoleLoad(console, shrinkYourself);
 	consoleRun(console);
 	consoleNames.push(console);	// this one might be hanging around so add to ones to be deleted
-	onSeconds(step3, 2);
+	onSeconds(step3, TimeToWait);
 	}
 
 function step3(){
@@ -48,13 +48,13 @@ function step3(){
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
 	consoleClose("ConsoleC__Long");
-	onSeconds(step4, 2);
+	onSeconds(step4, TimeToWait);
 	}
 function step4(){
 	result = messageBox("Console ConsoleC__Long has been deleted\nOther parked consoles should have closed up", "YesNo");
 	if (result == 0) throw("Parking tests cancelled");
 	if (result != 2) throw("Parking tests reported wrong");
-	onSeconds(waitforit, 1);
+	onSeconds(waitforit, TimeToWait);
 	scriptResult("Parking completed");
 	}
 
@@ -66,6 +66,7 @@ function deleteConsoles(){
 		if (consoleExists(console)) consoleClose(console);
 		}
 	}
+
 
 
 

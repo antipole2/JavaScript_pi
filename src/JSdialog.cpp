@@ -3,7 +3,7 @@
  * Purpose:  JavaScript Plugin
  * Author:   Tony Voss
  *
- * Copyright Ⓒ 2024 by Tony Voss
+ * Copyright Ⓒ 2025 by Tony Voss
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, under which
@@ -25,6 +25,7 @@
 #include "wx/radiobox.h"
 #include "wx/listbox.h"
 #include "wx/choice.h"
+#include "wx/gdicmn.h"
 #include "jsDialog.h"
 
  wxString getStringFromDuk(duk_context *ctx){
@@ -34,185 +35,197 @@
      string = JScleanOutput(string);	// internally, we are using DEGREE to represent degree - convert any back
      return string;
      }
+     
+ void buildDialogueResponse(duk_context *ctx, Console *pConsole, wxWindow *window, jsButton *button, std::shared_ptr<callbackEntry> pEntry){
+	//Given a callback entry, builds the dialogue to be returned and leaves it on the duktape stack
+	wxString JScleanString(wxString given);
+    wxString elementType, theData;
+//duk_push_string(ctx, "Dummy response");
+//return;
+	duk_push_array(ctx);
+	for (int i = 0; i < pEntry->dialogue->dialogElementsArray.size(); i++){
+		TRACE(1011, wxString::Format("Starting on handling element iteration %d  dukstack: %s", i, pConsole->dukDump())); 
+		dialogElement element = pEntry->dialogue->dialogElementsArray[i];
+		elementType = element.type;
+		duk_push_object(ctx);
+		duk_push_string(ctx, elementType);
+		duk_put_prop_string(ctx, -2, "type");
+		if ((elementType == "caption") || (elementType == "text") || (elementType == "hLine")){          
+			duk_push_string(ctx, JScleanString(element.stringValue));
+			duk_put_prop_string(ctx, -2, "value");             
+			}
+		else if (elementType == "field"){
+			duk_push_string(ctx, JScleanString(element.label));
+			duk_put_prop_string(ctx, -2, "label");
+			wxTextCtrl* textCtrl = wxDynamicCast(window->FindWindow(element.itemID), wxTextCtrl);
+			if (textCtrl == nullptr){
+				pConsole->message(STYLE_RED, "Plugin logic error: textCtrl is nullptr\n");
+				return;
+				}
+			wxString textValue = textCtrl->GetValue();
+			TRACE(1011,  wxString::Format("textValue: %s", textValue));
+			duk_push_string(ctx, JScleanString(textValue));
+			duk_put_prop_string(ctx, -2, "value");
+			if (element.suffix != wxEmptyString){
+				duk_push_string(ctx, JScleanString(element.suffix));
+				duk_put_prop_string(ctx, -2, "suffix");
+				}
+			}
+		else if (elementType == "tick"){
+			wxCheckBox *tickedBox;
+			tickedBox = wxDynamicCast(window->FindWindowById(element.itemID), wxCheckBox);
+			duk_push_boolean(ctx, tickedBox->GetValue());
+			duk_put_prop_string(ctx, -2, "value");
+			}
+		else if (elementType == "tickList"){
+			wxCheckListBox *tickListBox = wxDynamicCast(window->FindWindowById(element.itemID), wxCheckListBox);
+			duk_push_array(ctx);
+			for (unsigned int j = 0, k = 0; j < tickListBox->GetCount(); j++){
+				if (tickListBox->IsChecked(j)){
+					duk_push_string(ctx, JScleanString(tickListBox->GetString(j)));
+					duk_put_prop_index(ctx, -2, k++);
+					}
+				}
+			duk_put_prop_string(ctx, -2, "value");
+			}
+		else if (elementType == "radio"){
+			wxRadioBox* radioBox;
+			duk_push_string(ctx, element.label);
+			duk_put_prop_string(ctx, -2, "label");
+			radioBox = wxDynamicCast(window->FindWindowById(element.itemID), wxRadioBox);
+			theData =JScleanString(radioBox->GetString(radioBox->GetSelection()));
+			duk_push_string(ctx, theData);
+			duk_put_prop_string(ctx, -2, "value");
+			}
+		else if (elementType == "choice"){
+			wxChoice* choice;
+			choice = wxDynamicCast(window->FindWindowById(element.itemID), wxChoice);
+			theData = JScleanString(choice->GetString(choice->GetSelection()));
+			duk_push_string(ctx, theData);
+			duk_put_prop_string(ctx, -2, "value");
+			}
+		else if (elementType == "slider"){
+			wxSlider* slider;
+			duk_push_string(ctx, JScleanString(element.label));
+			duk_put_prop_string(ctx, -2, "label");
+			slider = wxDynamicCast(window->FindWindowById(element.itemID), wxSlider);
+			duk_push_number(ctx, slider->GetValue());
+			duk_put_prop_string(ctx, -2, "value");
+			}
+		else if (elementType == "spinner"){
+			wxSpinCtrl* spinner;
+			duk_push_string(ctx, JScleanString(element.label));
+			duk_put_prop_string(ctx, -2, "label");
+			spinner = wxDynamicCast(window->FindWindowById(element.itemID), wxSpinCtrl);
+			duk_push_number(ctx, spinner->GetValue());
+			duk_put_prop_string(ctx, -2, "value");
+			}
+		else if (elementType == "button"){
+			duk_push_string(ctx, JScleanString(button->GetLabel()));
+			duk_put_prop_string(ctx, -2, "label");
+			}
+		else if ((elementType == "position")|| (elementType == "colours")){
+			// omit details
+			}
+		else {
+			pConsole->prep_for_throw(ctx, "onDialog error: onButton found unexpected type " + elementType);
+			duk_throw(ctx);
+			}
+		duk_put_prop_index(ctx, -2, i);
+		}
+	}
 
-void onButton(wxCommandEvent & event){  // here when any dialogue button clicked ****************************
-    duk_context *ctx;
-    wxWindow *window;
-    jsButton *button;
-    Console *pConsole;
-     wxString JScleanString(wxString given);
-    wxString elementType, theData, functionName;
-    std::vector<dialogElement>::const_iterator it;
-    int i;
-    Completions result;
-    
-    button = wxDynamicCast(event.GetEventObject(), jsButton);
-    pConsole = button->pConsole;
-    TRACE(3,pConsole->mConsoleName + " Dialogue button processing");
-    window = button->GetParent();
-    ctx = pConsole->mpCtx;
+void onButton(wxCommandEvent & event){  // here when any dialogue button clicked ****************************    
+    jsButton* button = wxDynamicCast(event.GetEventObject(), jsButton);
+    Console* pConsole = button->pConsole;
+    wxWindow* window = button->GetParent();
+    duk_context* ctx = pConsole->mpCtx;
     if (ctx == nullptr){
         pConsole->message(STYLE_RED, "Plugin logic error: onButton invoked with no ctx context\n");
+        JsDialog* pTheDialog = wxDynamicCast(window, JsDialog);
+        pTheDialog->Destroy();
         return;
         }
-    functionName = pConsole->mDialog.functionName;
-    pConsole->mDialog.functionName = wxEmptyString;   // clear out so we do not use again
-    if ( window->Validate() && window->TransferDataFromWindow() ){
-        window->Show(false);
-        // now to build the returned object
-        duk_push_array(ctx);
-        for (i = 0, it = pConsole->mDialog.dialogElementsArray.cbegin(); it !=  pConsole->mDialog.dialogElementsArray.cend(); i++, it++){
-            elementType = it->type;
-            duk_push_object(ctx);
-            duk_push_string(ctx, elementType);
-            duk_put_prop_string(ctx, -2, "type");
-            if ((elementType == "caption") || (elementType == "text") || (elementType == "hLine")){
-                duk_push_string(ctx, JScleanString(it->stringValue));
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "field"){
-                duk_push_string(ctx, JScleanString(it->label));
-                duk_put_prop_string(ctx, -2, "label");
-                duk_push_string(ctx, JScleanString(it->textValue));
-                duk_put_prop_string(ctx, -2, "value");
-                if (it->suffix != wxEmptyString){
-                    duk_push_string(ctx, JScleanString(it->suffix));
-                    duk_put_prop_string(ctx, -2, "suffix");
-                    }
-                }
-            else if (elementType == "tick"){
-                wxCheckBox *tickedBox;
-                tickedBox = wxDynamicCast(window->FindWindowById(it->itemID), wxCheckBox);
-                duk_push_boolean(ctx, tickedBox->GetValue());
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "tickList"){
-                wxCheckListBox *tickListBox = wxDynamicCast(window->FindWindowById(it->itemID), wxCheckListBox);
-                duk_push_array(ctx);
-                for (unsigned int j = 0, k = 0; j < tickListBox->GetCount(); j++){
-                    if (tickListBox->IsChecked(j)){
-                        duk_push_string(ctx, JScleanString(tickListBox->GetString(j)));
-                        duk_put_prop_index(ctx, -2, k++);
-                        }
-                    }
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "radio"){
-                wxRadioBox* radioBox;
-                duk_push_string(ctx, it->label);
-                duk_put_prop_string(ctx, -2, "label");
-                radioBox = wxDynamicCast(window->FindWindowById(it->itemID), wxRadioBox);
-                theData =JScleanString(radioBox->GetString(radioBox->GetSelection()));
-                duk_push_string(ctx, theData);
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "choice"){
-                wxChoice* choice;
-                choice = wxDynamicCast(window->FindWindowById(it->itemID), wxChoice);
-                theData = JScleanString(choice->GetString(choice->GetSelection()));
-                duk_push_string(ctx, theData);
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "slider"){
-                wxSlider* slider;
-                duk_push_string(ctx, JScleanString(it->label));
-                duk_put_prop_string(ctx, -2, "label");
-                slider = wxDynamicCast(window->FindWindowById(it->itemID), wxSlider);
-                duk_push_number(ctx, slider->GetValue());
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "spinner"){
-                wxSpinCtrl* spinner;
-                duk_push_string(ctx, JScleanString(it->label));
-                duk_put_prop_string(ctx, -2, "label");
-                spinner = wxDynamicCast(window->FindWindowById(it->itemID), wxSpinCtrl);
-                duk_push_number(ctx, spinner->GetValue());
-                duk_put_prop_string(ctx, -2, "value");
-                }
-            else if (elementType == "button"){
-                duk_push_string(ctx, JScleanString(button->GetLabel()));
-                duk_put_prop_string(ctx, -2, "label");
-                }
-            else {
-            	pConsole->prep_for_throw(ctx, "onDialog error: onButton found unexpected type " + elementType);
-            	duk_throw(ctx);
-            	}
-            duk_put_prop_index(ctx, -2, i);
-            }
+    std::shared_ptr<callbackEntry> pEntry = pConsole->getCallbackEntry(button->entryId, false);	// find the callback entry
+    TRACE(68, wxString::Format("Handle dialogue button - got entry pEntry->persistant is %s length of mCallbacks:%d", (pEntry->persistant?"true":"false"), pConsole->mCallbacks.size()));
+    if (!pEntry->dialogue->customPosition) pConsole->mDialogPosition = pConsole->ToDIP(window->GetPosition());
+    if ( window->Validate()){
+    	buildDialogueResponse(ctx, pConsole, window, button, pEntry);  
         // now to add extra element for clicked-on button
         duk_push_object(ctx);
         duk_push_string(ctx, button->GetLabel());
         duk_put_prop_string(ctx, -2, "label");
-        duk_put_prop_index(ctx, -2, i); // i will have been left one greater than length of array so this extends it
-        pConsole->clearDialog();
-        TRACE(4,pConsole->mConsoleName + " Done on button processing - to call function " + functionName);
-        result = pConsole->executeFunction(functionName);
-        TRACE(4,pConsole->mConsoleName + " Button processing - back from function");
-        if (result != MORETODO) pConsole->wrapUp(result);
+        duk_put_prop_index(ctx, -2, pEntry->dialogue->dialogElementsArray.size()/* + 1*/); // add extra element in built array
+        JsDialog* dialogue = wxDynamicCast(window, JsDialog);
+        if (dialogue->IsModal()){
+        	// The response is on the duktape stack
+        	dialogue->EndModal(0);	// Over to createDialogue()
+        	return;
+        	}
+        duk_push_string(ctx, button->GetLabel());	// add the button label as a second argument
+//		if (!pEntry->persistant) pConsole->cleanOutEntry(pEntry);	// only clean out if we want to get rid of the dialogue
+        Completions result = pConsole->executeCallableNargs(pEntry->func_heapptr, 2);
+        TRACE(1011,pConsole->mConsoleName + " Button processing - back from handler");
+        if (!pConsole->isBusy()) pConsole->wrapUp(result);
+//        if (result != MORETODO) pConsole->wrapUp(result);
         }
     else {
+//    	pConsole->cleanOutEntry(pEntry);
     	pConsole->prep_for_throw(ctx, "JavaScript onDialogue data validation failed");
     	duk_throw(ctx);
     	}
     }
 
 // create the dialog  *********************************
-duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
-    extern JavaScript_pi* pJavaScript_pi;
+void createDialogue(duk_context *ctx, int type){
+	// type of call: 0 single shot callback, +1 persistant callback, -1 modal
+	Console* findConsoleByCtx(duk_context *ctx);
+	void throwErrorByCtx(duk_context *ctx, wxString message);
+	void cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString callbackName);
+	
+	duk_idx_t nargs = duk_get_top(ctx);   // number of arguments in call
+	Console* pConsole = findConsoleByCtx(ctx);
+	if (type == -1){	// is modal set up
+		if ((nargs != 1) || !duk_is_array(ctx, 0)) throwErrorByCtx(ctx, "modalDialogue invalid call");
+		}
+	else {	// not modal
+		if (pConsole->mStatus.test(INEXIT)) throwErrorByCtx(ctx, "onDialogue within onExit");
+		if (!duk_is_callable(ctx, 0)){	// this is a cancel
+			cancelCallbackPerCtx(ctx, pConsole, CB_DIALOGUE, "onDialogue");
+			return;
+			}
+		else if (nargs != 2) {
+			pConsole->prep_for_throw(ctx, "onDialog error: creating dialogue requires two arguments");
+			duk_throw(ctx);
+			}  
+		}
+	extern JavaScript_pi* pJavaScript_pi;
+	// create the dialogue
+	std::shared_ptr<callbackEntry> pEntry = pConsole->newCallbackEntry(CB_DIALOGUE);
+	pEntry->func_heapptr = duk_get_heapptr(ctx, 0);
+	pEntry->persistant = (type == 1)? true:false;
     int i;
     wxString elementType, value;
-    dialogElement anElement;
     bool hadButton {false};
     wxArrayString strings;
-//    wxString getStringFromDuk(duk_context *ctx);
-    Console *findConsoleByCtx(duk_context *ctx);
-    wxString extractFunctionName(duk_context *ctx, duk_idx_t idx);
-    
-    Console *pConsole = findConsoleByCtx(ctx);
-    std::vector<dialogElement> dialogElementArray;  // will be array of the elements for this call
-    duk_idx_t nargs = duk_get_top(ctx);  // number of args in call
-    JsDialog *dialog = pConsole->mDialog.pdialog; // any existing dialogue
-    if (nargs == 0){    // just return present state
-        duk_push_boolean(ctx, (dialog != nullptr) ? true : false);
-        return 1;
-        }
-    // if called with single argument of false, is attempt to cancel any open dialogue
-    // cancel any existing dialogue and return true if there was one
-    if (duk_get_top(ctx) == 1 && duk_is_boolean(ctx, -1) && !duk_get_boolean(ctx, -1)){
-        duk_pop(ctx);   // the argument
-        if (dialog != nullptr){
-            // there is a dialogue displayed
-            pConsole->clearDialog();
-            duk_push_boolean(ctx, true);
-            }
-        else duk_push_boolean(ctx, false);
-        return 1;
-        }
-    
-    if ( dialog != nullptr) {
-    	pConsole->prep_for_throw(ctx, "onDialog error: called with another dialogue active");
-    	duk_throw(ctx);
-    	}
-    if (nargs != 2) {
-    	pConsole->prep_for_throw(ctx, "onDialog error: creating dialogue requires two arguments");
-    	duk_throw(ctx);
-    	}
-    duk_require_function(ctx, -2);  // first arugment must be function
-    
+    wxColour textColour = *wxRED;
+ 
     // ready to create new dialogue
-    dialog = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
-    	pConsole->FromDIP(pConsole->mDialog.position), wxDefaultSize,
+//-----------------------
+    JsDialog* dialog = new JsDialog(pJavaScript_pi->m_parent_window,  wxID_ANY, "JavaScript dialogue",
+    	 pConsole->FromDIP(pConsole->mDialogPosition), wxDefaultSize,
     	wxRESIZE_BORDER | wxCAPTION | wxSTAY_ON_TOP);
+	pEntry->dialogue = std::unique_ptr<JsDialog>(dialog);
     double scale = SCALE(dialog);
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);  // A top-level sizer
     dialog->SetSizer(topSizer);
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL); // A second box sizer to give more space around the controls
     topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
     // work through the supplied structure
-    int elements = (int) duk_get_length(ctx, -1);   // number of elements supplied for this dialog
-    pConsole->mDialog.dialogElementsArray.clear();    // clear out any previous incomplete stuff
-    pConsole->mDialog.dialogElementsArray.reserve(elements);    // reserve our space
+    int elements = (int) duk_get_length(ctx, -1);   // number of elements supplied for this dialog      
     for (i = 0; i < elements; i++){
+		TRACE(1011, wxString::Format("Starting on element iteration %d  dukstack: %s", i, pConsole->dukDump()));  
+		dialogElement anElement;
         anElement.label = wxEmptyString;
         anElement.stringValue = wxEmptyString;
         anElement.textValue = wxEmptyString;
@@ -229,11 +242,9 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             pConsole->prep_for_throw(ctx, wxString::Format("onDialog error: array index %i does not have type property", i));
             duk_throw(ctx);
             }
-
         elementType = duk_get_string(ctx, -1);
         anElement.type = elementType;
         duk_pop(ctx);
-    
         // look for styling
         if (duk_get_prop_literal(ctx, -1, "style")){
             wxString fontName;
@@ -269,9 +280,11 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             duk_get_prop_literal(ctx, -1, "value");
             value = getStringFromDuk(ctx);
             duk_pop_2(ctx);     // pop off the value string and the element
+            TRACE(1011, wxString::Format("text value: %s", value));
             anElement.stringValue = value;
             wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
+//            staticText->SetForegroundColour(textColour);
             boxSizer->Add(staticText, 0, wxALIGN_LEFT|wxALL, 5);
             }
         else if (elementType == "field"){
@@ -287,6 +300,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 }
             else textValue = wxEmptyString;
             duk_pop(ctx);
+            TRACE(1011, wxString::Format("field value: %s", textValue));
             if (duk_get_prop_literal(ctx, -1, "width")){
                 anElement.width = duk_get_number(ctx, -1);
                 }
@@ -313,10 +327,10 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
             wxStaticText* staticText = new wxStaticText( dialog, wxID_STATIC, label, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
-            textCtrl = new wxTextCtrl ( dialog, anElement.itemID, "", wxDefaultPosition, pConsole->FromDIP(wxSize(anElement.width,
+            TRACE(1011, wxString::Format("anElement.textValue: %s", anElement.textValue));
+            textCtrl = new wxTextCtrl ( dialog, anElement.itemID, anElement.textValue, wxDefaultPosition, pConsole->FromDIP(wxSize(anElement.width,
             	anElement.height)), anElement.multiLine);
             fieldBox->Add(textCtrl, 0, wxGROW|wxALL, 0);
-            textCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &pConsole->mDialog.dialogElementsArray[i].textValue));
             staticText = new wxStaticText( dialog, wxID_STATIC, suffix, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
             staticText->SetFont(font);
             fieldBox->Add(staticText, 0, wxALIGN_LEFT|wxALIGN_CENTER_HORIZONTAL, 0);
@@ -335,13 +349,16 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     else font.SetWeight(wxFONTWEIGHT_NORMAL);
                     } duk_pop(ctx);
                 } duk_pop(ctx);   // pop off the style
-            textCtrl->SetFont(font);    // overrid for the field
+            textCtrl->SetFont(font);    // override for the field
             duk_pop(ctx);
             }
         else if (elementType == "tick"){
             if (!duk_get_prop_literal(ctx, -1, "value")){
+/*            
                 pConsole->prep_for_throw(ctx, "onDialog error: tick requires value");
                 duk_throw(ctx);
+*/
+				THROWCONSOLE("onDialog error: tick requires value");
                 }
             else {
                 bool ticked = false;
@@ -403,7 +420,6 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                     checkListBoxBox->Add(checkListBox, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
                     checkListBox->SetFont(font);
                     checkListBox->Fit();
-                    
                     duk_pop(ctx);
                     }
                 }
@@ -633,6 +649,7 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                         }
                     anElement.itemID = wxNewId();
                     button = new jsButton ( pConsole, dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
+                    button->entryId = pEntry->id;
                     button->SetFont(font);
                     if (defaultButton) button->SetDefault();
                     buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
@@ -648,43 +665,138 @@ duk_ret_t duk_dialog(duk_context *ctx) {  // provides wxWidgets dialogue
                 else defaultButton = false;
                 anElement.itemID = wxNewId();
                 button = new jsButton ( pConsole, dialog, anElement.itemID, label, wxDefaultPosition, wxDefaultSize, 0 );
+                button->entryId = pEntry->id;
                 buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
                 if (defaultButton) button->SetDefault();
                 duk_pop_2(ctx);     // pop off the text string and the element
                  }
             anElement.label = label;
             }
+        else if (elementType == "position"){	// dialogue position specified      
+        	duk_get_prop_literal(ctx, -1, "x");
+        	int x = duk_get_number(ctx, -1);     	
+        	duk_pop(ctx);
+        	duk_get_prop_literal(ctx, -1, "y");
+        	int y = duk_get_number(ctx, -1);  
+        	duk_pop(ctx);
+        	wxPoint position = wxPoint(x, y);
+        	wxPoint checkPointOnScreen(wxPoint point);
+        	position = checkPointOnScreen(position);
+        	dialog->SetPosition(position);
+        	pEntry->dialogue->customPosition = true;  
+        	duk_pop(ctx);	// pop off the element     	
+        	}
+        else if (elementType == "colours"){
+        	wxString colourName, errorMessage;        	
+        	wxColour colour;
+            wxColourDatabase cdb;
+        	duk_get_prop_literal(ctx, -1, "text");
+        	colourName = duk_get_string(ctx, -1);
+        	duk_pop(ctx);       	
+			colour = cdb.Find(colourName);
+			// NB Because prep_for_throw unwinds the call stack, the error message using wxString::Format has to be prepared before the call 
+			if (!colour.IsOk()){
+				errorMessage =  wxString::Format("onDialogue - text colour: %s is invalid", colourName);
+				pConsole->prep_for_throw(ctx, errorMessage);
+				duk_throw(ctx);
+				}
+			dialog->SetForegroundColour(colour);
+			duk_get_prop_literal(ctx, -1, "background");
+        	colourName = duk_get_string(ctx, -1);
+        	duk_pop(ctx);       	
+			colour = cdb.Find(colourName);
+			if (!colour.IsOk()){
+				errorMessage =  wxString::Format("onDialogue - background colour: %s is invalid", colourName);
+				pConsole->prep_for_throw(ctx, errorMessage);
+				duk_throw(ctx);
+				}
+			dialog->SetBackgroundColour(colour);
+			duk_pop(ctx);
+        	}
         else {
             pConsole->prep_for_throw(ctx, "onDialogue - unsupported element type: " + elementType);
             duk_throw(ctx);
             }
-        pConsole->mDialog.dialogElementsArray.push_back(anElement);
+        pEntry->dialogue->dialogElementsArray.push_back(anElement);
+/*
+duk_pop_n(ctx, nargs);
+duk_push_string(ctx, "Run Rabbit run z");
+return;
+*/
         }
+ 
     if (!hadButton) {
         // caller has not upplied a button - create a default one
         wxBoxSizer* buttonBox = new wxBoxSizer(wxHORIZONTAL);
         boxSizer->Add(buttonBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5*scale);
         jsButton* button = new jsButton ( pConsole, dialog, wxNewId(), "OK", wxDefaultPosition, wxDefaultSize, 0 );
+        button->entryId = pEntry->id;
         buttonBox->Add(button, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5*scale);
         }
-    dialog->Bind(wxEVT_BUTTON, &onButton, wxID_ANY);
-    pConsole->mDialog.functionName = extractFunctionName(ctx, 0);
-    pConsole->mDialog.pdialog = dialog;
-    pConsole->mWaitingCached = pConsole->mWaiting = true;
-    duk_pop_2(ctx); // pop off both call arguments
-    duk_push_boolean(ctx, true);
-    dialog->Fit();
-    dialog->Show(true);
-
 /*
-// for debug - dumps element array
- std::vector<dialogElement>::const_iterator it;
-    int k;
-    k = pConsole->mDialog.dialogElementsArray.size();
-    for (k = 0, it = pConsole->mDialog.dialogElementsArray.begin(); it != pConsole->mDialog.dialogElementsArray.end(); k++, it++ ){
-        cout << k << " " << pConsole->mDialog.dialogElementsArray.at(k).type << " " << pConsole->mDialog.dialogElementsArray.at(k).itemID << "\n";
-        }
- */
-
-    return 1;
+duk_pop_n(ctx, nargs);
+duk_push_string(ctx, "Run Rabbit run 3");
+return;
+*/
+//    pConsole->mCallbacks.push_back(pEntry);
+    dialog->Bind(wxEVT_BUTTON, &onButton, wxID_ANY);    
+    dialog->Fit();
+    duk_pop_n(ctx, nargs);
+    if (type >= 0){
+		dialog->Show(true);
+		pConsole->mWaitingCached = false;
+		duk_push_number(ctx, pEntry->id);	// return the entry id
+		}
+	else { // modal
+		pConsole->mModalCount++;
+		dialog->ShowModal();
+		// here when modal window dismissed - readback is on duktape stack which we return
+		pConsole->mModalCount--;
+		}
+    return;
     }
+    
+    duk_ret_t duk_dialog(duk_context *ctx){
+    	createDialogue(ctx, 0);
+    	return 1;
+    	}
+    	
+    duk_ret_t duk_dialog_persist(duk_context *ctx){
+    	createDialogue(ctx, 1);
+    	return 1;
+    	}
+    	
+    duk_ret_t duk_dialog_modal(duk_context *ctx){
+    	createDialogue(ctx, -1);
+    	return 1;
+    	}
+    	
+    duk_ret_t duk_read_dialog(duk_context *ctx){
+    	void throwErrorByCtx(duk_context *ctx, wxString message);
+    	Console* findConsoleByCtx(duk_context *ctx);
+    	Console* pConsole = findConsoleByCtx(ctx);
+    	std::shared_ptr<callbackEntry> pEntry = pConsole->getCallbackEntry(duk_get_number(ctx, 0), false);	// find the callback entry
+    	duk_pop(ctx);
+    	if (!pEntry){
+    		pConsole->clearCallbacks();
+    		throwErrorByCtx(ctx, "readDialogue with invalid callback id");
+    		}
+    	if (!pEntry->persistant) {
+    		// we have removed the entry but it needs to endure, so put it back
+    		pConsole->mCallbacks.push_back(pEntry);
+    		}
+    	JsDialog* dlg = pEntry->dialogue.get();        // from shared_ptr<JsDialog>
+    	jsButton* button = new jsButton(pConsole, dlg, 0);	// create a dummy button
+		buildDialogueResponse(ctx, pConsole, dlg, button, pEntry); // get dialogue as it is now onto duktape stack
+		button->Destroy();
+//		delete button;
+		return 1;
+		}
+/*    
+    	wxWindow* window = entry.dialogue->GetContentWindow();
+    	jsButton* button = new jsButton(pConsole, window);
+    	buildDialogueResponse(ctx, pConsole, window, button, entry);	// get dialogue as it is now onto duktape stack
+    	delete button;
+    	return 1;
+    	}
+*/

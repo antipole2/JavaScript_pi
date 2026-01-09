@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2024 by Tony Voss
+* Copyright Ⓒ 2025 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -56,13 +56,11 @@ public:
         validator = (wxTextValidator*)m_changedName->GetValidator();
         validator->AddCharIncludes("_");
 #endif
-
 		// fix up the links to documentation to use required branch in repositary
 		fixBranch(m_userGuidePdf, BRANCH);
 		fixBranch(m_userGuideEpub, BRANCH);
 		fixBranch(m_techGuidePdf, BRANCH);
 		fixBranch(m_techGuideEpub, BRANCH);		
-
         m_notebook->SetSelection(0);	//start on required page
         };
         

@@ -1,33 +1,46 @@
-// Excrcise and test timers
+// timer and callback tests
 
-var tickCounter = 0
-var tickPeriod = 0.5;
+result = "";
+var methodId;
 
-var times = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
-alert("This timer test takes upto 10 seconds");
-tickID = onAllSeconds(tick, tickPeriod, "X");
-onSeconds(five, 3, "\nThree seconds up\n");
-onSeconds(finish, 10);
+clock = {count:0, tick: function(){
+			clock.count++;
+			if (clock.count == 9){
+				onSeconds(methodId);
+				}
+			}
+		};
 
-function tick(which){
-	if (tickCounter > 5 /*times.length-1*/) {print(tickCounter, " ");}
-	else print(times[tickCounter], "\n");
-	tickCounter++;
-	if (tickCounter > 12) onSeconds(tickID);	// cancel this timer
-	if (tickCounter > 15) throw("\nFinish timer failed to finish");
-	}
-/*
-function two(a){
-	print(a, "\n");
-	}
-*/
+methodId = onAllSeconds(clock.tick, 0.1);
 
-function five(why){
-	print(why, "\n");
+onExit(report);
+onSeconds(stage2, 3);
+onSeconds(function(){result += "A";}, 2)
+
+for (i = 1; i < 10; i++){
+	id = onSeconds(note, 1, i);
+	if (i ==5) idToCancel = id
 	}
 
-function finish(){
-	print("\n");
-	alert();
-	stopScript((tickCounter ==13)?"Timer tests ended OK":"Timer tests failed");
+onSeconds(idToCancel);	// test cancelling valid timer
+try { onSeconds(1);}
+catch(err){
+	print("Cancelling timer with invalid id caught with '", err.message, "'\n");
 	}
+
+function note(what){
+	result += what;
+	};
+
+function report(){
+	if (clock.count = 9) result += "M";
+	scriptResult(result);
+	}
+
+function stage2(){
+	for (i = 1; i < 10; i++){
+		id = onSeconds(note, 1, i*10);
+		if (i ==5) idToCancel = id
+		}
+	onSeconds();	// cancel all timers
+	};

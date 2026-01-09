@@ -4,24 +4,19 @@ function checkForScriptUpdates(scriptName, scriptVersion, checkDays, versionChec
 	if (!OCPNisOnline()) return;
 	now = new Date().getTime();
 	if (trace) print("Now: ", now, "\n");
-	if (_remember == undefined)_remember = {};
-	if (_remember.versionControl == undefined){
-		if (trace) print("No existing _remember.versionControl\n");
-		_remember.versionControl = {};
-		_remember.versionControl.lastCheck = 0;
+	if (_versionControl == undefined)_versionConterol = {};
+	if (_versionControl.scriptName != scriptName){
+		_versionControl.scriptName = scriptName;
+		_versionControl.lastCheck = 0;
 		}
-	else if (_remember.versionControl.scriptName != scriptName){
-		_remember.versionControl.scriptName = scriptName;
-		_remember.versionControl.lastCheck = 0;
-		}
-	lastCheck = _remember.versionControl.lastCheck;
+	lastCheck = _versionControl.lastCheck;
 	nextCheck = lastCheck + checkDays*24*60*60*1000;
-	if (trace) print("versionControl.lastCheck was ", lastCheck, "\tnext due in ", nextCheck-lastCheck, "\n");
+	if (trace) print("_versionConterol.lastCheck was ", lastCheck, "\tnext due in ", nextCheck-lastCheck, "\n");
 	if (now < nextCheck){
 		if (trace) print("No version check due\n");
 		return;
 		}
-	_remember.versionControl.lastCheck = now;
+	_versionControl.lastCheck = now;
 	if (trace) print("versionControl.lastCheck updated to ", now, "\n");
 	details = JSON.parse(readTextFile(versionCheckURL));
 	if (trace) print("VersionControl:\n", JSON.stringify(details, null, "\t"), "\n");
@@ -70,17 +65,15 @@ function checkForScriptUpdates(scriptName, scriptVersion, checkDays, versionChec
 		alert("Console ", newConsoleName, " contains new version ", details.version, " of script ", scriptName, "\n\nIf you have modified your script, you need to incorporate these changes into the new version\nIf you want to run this script off-line, you need to save it to a local file");
 		}
 	else if (trace) print("Version already up to date\n");
-	_remember.versionControl.lastCheck = now;
+	_versionControl.lastCheck = now;
 
 	function _compareVersions(first, second){
 		// compare two version strings, e.g. 1.2.34
 		// if second > first return 1, == 0,  < -1
-//		if (trace) print("compareVersions first: ", first, "\tsecond: ", second, "\n");
 		a = first.toString().split(".");
 		b = second.toString().split(".");
 		while (a.length < b.length) a.push(0);
 		while (b.length < a.length) b.push(0);
-//		if (trace) print("compareVersions a:", a, "\tb:", b, "\n");
 		for (var i = 0; i < a.length; i++){
 			if (b[i] > a[i]) return 1;
 			if (b[i] < a[i]) return -1;

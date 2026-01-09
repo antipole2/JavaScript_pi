@@ -40,10 +40,10 @@ class m_Console : public wxFrame
 	protected:
 		wxSplitterWindow* m_splitter;
 		wxPanel* m_scriptSizer;
-		wxButton* m_clearScript;
 		wxButton* copy_button;
 		wxButton* load_button;
 		wxButton* save_button;
+		wxButton* m_clearScript;
 		wxButton* save_as_button;
 		wxButton* park_button;
 		wxButton* tools_button;
@@ -56,10 +56,10 @@ class m_Console : public wxFrame
 		// Virtual event handlers, override them in your derived class
 		virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
 		virtual void onMouse( wxMouseEvent& event ) { event.Skip(); }
-		virtual void OnClearScript( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnCopyAll( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnLoad( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnSave( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnClearScript( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnSaveAs( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnRun( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnAutoRun( wxCommandEvent& event ) { event.Skip(); }
