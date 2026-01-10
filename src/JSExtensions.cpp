@@ -56,7 +56,7 @@ void throwErrorByCtx(duk_context *ctx, wxString message);
 wxString resolveFileName(wxString inputName, Console* pConsole, int options);
 wxString getTextFile(wxString fileString, wxString* text, int timeOut);
 wxString JScleanOutput(wxString given);
-bool cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString callbackName);
+void cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString callbackName);
 
 void limitOutput(wxStyledTextCtrl* pText){
 	// given output text area, ensure does not exceed size limit and scroll to end
@@ -1257,7 +1257,7 @@ static duk_ret_t socketSend(duk_context *ctx){
 		else THROWCONSOLE("socketSend - nothing to reply to");
 		}
 	else if (nargs >= 3){
-		uint service = duk_get_number(ctx, 2);
+		unsigned int service = duk_get_number(ctx, 2);
 		OK = addr.Service(service);	// port specified
 		if (!OK) THROWCONSOLE(wxString::Format("socketSend - invalid service %d", service));
 		addr.Hostname("255.255.255.255");

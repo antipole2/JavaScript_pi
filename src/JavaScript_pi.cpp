@@ -50,7 +50,7 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p){
 JavaScript_pi *pJavaScript_pi;     // we will keep a pointer to ourself here
 
 JavaScript_pi::JavaScript_pi(void *ppimgr)
-:opencpn_plugin_121 (ppimgr)  // was 18
+:opencpn_plugin_120 (ppimgr)  // was 18
 {
 #ifndef IN_HARNESS
     // Create the PlugIn icons
@@ -496,7 +496,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence){    // NMEA sentence rec
     for (auto* pConsole : pJavaScript_pi->m_consoles){
         if (pConsole == nullptr) continue;  // ignore if not ready
         if (!pConsole->isWaiting()) continue;
-        for (uint i = 0; i < pConsole->mCallbacks.size(); i++){ // work through all callback entries
+        for (unsigned int i = 0; i < pConsole->mCallbacks.size(); i++){ // work through all callback entries
         	std::shared_ptr<callbackEntry> pEntry = pConsole->mCallbacks[i];
         	if ((pEntry->type == CB_N0183) && (pEntry->_IDENT == wxEmptyString)){ // this one is for us
         		m_SetActive.set(CB_N0183, true);

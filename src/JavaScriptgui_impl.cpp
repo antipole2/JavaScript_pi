@@ -596,10 +596,10 @@ void Console::FormatIndentation(){	// reflow entire script
     	}
     	
     // report?
-    if (deltasOverall.curly > 0) message(STYLE_RED, wxString::Format("Reformat found %d more opening curly braces than closing", deltasOverall.curly));
-    else if (deltasOverall.curly < 0) message(STYLE_RED, wxString::Format("Reformat found %d closing curly braces than opening", -deltasOverall.curly));
-    if (deltasOverall.round > 0) message(STYLE_RED, wxString::Format("Reformat found %d more opening round brackets than closing", deltasOverall.round));
-    else if (deltasOverall.round < 0) message(STYLE_RED, wxString::Format("Reformat found %d closing round brackets than opening", -deltasOverall.round));
+    if (deltasOverall.curly > 0) message(STYLE_RED, wxString::Format("Reformat found %d more opening curly brace(s) than closing", deltasOverall.curly));
+    else if (deltasOverall.curly < 0) message(STYLE_RED, wxString::Format("Reformat found %d more closing curly brace(s) than opening", -deltasOverall.curly));
+    if (deltasOverall.round > 0) message(STYLE_RED, wxString::Format("Reformat found %d more opening round bracket(s) than closing", deltasOverall.round));
+    else if (deltasOverall.round < 0) message(STYLE_RED, wxString::Format("Reformat found %d more closing round bracket(s) than opening", -deltasOverall.round));
     if ((deltasOverall.curly != 0) && (deltasOverall.round != 0) && (deltasOverall.curly * deltasOverall.round < 0))
     	message(STYLE_RED, "Reformat found likely confusion between curly braces and round brackets");
 

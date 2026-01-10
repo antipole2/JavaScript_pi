@@ -58,7 +58,7 @@ wxString getNames[] = {
 Console *findConsoleByCtx(duk_context *ctx);
 void throwErrorByCtx(duk_context *ctx, wxString message);
 extern JavaScript_pi *pJavaScript_pi;
-bool cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString apiName);
+void cancelCallbackPerCtx(duk_context *ctx, Console* pConsole, CallbackType type, wxString apiName);
 
 
 wxString getContextDump(duk_context *ctx){ // return duktape context dump as string
@@ -1660,7 +1660,7 @@ duk_ret_t getNotifications(duk_context* ctx){
 	// notifications = OCPNgetNotifications()
 	std::vector<std::shared_ptr<PI_Notification>> notifications = GetActiveNotifications();
 	duk_idx_t arr_idx = duk_push_array(ctx);
-	uint index = 0;
+	unsigned int index = 0;
 	for (const auto& notificationPtr : notifications) {
 		if (notificationPtr) {
 			duk_push_object(ctx);
@@ -1825,7 +1825,8 @@ duk_ret_t parseSDMM(duk_context* ctx){
 	 else duk_push_number(ctx, latLon);
 	 return 1;
 	 }
-	 
+
+/*	 Awaiting api 121
 duk_ret_t navToPosition(duk_context* ctx){
 	// OCPNnavToPosition(position)
 	duk_get_prop_literal(ctx, 0, "latitude");
@@ -1836,10 +1837,16 @@ duk_ret_t navToPosition(duk_context* ctx){
 	if (duk_is_undefined(ctx, -1)  || !duk_is_number(ctx, -1)) throwErrorByCtx(ctx, "OCPNnavToPosition longitude missing or invalid");
 	double lon = duk_get_number(ctx, -1);
 	duk_pop(ctx);
+	auto host_api = std::move(GetHostApi());
+// auto api_121 = std::dynamic_pointer_cast<HostApi121>(host_api);
+	auto *api_121 = dynamic_cast<HostApi121 *>(host_api.get());
+    wxString outcome = api_121->NavToHerePI(lat, lon);
+    duk_push_string(ctx, outcome);
 //	wxString outcome = NavToHerePI(lat, lon);
 //	duk_push_string(ctx, outcome);
 	return 1;
 	}
+*/
 	
 duk_ret_t APItest(duk_context* ctx){
 	// for experimentation
@@ -2152,10 +2159,11 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_c_function(ctx, parseSDMM, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
     
+/*  awaiting API 121
     duk_push_string(ctx, "OCPNnavToPosition");
     duk_push_c_function(ctx, navToPosition, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
-
+*/
   
     duk_pop(ctx);
 }
