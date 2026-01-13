@@ -1138,6 +1138,7 @@ public:
 				reviewParking();
 				if (pJavaScript_pi->pTools != nullptr) pJavaScript_pi->pTools->setConsoleChoices();	// update if tools open
 				wxTheApp->CallAfter([c = this] {delete c;});	// after we have returned, delete us
+				pJavaScript_pi->SaveConfig();
 				return wxEmptyString;
 				}
 			}
@@ -1186,7 +1187,7 @@ public:
         dump += "Console name:\t\t" + mConsoleName + "\n";
         dump += "this:\t\t\t\t\t" +  ptrToString((Console *)this) + "\n";
         dump += "mStatus:\t\t\t\t" + statusesToString(mStatus) + "\n";
-        dump += "has ctx:\t\t\t\t" + (mpCtx ? ("true"):_("false")) + "\n";
+        dump += "has ctx:\t\t\t\t" + (mpCtx ?_("true"):_("false")) + "\n";
         dump += "mRunningMain:\t\t" + (this->mRunningMain?_("true"):_("false")) + "\n";
         dump += wxString::Format( "m_time_to_allocate:\t%ldms\n", this->m_time_to_allocate);
         dump += wxString::Format( "m_timeout_check_counter:\t%d\n", this->m_timeout_check_counter);

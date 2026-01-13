@@ -218,8 +218,16 @@ function NMEA2000(arg, data, options){
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
 		count = data[12];
-		if (trace & 4) printOrange("count in data: ", count, " data length is ", data.length-13, "\n");
-//		if (count != data.length-13) throw ("NMEA2000 byte count in data does not match actuality");
+		dataLength = data.length-13;
+		if (trace & 4){ // santity checks - do the bit/byte counts add up?
+			var bitCount = 0;
+			for (order in desc.Fields) {
+				if (order == 0) continue;
+				bitCount += desc.Fields[order].BitLength;
+				}
+			printOrange("count in data: ", count, " data length is ", dataLength, " sum of bitLengths in bytes ", bitCount/8, "\n");
+			}
+		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
 		us["timestamp"] = 0;	// get this in now to establish position in enumeration
 		nextByte = 2;
 		us["priority"] = data[nextByte++];
@@ -341,6 +349,7 @@ throw("Type integer");
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
 				nextBitIndex += desc.BitLength;
 				value = checkNumber(value, desc.Signed, desc.BitLength);
+				if (value == void 0) value = "undefined";
 				if (trace & 8) printOrange("MMSI: ", value, "\n");
 				return value;
 			case "DATE":	// in days since 1970
@@ -395,6 +404,7 @@ throw("Type integer");
 				if (trace & 8) printOrange("String: ", string, "\tnull byte:", nullByte, "\n");
 				if (nullByte != 0) throw("In " + + desc.Description + " the string null terminator was not null");
 				if (trace & 8) printOrange("string:", string, "\n");
+				canCheckBitOffset = false;	// can't check offsets after variable length string
 				return string;
 			case "BINARY":
 				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
@@ -413,6 +423,7 @@ throw("Type integer");
 		}
 
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
+		if (trace & 16) printOrange("data:",data,"\n\tBitOffset:", BitOffset, " bitLength:", bitLength, " bitStart:", bitStart, "\n"); 
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
 		BytesToGet = Math.ceil(bitLength/8);
@@ -447,10 +458,11 @@ throw("Type integer");
 		
 	function getBytes(v, start, bytes){	// little endean!
 		var trace = this.trace;
+		// trace = 16;
 		offset = start+bytes-1;
 		result = v[offset--];
 		if (trace & 16) {
-			printOrange("getBytes start:", start, "\tbytes:", bytes, "\toffset:", offset);
+			printOrange("getBytes v:", v, " start:", start, "\tbytes:", bytes, "\toffset:", offset);
 			printOrange("\tresult:", result, "\n");
 				}
 		for ( ; offset >= start; offset--){
@@ -628,16 +640,18 @@ throw("Type integer");
 		// See here for special meaning of some numbers https://canboat.github.io/canboat/canboat.html#field-types
 		// in JavaScript, bit ops are only available up to 32 bits
 		// so to be 64 bit safe, we have to manage without bit shift and bit flip (:-#)
-		var trace = this.trace;
+		trace = false;
+//		if (trace & 16) printOrange("checkNumberA number:", number, " isSigned:", isSigned, " bits:", bits, "\n");
 		toShift = bits;
 		if (isSigned) toShift--;	// signed numbers have one less max value
 		max = (2 ** toShift) - 1;	// maximum possible value
+		if (trace & 16) printOrange("checkNumberM number: ", number, " max: ", max, "\n");
 		if (number == max) return void 0;
 		else if ((bits >= 4) && (number == max-1)) number = "has error";
 		else if (isSigned && (number > max)){ // must be negative
 			number = (2**bits - number) * -1;
 			}
-		if (trace & 16) printOrange("checkNumber - number:", number, "\tbits:", bits, "\tmax:", max,"\n");
+		if (trace & 16) printOrange("checkNumberZ - number:", number, "\tbits:", bits, "\tmax:", max,"\n");
 		return number;
 		}
 

@@ -73,7 +73,7 @@ tests = [
 	{ // 4
 	pgn: 126996,
 	data: [147,19,255,20,240,1,255,255,255,255,255,255,134,52,48,232,253,83,117,112,101,114,32,77,111,100,101,108,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65,108,112,104,32,50,48,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,86,101,114,121,32,108,111,111,110,103,32,109,111,100,101,108,32,118,101,114,115,105,111,110,32,110,117,109,98,101,114,0,83,101,114,105,97,108,32,99,111,100,101,32,110,117,109,98,101,114,32,104,101,114,101,0,0,0,0,0,0,0,0,0,200,1],
-	expected: {"PGN":126996,"id":"productInformation","description":"Product Information","priority":255,"destination":255,"origin":255,"nmea2000Version":12.34,"productCode":65000,"modelId":"Super Model","softwareVersionCode":"Alph 20","modelVersion":"Very loong model version number","modelSerialCode":"Serial code number here","certificationLevel":200,"loadEquivalency":1},
+	expected: {"PGN":126996,"id":"productInformation","description":"Product Information","priority":255,"destination":255,"origin":255,"nmea2000Version":12.34,"productCode":65000,"modelId":"Super Model","softwareVersionCode":"Alph 20","modelVersion":"Very loong model version number","modelSerialCode":"Serial code number here","certificationLevel":{"value":200,"name":"no name entry for this value"},"loadEquivalency":1},
 	tracing: 0
 		},
 	{ // 5    water depth
@@ -124,8 +124,15 @@ for (t = 0; t < tests.length; t++){
 	if (!OK) decodeErrorCount++;
 	print("Test ", t, " decode ", OK ? "passed":"failed", "\n");
 	if (!OK){
-		printBlue("Result:\n", NMEA2k, "\n");
-		printGreen("Expected:\n",test.expected, "\n");
+		pretty = true;
+		if (pretty){
+			printBlue("Result:\n", JSON.stringify(NMEA2k, null,"\t"), "\n");
+			printGreen("Expected:\n",JSON.stringify(test.expected, null, "\t"), "\n");
+			}
+		else {
+			printBlue("Result:\n", NMEA2k, "\n");
+			printGreen("Expected:\n",test.expected, "\n");
+			}
 		}
 	if (verbose) print(JSON.stringify(NMEA2k, null, "\t"), "\n");
 	switch (NMEA2k.pgn){
@@ -160,13 +167,17 @@ descriptor = require("pgnDescriptors")(binaryTest.pgn);
 descriptor = JSON.parse(JSON.stringify(descriptor));	// make a copy of descriptor to avoid messing with original
 descriptor.Fields[2].FieldType = "BINARY";
 binaryNMEA2k = new Nmea2kConstructor(descriptor, binaryTest.data, {undefined:false,trace:0});
-expected = {"PGN":126996,"id":"productInformation","description":"Product Information","priority":255,"destination":255,"origin":255,"nmea2000Version":12.34,"productCode":"1111110111101000","modelId":"Super Model","softwareVersionCode":"Alph 20","modelVersion":"Very loong model version number","modelSerialCode":"Serial code number here","certificationLevel":200,"loadEquivalency":1};
-OK = (JSON.stringify(binaryNMEA2k) == JSON.stringify(expected));
+expected = {"PGN":126996,"id":"productInformation","description":"Product Information","priority":255,"destination":255,"origin":255,"nmea2000Version":12.34,"productCode":"1111110111101000","modelId":"Super Model","softwareVersionCode":"Alph 20","modelVersion":"Very loong model version number","modelSerialCode":"Serial code number here","certificationLevel":{"value":200,"name":"no name entry for this value"},"loadEquivalency":1};
+var resultString = JSON.stringify(binaryNMEA2k);
+var expectedString = JSON.stringify(expected)
+
+OK = (resultString == expectedString);
 if (!OK) decodeErrorCount++;
 print("Binary decode ", OK ? "passed":"failed", "\n");
 if (!OK){
-	printBlue("Result:\n", NMEA2k, "\n");
-	printGreen("Expected:\n",test.expected, "\n");
+	printBlue("Result:\n", resultString, "\n");
+	printGreen("Expected:\n",expectedString, "\n");
+	sayWhereDiffers(resultString, expectedString);	
 	}
 if (verbose) print(JSON.stringify(NMEA2k, null, "\t"), "\n");
 
@@ -182,7 +193,7 @@ for (t = 0; t < tests.length; t++){
 	startTime = new Date();
 	NMEA2k = new Nmea2kConstructor(test.pgn, test.data, {trace:0});
 	encoded = NMEA2k.encode({timeStamp:"undefined"});
-	endTime= new Date();
+	endTime = new Date();
 	runTime += endTime - startTime;
 	OK = matches(encoded, test.data);
 	print("Test ", t, " encode ", OK ? "OK":"failed", "\n");
@@ -203,8 +214,15 @@ print("Binary test encoding ", OK ? "OK":"failed", "\n");
 if (!OK){
 	encodeErrorCount++;
 	printBlue("Result:\n", encoded, "\n");
-	printGreen("Expected:\n", binaryTest.data, "\n"); 
+	printGreen("Expected:\n", binaryTest.data, "\n");
+	pretty = true;
+	if (pretty){
+		printBlue("Result:\n", JSON.stringify(binaryNMEA2k, null,"\t"), "\n");
+		printGreen("Expected:\n",JSON.stringify(descriptor, null, "\t"), "\n");
+		}
+	else {
 	printBlue(JSON.stringify(binaryNMEA2k, null, "\t"), "\n");
+	}
 	printGreen(JSON.stringify(descriptor, null, "\t"), "\n");
 	}
 
@@ -255,3 +273,13 @@ function getLatestCanboatVersion(){
 	version = canboat.slice(offset+14, offset+19);
 	return version;
 	}
+
+function sayWhereDiffers(a, b){ // print index where strings differ
+	for (var i in a){
+		if (a[i] != b[i]){
+			print("D at index ", i, " of ", a.length, "\n", a.slice(0, i), "\n", b.slice(0, i), "\n");
+			return i;
+			}
+		}
+	}
+

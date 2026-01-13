@@ -115,6 +115,7 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
     setConsoleChoices();    // update
     pConsole->Show();
     m_ConsolesMessage->AppendText(_("Console " + newConsoleName + " created"));
+    pJavaScript_pi->SaveConfig();
     }
 
 void ToolsClass::onChangeName( wxCommandEvent& event ){
@@ -157,6 +158,7 @@ void ToolsClass::onChangeName( wxCommandEvent& event ){
 	reviewParking();
     m_ConsolesMessage->AppendText(_("Console " + oldConsoleName + " changed to " + newConsoleName));
     setConsoleChoices();    // update
+    pJavaScript_pi->SaveConfig();
     }
     
 void ToolsClass::onFindAllConsoles( wxCommandEvent& event ){	// make all consoles visible
@@ -293,7 +295,8 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     	}
     else dump += " none\n";
     dump+= wxString::Format("SetActive bits\t%s\n",pJavaScript_pi->m_SetActive.to_string());
-    dump+= wxString::Format("m_consoles.size\t%d\n\n", pJavaScript_pi->m_consoles.size());
+//    dump += wxString::Format("m_configChanges:\t%s\n", pJavaScript_pi->m_configChanges?"true":"false");
+    dump += wxString::Format("m_consoles.size\t%d\n\n", pJavaScript_pi->m_consoles.size());
     for (auto* pConsole : pJavaScript_pi->m_consoles){
     	dump += ("\n----------Console " + pConsole->mConsoleName + "----------\n");
         dump += (pConsole->consoleDump());
@@ -435,7 +438,8 @@ void ToolsClass::onParkingCustomise(wxCommandEvent& event){
 			pJavaScript_pi->m_parkingStub, pJavaScript_pi->m_parkingLevel, pJavaScript_pi->m_parkFirstX, pJavaScript_pi->m_parkSep ));	
 		m_parkingMessage->AppendText("\n\nThe above are all in DIP pixels");	
 		cleanupParking();
-		m_customiseButton->SetLabel("Start");		
+		m_customiseButton->SetLabel("Start");
+		pJavaScript_pi->SaveConfig();
 		}
 	}
 	
