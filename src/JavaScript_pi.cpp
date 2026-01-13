@@ -620,8 +620,14 @@ void JavaScript_pi::OnContextMenuItemCallbackExt(int menuID, std::string identif
 
 void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_body) {
 	// do we have it already?
-	std::vector<wxString> m_messages;	// Be explicit for Bullseye
-	auto it = std::find(m_messages.begin(), m_messages.end(), message_id);
+//	auto it = std::find(m_messages.begin(), m_messages.end(), message_id);	// this woks for all except Bullseye. Instead use lamda
+	auto it = std::find_if(
+        m_messages.begin(),
+        m_messages.end(),
+        [&](const wxString& id) {
+            return id == message_id;
+            }
+        );
 	if (it == m_messages.end()) {	// not matched, so add it in correct place
 		auto it = std::lower_bound(m_messages.begin(), m_messages.end(), message_id);
 		m_messages.insert(it, message_id);
