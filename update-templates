@@ -204,6 +204,7 @@ for f in  \
     build-conf.rc \
     libs \
     build-deps/macos-cache-stamp \
+    build-deps/control \
     build-deps/0001-matrix.h-Patch-attributes-handling-wxwidgets-22790.patch \
     UPDATE_PLUGIN_API.md
 do
@@ -283,7 +284,7 @@ echo "# Created by update-templates" > cmake/TemplateVersion
 echo "date: $(date -u +'%Y-%m-%d %H:%M UTC')" >> cmake/TemplateVersion
 commit=$(git rev-parse --short $source_treeish)
 echo "commit: $commit" >> cmake/TemplateVersion
-tags=$(git tag --contains $commit)
+tags=$(git tag --points-at $commit | tr '\n' ' ')
 echo "tags: $tags" >> cmake/TemplateVersion
 git add cmake/TemplateVersion
 git commit -m "cmake: Update TemplateVersion to $commit"
