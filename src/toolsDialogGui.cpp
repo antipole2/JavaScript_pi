@@ -342,44 +342,16 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Parking->SetSizer( ParkingTopSizer1 );
 	Parking->Layout();
 	m_notebook->AddPage( Parking, wxT("Parking"), false );
-	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,600 ), 0 );
+	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,300 ), 0 );
 	wxBoxSizer* HelpSizer1;
 	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
 
-	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin,. You can download the latest version from the following links.  Please consult this before raising queries.\n\nIf reading on a mobile device, you may find the .epub format more convenient as you can bookmark pages and keep track of where you have got to."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin,. You can download the latest version from the following link."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText1, 0, wxALL|wxEXPAND, 5 );
 
-	wxStaticBoxSizer* sbSizer24;
-	sbSizer24 = new wxStaticBoxSizer( new wxStaticBox( Help, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
-
-
-	sbSizer24->Add( 0, 0, 1, wxEXPAND, 0 );
-
-	m_userGuidePdf = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
-	sbSizer24->Add( m_userGuidePdf, 0, wxALL, 5 );
-
-
-	sbSizer24->Add( 0, 0, 1, 0, 5 );
-
-	m_userGuideEpub = new wxHyperlinkCtrl( sbSizer24->GetStaticBox(), wxID_ANY, wxT("User guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
-	sbSizer24->Add( m_userGuideEpub, 0, wxALL, 5 );
-
-
-	sbSizer24->Add( 0, 0, 1, wxEXPAND, 5 );
-
-
-	HelpSizer1->Add( sbSizer24, 0, wxEXPAND, 0 );
-
-
-	HelpSizer1->Add( 0, 25, 0, 0, 0 );
-
-	HelpTopText11 = new wxStaticText( Help, wxID_ANY, wxT("There is a library of sample scripts available.  These can be used ‘as is’ or adapted  as rquired. They are also useful examples of how to achive various tasks."), wxDefaultPosition, wxDefaultSize, 0 );
-	HelpTopText11->Wrap( 550 );
-	HelpSizer1->Add( HelpTopText11, 0, wxALL|wxEXPAND, 5 );
-
-	m_hyperlink5 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("The shared library"), wxT("https://github.com/antipole2/JavaScripts-shared/blob/main/library/library_index.adoc"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
-	HelpSizer1->Add( m_hyperlink5, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+	m_userGuidePdf = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("User guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_user_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	HelpSizer1->Add( m_userGuidePdf, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
 
 
 	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
@@ -401,9 +373,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	m_hyperlink10 = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Plugin issues"), wxT("https://github.com/antipole2/JavaScript_pi/issues"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
 	HelpSizer1->Add( m_hyperlink10, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-
-	HelpSizer1->Add( 0, 15, 1, wxEXPAND, 5 );
-
 	m_staticline1 = new wxStaticLine( Help, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxLI_HORIZONTAL );
 	m_staticline1->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
 
@@ -421,12 +390,6 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_techGuidePdf = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
 	sbSizer33->Add( m_techGuidePdf, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-
-	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
-
-	m_techGuideEpub = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .epub"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.epub"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
-	sbSizer33->Add( m_techGuideEpub, 0, wxALL, 5 );
 
 
 	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
