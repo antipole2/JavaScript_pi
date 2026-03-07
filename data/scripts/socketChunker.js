@@ -80,6 +80,8 @@ function socketChunker(userHandler, port){
 		}
 
 	this.socketSend = function(value, port, address) {
+		var sendTrace = this.trace
+		// sendTrace = true;
 		const MAX_BYTES = 512;	// max UDP payload you want for *each datagram*
 
 		// 1) Encode the whole value once to CBOR bytes
@@ -89,7 +91,7 @@ function socketChunker(userHandler, port){
 		var chunks = [];
 		var pos = 0;
 		var seq = 0;
-		if (this.trace) printOrange("Ready to start chunking\n");
+		if (sendTrace) printOrange("Ready to start chunking - payload length:", payloadLen,  "\n");
 		while (pos < payloadLen) {
 			// Find largest [pos,end) that fits after CBOR-encoding the *chunk envelope*
 			var lo = pos + 1;
@@ -107,7 +109,7 @@ function socketChunker(userHandler, port){
 					}
 				else hi = mid - 1;
 				}
-
+			if (sendTrace) printOrange("Best chunk size: ", best, "\n");
 			if (best === pos)
 				throw("Chunk envelope overhead exceeds MAX_BYTES=" + MAX_BYTES);
 			var dataAb = abSliceCopy(payloadAb, pos, best); // Commit the best slice
@@ -119,11 +121,12 @@ function socketChunker(userHandler, port){
 
 			// 3) Final encoded chunk to send
 			var chunkAb = CBOR.encode(chunkObj);
-			if (abByteLen(chunkAb) > MAX_BYTES) {
+			if (abByteLen(chunkAb) > MAX_BYTES){
+				if (sendTrace) printOrange("Trying to throw\n");
 				 // Very rare, but safe guard (hash didn’t change length, but keep it anyway)
 				 throw new Error("Internal: chunk exceeds MAX_BYTES after hash");
 				}
-
+			if (sendTrace) printOrange("Pushing chunk of length: ", abByteLen(chunkAb), "\n");
 			chunks.push(chunkAb);
 			pos = best;
 			seq++;

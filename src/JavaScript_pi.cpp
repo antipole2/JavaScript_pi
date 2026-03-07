@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -136,7 +136,7 @@ int JavaScript_pi::Init(void)
             pConsole->mWaitingToRun = false;
             pConsole->clearBrief();
             Completions outcome = pConsole->run(pConsole->m_Script->GetValue());
-            if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
+            pConsole->wrapUp(outcome);
             TRACE(3, "Finished auto-running console " + pConsole->mConsoleName);
             }
         }
@@ -151,7 +151,8 @@ int JavaScript_pi::Init(void)
             WANTS_NMEA_EVENTS |
             WANTS_AIS_SENTENCES |
             WANTS_PREFERENCES |
-            WANTS_ONPAINT_VIEWPORT
+            WANTS_ONPAINT_VIEWPORT |
+            WANTS_KEYBOARD_EVENTS
             );
 }
 
@@ -167,6 +168,11 @@ bool JavaScript_pi::DeInit(void) {
         catch (int i){i = i++;}	// do nothing - just avoid throwing error and suppress warning
         pTools = nullptr;
         }
+    // clear down any running scripts
+    for (auto* pConsole : m_consoles){	// for each console
+    	if (pConsole->isBusy()) pConsole->wrapUp(STOPPED);	// this will call any onClose handler
+    	}
+    	
     SaveConfig();
   
 	// ensure all console stuff cleared away and wait for wxWidgets to complete
@@ -231,6 +237,18 @@ int JavaScript_pi::GetToolbarToolCount(void){
 
 void JavaScript_pi::SetColorScheme(PI_ColorScheme cs){
 	}
+
+#ifdef KEYBOARD_EVENT_HOOK	
+bool JavaScript_pi::KeyboardEventHook(wxKeyEvent &event){
+TRACE(123456, "In KeyboardEventHook");
+    wxWindow* focus = wxWindow::FindFocus();
+	if (focus) {
+        if (dynamic_cast<wxTextEntryBase*>(focus)) return true;
+        if (focus->IsKindOf(wxCLASSINFO(wxStyledTextCtrl))) return true;
+        }
+    return false;
+    }
+#endif
 
 void JavaScript_pi::OnToolbarToolCallback(int id){
     void JSlexit(wxStyledTextCtrl* pane);
@@ -515,7 +533,10 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence){    // NMEA sentence rec
 				if (!pEntry->persistant) pConsole->mCallbacks.erase(pConsole->mCallbacks.begin() + i);
 				// the above simple remove is OK as this type of entry does not have dependents	
 				Completions outcome = pConsole->executeCallableNargs(pEntry->func_heapptr, 1);	// only one object on stack
-				if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
+				if (!pConsole->isBusy()){
+					pConsole->wrapUp(outcome);
+					break;
+					}
         		}
         	}
         }   // end for this console
@@ -554,7 +575,10 @@ void JavaScript_pi::SetAISSentence(wxString &sentence) {    // AIS sentence rece
 			duk_push_boolean(ctx, OK);
 				duk_put_prop_literal(ctx, -2, "OK");
 			Completions outcome = pConsole->executeCallableNargs(pEntry->func_heapptr, 1);	// only one object on stack
-			if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
+			if (!pConsole->isBusy()){
+					pConsole->wrapUp(outcome);
+					break;
+					}
 			}
 		}       	
 	}
@@ -614,7 +638,9 @@ void JavaScript_pi::OnContextMenuItemCallbackExt(int menuID, std::string identif
 		void* heapptr = pEntry->func_heapptr;
 		outcome = pConsole->executeCallableNargs(heapptr, 1);
 		pConsole->mWaitingCached = false;
-		if (!pConsole->isBusy()) pConsole->wrapUp(outcome);
+		if (!pConsole->isBusy()){
+			pConsole->wrapUp(outcome);
+			}
         }
     }
 
@@ -632,7 +658,8 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
 		auto it = std::lower_bound(m_messages.begin(), m_messages.end(), message_id);
 		m_messages.insert(it, message_id);
 		}
-	m_lastMessage = message_body;	// remember this message
+	m_lastMessage.message_id = message_id;	// remember this message
+	m_lastMessage.message_body = message_body;
     if (message_id == "OpenCPN Config"){
         // capture this while we can
         TRACE(15, "Captured openCPNConfig");

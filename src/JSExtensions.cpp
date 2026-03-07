@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -1224,9 +1224,11 @@ static duk_ret_t onSocketEvent(duk_context *ctx){
 		addr.AnyAddress();
 		addr.Service(port);
 		pEntry->datagram.lastSender.Clear();
-		pEntry->datagram.socket = make_unique<wxDatagramSocket>(addr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR | wxSOCKET_BROADCAST);
-//		pEntry->datagram.sendAddress = addr;	// would override 255.255.255.255
-//		pEntry->pSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR | wxSOCKET_BROADCAST);
+		pEntry->datagram.socket = make_unique<wxDatagramSocket>(
+			addr,
+			wxSOCKET_NOWAIT |
+			wxSOCKET_REUSEADDR |
+			wxSOCKET_BROADCAST);
 		if (!pEntry->datagram.socket->IsOk()){
 			pConsole->prep_for_throw(ctx, wxString::Format("onSocketEvent failed to create socket on port %d", port));
 			duk_throw(ctx);
@@ -1249,24 +1251,25 @@ static duk_ret_t socketSend(duk_context *ctx){
 	callbackID id =  duk_get_number(ctx, 0);
 	std::shared_ptr<callbackEntry> pEntry = pConsole->getCallbackEntry(id, false);
 	if (!pEntry) THROWCONSOLE(wxString::Format("socketSend - %d not valid socket id", id));
-	wxIPV4address addr = pEntry->datagram.lastSender;
+	wxIPV4address addr;
 	bool OK;
-	if (nargs == 2){
-		bool hasSender = !pEntry->datagram.lastSender.IPAddress().IsEmpty() && pEntry->datagram.lastSender.Service() != 0;
-		if (hasSender) addr = pEntry->datagram.lastSender;
-		else THROWCONSOLE("socketSend - nothing to reply to");
+	if (nargs == 2){ // reply
+		if (pEntry->datagram.lastSender.IPAddress().IsEmpty())
+			THROWCONSOLE("socketSend - nothing to reply to");
+			addr = pEntry->datagram.lastSender;
 		}
 	else if (nargs >= 3){
 		unsigned int service = duk_get_number(ctx, 2);
 		OK = addr.Service(service);	// port specified
 		if (!OK) THROWCONSOLE(wxString::Format("socketSend - invalid service %d", service));
-		addr.Hostname("255.255.255.255");
+		addr.BroadcastAddress();
 		}	
 	if (nargs >= 4){
 		wxString host = duk_get_string(ctx, 3);
 		OK = addr.Hostname(host);	// address specified
 		if (!OK) THROWCONSOLE(wxString::Format("socketSend - invalid host %s", host));	
 		}
+	TRACE(9876, wxString::Format("socketSend nargs:%d service:%d address:%s", nargs, addr.Service(),addr.IPAddress()));
 	if (duk_is_string(ctx, 1)){
 		wxString text = duk_get_string(ctx, 1);
 		int length = text.size();

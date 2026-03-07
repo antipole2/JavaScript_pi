@@ -941,17 +941,23 @@ static duk_ret_t sendMessage(duk_context *ctx) {  // sends message to OpenCPN
     wxString message_id = wxString(duk_to_string(ctx,0));
     duk_pop(ctx);
     message_id.Trim();
+    TRACE(4975, "sendMessage: "+ message_id);
     if (message_id == "OCPN_DRAW_PI"){  // Let's check that OpenDraw is enabled - have we seen it?
     	auto it = std::find(pJavaScript_pi->m_messages.begin(),pJavaScript_pi->m_messages.end(), "OCPN_DRAW_PI_READY_FOR_REQUESTS");
 		if (it == pJavaScript_pi->m_messages.end()) {	// not matched
+			TRACE(4975, "sendMessage found OpenDraw not enabled");			
 			throwErrorByCtx(ctx, "OCPNsendMessage error: OpenDraw not enabled");
 			}
     	}
-    TRACE(4, "Sending message " + message_id);
+    TRACE(4975, "Sending message " + message_id);
     TRACE (5, findConsoleByCtx(ctx)->dukDump());
-    pJavaScript_pi->m_lastMessage = wxEmptyString;	// clear last message received 
+    pJavaScript_pi->m_lastMessage.message_body = wxEmptyString;	// clear last message received
+    pJavaScript_pi->m_lastMessage.message_id = wxEmptyString;	
     SendPluginMessage(message_id, message_body);
-    duk_push_string(ctx, pJavaScript_pi->m_lastMessage); // return any instant response to this one
+    TRACE(4975, "sendMessage received id:" + pJavaScript_pi->m_lastMessage.message_id + " body:" +  pJavaScript_pi->m_lastMessage.message_body);
+    if ((pJavaScript_pi->m_lastMessage.message_body == wxEmptyString) || (pJavaScript_pi->m_lastMessage.message_body == message_body))
+    	duk_push_boolean(ctx, false); // no immediate reply other than echo
+    else duk_push_string(ctx, pJavaScript_pi->m_lastMessage.message_body); // return any instant response to this one
     return 1;
 	}
 

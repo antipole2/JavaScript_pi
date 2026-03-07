@@ -507,20 +507,25 @@ void Console::PollSocket(wxTimerEvent& event){
 		message(STYLE_RED, "PollSocket - program error - failed to match id");
 		return;
 		}
-	if (!pEntry->datagram.socket->IsData()) return;// no data
+//	if (!pEntry->datagram.socket->IsData()) return;// no data
 	uint8_t buf[2048];
 	wxIPV4address sender;
 	int errorNumber {0};	
 	pEntry->datagram.socket->RecvFrom(sender, buf, sizeof(buf));
 	if (pEntry->datagram.socket->Error()) {
 		errorNumber = pEntry->datagram.socket->LastError();
-		message(STYLE_RED, wxString::Format("PollSocket - RecvFrom error %d", errorNumber));
+		if (errorNumber == wxSOCKET_WOULDBLOCK) return; // no data
+		if (errorNumber != wxSOCKET_NOERROR){
+			message(STYLE_RED, wxString::Format("PollSocket - RecvFrom error %d", errorNumber));
+			return;
+			}
 		}
 	pEntry->datagram.lastSender = sender; 	// Cache sender for replies
 	// Process buf[0..len)
 	duk_push_number(mpCtx, errorNumber);
-	if (errorNumber == 0){	// no error - have data
+	if (errorNumber == 0){	// no error - may have data
 		size_t len = pEntry->datagram.socket->LastCount();
+		if (len == 0) return;	// no data this time
 		uint8_t first = static_cast<uint8_t>(buf[0]);	// might this be CBOR data?	
 		if (first == MAGIC_CBOR){// yes
 			const uint8_t* cborData = buf + 1;

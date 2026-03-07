@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/04/2022
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -18,7 +18,7 @@
 
 #define     PLUGIN_VERSION_DATE __DATE__
 #define		PLUGIN_VERSION_PATCH 0 
-#define     PLUGIN_VERSION_COMMENT "build beta 2"
+#define     PLUGIN_VERSION_COMMENT "build beta 3"
 
 #define		BRANCH	"v4.0"	// The branch name to use for documentation links from Tools Help
 
@@ -41,5 +41,7 @@ Changes are highlighted yellow in the User Guide\n"
 #else
 #define SUBDEGREE(what, in, out)
 #endif
+
+// #define KEYBOARD_EVENT_HOOKKEYBOARD
 
 #endif		// version_h

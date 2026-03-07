@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 25/02/2021
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -576,7 +576,7 @@ public:
 	// Sockets - because we are polling, the default delete is sufficient - no custom deleter
 	
 	std::shared_ptr<callbackEntry>newCallbackEntry(CallbackType type){
-    constexpr size_t MaxCallbacks = 400;
+    constexpr size_t MaxCallbacks = 500;
     if (mCallbacks.size() >= MaxCallbacks) {
         clearCallbacks();
         prep_for_throw(mpCtx,
@@ -768,31 +768,6 @@ public:
 	void wrapUp(Completions reason) {    // clear down and maybe destroy ctx
 		TRACE(66, wxString::Format("%s->wrapUp() called with reason %d", mConsoleName, reason));
 		wrapUpWorks(reason);
-/*
-		if (!isBusy()){
-			TRACE(66, wxString::Format("%s->wrapUp() ending with reason %d", mConsoleName, reason));
-			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
-				if ((reason == DONE) || (reason == STOPPED) || (reason == TOCHAIN) || (reason == CLOSED)) {	// save the enduring variable
-					TRACE(4, mConsoleName + "->wrapUp() will save _remember");
-					duk_push_global_object(mpCtx);
-					
-					int OK = duk_get_prop_literal(mpCtx, -1, "_remember");
-					if (OK)	m_remembered = duk_json_encode(mpCtx, -1);
-					else m_remembered = "{}";	// play safe - if no _remember set as undefined
-					duk_pop(mpCtx);
-					
-					OK = duk_get_prop_literal(mpCtx, -1, "_versionControl");
-					if (OK)	m_versionControl = duk_json_encode(mpCtx, -1);
-					else m_versionControl = "{}";	// play safe - if no _versionControl set as undefined
-					duk_pop(mpCtx);
-					}
-				TRACE(66, mConsoleName + "->wrapUp() destroying ctx");
-				duk_destroy_heap(mpCtx);
-				mpCtx = nullptr;
-				}
-            TRACE(0, "------------------ Console " + mConsoleName + " wrapped up");
-			}
-*/
 		}
 
     void wrapUpWorks(Completions reason) {    // consider clearing down and destroying context etc.
@@ -869,7 +844,6 @@ public:
 					return;
 					}
 				}
-//		if (!isBusy()){
 			TRACE(66, wxString::Format("%s->wrapUp() ending with reason %d", mConsoleName, reason));
 			if (mpCtx != nullptr) { // for safety - nasty consequences if no context
 				if ((reason == DONE) || (reason == STOPPED) || (reason == TOCHAIN) || (reason == CLOSED)) {	// save the enduring variable
@@ -1152,13 +1126,17 @@ public:
 	// Because of Windows, the actual throw has to be done after return!
 	// ! do not call otherwise
 	message = JScleanOutput(message);	// internally, we are using DEGREE to represent degree - convert any back
-	TRACE(4, mConsoleName + "->prep_for_throw() " + message);
+	TRACE(4975, mConsoleName + "->prep_for_throw() " + message);
 	m_result = wxEmptyString;    // supress result
 	m_explicitResult = true;    // supress result
 	if (!duk_is_error(ctx, -1)){
 		// we do not have an error object on the stack
-		TRACE(4, mConsoleName + "->prep_for_throw() pushing error object to stack");
-		duk_push_error_object(ctx, DUK_ERR_ERROR, _("Console ") + mConsoleName + _(" - ") + message);  // convert message to error object
+		TRACE(4975, mConsoleName + "->prep_for_throw() pushing error object to stack");
+		wxString errorMessage = "Console " + mConsoleName + " - " + message;
+		TRACE(4975, errorMessage);
+		duk_push_error_object(ctx, DUK_ERR_ERROR, "%s", errorMessage.ToUTF8().data());  // convert message to error object
+//		const char *s = duk_safe_to_string(ctx, -1);
+//		TRACE(4976, wxString::FromUTF8(s));
 		}
 	mRunningMain = false;
 	}

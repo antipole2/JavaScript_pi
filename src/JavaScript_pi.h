@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -84,6 +84,11 @@ typedef	std::bitset<CallbackTypes_count> setActive_t;			//status for optimising 
 typedef int callbackID;
 typedef	int pgn_t;
 
+struct ocpnMessage{
+	wxString message_id;
+	wxString message_body;
+	};
+
 struct pgn_registration {	// entry recording pgns registered for given handle
 	DriverHandle	handle;
 	std::vector <pgn_t> pgns;	
@@ -141,6 +146,9 @@ public:
     void ShowPreferencesDialog (wxWindow* m_parent_window);
     void ShowTools (wxWindow* m_parent_window, int page);
     void SetCurrentViewPort(PlugIn_ViewPort &vp);
+#ifdef KEYBOARD_EVENT_HOOK
+    bool KeyboardEventHook(wxKeyEvent &event);
+#endif
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
@@ -160,7 +168,7 @@ public:
     bool			m_floatOnParent {true};	//set the wxSTAY_ON_TOP style for windows
     bool			m_ODready {false};		// true if OpenDraw ready
     wxString		m_ODconfigString {""};		//	The OD config received in initial response
-    wxString		m_lastMessage {""};		// last message through set method.
+    ocpnMessage		m_lastMessage;		// last message through set method.
     setActive_t		m_SetActive;			// status bits for optimising handling of plugin callbacks
     std::vector<wxString> m_messages;		// vector of messages received
         

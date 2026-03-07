@@ -1,7 +1,7 @@
 // decode NMEA2000 payload or encode NMEA2000 object v1.0
 // tracing options as per value of tracechoice  NMEA2000(arg, arg, {trace: tracechoice}}
 //	1	    1	call parameters and high level flow
-//	2	   10	print descriptor
+//	2	   10	print descriptor and passes data
 //	4	 0100	parse
 //	8	 1000	decode
 //	16	10000	byte/bit decoding
@@ -13,31 +13,31 @@ function NMEA2000(arg, data, options){
 	Object.defineProperty(this, "trace", {enumerable: false, writable: true});
 	Object.defineProperty(this, "undefined", {enumerable: false, writable: true});
 	this.trace = false;
-	this.undefined = false;	// normally omit undefined values
-
+	this.undefined = true;	// normally omit undefined values
+	
+	canboatLocation = "canboat";	// where to find canboat stuff
+	
 	// examine the arguments
 	this.descriptor = false;	// no descriptor yet
-	// printOrange("NMEA2000 options arg:", options, "\ttypeof: ", typeof(options),"\n");
 	if (typeof(options) == "object"){
 		if (options.hasOwnProperty("trace")) this.trace = options.trace;
 		if (options.hasOwnProperty("undefined")) this.undefined = options.undefined;
 		}
 	var trace = this.trace;	// for convenience
-	// printOrange("NMEA2000 called with trace:", this.trace, "\n");
 	if (trace & 1) printOrange("NMEA2000 called with arg type ", typeof(arg), "\n");
 	switch (typeof(arg)){
 		case "number":
-			if (trace & 1) printOrange("arg is number ", arg, "\n");
-			this.descriptor = require("pgnDescriptors")(arg);	// load descriptor
-			break;
+		if (trace & 1) printOrange("arg is number ", arg, "\n");
+		this.descriptor = require("pgnDescriptors")(arg);	// load descriptor
+		break;
 		case "object":	// custom descriptor
-			if (trace & 1) printOrange("Have custom descriptor?\n");
-			if (arg.constructor.name == "Array") throw("NMEA2000 called with invalid first arg");
-			pgn = arg.PGN;
-			if (typeof(pgn) != "number") throw("NMEA2000 called with 1st arg invalid descriptor");
-			if (trace & 1) printOrange("NMEA2000 called with custom descriptor for pgn " + arg.PGN);
-			this.descriptor = arg;	// the provided custom descriptor
-			break;
+		if (trace & 1) printOrange("Have custom descriptor?\n");
+		if (arg.constructor.name == "Array") throw("NMEA2000 called with invalid first arg");
+		pgn = arg.PGN;
+		if (typeof(pgn) != "number") throw("NMEA2000 called with 1st arg invalid descriptor");
+		if (trace & 1) printOrange("NMEA2000 called with custom descriptor for pgn " + arg.PGN);
+		this.descriptor = arg;	// the provided custom descriptor
+		break;
 		default: throw("NMEA2000 called with invalid arg type " + typeof(arg));
 		}
 	desc = this.descriptor;	// desc is shorthand for convenience
@@ -52,7 +52,7 @@ function NMEA2000(arg, data, options){
 	repeat1CountField = desc.RepeatingFieldSet1CountField;
 	if (desc.RepeatingFieldSet2Size != void 0){
 		printRed("Descriptor ", desc.Id, " has second repeating field group", "\n");
-		throw("Unsupported descriptor");
+		throw Error("Unsupported descriptor");
 		}
 	if ((repeat1Size != void 0) && (repeat1StartField != void 0) && (repeat1CountField != void 0)){
 		repeat1 = true;
@@ -66,9 +66,9 @@ function NMEA2000(arg, data, options){
 	else if (Array.isArray(data)) parse(this, data);
 	else if (typeof (data) == "object") throw("NME2000 constructor called with object for 2nd argument");
 	else throw("NMEA2000 constructor - 2nd arg unknown type: " + typeof data);
-
+	
 	// now for the methods
-
+	
 	this.decode = function(data){
 		var trace = this.trace;
 		desc = this.descriptor;
@@ -78,38 +78,39 @@ function NMEA2000(arg, data, options){
 		parse(this, data);
 		return this;
 		}
-
+	
 	this.encode = function(options){
+		//printRed(this, "\n");
 		var trace = this.trace;
-		if (typeof(options) == "object") undefineTimestamp = true;
+		if (typeof(options) == "object") var undefineTimestamp = true;
 		else undefineTimestamp = false;
-		desc = this.descriptor;
-		repeat1Size = desc.RepeatingFieldSet1Size;
-		repeat1StartField = desc.RepeatingFieldSet1StartField;
-		repeat1CountField = desc.RepeatingFieldSet1CountField;
-		result = [147, 19];	// build the standard OCPN header
+		var desc = this.descriptor;
+		var brepeat1Size = desc.RepeatingFieldSet1Size;
+		var repeat1StartField = desc.RepeatingFieldSet1StartField;
+		var repeat1CountField = desc.RepeatingFieldSet1CountField;
+		var result = [147, 19];	// build the standard OCPN header
 		result.push(checkUndefined(this.priority, 8));
 		result = result.concat(encodeBytes(this.PGN, 3));	// the pgn
 		result.push(checkUndefined(this.destination, 8), checkUndefined(this.origin, 8));
 		if (undefineTimestamp) result.push(255,255,255,255);
 		else result = result.concat(encodeBytes(new Date(), 4));
-		if (trace & 1) printOrange("Encoding - started encloding - base is:", result, "\n");
-
+		if (trace & 1) printOrange("Encoding - started encoding - base is:", result, "\n");
+		
 		data = [];	// will hold data portion
 		var nextBitIndex = 0;
 		for (order = 1; order < desc.Fields.length; order++){
 			field = desc.Fields[order];
-			if (trace & 4) printOrange("Starting on field order ", order, "\tId:", field.Id, "\n");
+			if (trace & 4) printOrange("Starting encoding field order ", order, "\tId:", field.Id, "\n");
 			if (!repeat1 || order < repeat1StartField){	// not a repeating field
 				if (trace & 4) printOrange("Non-repeating Order:", order, "\n");
 				if (repeat1 && (order == repeat1CountField)){
-					repeatName = field.Id;
-					repeatCount = this[repeatName + "Count"];
+					//repeatName = field.Id;
+					repeatCount = this[field.Id];
 					if (trace & 4) printOrange("Repeat count:", repeatCount, "\n");
 					encodeBits(repeatCount, field.BitOffset, field.BitLength, field.BitStart);
 					}
 				else {
-
+					
 					if (trace & 4) printOrange("About to encode with this:", this, "\nfield:", field, "\n");
 					encodeValue(this, field);
 					}
@@ -121,11 +122,11 @@ function NMEA2000(arg, data, options){
 					break;	// we stop here
 					}
 				repeatId = field.Id;
-				repeats = [];
-				if (trace & 4) printOrange("Field order ", order, " has repeat of ", repeatId, " count ", repeatCount, "\n");
-				for (var r = 0; r < repeatCount; r++){	// for each repetition...
+				repeats = this[repeatName];
+				if (trace & 4) printOrange("Field order ", order, " has repeat count ", repeatCount, "\n");
+				for (var r in repeats){	// for each repetition...
 					if (trace & 4) printOrange("Starting on repetition ", r, "\n");
-					thisRepeat = {};
+					var thisRepeat = repeats[r];
 					for (s = 0; s < repeat1Size; s++){	// for each in set
 						field = desc.Fields[order++];	// descriptor for this parameter
 						if (trace & 4) printOrange("Processing set ", s, "\tin repetition ", r, "\torder: ", order, "\n");
@@ -147,7 +148,7 @@ function NMEA2000(arg, data, options){
 		result = result.concat(data.length, data);
 		return result;
 		}
-
+	
 	this.push = function(handle){
 		if ((handle == void 0) && (this.handle == void 0)){	// need to find the handle
 			handles = OCPNgetActiveDriverHandles();
@@ -159,9 +160,9 @@ function NMEA2000(arg, data, options){
 			switch (n2kHandles.length){
 				case 0:	throw("NMEA2000 no nmea2000 handle");
 				case 1:	this.handle = n2kHandles[0];
-						break;
+				break;
 				default:	printRed("Multiple nmea2000 handles: ", n2kHandles, "\n");
-						throw("Handles ambiguous");
+				throw("Handles ambiguous");
 				}
 			}
 		else this.handle = handle;
@@ -169,18 +170,18 @@ function NMEA2000(arg, data, options){
 		var payload = this.encode();
 		payload = payload.slice(13);	// drop Actisense header
 		if ((this.destination == void 0) || (this.destination == "undefined"))
-			destination = 255;
+		destination = 255;
 		else destination = this.destination;
 		if ((this.priority == void 0) || (this.priority == "undefined"))
-			priority = 3;
+		priority = 3;
 		else priority = this.destination;
-		if (this.trace & 1) print("NMEA2000 about to push with handle:", this.handle, "\tPGN:", this.PGN, "\tdest:", destination, "\tpri:", priority, "\npayload:", payload, "\n");
+		if (this.trace & 1) printOrange("NMEA2000 about to push with handle:", this.handle, "\tPGN:", this.PGN, "\tdest:", destination, "\tpri:", priority, "\npayload:", payload, "\n");
 		outcome = OCPNpushNMEA2000(this.handle, this.PGN, destination, priority, payload);
 		return outcome;
 		}
-
+	
 	return this;	// end of constructor ---------------------------------------------------
-
+	
 	function buildBare(us){	// create empty attributes
 		var trace = us.trace;
 		if (trace & 1) printOrange("buildEmpty for pgn ", us.PGN, "\n");
@@ -211,7 +212,7 @@ function NMEA2000(arg, data, options){
 				}
 			}
 		}
-
+	
 	function parse(us, data){	// parse
 		var trace = us.trace;
 		if (trace & 1) printOrange("parse for pgn ", us.PGN, "\n");
@@ -227,7 +228,7 @@ function NMEA2000(arg, data, options){
 				}
 			printOrange("count in data: ", count, " data length is ", dataLength, " sum of bitLengths in bytes ", bitCount/8, "\n");
 			}
-		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
+		//		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
 		us["timestamp"] = 0;	// get this in now to establish position in enumeration
 		nextByte = 2;
 		us["priority"] = data[nextByte++];
@@ -244,14 +245,21 @@ function NMEA2000(arg, data, options){
 				}
 			us["timestamp"] = stamp;
 			}
-		  else {
+		else {
 			us["origin"] = data[i++]; /*DefaultSource*/;
 			us["timestamp"] = new Date();
-		  }
+			}
 		data = data.slice(13);	// now dispense with actisense header and start on NMEA2000 data proper
 		nextBitIndex = 0;	// the index within data of the next bit to be processed
 		canCheckBitOffset = true;	// BitOffset should tally with nextBitIndex.  Not possible after variable length or first repeating field
-		for (order = 1; order < desc.Fields.length; order++){
+		
+		/******* Pass 1 *******
+		The first pass is through the biary datta and we build an array passes that contains 
+		an extraction of what we need for later passes
+		*/
+		
+		var passes = [];	// to hold result of the passes
+		for (order = 1; order < desc.Fields.length; order++){  // first pass to get values
 			field = desc.Fields[order];
 			if (trace & 4) printOrange("Starting on field order ", order, "\tId:", field.Id, "\tnextBitIndex:", nextBitIndex, "\n");
 			if (!repeat1 || order < repeat1StartField){	// not a repeating field
@@ -267,18 +275,25 @@ function NMEA2000(arg, data, options){
 				Id = field.Id;
 				if (field.BitOffset == void 0) canCheckBitOffset = false;	// no BitOffset so stop checking
 				if (canCheckBitOffset) if (field.BitOffset != nextBitIndex)
-					throw("NMEA2000 parse BitOffset " + field.BitOffset + " nextBitIndex " + nextBitIndex + " conflict");
+				throw Error("NMEA2000 parse BitOffset " + field.BitOffset + " nextBitIndex " + nextBitIndex + " conflict");
 				value = decodeValue(us, data, field);
 				if (repeat1 && (order == repeat1CountField)){
 					repeatCount = value;	// remember repeat count
 					repeatName = field.Id;
+					field.Id = repeatName + "Count";
 					if (trace & 4) printOrange("Repeat count:", repeatCount, "\n");
 					if (repeatCount == void 0) repeatCount = 0;	// no repeats present
-					us[repeatName + "Count"] = repeatCount;
+					//					us[repeatName + "Count"] = repeatCount;
+					//					field.Id = repeatName + "Count"; // ++++++
 					}
-				else us[Id] = maybeUndefine(value, us.undefined);
-				if (trace & 4) printBlue("Field order:", order, "\tId:", Id, "\tValue type:", typeof value, "\n");
-				if (trace & 4) printBlue("us:", us, "\n");
+				//				else us[Id] = maybeUndefine(value, us.undefined);
+				if (trace & 4) printOrange("Field order:", order, "\tId:", Id, "\tValue type:", typeof value, "\n");
+				if ((value != void 0) && (value.type == "LOOKUP")){
+					var lookedUp = lookupEnumeration(1, value.LookupEnumeration, "Value", value.value, "Name");
+					value.name = lookedUp;
+					}
+				//				value =  maybeUndefine(value, us.undefined);
+				passes.push({type:"datum", order:order, id: field.Id, value:value});
 				}
 			else {	// we have reached the start of the repeating fields
 				if (trace & 4) printOrange("Repeating order:", order, "\n");
@@ -288,13 +303,13 @@ function NMEA2000(arg, data, options){
 					}
 				repeatId = field.Id;
 				repeats = [];
-				us[repeatName] = repeats;
 				if (trace & 4) printOrange("Field order ", order, " has repeat of ", repeatId, " count ", repeatCount, "\n");
+				var repeatsPasses = [];
 				for (r = 1; r <= repeatCount; r++){	// for each repetition...
 					if (trace & 4) printOrange("Starting on repetition ", r, "\n");
 					thisRepeat = {};
-					for (s = 0; s < repeat1Size; s++){	// for each in set
-						field = desc.Fields[order++];	// descriptor for this parameter
+					for (s = 0; s < repeat1Size; s++, order++){	// for each in set
+						field = desc.Fields[order];	// descriptor for this parameter
 						if (trace & 4) printOrange("Processing set ", s, "\tin repetition ", r, "\torder: ", order, "\n");
 						Id = field.Id;
 						if (trace & 4) printOrange("\t\t\t\tfield.Id ",  Id, "\n");
@@ -304,132 +319,204 @@ function NMEA2000(arg, data, options){
 							continue;
 							}
 						if (canCheckBitOffset) if (field.BitOffset != nextBitIndex)
-							throw("NMEA2000 parse BitOffset " + field.BitOffset + " nextBitIndex " + nextBitIndex + " conflict");
+						throw Error("NMEA2000 parse BitOffset " + field.BitOffset + " nextBitIndex " + nextBitIndex + " conflict");
 						startByteIndex = Math.floor(nextBitIndex/8);
 						BytesToGet = Math.ceil(field.bitLength/8);
 						if (startByteIndex + BytesToGet > data.length) break;	// off end of data
-						thisRepeat[Id] =  maybeUndefine(decodeValue(us, data, field), us.undefined);
+						//printBlue("in repeats: ", typeof value, "\n");
+						value = decodeValue(us, data, field);
+						if ((value != void 0) && (value.type == "LOOKUP")){
+							var lookedUp = lookupEnumeration(1, value.LookupEnumeration, "Value", value.value, "Name");
+							value.name = lookedUp;
+							}
+						//						value =  maybeUndefine(value, us.undefined);
+						thisRepeat[Id] = value;
 						if (trace & 32) print("r:", r, "\ts:", s, "\t nextBitIndex:", nextBitIndex,  " mod8:", nextBitIndex%8, "\n");
 						}
 					repeats.push(thisRepeat);
+					repeatsPasses.push(thisRepeat);
 					order = repeat1StartField;	// back to start of descriptors for this repetition
 					canCheckBitOffset = false;
 					}
 				order = repeat1StartField + repeat1Size;	// finished repeats, so set order to next thereafter
+				passes.push({type:"repeats", id:repeatName, repeats:repeatsPasses});
+				}
+			field.value = value;
+			}
+		
+		// ******* Pass 2 *******  Indirect lookups
+		// Not yet seen one of theseto test
+		for (var p in passes){
+			var element = passes[p];
+			if (element.FieldType == "INDIRECT_LOOKUP"){
+				printOrange("Indirect lookup seen\n");
 				}
 			}
+		
+		if (trace & 2) printOrange("passes: ", JSON.stringify(passes, null, "\t"), "\n");
+		
+		// ******* Pass 3 *******  Generate output by adding it to us aka 'this'
+		for (var p in passes){
+			var element = passes[p];
+			if (element.type == "datum"){				
+				if (typeof element.value != "object"){
+					if (element.value == void 0) element.value = "undefined";
+					us[element.id] = element.value;
+					}
+				else {
+					if (element.value.value == void 0){
+						us[element.id] = {value:"undefined"};
+						}
+					else
+					us[element.id] = {value: element.value.value, name: element.value.name};
+					}
+				}
+			else if (element.type == "repeats"){
+				us[element.id + "Count"] = element.repeats.length;
+				var repeats = [];
+				for (var r in element.repeats){
+					var repeat = element.repeats[r];
+					var thisPart = {};
+					for (var b in repeat){
+						var bit = repeat[b];
+						if (typeof bit != "object"){
+							thisPart[b] = bit;
+							}
+						else {	//object
+							thisPart[b] = {value: bit.value, name: bit.name};
+							}							
+						}
+					repeats.push(thisPart);
+					}
+				us[element.id] = repeats;
+				}
+			}		
 		}
-
+	
 	function decodeValue(us, data, desc) {
 		// to understand how values are expressed, see https://canboat.github.io/canboat/canboat.html#ft-NUMBER
 		var trace = us.trace;
-		if (trace & 4) printBlue("Decode data:", data, "\ndesc:", desc, "\nnextBitIndex:", nextBitIndex, "\n");
+		if (trace & 4) printOrange("Decode data:", data, "\ndesc:", desc, "\nnextBitIndex:", nextBitIndex, "\n");
+		var value;
 		switch (desc.FieldType){
 			case "Integer":
-throw("Type integer");
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				value = checkNumber(value, desc.Signed, desc.BitLength);
-/* should be fixed so allow this
-				if (this.PGN != 60928){	// Address claim regularly fails, so omit
-					if (value > desc.RangeMax) printRed("Data for " + desc.Id + " is " + value + " exceeds maximum");
-					else if (value < desc.RangeMin) printRed("Data for " + desc.Id + " is " + value + " below minimum");
-					}
-*/
-				return value;
+			throw("Type integer");
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength)
+			value = maybeUndefined(value, desc);
+			/* should be fixed so allow this
+			if (this.PGN != 60928){	// Address claim regularly fails, so omit
+			if (value > desc.RangeMax) printRed("Data for " + desc.Id + " is " + value + " exceeds maximum");
+			else if (value < desc.RangeMin) printRed("Data for " + desc.Id + " is " + value + " below minimum");
+			}
+			*/
+			return value;
 			case "NUMBER":
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				value = checkNumber(value, desc.Signed, desc.BitLength);
-				if (value == void 0) return value;
-				if (trace & 8) printOrange("Number/Lat/Long: ", value, "\n");
-				decimalPlaces = -Math.log10(desc.Resolution);
-				return parseFloat((value * desc.Resolution).toFixed(decimalPlaces)); // desc.Resolution
+			case "PGN":
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength);
+			if (value == void 0) return value;
+			if (trace & 8) printOrange("NUMBER/PGN/Lat/Long: ", value, "\n");
+			decimalPlaces = -Math.log10(desc.Resolution);
+			var x = parseFloat((value * desc.Resolution).toFixed(decimalPlaces));
+			return parseFloat((value * desc.Resolution).toFixed(decimalPlaces)); // desc.Resolution
 			case "MMSI":
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				value = checkNumber(value, desc.Signed, desc.BitLength);
-				if (value == void 0) value = "undefined";
-				if (trace & 8) printOrange("MMSI: ", value, "\n");
-				return value;
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength);
+			//			if (value == void 0) value = "undefined";
+			//			if (trace & 8) printOrange("MMSI: ", value, "\n");
+			return value;
 			case "DATE":	// in days since 1970
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				value = checkNumber(value, desc.Signed, desc.BitLength);
-				if (value == "undefined") return value;
-				moment = new Date(value * 86400 * 1000);	// date to msec since 1 Jan 1970
-				// have to work to getdate into same format as canboat yyyy.mm.dd
-				date = date = moment.toUTCString().slice(0,10);
-				return date.replace(/-/g, '.');	// e.g. 2023.10.22
-			case	"TIME":	// in milliseconds since midnight
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				value = checkNumber(value, desc.Signed, desc.BitLength);
-				if (value == "undefined") return value;
-				value = value*desc.Resolution;
-				time = new Date(value*1000);	// need msec
-				return time.toUTCString().slice(11,19);	// e.g 17:35:00
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength);
+			if (value == void 0) return value;
+			moment = new Date(value * 24 * 60 * 60 * 1000);	// date to msec since 1 Jan 1970
+			// have to work to getdate into same format as canboat yyyy.mm.dd
+			date = date = moment.toUTCString().slice(0,10);
+			return date.replace(/-/g, '.');	// e.g. 2023.10.22
+			case	"TIME":	// in seconds since midnight
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength);
+			if (value == void 0) return value;
+			value = value*desc.Resolution;
+			time = new Date(value*1000);	// need msec
+			return time.toUTCString().slice(11,19);	// e.g 17:35:00
 			case "LOOKUP":
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				if (trace & 8) printOrange("Looking up '", desc.BitLength, "' for value ", value, "\n");
-				return lookupEnumeration(desc.LookupEnumeration, value);
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength);
+			if (value == void 0) return{type: desc.FieldType, value: void 0};
+			else return {type: desc.FieldType, value:value, LookupEnumeration: desc.LookupEnumeration};
+			case "INDIRECT_LOOKUP":
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			return {type: desc.FieldType, value:value, indirectField:desc.LookupIndirectEnumerationFieldOrder, Indirect: desc.LookupIndirectEnumeration};
 			case "STRING_FIX":
-				string = "";
-				toDo = desc.BitLength/8;
-				while (toDo-- > 0) {
-					nextByte = getNextByte(data);
-					if ((nextByte == 0x00) || (nextByte == 0xff)) continue;	// ignore
-					nextChar = String.fromCharCode(nextByte);
-					string += nextChar;
-					}
-				while (string.slice(-1) == "@") string.length--;	// drop trailing @s
-				return string.trim();				
+			string = "";
+			toDo = desc.BitLength/8;
+			while (toDo-- > 0) {
+				nextByte = getNextByte(data);
+				if ((nextByte == 0x00) || (nextByte == 0xff)) continue;	// ignore
+				nextChar = String.fromCharCode(nextByte);
+				string += nextChar;
+				}
+			while (string.slice(-1) == "@") string.length--;	// drop trailing @s
+			return string.trim();				
 			case "STRING_LAU":
-				count = getNextByte(data);
-				code = getNextByte(data);
-				if (trace & 8) {
-					printOrange(data, "\n"); printBlue("nextBitIndex:", 	nextBitIndex);
-					printOrange("\tcount:", count, "\tcode:", code, "\n");
-					}
-				if (code != 1) throw("In " + + desc.Id + " the string data is not ASCII");
-				string = "";
-				toDo = count - 3;	// count included itself, the code and the extra crc - adjust
-				while (toDo-- > 0) {
-					nextByte = getNextByte(data);
-					nextChar = String.fromCharCode(nextByte);
-					string += nextChar;
-					}
-				nullByte = getNextByte(data);	// the null byte terminator
-				if (trace & 8) printOrange("String: ", string, "\tnull byte:", nullByte, "\n");
-				if (nullByte != 0) throw("In " + + desc.Description + " the string null terminator was not null");
-				if (trace & 8) printOrange("string:", string, "\n");
-				canCheckBitOffset = false;	// can't check offsets after variable length string
-				return string;
+			count = getNextByte(data);
+			code = getNextByte(data);
+			if (trace & 8) {
+				printOrange(data, "\n"); printBlue("nextBitIndex:", 	nextBitIndex);
+				printOrange("\tcount:", count, "\tcode:", code, "\n");
+				}
+			if (code != 1) throw("In " + + desc.Id + " the string data is not ASCII");
+			string = "";
+			toDo = count - 3;	// count included itself, the code and the extra crc - adjust
+			while (toDo-- > 0) {
+				nextByte = getNextByte(data);
+				nextChar = String.fromCharCode(nextByte);
+				string += nextChar;
+				}
+			nullByte = getNextByte(data);	// the null byte terminator
+			if (trace & 8) printOrange("String: ", string, "\tnull byte:", nullByte, "\n");
+			if (nullByte != 0) throw("In " + + desc.Description + " the string null terminator was not null");
+			if (trace & 8) printOrange("string:", string, "\n");
+			canCheckBitOffset = false;	// can't check offsets after variable length string
+			return string;
 			case "BINARY":
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			if (desc.BitLength > 32) {
 				nextBitIndex += desc.BitLength;
-				if (trace & 8) printOrange("Decoding binary data.  value:", value, "\tlength:", desc.BitLength, "\n");
-				return numberToBinary(value, desc.BitLength);
+				return "(Binary > 32 bits)";
+				}
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			if (trace & 8) printOrange("Decoding binary data.  value:", value, "\tlength:", desc.BitLength, "\n");
+			return numberToBinary(value, desc.BitLength);
 			case "SPARE":
-				value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
-				nextBitIndex += desc.BitLength;
-				if (trace & 8) printOrange("Spare  value:", value, "\tlength:", desc.BitLength, "\n");
-				return value;
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			if (trace & 8) printOrange("Spare  value:", value, "\tlength:", desc.BitLength, "\n");
+			return value;
 			default: { printGreen("Unsupported field type:", desc, "\n");throw("Unsupported field type " + desc.FieldType);}
 			}
 		result = "The result";
 		return result;
 		}
-
+	
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
+		var trace = false;
 		if (trace & 16) printOrange("data:",data,"\n\tBitOffset:", BitOffset, " bitLength:", bitLength, " bitStart:", bitStart, "\n"); 
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
 		BytesToGet = Math.ceil(bitLength/8);
-		if (startByteIndex + BytesToGet > data.length) throw("NMEA2000 getBits ran off end of data");
 		if (trace & 16) printOrange("getBits BitOffset:", BitOffset, "\tbitLength:", bitLength, "\tbitStart:", bitStart,
 			"\tstartByteIndex:", startByteIndex, "\tBytesToGet:", BytesToGet, "\n");
+		if (startByteIndex + BytesToGet > data.length) throw Error("NMEA2000 getBits ran off end of data");
 		chunk = getBytes(data, startByteIndex, BytesToGet);
 		// bit ops are good for 32 bits only, so only do this next if needed - will leave 64 bits untouched
 		if (bitLength <= 8){	// nibbles are little endon
@@ -446,16 +533,16 @@ throw("Type integer");
 		if (trace & 16) printOrange("BitOffset:", BitOffset, "\tbitLength:", bitLength, "\tbitStart:", bitStart, "\tchunk: ", chunk, "\tnibble:", nibble, "\n");
 		return nibble;
 		}
-
+	
 	function getNextByte(data){	// get next byte from data		
 		byteOffset = nextBitIndex/8;
-		if (byteOffset > data.length) throw("NMEA2000 getNextByte ran off end of data");
 		if (trace & 16) printOrange("nextBitIndex:", nextBitIndex, "\tByteOffset: ", byteOffset, "\n", data, "\n");
+		if (byteOffset > data.length) throw Error ("NMEA2000 getNextByte ran off end of data");
 		theByte = data[byteOffset];
 		nextBitIndex += 8;
 		return theByte;
 		}
-		
+	
 	function getBytes(v, start, bytes){	// little endean!
 		var trace = this.trace;
 		// trace = 16;
@@ -464,7 +551,7 @@ throw("Type integer");
 		if (trace & 16) {
 			printOrange("getBytes v:", v, " start:", start, "\tbytes:", bytes, "\toffset:", offset);
 			printOrange("\tresult:", result, "\n");
-				}
+			}
 		for ( ; offset >= start; offset--){
 			result = (result * 256) + v[offset];	// shift left 64 bit safe
 			if (trace & 16) printOrange("getBytes loop offset:", offset, "\tresult:", result, "\n");
@@ -473,7 +560,7 @@ throw("Type integer");
 		if (trace & 16) printOrange("getBytes final result:", result, "\n");
 		return result;
 		};
-
+	
 	function encodeBytes(what, nbytes){// encode into nbytes little endean
 		var trace = this.trace;
 		if (trace & 32) printOrange("encodeBytes what:", what, " nbytes:", nbytes, "\n");
@@ -484,7 +571,7 @@ throw("Type integer");
 			}
 		return result;
 		}
-
+	
 	function encodeBits(what, BitOffset, bitLength, bitStart){	// put bits into encoded array
 		var trace = this.trace;
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
@@ -534,18 +621,19 @@ throw("Type integer");
 			encodeBytes(what, bitLength/8);
 			return;
 			}
-		throw("encodebits unsupported bitLength of " + bitLength + " when not padding");
+		throw Error("encodebits unsupported bitLength of " + bitLength + " when not padding");
 		}
-
-	function encodeValue(us, field){
-		var trace = us.trace;
+	
+	function encodeValue(object, field){
+		var trace = this.trace;
 		Id = field.Id;
-		if (trace & 32) printOrange("encodeValue us:", us, "\tfield:", field, "\Id:", field.Id, "\n");
+		if (trace & 32) printOrange("encodeValue object:", object, "\tfield:", field, "\Id:", field.Id, "\n");
 		if ((Id.slice(0,8) == "reserved")|| (Id == "spare")){
 			encodeBits(0xffff, field.BitOffset, field.BitLength, field.BitStart);
 			return;
 			}
-		else value = us[Id];
+		else value = object[Id];
+		if (typeof value == "object") value = value.value;	// deal with compound values
 		if (trace & 32) printOrange("encodeValue value: ", value, "\tType:", field.FieldType, "\n");
 		if ((value == void 0) || (value == "undefined")){	// no value - undefined
 			if (field.BitLength <= 3) value = 0xfe;	// special case
@@ -557,91 +645,78 @@ throw("Type integer");
 			encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
 			return;
 			}
- 		switch (field.FieldType){
+		switch (field.FieldType){
 			case "Integer":
-				value = value/field.Resolution.toFixed(0);
-				encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
-				return;
+			value = value/field.Resolution.toFixed(0);
+			encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
+			return;
 			case "LOOKUP":
-				if (typeof value == "object"){
-					if (trace & 32) printOrange("field.Type is object with value:", value.value, "\n");
-					encodeBits(value.value, field.BitOffset, field.BitLength, field.BitStart);
-					return;
-					}
-				else if (typeof value == "number"){
-					if (trace & 32) printOrange("field.Type is number\n");
-					encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
-					return;
-					}
-/*
-				if (((typeof field.EnumValues) != "undefined") &&
-					((typeof value) == "string")){ // only if lookup table included in desc and it is a string
-					if (trace & 32) printOrange("field.EnumValues.length: " + field.EnumValues.length, "\n");
-					for (i = 0; i < field.EnumValues.length; i++){
-						if (trace & 32) printOrange("Table name: ", field.EnumValues[i].name, "\n");
-						if (value == field.EnumValues[i].name){
-							encodeBits(field.EnumValues[i].value, field.BitOffset, field.BitLength, field.BitStart);
-							return;
-							}
-						}
-					throw("encode unknown lookup table name for field " + Id);
-					}
-*/
-				else throw("LOOKUP unknown type:", typeof value);
+			if (typeof value == "object"){
+				if (trace & 32) printOrange("field.Type is object with value:", value.value, "\n");
+				encodeBits(value.value, field.BitOffset, field.BitLength, field.BitStart);
+				return;
+				}
+			else if (typeof value == "number"){
+				if (trace & 32) printOrange("field.Type is number\n");
+				encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
+				return;
+				}
+			else throw Error("LOOKUP unknown type:", typeof value);
 			case "MMSI":
-				encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
-				return;
-//			case "Date":
+			encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
+			return;
 			case "DATE":
-				value = value.replace(/\./g, '-');	// change . to - separator
-				date = new Date(value);
-				day = date.getTime()/(86400 * 1000);	// day number
-				encodeBits(day, field.BitOffset, field.BitLength, field.BitStart);
-				return;
+			value = value.replace(/\./g, '-');	// change . to - separator
+			date = new Date(value);
+			day = date.getTime()/(86400 * 1000);	// day number
+			encodeBits(day, field.BitOffset, field.BitLength, field.BitStart);
+			return;
 			case "TIME":
-				time = new Date("1970-01-01T" + value + "Z");	// msec since start epoch
-				time = time.getTime()/1000;	// seconds since midnight
-				time = time/field.Resolution;	// sat time
-				encodeBits(time, field.BitOffset, field.BitLength, field.BitStart);
-				return;
+			time = new Date("1970-01-01T" + value + "Z");	// msec since start epoch
+			time = time.getTime()/1000;	// seconds since midnight
+			time = time/field.Resolution;	// sat time
+			encodeBits(time, field.BitOffset, field.BitLength, field.BitStart);
+			return;
 			case "NUMBER":
-				if (trace & 16) printOrange("Encoding number:", value, "\n");
-				value = Math.round(value/field.Resolution);	// convert to integer
-				if (value < 0){
-					if (!field.Signed) throw("encode Value ", value, " but unsigned type");
-					bits = field.BitLength;
-					value = (value*-1 - 2**bits) * -1;	// make positive;
-					}
-				encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
-				return;
+			case "PGN":
+			if (trace & 16) printOrange("Encoding number:", value, "\n");
+			value = Math.round(value/field.Resolution);	// convert to integer
+			if (value < 0){
+				if (!field.Signed) throw("encode Value ", value, " but unsigned type");
+				bits = field.BitLength;
+				value = (value*-1 - 2**bits) * -1;	// make positive;
+				}
+			encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
+			return;
 			case "STRING_LAU": //ASCII or UNICODE string starting with length and control byte
-				data.push(value.length+3, 1);	// count (includes itself, code and terminating zero) + ASCII code
-				for (var c = 0; c < value.length; c++) data.push(value.charCodeAt(c));
-				data.push(0);
-				return;
+			data.push(value.length+3, 1);	// count (includes itself, code and terminating zero) + ASCII code
+			for (var c = 0; c < value.length; c++) data.push(value.charCodeAt(c));
+			data.push(0);
+			return;
 			case "STRING_FIX":	// fixedlength text
-				var c = field.BitLength/8;	// number of chars allowed
-				var s = value.length;		// number of chars provided
-				if (trace & 16) printOrange("Encode ASCII c: ", c, "\ts:", s, "\n");
-				for (var i = 0; ((c > 0) && (s > 0));  i++, c--, s--)
-					data.push(value.charCodeAt(i));
-				while (c-- > 0) data.push(0x00);	// pad if needed
-				return;
+			var c = field.BitLength/8;	// number of chars allowed
+			var s = value.length;		// number of chars provided
+			if (trace & 16) printOrange("Encode ASCII c: ", c, "\ts:", s, "\n");
+			for (var i = 0; ((c > 0) && (s > 0));  i++, c--, s--)
+			data.push(value.charCodeAt(i));
+			while (c-- > 0) data.push(0x00);	// pad if needed
+			return;
 			case "BINARY":
-				value = binaryToNumber(value);
-				encodeBits(value.toString(), field.BitOffset, field.BitLength, field.BitStart);
-				return;
-			default: throw("field " + field + "\tencode Value unsupported type: " + field.Type);
+			value = binaryToNumber(value);
+			encodeBits(value.toString(), field.BitOffset, field.BitLength, field.BitStart);
+			return;
+			default: throw Error("field " + field + "\tencode Value unsupported type: " + field.Type);
 			}
 		return value;
 		}
-
+	
+	
 	function checkNumber(number, isSigned, bits){ // check decoded number is valid and fix up sign
 		// See here for special meaning of some numbers https://canboat.github.io/canboat/canboat.html#field-types
 		// in JavaScript, bit ops are only available up to 32 bits
 		// so to be 64 bit safe, we have to manage without bit shift and bit flip (:-#)
-		trace = false;
-//		if (trace & 16) printOrange("checkNumberA number:", number, " isSigned:", isSigned, " bits:", bits, "\n");
+		trace = this.trace;
+		if (trace & 16) printOrange("\ncheckNumberA number:", number, " isSigned:", isSigned, " bits:", bits, "\n");
 		toShift = bits;
 		if (isSigned) toShift--;	// signed numbers have one less max value
 		max = (2 ** toShift) - 1;	// maximum possible value
@@ -654,59 +729,126 @@ throw("Type integer");
 		if (trace & 16) printOrange("checkNumberZ - number:", number, "\tbits:", bits, "\tmax:", max,"\n");
 		return number;
 		}
-
+	
 	function checkUndefined(value, bits){
 		if ((value == void 0) || (value == "undefined")) return (2 ** bits) - 1;	// required number of bits all on
 		else return value;
 		}
-
 	function maybeUndefine(value, ifUndefined){
 		// if to display undefined, substitute text for void 0
 		if (ifUndefined && value == void 0) return "undefined";
 		else return value;
 		}
-
-	function lookupEnumeration(name, value){
-		if (_canboat == undefined){ // load the canboat object
-			_canboat = JSON.parse(require("canboat"));
-			}		
-		enums = _canboat.LookupEnumerations;
-		for (var i = 0; i < enums.length; i++){
-			e = enums[i];
-			if (e.Name == name){
-				evalues = e.EnumValues;
-				for (var j = 0; j < evalues.length; j++){
-					if (evalues[j].Value == value) return {value:value, name:evalues[j].Name};
-					}
-				return{value:value, name:"no name entry for this value"};
+	
+	function lookupEnumeration(
+		type,	// the type of enumeration to look up - 1 for LookupEnumerations or 2 for LookupIndirectEnumerations
+		tableName, 	// the name of the table within the type e.g. "DEVICE_CLASS"
+		attribute,	// attribute within table to match
+		value,	// the value of the attribute to match
+		toGet	// the attribute to return
+		// example: lookupEnumeration(1, "DEVICE_CLASS", "Value", 35, "Name")
+		){
+		if (value == void 0) return void 0;	// special case if no value
+		// make sure we have the right stuff to hand,caching for future calls
+		globalThis._canboat = globalThis._canboat || JSON.parse(require(canboatLocation));
+		var enums;
+		switch (type){	// this sets up enums as required, using any cached copy
+			case 1:
+			globalThis._LE = globalThis._LE || _canboat.LookupEnumerations;
+			enums = _LE;
+			break;
+			case 2:
+			globalThis._LIE = globalThis._LIE || _canboat.LookupIndirectEnumerations;
+			enums = _LIE;
+			break;
+			default: throw Error("Invalid call to lookupEnumeration");
+			}	
+		var table = false;	
+		for (var i in enums){
+			var tablei = enums[i];
+			if (tablei.Name == tableName){
+				table = tablei;
+				break;
 				}
 			}
-		throw("Lookup of '" + name + "' - not known");
-		}
-
-	function numberToBinary(data, bitLength){	// convert to binary string
-		if (bitLength > 32) return "numberToBinary for > 32 bits not supported";
-		result = "";
-		for (var i = bitLength; i > 0; i--){
-			mask = 1 << i-1;
-			onOff = data & mask;
-			result += onOff?"1":"0";
+		if (!table) throw Error("lookupEnumeration unable to find table " + tableName);
+		var enumValues = table.EnumValues;
+		for (var e in enumValues){
+			var entry = enumValues[e];
+			if (entry[attribute] == value) return entry[toGet];
 			}
+		return ("unknown"); 
+		}
+	
+	function doLookUps(object){
+		for (var attr in object){
+			var thisObject = object[attr];
+			//printRed(attr, ": ", JSON.stringify(thisObject), "\n");
+			if (typeof thisObject == "function") continue;
+			if (thisObject != undefined){
+				if (Array.isArray(thisObject)) {	// look up any in array
+					for (var i in thisObject){
+						var subObject = thisObject[i];
+						if (subObject != undefined){			
+							doLookUps(subObject);
+							}
+						}
+					}
+				else if (typeof thisObject == "object"){
+					if (thisObject.type == "LOOKUP"){
+						var lookedUp = lookupEnumeration(1, thisObject.LookupEnumeration, "Value", thisObject.value, "Name");
+						thisObject = {value:thisObject.value, name:lookedUp};
+						object[attr] = thisObject;
+						// That has replaced the 'to be looked up' attributes with the looked up attributes
+						}
+					else if (thisObject.type == "INDIRECT_LOOKUP"){
+						printBlue("Indirect lookup ", JSON.stringify(thisObject), "\n");
+						continue;
+						var trace = true;
+						var indirectIndex = thisObject.LookupIndirectEnumerationFieldOrder;
+						if (trace) printOrange("Indirect look up of value ", thisObject.value, " in field ", indirectIndex, "\n");
+						var indirectObject = us[indirectIndex];
+						var tableName = indirectObject.LookupEnumeration;
+						var attribute = "Value";
+						var value = indirectObject.value;
+						var toGet = "Name";
+						var lookedUp = lookupEnumeration(2, tableName, attribute, value, toGet);
+						if (trace) printOrangeprintBlue("tableName:", tableName, " value:", value, " lookedUp:" , lookedUp, "\n");
+						thisObject = {value:thisObject.value, name:lookedUp};
+						object[attr] = thisObject;
+						}
+					};
+				}
+			}
+		// printBlue("Returning object ", JSON.stringify(object), "\n");
+		return object;
+		}
+	
+	function numberToBinary(n, bitLength) {
+		if (bitLength > 53) return Error("numberToBinary for >53 bits not supported");
+		var bin = Math.floor(n).toString(2);
+		if (bitLength !== undefined) {
+			while (bin.length < bitLength) {
+				bin = "0" + bin;
+				}
+			}
+		return bin;
+		}
+		
+	function binaryToNumber(binary) { 	// convert binary string to number
+		if (!/^[01]+$/.test(binary)) {
+			throw new Error("binaryToNumber - invalid binary string");
+			}
+		if (binary.length > 53) {
+			throw new Error("binaryToNumber - precision loss beyond 53 bits in Duktape");
+			}
+		var result = 0;	
+		for (var i = 0; i < binary.length; i++) {
+			result = result * 2 + (binary[i] === "1" ? 1 : 0);
+			}	
 		return result;
 		}
-
-	function binaryToNumber(binary){	// convert binary string to number
-		if (binary.length > 32) return "binaryToNumber for > 32 bits not supported";
-		var result = 0;
-		value = 1;
-		for (var i = binary.length-1; i >= 0; i--){
-			if (binary[i] == "1") result += value;
-			value *= 2; // shifts left 1 but no effect first time as resukt is 0
-
-			}
-		return result;
-		}
-
+	
 	}
 
 

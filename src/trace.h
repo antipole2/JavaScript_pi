@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -16,9 +16,9 @@
 // 
 //USE:  TRACE(level, wxString); will display if level >= TRACE_LEVEL
 // output will go to log or, if in harness, to stdout or to a window
-#define TRACE_YES 	false// if true, include TRACE code. Should be false in release
+#define TRACE_YES 	false // if true, include TRACE code. Should be false in release
 #define TRACE_LEVEL_0	false	// whether to trace level
-#define TRACE_THIS  1111	// specific explicit level to trace, else 0
+#define TRACE_THIS  123456	// specific explicit level to trace, else 0
 #define TRACE_MIN	66	// specify a range of levels to trace
 #define TRACE_MAX	65	// set TRACE_MIN to > TRACE_MAX to avoid tracing range
 #define TRACE_TO_WINDOW true     // if true, trace will be to a window

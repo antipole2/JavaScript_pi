@@ -3,7 +3,7 @@
 * Purpose:  JavaScript Plugin
 * Author:   Tony Voss 16/05/2020
 *
-* Copyright Ⓒ 2025 by Tony Voss
+* Copyright Ⓒ 2026 by Tony Voss
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License, under which
@@ -208,6 +208,8 @@ wxPoint checkPointOnScreen(wxPoint point){ // fix a point to actually be on the 
 void throwErrorByCtx(duk_context *ctx, wxString message){ // given ctx, throw error message
     Console *pConsole = findConsoleByCtx(ctx);
     pConsole->prep_for_throw(ctx, message);
+    wxString dukdump_to_string(duk_context* ctx);
+    TRACE(4975, dukdump_to_string(ctx));
     duk_throw(ctx);
     }
 

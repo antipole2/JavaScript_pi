@@ -3,7 +3,7 @@
  * Purpose:  JavaScript Plugin
  * Author:   Tony Voss
  *
- * Copyright Ⓒ 2025 by Tony Voss
+ * Copyright Ⓒ 2026 by Tony Voss
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, under which
@@ -166,7 +166,7 @@ void onButton(wxCommandEvent & event){  // here when any dialogue button clicked
 //		if (!pEntry->persistant) pConsole->cleanOutEntry(pEntry);	// only clean out if we want to get rid of the dialogue
         Completions result = pConsole->executeCallableNargs(pEntry->func_heapptr, 2);
         TRACE(1011,pConsole->mConsoleName + " Button processing - back from handler");
-        if (!pConsole->isBusy()) pConsole->wrapUp(result);
+        pConsole->wrapUp(result);
 //        if (result != MORETODO) pConsole->wrapUp(result);
         }
     else {
