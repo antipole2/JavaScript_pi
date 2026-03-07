@@ -646,7 +646,7 @@ void JavaScript_pi::OnContextMenuItemCallbackExt(int menuID, std::string identif
 
 void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_body) {
 	// do we have it already?
-//	auto it = std::find(m_messages.begin(), m_messages.end(), message_id);	// this woks for all except Bullseye. Instead use lamda
+//	auto it = std::find(m_messages.begin(), m_messages.end(), message_id);	// this works for all except Bullseye. Instead use lamda
 	auto it = std::find_if(
         m_messages.begin(),
         m_messages.end(),
