@@ -25,6 +25,7 @@
 #include "trace.h"
 #include "wx/tokenzr.h"
 #include "wx/stdpaths.h"
+#include <algorithm>
 
 int messageIndex(MessagesArray&, messageNameString_t);
 wxString configSection = ("/PlugIns/JavaScript_pi");

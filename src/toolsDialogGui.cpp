@@ -354,7 +354,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	HelpSizer1->Add( m_userGuidePdf, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
 
 
-	HelpSizer1->Add( 0, 25, 0, wxEXPAND, 5 );
+	HelpSizer1->Add( 0, 10, 0, wxEXPAND, 5 );
 
 	HelpTopText111 = new wxStaticText( Help, wxID_ANY, wxT("The plugin discussion forum is the place to ask questions,  share ideas about its application or share how you are using it.  It also contains release notices for versions of the plugin."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText111->Wrap( 550 );
@@ -364,7 +364,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	HelpSizer1->Add( m_hyperlink511, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
-	HelpSizer1->Add( 0, 20, 0, wxEXPAND, 5 );
+	HelpSizer1->Add( 0, 10, 0, wxEXPAND, 5 );
 
 	HelpTopText1111 = new wxStaticText( Help, wxID_ANY, wxT("Technical problems can be raised in the plugin issues here."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1111->Wrap( 550 );
@@ -382,20 +382,8 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	HelpTopText11111->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText11111, 0, wxALL|wxEXPAND, 5 );
 
-	wxStaticBoxSizer* sbSizer33;
-	sbSizer33 = new wxStaticBoxSizer( new wxStaticBox( Help, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
-
-
-	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
-
-	m_techGuidePdf = new wxHyperlinkCtrl( sbSizer33->GetStaticBox(), wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
-	sbSizer33->Add( m_techGuidePdf, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-
-	sbSizer33->Add( 0, 0, 1, wxEXPAND, 5 );
-
-
-	HelpSizer1->Add( sbSizer33, 1, wxEXPAND, 5 );
+	m_techGuidePdf = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
+	HelpSizer1->Add( m_techGuidePdf, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
 	Help->SetSizer( HelpSizer1 );
