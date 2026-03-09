@@ -19,6 +19,8 @@ before_build:
 
 build_script:
   - echo BEFORE BATCH
+  - echo Current dir: %CD%
+  - dir ci
   - call ci\appveyor.bat
   - echo AFTER BATCH
   
