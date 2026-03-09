@@ -40,6 +40,8 @@ echo subprocess.call(['dumpbin', '/dependents', lib], shell=True) >> ldd.py
 python ldd.py
 
 echo Uploading artifact
+echo Current directory: %CD%
+dir /s /b *.tar.gz
 call upload.bat
 
 echo Pushing updates to catalog
