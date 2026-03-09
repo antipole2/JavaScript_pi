@@ -75,9 +75,6 @@ class ToolsClassBase : public wxFrame
 		wxPanel* Help;
 		wxStaticText* HelpTopText1;
 		wxHyperlinkCtrl* m_userGuidePdf;
-		wxHyperlinkCtrl* m_userGuideEpub;
-		wxStaticText* HelpTopText11;
-		wxHyperlinkCtrl* m_hyperlink5;
 		wxStaticText* HelpTopText111;
 		wxHyperlinkCtrl* m_hyperlink511;
 		wxStaticText* HelpTopText1111;
@@ -85,7 +82,6 @@ class ToolsClassBase : public wxFrame
 		wxStaticLine* m_staticline1;
 		wxStaticText* HelpTopText11111;
 		wxHyperlinkCtrl* m_techGuidePdf;
-		wxHyperlinkCtrl* m_techGuideEpub;
 		wxPanel* Diagnostics;
 		wxStaticText* m_diagnosticAdvice;
 		wxStaticText* m_dumpPrompt;

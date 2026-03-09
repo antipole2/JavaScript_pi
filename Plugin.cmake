@@ -34,7 +34,7 @@ option(JavaScript_USE_SVG "Use SVG graphics" ON)
 #
 set(PKG_NAME JavaScript_pi)
 set(PKG_VERSION 4.0.0)
-set(PKG_PRERELEASE "beta")  # Empty, or a tag like 'beta'
+set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME javascript)    # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME javascript) # As of GetCommonName() in plugin API

@@ -106,7 +106,6 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
 	pConsole->setup();
-//	pConsole->hookConsole();
 	pJavaScript_pi->m_consoles.push_back(pConsole);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
@@ -238,7 +237,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
                           wxTE_MULTILINE | wxTE_WORDWRAP);
 
     dump += (wxString::Format("JavaScript plugin version %d.%d\n", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR));
-    dump += (wxString::Format("JavaScript patch %d\n", PLUGIN_VERSION_PATCH));
+    dump += (wxString::Format("JavaScript patch %d %s\n", PLUGIN_VERSION_PATCH, PLUGIN_VERSION_COMMENT));
     dump += (wxString::Format("JavaScript tools window DPI scaling factor %f\n", SCALE(this)));
     dump += (wxString::Format("Platform\t%s\n", wxGetOsDescription()));
 #if wxVERSION_NUMBER >= 3105

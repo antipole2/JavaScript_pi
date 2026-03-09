@@ -58,9 +58,9 @@ public:
 #endif
 		// fix up the links to documentation to use required branch in repositary
 		fixBranch(m_userGuidePdf, BRANCH);
-		fixBranch(m_userGuideEpub, BRANCH);
+//		fixBranch(m_userGuideEpub, BRANCH);
 		fixBranch(m_techGuidePdf, BRANCH);
-		fixBranch(m_techGuideEpub, BRANCH);		
+//		fixBranch(m_techGuideEpub, BRANCH);		
         m_notebook->SetSelection(0);	//start on required page
         };
         
@@ -132,7 +132,7 @@ public:
 		// NB The wrap with overides that set in wxForBuilder as there is no way of getting the value set
 		Help->SetSize(FromDIP(Help->GetSize()));
 		HelpTopText1->Wrap( 550*scale );
-		HelpTopText11->Wrap( 550*scale );
+//		HelpTopText11->Wrap( 550*scale );
 		HelpTopText111->Wrap( 550*scale );
 		HelpTopText1111->Wrap( 550*scale );
 		HelpTopText11111->Wrap( 550*scale );
