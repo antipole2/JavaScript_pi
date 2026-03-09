@@ -18,5 +18,7 @@ before_build:
   - call "%VS_HOME%\Community\VC\Auxiliary\Build\vcvars32.bat"
 
 build_script:
+  - echo BEFORE BATCH
   - call ci\appveyor.bat
+  - echo AFTER BATCH
   

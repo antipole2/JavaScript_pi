@@ -1,7 +1,10 @@
 :: Build script for appveyor, https://www.appveyor.com
 :: Builds one version linked against wxWidgets 3.2
 
-@echo off
+@echo on
+echo Starting AppVeyor build...
+echo Current directory: %CD%
+dir
 setlocal enabledelayedexpansion
 
 set "SCRIPTDIR=%~dp0"
