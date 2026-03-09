@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <vector>
 #include <wx/socket.h>
+#include <algorithm>
 
 WX_DEFINE_LIST(Plugin_HyperlinkList);
 WX_DEFINE_LIST(Plugin_WaypointList);		// used by API16 for tracks
