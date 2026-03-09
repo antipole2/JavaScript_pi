@@ -12,10 +12,6 @@ platform:
 configuration: RelWithDebInfo
 test: false
 
-# Force CI mode so the batch file does the upload
-environment:
-  CI: true
-
 before_build:
   - git submodule update --init opencpn-libs
   - set "VS_HOME=C:\Program Files\Microsoft Visual Studio\2022"
