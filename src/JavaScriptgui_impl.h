@@ -1030,7 +1030,8 @@ public:
     		setLocation(m_parkedLocation);	// repark
     		m_parked = true;
     		TRACE(25, wxString::Format("%s->park() readback of parked size X:%i  Y:%i",
-        	mConsoleName, GetSize().x, GetSize().y));
+	        	mConsoleName, GetSize().x, GetSize().y));
+	        pJavaScript_pi->SaveConfig();
     		TRACE(25, wxString::Format("%s->park() finished re-parking", mConsoleName));
     		return;
     		}
@@ -1079,8 +1080,8 @@ public:
     			reviewParking();
     			}
     	TRACE(25, wxString::Format("%s->unpark() completed to X:%i   Y:%i frame", mConsoleName, m_notParkedLocation.position.x, m_notParkedLocation.position.y));
-
-    	m_parked = false;    	
+    	m_parked = false;
+    	pJavaScript_pi->SaveConfig();  	
     	}
     	
     bool isParked(){ //	returns true if console is parked      

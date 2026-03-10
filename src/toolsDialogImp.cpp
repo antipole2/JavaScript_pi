@@ -184,6 +184,7 @@ void ToolsClass::onFloatOnParent(wxCommandEvent& event) {
 	for (auto* pConsole : pJavaScript_pi->m_consoles){
 		pConsole->floatOnParent(pJavaScript_pi->m_floatOnParent);
         }
+    pJavaScript_pi->SaveConfig();
 	} 
 	
 void ToolsClass::onToggleStatus( wxCommandEvent& event ){
@@ -215,6 +216,7 @@ void ToolsClass::onChangeDirectory( wxCommandEvent& event ){
         pJavaScript_pi->mCurrentDirectory = dirDialog.GetPath();
         mCurrentDirectoryString->SetLabel(pJavaScript_pi->mCurrentDirectory);
         }
+    pJavaScript_pi->SaveConfig();
     }
 
 void ToolsClass::onDump( wxCommandEvent& event ){
