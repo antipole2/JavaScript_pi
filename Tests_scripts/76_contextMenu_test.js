@@ -14,7 +14,7 @@ function handleResponse1(data){
 	subMenu.add(handleWrongOne, "Nor this");
 	subMenu.add(handleResponse2, "But this one!");
 	id = OCPNonAllContextMenu(subMenu, "Select from submenus");
-	alert("Now use the canvas context menu to select 'But this one!' in the submenues");
+	alert("Now use the canvas context menu to select 'But this one!' in the submenus");
 	}
 function handleWrongOne(){
 	alert("\n*** You picked the wrong one! ***");
@@ -51,3 +51,4 @@ function handleResponse4(data){
 function wrapup(){
 	if (testWaypointGUID) OCPNdeleteSingleWaypoint(testWaypointGUID);
 	}
+

@@ -1104,7 +1104,7 @@ public:
     	void reviewParking();
     	if (pJavaScript_pi->m_consoles.size() < 2) return ("Cannot close the only console " + mConsoleName);
 		if (isBusy()) return (mConsoleName + " is busy");
-		if (mpCtx) return (mConsoleName + " still has dukTape context");
+//		if (mpCtx) return (mConsoleName + " still has dukTape context");  // ** ignore - console might still be running **
 		Hide();
 		for (auto it = pJavaScript_pi->m_consoles.begin(); it != pJavaScript_pi->m_consoles.end(); ++it){
 			auto& pEntry = *it;
