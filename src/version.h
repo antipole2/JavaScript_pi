@@ -19,7 +19,7 @@
 #define     PLUGIN_VERSION_DATE __DATE__
 #define		PLUGIN_VERSION_PATCH 0 
 
-#define     PLUGIN_VERSION_COMMENT "build alpha 13"
+#define     PLUGIN_VERSION_COMMENT "build beta 5"
 
 #define		BRANCH	"v4.0"	// The branch name to use for documentation links from Tools Help
 
