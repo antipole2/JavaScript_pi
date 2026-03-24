@@ -6,8 +6,8 @@ labels: ''
 assignees: ''
 
 ---
+
 If you are commenting on the plugin's funtionality or want to propose a change, use the plugin's Discussions forum.
----
 
 **Describe the bug**
 A clear and concise description of what the bug is.
