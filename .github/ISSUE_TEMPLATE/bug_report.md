@@ -1,4 +1,7 @@
 ---
+If you are commenting on the plugin's funtionality or want to propose a change, use the plugin's Discussions forum.
+
+---
 name: Bug report
 about: Create a report to help us improve
 title: ''
