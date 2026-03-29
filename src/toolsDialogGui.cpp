@@ -342,7 +342,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	Parking->SetSizer( ParkingTopSizer1 );
 	Parking->Layout();
 	m_notebook->AddPage( Parking, wxT("Parking"), false );
-	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,300 ), 0 );
+	Help = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxSize( 590,325 ), 0 );
 	wxBoxSizer* HelpSizer1;
 	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
 
@@ -384,6 +384,11 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 
 	m_techGuidePdf = new wxHyperlinkCtrl( Help, wxID_ANY, wxT("Technical Guide .pdf"), wxT("https://github.com/antipole2/JavaScript_pi/raw/master/documentation/JavaScript_plugin_technical_guide.pdf"), wxDefaultPosition, wxDefaultSize, wxHL_ALIGN_CENTRE|wxHL_DEFAULT_STYLE );
 	HelpSizer1->Add( m_techGuidePdf, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+	m_staticline11 = new wxStaticLine( Help, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxLI_HORIZONTAL );
+	m_staticline11->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxEmptyString ) );
+
+	HelpSizer1->Add( m_staticline11, 0, wxEXPAND | wxALL, 5 );
 
 
 	Help->SetSizer( HelpSizer1 );

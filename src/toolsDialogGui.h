@@ -82,6 +82,7 @@ class ToolsClassBase : public wxFrame
 		wxStaticLine* m_staticline1;
 		wxStaticText* HelpTopText11111;
 		wxHyperlinkCtrl* m_techGuidePdf;
+		wxStaticLine* m_staticline11;
 		wxPanel* Diagnostics;
 		wxStaticText* m_diagnosticAdvice;
 		wxStaticText* m_dumpPrompt;

@@ -49,6 +49,7 @@ tests = [ // test table format
 	{name:"Message", functionToUse:loadRunWait, script:"71_message_test.js", time:10, result:{type:2, value:"OK"}},
 	{name:"Alarm", functionToUse:loadRunWait, script:"72_alarm.js", time:10, result:{type:2, value:"Alarm OK"}},
 	{name:"Basic console", functionToUse:loadRunWait, script:"05_basic_console_tests.js", time:2, result:{type:2, value:"Basic console OK"}},
+	{name:"Bult-ins", functionToUse:loadRunWait, script:"08_require_tests.js", time:2, result:{type:2, value:"require tests OK"}},	
 	{name:"Compile error", functionToUse:loadRunWait, script:"10_error_compile.js", time:1, result:{type:0, value:"SyntaxError: unterminated string"}},
 	{name:"Throw from main", functionToUse:loadRunWait, script:"11_throw_from_main.js", time:1, result:{type:0, value:"Thrown from main"}},
 	{name:"Runtime error main", functionToUse:loadRunWait, script:"12_runtime_error_main.js", time:3, result:{type:0, value:"line 3 Error: Console Test - Cancel onTimer callbacks has invalid call"}},
@@ -94,6 +95,8 @@ tests = [ // test table format
 	{name:"Sockets", functionToUse:loadRunWait, script:"130_sockets.js", time:2, result:{type:4, value:"Sockets good"}},
 	{name:"Sockets CBOR", functionToUse:loadRunWait, script:"131_sockets_CBOR.js", time:2, result:{type:4, value:"Sockets CBOR test good"}},
 	{name:"socketChunker", functionToUse:loadRunWait, script:"132_socketChunker.js", time:2, result:{type:4, value:"socketChunker OK"}},
+	{name:"Script reflow", functionToUse:loadRunWait, script:"140_reflow.js", time:60, result:{type:2, value:"Reflow OK"}},
+
 	];
 
 config = OCPNgetPluginConfig();

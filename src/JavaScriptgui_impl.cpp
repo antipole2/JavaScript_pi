@@ -544,6 +544,7 @@ void Console::PollSocket(wxTimerEvent& event){
 struct BraceDelta {
     int curly = 0;   // { }
     int round = 0;   // ( )
+    int square = 0;	 // [ ]
 	};
     
 BraceDelta CountBraceDelta(wxStyledTextCtrl* stc, int line,  bool& inBlockComment){ // for smart {} indenting
@@ -583,6 +584,8 @@ BraceDelta CountBraceDelta(wxStyledTextCtrl* stc, int line,  bool& inBlockCommen
         else if (ch == '}') deltas.curly--;
         else if (ch == '(') deltas.round++;
         else if (ch == ')') deltas.round--;
+        else if (ch == '[') deltas.square++;
+        else if (ch == ']') deltas.square--;
     	}
     return deltas;
 	}
@@ -604,18 +607,29 @@ void Console::FormatIndentation(){	// reflow entire script
         minIndent = std::min(minIndent, indent);
 
         BraceDelta deltas = CountBraceDelta(stc, line, inBlockComment);
-        indent += (deltas.curly + deltas.round) * indentWidth;
+        indent += (deltas.curly + deltas.round + deltas.square) * indentWidth;
         deltasOverall.curly += deltas.curly;
-        deltasOverall.round += deltas.round;       
+        deltasOverall.round += deltas.round;
+        deltasOverall.square += deltas.square;    
     	}
     	
     // report?
-    if (deltasOverall.curly > 0) message(STYLE_RED, wxString::Format("Reformat found %d more opening curly brace(s) than closing", deltasOverall.curly));
-    else if (deltasOverall.curly < 0) message(STYLE_RED, wxString::Format("Reformat found %d more closing curly brace(s) than opening", -deltasOverall.curly));
-    if (deltasOverall.round > 0) message(STYLE_RED, wxString::Format("Reformat found %d more opening round bracket(s) than closing", deltasOverall.round));
-    else if (deltasOverall.round < 0) message(STYLE_RED, wxString::Format("Reformat found %d more closing round bracket(s) than opening", -deltasOverall.round));
-    if ((deltasOverall.curly != 0) && (deltasOverall.round != 0) && (deltasOverall.curly * deltasOverall.round < 0))
-    	message(STYLE_RED, "Reformat found likely confusion between curly braces and round brackets");
+    if (deltasOverall.curly > 0) message(STYLE_RED, wxString::Format("Reflow found %d more opening curly brace(s) than closing", deltasOverall.curly));
+    else if (deltasOverall.curly < 0) message(STYLE_RED, wxString::Format("Reflow found %d more closing curly brace(s) than opening", -deltasOverall.curly));
+    if (deltasOverall.round > 0) message(STYLE_RED, wxString::Format("Reflow found %d more opening round bracket(s) than closing", deltasOverall.round));
+    else if (deltasOverall.round < 0) message(STYLE_RED, wxString::Format("Reflow found %d more closing round bracket(s) than opening", -deltasOverall.round));
+    if (deltasOverall.square > 0) message(STYLE_RED, wxString::Format("Reflow found %d more opening square bracket(s) than closing", deltasOverall.square));
+    else if (deltasOverall.square < 0) message(STYLE_RED, wxString::Format("Reflow found %d more closing square bracket(s) than opening", -deltasOverall.square));
+    
+    // calculate signs of each type as -1, 0 or +1
+    int csign = (deltasOverall.curly>0) - (deltasOverall.curly<0);
+    int rsign = (deltasOverall.round>0) - (deltasOverall.round<0);
+    int ssign = (deltasOverall.square>0) - (deltasOverall.square<0);
+    
+    if ((csign != 0) && (csign == rsign*-1)) message(STYLE_RED, wxString::Format("Reflow found likely confusion between curly and round brackets"));
+    if ((csign != 0) && (csign == ssign*-1)) message(STYLE_RED, wxString::Format("Reflow found likely confusion between curly and square brackets"));
+//    if ((rsign != 0) && (rsign == csign*-1)) message(STYLE_RED, wxString::Format("Reflow found likely confusion between round and curly brackets"));
+    if ((rsign != 0) && (rsign == ssign*-1)) message(STYLE_RED, wxString::Format("Reflow found likely confusion between round and square brackets"));
 
     // Second pass — apply global offset
     int offset = -minIndent;
@@ -640,7 +654,7 @@ void Console::OnScriptCharAdded(wxStyledTextEvent& e){
         int indent = stc->GetLineIndentation(line - 1);
         bool inBlockComment = false;
         BraceDelta deltas = CountBraceDelta(stc, line - 1, inBlockComment);
-        indent += (deltas.curly + deltas.round) * stc->GetIndent();
+        indent += (deltas.curly + deltas.round + deltas.square) * stc->GetIndent();
         if (indent < 0) indent = 0;
         stc->SetLineIndentation(line, indent);
         stc->GotoPos(stc->GetLineIndentPosition(line));

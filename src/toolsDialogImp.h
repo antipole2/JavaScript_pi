@@ -78,7 +78,7 @@ public:
 		}
 #endif
         
-#if 0 	//this for simulating Hi Res screen on non-hires screen
+#if 0 	//this for simulating Hi Res screen on non-hires screen *** MUST BE 0 FOR RELEASE
 #define simScale 2
     wxSize FromDIP(wxSize size){
     	return wxSize(size.x*simScale, size.y*simScale);

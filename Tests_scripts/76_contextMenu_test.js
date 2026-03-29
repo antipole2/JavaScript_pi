@@ -1,4 +1,4 @@
-contextSubMenu = require("contextSubMenu");
+contextSubMenu = require("ContextSubMenu");
 
 var testWaypointGUID = false;
 scriptResult("ContextMenu testing failed");
@@ -51,4 +51,5 @@ function handleResponse4(data){
 function wrapup(){
 	if (testWaypointGUID) OCPNdeleteSingleWaypoint(testWaypointGUID);
 	}
+
 

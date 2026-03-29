@@ -280,8 +280,7 @@ void ToolsClass::onDump( wxCommandEvent& event ){
     for (unsigned int i = 0; i < pJavaScript_pi->recentFiles.GetCount(); i++)
         dump += ("\t" + pJavaScript_pi->recentFiles[i] + "\n");
     dump+= "Received message ids:\n";
-    for (unsigned int i = 0; i < pJavaScript_pi->m_messages.size(); i++)
-    	dump += "\t" + pJavaScript_pi->m_messages[i] + "\n";
+    for (unsigned int i = 0; i < pJavaScript_pi->m_messages.size(); i++) dump += "\t" + pJavaScript_pi->m_messages[i] + "\n";
 	dump += "m_lastMessage message_id: '" + pJavaScript_pi->m_lastMessage.message_id + "' body: '" + pJavaScript_pi->m_lastMessage.message_body + "'\n";	
     unsigned int pgn_reg_count = pJavaScript_pi->m_pgnRegistrations.size();
     dump += "N2K pgn registrations:";
