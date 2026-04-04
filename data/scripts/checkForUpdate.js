@@ -29,7 +29,7 @@ function checkForScriptUpdates(scriptName, scriptVersion, checkDays, versionChec
 		patch = plugin.patch;
 		pluginCombined = major + "." + minor + "." + patch;
 		if (_compareVersions(details.pluginVersion, pluginCombined) < 0){
-			printOrange("JavaScript plugin needs to be updated before you can update the ", scriptName, " script\n");
+			alert("There is an update for this script " + scriptName + "\nbut the JavaScript plugin needs to be updated to at least " + details.pluginVersion + " before you can update");
 			return;
 			}
 		}
