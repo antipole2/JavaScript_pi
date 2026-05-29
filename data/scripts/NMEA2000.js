@@ -1,4 +1,4 @@
-// decode NMEA2000 payload or encode NMEA2000 object v1.0
+// decode NMEA2000 payload or encode NMEA2000 object
 // tracing options as per value of tracechoice  NMEA2000(arg, arg, {trace: tracechoice}}
 //	1	    1	call parameters and high level flow
 //	2	   10	print descriptor and passes data
@@ -12,6 +12,8 @@ function NMEA2000(arg, data, options){
 	Object.defineProperty(this, "descriptor", {enumerable: false, writable: true});
 	Object.defineProperty(this, "trace", {enumerable: false, writable: true});
 	Object.defineProperty(this, "undefined", {enumerable: false, writable: true});
+	Object.defineProperty(this, "constructorVersion", {writable: false});
+	this.constructorVersion = 2.1;
 	this.trace = false;
 	this.undefined = true;	// normally omit undefined values
 	
@@ -418,10 +420,21 @@ function NMEA2000(arg, data, options){
 			nextBitIndex += desc.BitLength;
 			value = checkNumber(value, desc.Signed, desc.BitLength);
 			if (value == void 0) return value;
-			if (trace & 8) printOrange("NUMBER/PGN/Lat/Long: ", value, "\n");
 			decimalPlaces = -Math.log10(desc.Resolution);
-			var x = parseFloat((value * desc.Resolution).toFixed(decimalPlaces));
+			if (trace & 8) printOrange("NUMBER/PGN/Lat/Long: ", value, " dp: ", decimalPlaces, "\n");
+			//	var x = parseFloat((value * desc.Resolution).toFixed(decimalPlaces));
 			return parseFloat((value * desc.Resolution).toFixed(decimalPlaces)); // desc.Resolution
+			
+			case "DURATION":
+			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
+			nextBitIndex += desc.BitLength;
+			value = checkNumber(value, desc.Signed, desc.BitLength);
+			if (value == void 0) return value;
+			decimalPlaces = 0;
+			if (trace & 8) printOrange("Duration: ", value);
+			//	var x = parseFloat((value * desc.Resolution).toFixed(decimalPlaces));
+			return parseFloat((value * desc.Resolution).toFixed(decimalPlaces)); // desc.Resolution
+			
 			case "MMSI":
 			value = getBits(data, nextBitIndex, desc.BitLength, desc.BitStart);
 			nextBitIndex += desc.BitLength;
@@ -502,7 +515,9 @@ function NMEA2000(arg, data, options){
 			nextBitIndex += desc.BitLength;
 			if (trace & 8) printOrange("Spare  value:", value, "\tlength:", desc.BitLength, "\n");
 			return value;
-			default: { printGreen("Unsupported field type:", desc, "\n");throw("Unsupported field type " + desc.FieldType);}
+			default:
+			var message = "Decode unsupported field type: " + desc.FieldType + "\n" + JSON.stringify(desc);
+			throw(message);
 			}
 		result = "The result";
 		return result;
@@ -688,6 +703,11 @@ function NMEA2000(arg, data, options){
 				}
 			encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
 			return;
+			case "DURATION":
+			if (trace & 16) printOrange("Encoding DURATION:", value, "\n");
+			value = Math.round(value/field.Resolution);	// convert to encoded units
+			encodeBits(value, field.BitOffset, field.BitLength, field.BitStart);
+			return;
 			case "STRING_LAU": //ASCII or UNICODE string starting with length and control byte
 			data.push(value.length+3, 1);	// count (includes itself, code and terminating zero) + ASCII code
 			for (var c = 0; c < value.length; c++) data.push(value.charCodeAt(c));
@@ -705,7 +725,10 @@ function NMEA2000(arg, data, options){
 			value = binaryToNumber(value);
 			encodeBits(value.toString(), field.BitOffset, field.BitLength, field.BitStart);
 			return;
-			default: throw Error("field " + field + "\tencode Value unsupported type: " + field.Type);
+			default: //throw Error("field " + field + "\tencode Value unsupported type: " + field.Type);
+			var message = "Encode unsupported field type: " + field.FieldType + "\nfield " + field;
+			throw(message);
+			
 			}
 		return value;
 		}
@@ -834,7 +857,7 @@ function NMEA2000(arg, data, options){
 			}
 		return bin;
 		}
-		
+	
 	function binaryToNumber(binary) { 	// convert binary string to number
 		if (!/^[01]+$/.test(binary)) {
 			throw new Error("binaryToNumber - invalid binary string");
