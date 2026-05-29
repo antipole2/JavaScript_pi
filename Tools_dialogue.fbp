@@ -3004,7 +3004,7 @@
                       <property name="gripper">0</property>
                       <property name="hidden">0</property>
                       <property name="id">wxID_ANY</property>
-                      <property name="label">There is a detailed UserGuide for this plugin,. You can download the latest version from the following link.</property>
+                      <property name="label">There is a detailed UserGuide for this plugin,. You can download the latest version from the following link.  Click on … extreme right to download it.</property>
                       <property name="markup">0</property>
                       <property name="max_size"></property>
                       <property name="maximize_button">0</property>

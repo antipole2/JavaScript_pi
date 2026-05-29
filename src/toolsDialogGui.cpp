@@ -346,7 +346,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* HelpSizer1;
 	HelpSizer1 = new wxBoxSizer( wxVERTICAL );
 
-	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin,. You can download the latest version from the following link."), wxDefaultPosition, wxDefaultSize, 0 );
+	HelpTopText1 = new wxStaticText( Help, wxID_ANY, wxT("There is a detailed UserGuide for this plugin,. You can download the latest version from the following link.  Click on … extreme right to download it."), wxDefaultPosition, wxDefaultSize, 0 );
 	HelpTopText1->Wrap( 550 );
 	HelpSizer1->Add( HelpTopText1, 0, wxALL|wxEXPAND, 5 );
 
