@@ -220,17 +220,30 @@ function NMEA2000(arg, data, options){
 		if (trace & 1) printOrange("parse for pgn ", us.PGN, "\n");
 		us["id"] = desc.Id;
 		us["description"] = desc.Description;
-		count = data[12];
-		dataLength = data.length-13;
+		var count = data[12];
+		var dataLength = data.length-13;
+/*
 		if (trace & 4){ // santity checks - do the bit/byte counts add up?
 			var bitCount = 0;
 			for (order in desc.Fields) {
 				if (order == 0) continue;
 				bitCount += desc.Fields[order].BitLength;
 				}
-			printOrange("count in data: ", count, " data length is ", dataLength, " sum of bitLengths in bytes ", bitCount/8, "\n");
+			printRed("count in data: ", count, " data length is ", dataLength, " sum of bitLengths in bytes ", bitCount/8, "\n");
 			}
-		//		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
+*/
+		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
+		// sanity checks - do the bit/byte counts add up?
+		var bitCount = 0;
+		for (order in desc.Fields) {
+			if (order == 0) continue;
+			bitCount += desc.Fields[order].BitLength;
+			}
+		var bytesFromBits = bitCount/8;
+		if (bytesFromBits > dataLength){
+			var message = "NMEA2000 decoding PGN:" + us.PGN + " sum of bitLengths in bytes:" + bytesFromBits + " but data length is " + dataLength;
+			throw(message);
+			}
 		us["timestamp"] = 0;	// get this in now to establish position in enumeration
 		nextByte = 2;
 		us["priority"] = data[nextByte++];
@@ -256,10 +269,11 @@ function NMEA2000(arg, data, options){
 		canCheckBitOffset = true;	// BitOffset should tally with nextBitIndex.  Not possible after variable length or first repeating field
 		
 		/******* Pass 1 *******
-		The first pass is through the biary datta and we build an array passes that contains 
+		The first pass is through the binary data and we build an array 'passes' that contains 
 		an extraction of what we need for later passes
 		*/
 		
+		if (trace & 1) printOrange("Starting pass 1\n");
 		var passes = [];	// to hold result of the passes
 		for (order = 1; order < desc.Fields.length; order++){  // first pass to get values
 			field = desc.Fields[order];
@@ -348,6 +362,7 @@ function NMEA2000(arg, data, options){
 		
 		// ******* Pass 2 *******  Indirect lookups
 		// Not yet seen one of theseto test
+		if (trace & 1) printOrange("Starting pass 2\n");
 		for (var p in passes){
 			var element = passes[p];
 			if (element.FieldType == "INDIRECT_LOOKUP"){
@@ -358,6 +373,7 @@ function NMEA2000(arg, data, options){
 		if (trace & 2) printOrange("passes: ", JSON.stringify(passes, null, "\t"), "\n");
 		
 		// ******* Pass 3 *******  Generate output by adding it to us aka 'this'
+		if (trace & 1) printOrange("Starting pass 3\n");
 		for (var p in passes){
 			var element = passes[p];
 			if (element.type == "datum"){				
@@ -524,15 +540,20 @@ function NMEA2000(arg, data, options){
 		}
 	
 	function getBits(data, BitOffset, bitLength, bitStart){	// extract bits from data
-		var trace = false;
+		// var trace = 16;
+		var nibble;
 		if (trace & 16) printOrange("data:",data,"\n\tBitOffset:", BitOffset, " bitLength:", bitLength, " bitStart:", bitStart, "\n"); 
 		if (bitStart == void 0) bitStart = 0;	// for when no bitStart in descriptor
 		startByteIndex = Math.floor(BitOffset/8);
 		BytesToGet = Math.ceil(bitLength/8);
 		if (trace & 16) printOrange("getBits BitOffset:", BitOffset, "\tbitLength:", bitLength, "\tbitStart:", bitStart,
 			"\tstartByteIndex:", startByteIndex, "\tBytesToGet:", BytesToGet, "\n");
-		if (startByteIndex + BytesToGet > data.length) throw Error("NMEA2000 getBits ran off end of data");
-		chunk = getBytes(data, startByteIndex, BytesToGet);
+		if (startByteIndex + BytesToGet > data.length + 1){
+			var message = "NMEA2000 getBits ran off end of data\ndata.length:" + data.length + " BitOffset:" + BitOffset + 
+			" bitength:" + bitLength + " bitStart:" + bitStart;
+			throw Error(message);
+			}
+		var chunk = getBytes(data, startByteIndex, BytesToGet);		
 		// bit ops are good for 32 bits only, so only do this next if needed - will leave 64 bits untouched
 		if (bitLength <= 8){	// nibbles are little endon
 			nibble = chunk >> bitStart;
@@ -560,7 +581,8 @@ function NMEA2000(arg, data, options){
 	
 	function getBytes(v, start, bytes){	// little endean!
 		var trace = this.trace;
-		// trace = 16;
+		//trace = 16;
+		//printGreen(v, "\t", v.length, "\t", start, "\t", bytes, "\n");
 		offset = start+bytes-1;
 		result = v[offset--];
 		if (trace & 16) {
@@ -873,7 +895,6 @@ function NMEA2000(arg, data, options){
 		}
 	
 	}
-
 
 
 

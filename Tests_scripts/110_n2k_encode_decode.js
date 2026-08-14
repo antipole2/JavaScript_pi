@@ -117,7 +117,14 @@ for (t = 0; t < tests.length; t++){
 	printUnderlined("\nTesting pgn ", test.pgn, "\t", tests[t].expected.description, "\n");
 	if (verbose) print("Data count after header: ", test.data.length-13, "\n");
 	startTime = new Date();
-	NMEA2k = new Nmea2kConstructor(test.pgn, test.data, {undefined:false,trace:test.tracing});
+	try{
+		NMEA2k = new Nmea2kConstructor(test.pgn, test.data, {undefined:false,trace:test.tracing});
+		}
+	catch(err){
+		printRed(err, "\n");
+		decodeErrorCount++
+		continue;
+		}
 	endTime= new Date();
 	runTime += endTime - startTime;
 	OK = (JSON.stringify(NMEA2k) == JSON.stringify(test.expected));
@@ -196,7 +203,14 @@ for (t = 0; t < tests.length; t++){
 	test = tests[t];
 	printUnderlined("\nEncoding pgn ", test.pgn, "\t",tests[t].expected.description, "\n");
 	startTime = new Date();
-	NMEA2k = new Nmea2kConstructor(test.pgn, test.data, {trace:0});
+	try {
+		NMEA2k = new Nmea2kConstructor(test.pgn, test.data, {trace:0});
+		}
+	catch(err){
+		printRed(err, "\n");
+		encodeErrorCount++;
+		continue;
+		}
 	encoded = NMEA2k.encode({timeStamp:"undefined"});
 	endTime = new Date();
 	runTime += endTime - startTime;
@@ -236,7 +250,8 @@ print("\nTotal time in encode tests ", runTime, "ms\n");
 printBlue((encodeErrorCount > 0) ? "\nEncode " + encodeErrorCount + " errors\n":"All encode tests passed\n");
 
 if (!runAnalyser){
-	scriptResult((decodeErrorCount + encodeErrorCount == 0) ? "All tests passed" : "Had errors");
+	var totalErrors = decodeErrorCount + encodeErrorCount;
+	scriptResult((totalErrors == 0) ? "All tests passed" : ("Had " + totalErrors + " errors"));
 	if (warnings > 0) print("\n", warnings, " warning(s) issued\n");
 	stopScript();
 	}
@@ -288,4 +303,6 @@ function sayWhereDiffers(a, b){ // print index where strings differ
 			}
 		}
 	}
+
+
 

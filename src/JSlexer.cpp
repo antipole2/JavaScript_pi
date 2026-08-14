@@ -97,7 +97,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             onSocketEvent socketSend\
             onDialogue onAllDialogue\
             onExit\
-            onCloseButton, onAllCloseButton\
+            onCloseButton onAllCloseButton\
             readDialogue\
             stopScript\
             messageBox\
