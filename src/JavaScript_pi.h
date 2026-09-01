@@ -17,6 +17,7 @@
 #include "version.h"
 #include "buildConfig.h"
 #include "wx/wx.h"
+#include <wx/event.h>
 #include "trace.h"
 #include <wx/fileconf.h>
 #include "ocpn_plugin.h" //Required for OCPN plugin functions
@@ -113,8 +114,8 @@ public:
     JavaScript_pi(void *ppimgr);
     ~JavaScript_pi(void);
     int m_leftclick_tool_id;
-
-//  The required PlugIn Methods
+    
+	//  The required PlugIn Methods
     int Init(void);
     bool DeInit(void);
     int GetAPIVersionMajor();
@@ -171,6 +172,10 @@ public:
     ocpnMessage		m_lastMessage;		// last message through set method.
     setActive_t		m_SetActive;			// status bits for optimising handling of plugin callbacks
     std::vector<wxString> m_messages;		// vector of messages received
+    // API 121 stuff
+    std::unique_ptr<HostApi> 		m_host_api;
+	HostApi121*		m_api_121 = nullptr;
+
         
     // console parking all stored in DIP units
     bool			m_parkingBespoke {false};	// true if using bespoke parking parameters

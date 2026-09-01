@@ -1,5 +1,11 @@
- function getDescriptor(pgn, optionsArg){
+ function getDescriptor(pgn, id){
 	/*
+	called as
+	getDescriptor()			returns array of all descriptors
+	getDescriptor(pgn)		returns first descriptor with matching pgn - error if no match
+	getDescriptor(pgn, id)	returns first descriptor matching on pgn and id - error if no match
+	getDescriptor(pgn, "")	returns array of descriptors matching on pgn - empty array if none
+	
 	Descriptors copied from here: https://github.com/canboat/canboat/blob/master/docs/canboat.json
 
 	To update, copy the json file.
@@ -9,7 +15,7 @@
 	*/
 
 	unsupported = [
-	{pgn:130824, reason:"multiple descriptions leave ambiguity"},
+//	{pgn:130824, reason:"multiple descriptions leave ambiguity"},
 	{pgn:129541, reason:"This does not work on Windows - load as custom descriptor - see https://github.com/antipole2/JavaScripts-shared/blob/main/descriptor129541/descriptor129541.adoc"},
 	];
 
@@ -18,31 +24,13 @@
 		
 	descriptors = _canboat.PGNs;
 
-	returnAll = false
-	if (arguments.length < 1) return descriptors;
-	if (arguments.length == 2){
-		if (typeof(optionsArg) == "object"){
-			if (optionsArg.hasOwnProperty("options")){
-				if (optionsArg.options == "returnAll") returnAll = true;
-				else throw("getDescriptor - invalid options argument");
-				}
-			else throw("getDescriptor - invalid options argument");
-			}
-		else throw("getDescriptor - 2nd argument not options");
+	if (arguments.length == 0) return descriptors;
+
+	for (var u in unsupported){	//check for unsupported pgn
+		if (pgn == unsupported[u].pgn) throw("pgn " + pgn + " unsupported - " + unsupported[u].reason);
 		}
-	if (!returnAll){
-		for (var i = 0; i < unsupported.length; i++){
-			if (unsupported[i].pgn == pgn) throw("pgn " + pgn + " unsupported - " + unsupported[i].reason);
-			}
-		}
-	if (returnAll){
-		toReturn = [];
-		for (i = 0; i < descriptors.length; i++){
-			if (descriptors[i].PGN == pgn) toReturn.push(descriptors[i]);
-			}
-		return toReturn;
-		}
-	else {
+	
+	if (arguments.length == 1){
 		for (var i = 0; i < descriptors.length; i++){
 			if (descriptors[i].PGN == pgn){
 				if (descriptors[i].RepeatingFieldSet2StartField != void 0)
@@ -50,6 +38,29 @@
 				return(descriptors[i]);
 				}
 			}
-		throw("getDescriptor - pgn " + pgn + " not found");
+		throw("No matching descriptor for pgn " + pgn);
+		}
+	
+	if ((arguments.length == 2) && (id.length > 0)){
+		for (var i = 0; i < descriptors.length; i++){
+			if ((descriptors[i].PGN == pgn) && (descriptors[i].Id == id)){
+				if (descriptors[i].RepeatingFieldSet2StartField != void 0)
+					throw("Descriptor for pgn " + pgn + " and Id " + id + " has more than one repeating field - not supported");
+				return(descriptors[i]);
+				}
+			}
+		throw("No matching descriptor for pgn " + pgn + " and Id " + id);
+		}
+		
+	if ((arguments.length == 2) && (id == "")){	// all matching
+		var matches = [];
+		for (var i = 0; i < descriptors.length; i++){
+			if (descriptors[i].PGN == pgn){
+				if (descriptors[i].RepeatingFieldSet2StartField != void 0)
+					throw("Descriptor for pgn " + pgn + " and Id " + id + " has more than one repeating field - not supported");
+				matches.push(descriptors[i]);
+				}
+			}
+		return matches;
 		}
 	}

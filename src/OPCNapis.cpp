@@ -193,28 +193,26 @@ PlugIn_Waypoint_ExV2 * js_duk_to_opcn_waypoint(duk_context *ctx){
     return(p_waypoint);
     }
 
-PlugIn_Route_ExV2 * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
+HostApi121::Route* js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
+//PlugIn_Route_ExV2 * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
     // returns an opcn route constructed from js route on top of duk stack
     // get a GUID if none provided and createGUID is true
     void throwErrorByCtx(duk_context *ctx, wxString message);
     duk_size_t listLength, i;
     duk_bool_t ret;
-    PlugIn_Route_ExV2 *p_route = new PlugIn_Route_ExV2();
+    TRACE(3, " Entered js_duk_to_opcn_route");
+//    PlugIn_Route_ExV2 *p_route = new PlugIn_Route_ExV2();
+	auto p_route = new HostApi121::Route();
     // indenting here represents stack hight - do not reformat
-    duk_get_prop_string(ctx, -1, "name");
-        p_route->m_NameString = duk_to_string(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "name")) p_route->m_NameString = duk_to_string(ctx, -1);
+			duk_pop(ctx);
+    if (duk_get_prop_string(ctx, -1, "from")) p_route->m_StartString = duk_to_string(ctx, -1);
         duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "from");
-        p_route->m_StartString = duk_to_string(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "to"))   p_route->m_EndString = duk_to_string(ctx, -1);
         duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "to");
-        p_route->m_EndString = duk_to_string(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "description")) p_route->m_Description = duk_to_string(ctx, -1);
         duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "description");
-        p_route->m_Description = duk_to_string(ctx, -1);
-        duk_pop(ctx);
-    duk_get_prop_string(ctx, -1, "isVisible");
-        p_route->m_isVisible = duk_to_boolean(ctx, -1);
+    if (duk_get_prop_string(ctx, -1, "isVisible")) p_route->m_isVisible = duk_to_boolean(ctx, -1);
         duk_pop(ctx); 
     ret = duk_get_prop_string(ctx, -1, "GUID");
         p_route->m_GUID = duk_to_string(ctx, -1);
@@ -223,8 +221,7 @@ PlugIn_Route_ExV2 * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
             }
         duk_pop(ctx);
     if (duk_get_prop_string(ctx, -1, "waypoints")){
-        if (duk_is_array(ctx, -1)){
-            // and it is an array
+        if (duk_is_array(ctx, -1)){  // and it is an array
             listLength = duk_get_length(ctx, -1);
             if (listLength < 2) throwErrorByCtx(ctx, "OCPNadd/add/updateupdateRoute error: less than two routepoints");
             p_route->pWaypointList = new Plugin_WaypointExV2List; // need to initialise to empty list
@@ -238,7 +235,20 @@ PlugIn_Route_ExV2 * js_duk_to_opcn_route(duk_context *ctx, bool createGUID){
             }
         }
     else throwErrorByCtx(ctx, "OCPNupdateRoute error: called without routepoints");
-    duk_pop(ctx);
+    duk_pop(ctx);	// pop off the result of duk_get_prop_string(ctx, -1, "waypoints")
+    
+    // Now extra API121 parameters if supplied
+	if (duk_get_prop_string(ctx, -1, "colour")) p_route->m_Colour = duk_to_string(ctx, -1);
+		duk_pop(ctx);
+	if (duk_get_prop_string(ctx, -1, "penStyle")) p_route->m_style = static_cast<wxPenStyle>(duk_to_int(ctx, -1));
+		duk_pop(ctx);
+	if (duk_get_prop_string(ctx, -1, "plannedSpeed")) p_route->m_PlannedSpeed = duk_to_number(ctx, -1);
+		duk_pop(ctx);
+	if (duk_get_prop_string(ctx, -1, "plannedDeparture")) p_route->m_PlannedDeparture = wxDateTime(static_cast<time_t>(duk_to_int(ctx, -1)));
+		duk_pop(ctx);
+	if (duk_get_prop_string(ctx, -1, "timeFormat")) p_route->m_TimeDisplayFormat = duk_to_string(ctx, -1);
+		duk_pop(ctx);
+    
     return(p_route);
     }
     
@@ -1161,13 +1171,14 @@ static duk_ret_t getActiveRouteGUID(duk_context *ctx){ // get GUID of active rou
 
 static duk_ret_t getRouteByGUID(duk_context *ctx) {
     wxString GUID;
-    std::unique_ptr<PlugIn_Route_ExV2> p_route;
     PlugIn_Waypoint_ExV2 *p_waypoint = new PlugIn_Waypoint_ExV2();
+//    std::unique_ptr<PlugIn_Route_ExV2> p_route;
 
     duk_require_string(ctx,0);
     GUID = duk_get_string(ctx, 0);
     duk_pop(ctx);
-    p_route = GetRouteExV2_Plugin(GUID);
+
+ 	auto p_route = pJavaScript_pi->m_api_121->GetRoute(GUID);
     if (p_route == nullptr){ // no such route
         throwErrorByCtx(ctx, "OCPNgetRoute called with non-existant GUID " + GUID);
         }
@@ -1186,7 +1197,20 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     duk_push_boolean(ctx, p_route->m_isActive);
 	    duk_put_prop_literal(ctx, -2, "isActive");	    
 	duk_push_boolean(ctx, p_route->m_isVisible);
-	    duk_put_prop_literal(ctx, -2, "isVisible");   
+	    duk_put_prop_literal(ctx, -2, "isVisible");
+	     
+	// add extra attributes available from API121
+	duk_push_string(ctx, p_route->m_Colour);
+		duk_put_prop_literal(ctx, -2, "colour");
+	duk_push_number(ctx, p_route->m_style);
+		duk_put_prop_literal(ctx, -2, "penStyle");
+	duk_push_number(ctx, p_route->m_PlannedSpeed);
+		duk_put_prop_literal(ctx, -2, "plannedSpeed");
+	duk_push_number(ctx, p_route->m_PlannedDeparture.GetTicks());
+		duk_put_prop_literal(ctx, -2, "plannedDeparture");
+	duk_push_string(ctx, p_route->m_TimeDisplayFormat);
+		duk_put_prop_literal(ctx, -2, "timeFormat");
+				   
     duk_idx_t arr_idx = duk_push_array(ctx); // the waypoint array
     if (p_route->pWaypointList ){  // only attempt this if waypoint list of not empty
         wxPlugin_WaypointExV2ListNode *linknode = p_route->pWaypointList->GetFirst();
@@ -1201,11 +1225,10 @@ static duk_ret_t getRouteByGUID(duk_context *ctx) {
     }
 
 static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
-    PlugIn_Route_ExV2 *p_route;
-    bool result;
     duk_require_object(ctx,0);
-    p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
-    result = AddPlugInRouteExV2(p_route);
+    auto p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
+	bool result = pJavaScript_pi->m_api_121->AddRoute(p_route);
+//    result = AddPlugInRouteExV2(p_route);
     if (!result){
         throwErrorByCtx(ctx, "OCPNaddRoute called with existant GUID " + p_route->m_GUID);
         }
@@ -1216,10 +1239,10 @@ static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
     }
 
 static duk_ret_t updateRoute(duk_context *ctx) { // update the route in OpenCPN
-    PlugIn_Route_ExV2 *p_route;
     duk_require_object(ctx,0);
-    p_route = js_duk_to_opcn_route(ctx, false);    // construct the opcn route - must have given GUID
-    if(!UpdatePlugInRouteExV2(p_route)) throwErrorByCtx(ctx, "OCPNupdateRoute called with non-existant GUID " + p_route->m_GUID);
+    auto p_route = js_duk_to_opcn_route(ctx, false);    // construct the opcn route - must have given GUID
+//    if(!UpdatePlugInRouteExV2(p_route)) throwErrorByCtx(ctx, "OCPNupdateRoute called with non-existant GUID " + p_route->m_GUID);
+    if(!pJavaScript_pi->m_api_121->UpdateRoute(p_route)) throwErrorByCtx(ctx, "OCPNupdateRoute called with non-existant GUID " + p_route->m_GUID);
     clearWaypointsOutofRoute(p_route);
     duk_push_boolean(ctx, true);    // for compatibility with v0.2 return true
     return(1);

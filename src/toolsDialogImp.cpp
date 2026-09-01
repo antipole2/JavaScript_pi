@@ -105,7 +105,8 @@ void ToolsClass::onAddConsole( wxCommandEvent& event ){
         return;
         }
 	pConsole = new Console(pJavaScript_pi->m_parent_window, newConsoleName);
-	pConsole->setup();
+	pConsole
+	->setup();
 	pJavaScript_pi->m_consoles.push_back(pConsole);
     pConsole->GetPosition(&x, &y);
     x += - 25 + rand()%50; y += - 25 + rand()%50;
@@ -348,6 +349,11 @@ void ToolsClass::onClean( wxCommandEvent& event ){
     stringWindow->SetSize(FromDIP(wxSize(500, 500)));
     stringWindow->Show();
     }
+    
+void ToolsClass::onParkingTidy(wxCommandEvent& event){
+	void reviewParking();
+	reviewParking();
+	}
     
 void ToolsClass::onParkingRevert(wxCommandEvent& event){
 	// revert parking parameters to platform default

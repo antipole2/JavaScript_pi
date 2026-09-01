@@ -69,7 +69,8 @@ enum {
     
 // console short cuts    
 enum {
-    ID_CONSOLE_FORMAT = wxID_HIGHEST + 200
+    ID_CONSOLE_FORMAT = wxID_HIGHEST + 200,
+    ID_TIDY_PARKING = ID_CONSOLE_FORMAT +1
     // future:
     // ID_CONSOLE_RUN,
     // ID_CONSOLE_CLEAR
@@ -267,6 +268,7 @@ public:
     void OnScriptCharAdded(wxStyledTextEvent& e);
     void FormatIndentation();
 	void OnConsoleFormat(wxCommandEvent&);
+	void OnParkingTidy(wxCommandEvent&);
     
 #ifdef SOCKETS
 	DECLARE_EVENT_TABLE()
@@ -284,15 +286,18 @@ public:
 			mConsoleName = consoleName;
 			
 			// for handling short cuts
-			wxAcceleratorEntry entries[1];
+			wxAcceleratorEntry entries[2];
 #ifdef __WXMAC__
 			entries[0].Set(wxACCEL_CMD, 'F', ID_CONSOLE_FORMAT);
+			entries[1].Set(wxACCEL_CMD, 'P', ID_TIDY_PARKING);
 #else
 			entries[0].Set(wxACCEL_CTRL, 'F', ID_CONSOLE_FORMAT);
+			entries[1].Set(wxACCEL_CTRL, 'P', ID_TIDY_PARKING)
 #endif
-			wxAcceleratorTable accel(1, entries);
+			wxAcceleratorTable accel(2, entries);
 			SetAcceleratorTable(accel);
 			Bind(wxEVT_MENU, &Console::OnConsoleFormat, this, ID_CONSOLE_FORMAT);
+			Bind(wxEVT_MENU, &Console::OnParkingTidy, this, ID_TIDY_PARKING);			
 			// end of stuff for short cuts
 			}
         

@@ -41,6 +41,7 @@ public:
     void onParkingCustomise(wxCommandEvent& event);
     void onParkingReveal(wxCommandEvent& event);
     void cleanupParking();
+    void onParkingTidy(wxCommandEvent& event);
     void setupPage(unsigned int pageNumber);
 	
     ToolsClass( wxWindow *parent,  wxWindowID id = wxID_ANY)

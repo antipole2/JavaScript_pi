@@ -644,6 +644,12 @@ void Console::FormatIndentation(){	// reflow entire script
 void Console::OnConsoleFormat(wxCommandEvent&){
     FormatIndentation();
 	}
+	
+void Console::OnParkingTidy(wxCommandEvent&){
+    void reviewParking();
+	reviewParking();
+
+	}
 		
 void Console::OnScriptCharAdded(wxStyledTextEvent& e){
     auto* stc = m_Script;

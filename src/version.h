@@ -17,7 +17,7 @@
 #include <wx/version.h>
 
 #define     PLUGIN_VERSION_DATE __DATE__
-#define		PLUGIN_VERSION_PATCH 0 
+//#define		PLUGIN_VERSION_PATCH 0 
 
 #define     PLUGIN_VERSION_COMMENT "build b"
 

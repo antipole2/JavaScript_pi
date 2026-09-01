@@ -65,6 +65,7 @@ class ToolsClassBase : public wxFrame
 		wxStaticText* m_MessageText11;
 		wxPanel* Parking;
 		wxStaticText* m_buttonAdvice;
+		wxButton* m_tidy_parking_button1;
 		wxStaticText* m_revertPrompt;
 		wxButton* m_parking_revert_button;
 		wxStaticText* m_customPrompt;
@@ -102,6 +103,7 @@ class ToolsClassBase : public wxFrame
 		virtual void onChangeDirectory( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveNMEAmessage( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRecieveMessage( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onParkingTidy( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onParkingRevert( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onParkingCustomise( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onParkingReveal( wxCommandEvent& event ) { event.Skip(); }

@@ -152,22 +152,24 @@ function NMEA2000(arg, data, options){
 		}
 	
 	this.push = function(handle){
-		if ((handle == void 0) && (this.handle == void 0)){	// need to find the handle
-			handles = OCPNgetActiveDriverHandles();
-			var n2kHandles = [];
-			for (h = 0; h < handles.length; h++){
-				attributes = OCPNgetDriverAttributes(handles[h]);
-				if (attributes.protocol == "nmea2000") n2kHandles.push(handles[h]);
-				}
-			switch (n2kHandles.length){
-				case 0:	throw("NMEA2000 no nmea2000 handle");
-				case 1:	this.handle = n2kHandles[0];
-				break;
-				default:	printRed("Multiple nmea2000 handles: ", n2kHandles, "\n");
-				throw("Handles ambiguous");
+		if (handle == void 0){
+			if (this.handle == void 0){	// need to find the handle
+				handles = OCPNgetActiveDriverHandles();
+				var n2kHandles = [];
+				for (h = 0; h < handles.length; h++){
+					attributes = OCPNgetDriverAttributes(handles[h]);
+					if (attributes.protocol == "nmea2000") n2kHandles.push(handles[h]);
+					}
+				switch (n2kHandles.length){
+					case 0:	throw("NMEA2000 no nmea2000 handle");
+					case 1:	this.handle = n2kHandles[0];
+					break;
+					default:	printRed("Multiple nmea2000 handles: ", n2kHandles, "\n");
+					throw("Handles ambiguous");
+					}
 				}
 			}
-		else this.handle = handle;
+		else this.handle = handle;	// use handle from argument
 		// this.handle now contains our cached handle
 		var payload = this.encode();
 		payload = payload.slice(13);	// drop Actisense header
@@ -222,17 +224,17 @@ function NMEA2000(arg, data, options){
 		us["description"] = desc.Description;
 		var count = data[12];
 		var dataLength = data.length-13;
-/*
+		/*
 		if (trace & 4){ // santity checks - do the bit/byte counts add up?
-			var bitCount = 0;
-			for (order in desc.Fields) {
-				if (order == 0) continue;
-				bitCount += desc.Fields[order].BitLength;
-				}
-			printRed("count in data: ", count, " data length is ", dataLength, " sum of bitLengths in bytes ", bitCount/8, "\n");
-			}
-*/
-		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
+		var bitCount = 0;
+		for (order in desc.Fields) {
+		if (order == 0) continue;
+		bitCount += desc.Fields[order].BitLength;
+		}
+		printRed("count in data: ", count, " data length is ", dataLength, " sum of bitLengths in bytes ", bitCount/8, "\n");
+		}
+		*/
+		//		if (count != dataLength) throw ("NMEA2000 decoding PGN " + us.PGN + " byte count in data " + count + " does not match actuality " + dataLength);
 		// sanity checks - do the bit/byte counts add up?
 		var bitCount = 0;
 		for (order in desc.Fields) {
@@ -240,14 +242,16 @@ function NMEA2000(arg, data, options){
 			bitCount += desc.Fields[order].BitLength;
 			}
 		var bytesFromBits = bitCount/8;
+		/*
 		if (bytesFromBits > dataLength){
-			var message = "NMEA2000 decoding PGN:" + us.PGN + " sum of bitLengths in bytes:" + bytesFromBits + " but data length is " + dataLength;
-			throw(message);
-			}
+		var message = "NMEA2000 decoding PGN:" + us.PGN + " sum of bitLengths in bytes:" + bytesFromBits + " but data length is " + dataLength;
+		throw(message);
+		}
+		*/
 		us["timestamp"] = 0;	// get this in now to establish position in enumeration
 		nextByte = 2;
 		us["priority"] = data[nextByte++];
-		pgn = getBytes(data, nextByte,3);
+		pgn = getBytes(data, nextByte,3);	
 		if (pgn != this.pgn) throw("NMEA2000 pgn in data does not match descriptor pgn");
 		us["destination"] = data[nextByte++];
 		if ( data[0]==/*MsgTypeN2kData*/0x93 ) {
@@ -261,18 +265,18 @@ function NMEA2000(arg, data, options){
 			us["timestamp"] = stamp;
 			}
 		else {
-			us["origin"] = data[i++]; /*DefaultSource*/;
+			us["origin"] = data[nextByte++]; /*DefaultSource*/;
 			us["timestamp"] = new Date();
 			}
 		data = data.slice(13);	// now dispense with actisense header and start on NMEA2000 data proper
+		printBlue("Inner data:", data, "\n");
 		nextBitIndex = 0;	// the index within data of the next bit to be processed
 		canCheckBitOffset = true;	// BitOffset should tally with nextBitIndex.  Not possible after variable length or first repeating field
 		
 		/******* Pass 1 *******
 		The first pass is through the binary data and we build an array 'passes' that contains 
 		an extraction of what we need for later passes
-		*/
-		
+		*/		
 		if (trace & 1) printOrange("Starting pass 1\n");
 		var passes = [];	// to hold result of the passes
 		for (order = 1; order < desc.Fields.length; order++){  // first pass to get values

@@ -106,6 +106,11 @@ int JavaScript_pi::Init(void)
 
     //    And load the configuration items
     LoadConfig();
+    
+    // set up API 121
+    m_host_api = GetHostApi();
+	m_api_121 = dynamic_cast<HostApi121*>(m_host_api.get());
+	if (!m_api_121) wxLogMessage("JavaScript_pi->Init() unable to create m_api_121");
 
     //    This PlugIn needs a toolbar icon, so request its insertion
     if (m_bJavaScriptShowIcon){
@@ -710,5 +715,7 @@ return;
     pTools->setupPage(page);
     return;
     };
+    
+
 
 

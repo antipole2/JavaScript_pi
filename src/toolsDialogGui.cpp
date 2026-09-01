@@ -269,7 +269,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	ParkingTopSizer1 = new wxBoxSizer( wxVERTICAL );
 
 	wxStaticBoxSizer* parkingAdviceSizer1;
-	parkingAdviceSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxVERTICAL );
+	parkingAdviceSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
 
 	m_buttonAdvice = new wxStaticText( parkingAdviceSizer1->GetStaticBox(), wxID_ANY, wxT("Configure custom parking details\nChanges will be preserved on normal  plugin/OpenCPN deactivation"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonAdvice->Wrap( -1 );
@@ -278,7 +278,13 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	parkingAdviceSizer1->Add( m_buttonAdvice, 0, wxALL, 0 );
 
 
-	ParkingTopSizer1->Add( parkingAdviceSizer1, 0, 0, 5 );
+	parkingAdviceSizer1->Add( 28, 0, 1, wxEXPAND, 5 );
+
+	m_tidy_parking_button1 = new wxButton( parkingAdviceSizer1->GetStaticBox(), wxID_ANY, wxT("Tidy parking"), wxDefaultPosition, wxDefaultSize, 0 );
+	parkingAdviceSizer1->Add( m_tidy_parking_button1, 0, wxALL, 5 );
+
+
+	ParkingTopSizer1->Add( parkingAdviceSizer1, 0, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* RevertTopSizer1;
 	RevertTopSizer1 = new wxStaticBoxSizer( new wxStaticBox( Parking, wxID_ANY, wxEmptyString ), wxHORIZONTAL );
@@ -481,6 +487,7 @@ ToolsClassBase::ToolsClassBase( wxWindow* parent, wxWindowID id, const wxString&
 	mDirectoryChangeButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
+	m_tidy_parking_button1->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingTidy ), NULL, this );
 	m_parking_revert_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingRevert ), NULL, this );
 	m_customiseButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingCustomise ), NULL, this );
 	m_revealButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingReveal ), NULL, this );
@@ -501,6 +508,7 @@ ToolsClassBase::~ToolsClassBase()
 	mDirectoryChangeButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onChangeDirectory ), NULL, this );
 	m_NMEAReceiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveNMEAmessage ), NULL, this );
 	m_receiveMessageButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onRecieveMessage ), NULL, this );
+	m_tidy_parking_button1->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingTidy ), NULL, this );
 	m_parking_revert_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingRevert ), NULL, this );
 	m_customiseButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingCustomise ), NULL, this );
 	m_revealButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ToolsClassBase::onParkingReveal ), NULL, this );

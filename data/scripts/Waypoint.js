@@ -3,20 +3,32 @@ function Waypoint(lat, lon){
 	this.position = new Position({latitude:undefined, logitude:undefined});
 	switch (arguments.length){
 		case 2:	// lat and long provided
-			this.position.latitude = arguments[0];
-			this.position.longitude = arguments[1];
-			// fall through into case 0 !
+		this.position.latitude = arguments[0];
+		this.position.longitude = arguments[1];
+		// fall through into case 0 !
 		case 0:
+		this.GUID = "";
+		this.markName = "";
+		this.description = "";
+		this.creationDateTime = "";
+		this.isVisible = true;
+		this.iconName = "";
+		this.hyperlinkList = [];
+		break;
+		case 1:	// argument could be waypoint or position
+		var wp = arguments[0];
+		if (!wp.position  != undefined){  // it is a position
+			this.position = {};
+			this.position.latitude = wp.latitude;
+			this.position.longitude = wp.longitude;
 			this.GUID = "";
 			this.markName = "";
 			this.description = "";
-			this.creationDateTime = "";
-			this.isVisible = true;
-			this.iconName = "";
+			this.isVisible = false;
+			this.iconName = "diamond";
 			this.hyperlinkList = [];
-			break;
-		case 1:	// argument should be  waypoint
-			wp = arguments[0];
+			}
+		else{
 			this.position.latitude = wp.position.latitude;
 			this.position.longitude = wp.position.longitude;
 			this.GUID = wp.GUID;
@@ -26,7 +38,8 @@ function Waypoint(lat, lon){
 			this.isVisible = wp.isVisible;
 			this.iconName = wp.iconName;
 			this.hyperlinkList = wp.hyperlinkList;
-			break;
+			}
+		break;
 		default:	throw("Waypoint constructor invalid call");
 		}
 	this.add = function(GUID){ // add waypoint to OpenCPN
@@ -44,7 +57,7 @@ function Waypoint(lat, lon){
 		if (typeof this.GUID == "undefined") throw("Updating waypoint without GUID");
 		return (OCPNupdateSingleWaypoint(this));
 		}
-
+	
 	this.get = function(GUID){ // get waypoint by GUID
 		if (typeof GUID == "undefined") GUID = this.GUID;
 		if (typeof GUID == "undefined") throw("Attempting to get waypoint without GUID");

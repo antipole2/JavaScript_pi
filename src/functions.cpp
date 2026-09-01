@@ -455,6 +455,7 @@ void reviewParking(){	// adjust parking space sizes and remove any gaps (console
 		aLot = lots[i];
 		aLot.pConsole->m_parkedLocation.position.x = xPos;
 		xPos += aLot.pConsole->m_parkedLocation.size.x + pJavaScript_pi->m_parkSep;	// next place
+		aLot.pConsole->m_parkedLocation.position.y = pJavaScript_pi->m_parkingLevel;
 		if (aLot.pConsole->m_parked) aLot.pConsole->setLocation(aLot.pConsole->m_parkedLocation);
 		}
 	}

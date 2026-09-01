@@ -25,7 +25,7 @@ tests = [
 	pgn: 129540,
 	data: [147,19,3,4,250,1,	255,1,255,255,255,255,147,
 	13,254,12,25,33,51,101,183,28,12,0,0,0,0,242,28,115,20,147,206,240,10,0,0,0,0,242,32,162,28,241,177,172,13,0,0,0,0,242,66,46,23,124,202,84,11,0,0,0,0,242,76,34,21,101,198,40,10,0,0,0,0,242,75,115,50,11,17,96,9,0,0,0,0,242,65,162,13,241,162,40,10,0,0,0,0,242,3,23,4,53,235,0,0,0,0,0,0,240,6,174,15,115,35,0,0,0,0,0,0,240,11,174,15,10,62,0,0,0,0,0,0,240,12,150,41,22,49,0,0,0,0,0,0,240,24,255,14,103,93,0,0,0,0,0,0,240],
-	expected: {"PGN":129540,"id":"gnssSatsInView","description":"GNSS Sats in View","priority":3,"destination":255,"origin":1,"sid":13,"rangeResidualMode":{"value":2,"name":"unknown"},"satsInViewCount":12,"satsInView":[{"prn":25,"elevation":1.3089,"azimuth":4.6949,"snr":31,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":28,"elevation":0.5235,"azimuth":5.2883,"snr":28,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":32,"elevation":0.733,"azimuth":4.5553,"snr":35,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":66,"elevation":0.5934,"azimuth":5.1836,"snr":29,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":76,"elevation":0.541,"azimuth":5.0789,"snr":26,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":75,"elevation":1.2915,"azimuth":0.4363,"snr":24,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":65,"elevation":0.349,"azimuth":4.1713,"snr":26,"rangeResiduals":0,"status":{"value":2,"name":"Used"}},{"prn":3,"elevation":0.1047,"azimuth":6.0213,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"}},{"prn":6,"elevation":0.4014,"azimuth":0.9075,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"}},{"prn":11,"elevation":0.4014,"azimuth":1.5882,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"}},{"prn":12,"elevation":1.0646,"azimuth":1.2566,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"}},{"prn":24,"elevation":0.3839,"azimuth":2.3911,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"}}]},
+	expected: {"PGN":129540,"id":"gnssSatsInView","description":"GNSS Sats in View","priority":3,"destination":255,"origin":1,"sid":13,"rangeResidualMode":{"value":2,"name":"unknown"},"satsInViewCount":12,"satsInView":[{"prn":25,"elevation":1.3089,"azimuth":4.6949,"snr":31,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":28,"elevation":0.5235,"azimuth":5.2883,"snr":28,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":32,"elevation":0.733,"azimuth":4.5553,"snr":35,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":66,"elevation":0.5934,"azimuth":5.1836,"snr":29,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":76,"elevation":0.541,"azimuth":5.0789,"snr":26,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":75,"elevation":1.2915,"azimuth":0.4363,"snr":24,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":65,"elevation":0.349,"azimuth":4.1713,"snr":26,"rangeResiduals":0,"status":{"value":2,"name":"Used"},"gnssSystem":{}},{"prn":3,"elevation":0.1047,"azimuth":6.0213,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"},"gnssSystem":{}},{"prn":6,"elevation":0.4014,"azimuth":0.9075,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"},"gnssSystem":{}},{"prn":11,"elevation":0.4014,"azimuth":1.5882,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"},"gnssSystem":{}},{"prn":12,"elevation":1.0646,"azimuth":1.2566,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"},"gnssSystem":{}},{"prn":24,"elevation":0.3839,"azimuth":2.3911,"snr":0,"rangeResiduals":0,"status":{"value":0,"name":"Not tracked"},"gnssSystem":{}}]},
 	tracing: 0
 	},
 {	// Test 2
@@ -95,7 +95,9 @@ latestVersion = getLatestCanboatVersion();
 if (_canboat == undefined)_canboat = JSON.parse(require("canboat"));	// load our canboat object
 if (latestVersion){
 	if (_canboat.Version != latestVersion){
-		printOrange("Present canboat v", _canboat.Version, "\tavailable on-line is v", latestVersion, "\n");
+		message = "N2K present canboat is v" + _canboat.Version + "\navailable on-line is v" + latestVersion;
+		printOrange(message, "\n");
+		alert(message);
 		warnings++;
 		}
 	else printGreen("Plugin is up to date with canboat v",_canboat.Version, "\n"); 
@@ -259,8 +261,8 @@ if (!runAnalyser){
 canboatAnalyzer = require("canboatAnalyzer");
 
 runTime = 0;
-//for (t = 0; t < tests.length; t++){
-for (t = 3; t < 4; t++){
+for (t = 0; t < tests.length; t++){
+//for (t = 3; t < 4; t++){
 	test = tests[t];
 	printUnderlined("\nTesting pgn with canboat analyzer for ", test.pgn, "\t",tests[t].expected.description, "\n");
 	startTime = new Date();
@@ -282,7 +284,7 @@ function matches(a, b){	// compare two simple arrays
 function getLatestCanboatVersion(){
 	// returns latest canboat version if it can, else false
 	//  return false; // this to cut out on-line check
-	canboatJsonURL = "https://github.com/canboat/canboat/blob/master/docs/canboat.json";
+	canboatJsonURL = "https://raw.githubusercontent.com/canboat/canboat/master/docs/canboat.json";
 	var canboat;
 	try {
 		canboat = cleanString(readTextFile(canboatJsonURL));
@@ -290,8 +292,8 @@ function getLatestCanboatVersion(){
 	catch(err){
 		return(false);
 		}
-	offset = canboat.indexOf('\\"Version\\"');
-	version = canboat.slice(offset+14, offset+19);
+	parsed = JSON.parse(canboat);
+	version = parsed.Version;
 	return version;
 	}
 
@@ -303,6 +305,8 @@ function sayWhereDiffers(a, b){ // print index where strings differ
 			}
 		}
 	}
+
+
 
 
 
