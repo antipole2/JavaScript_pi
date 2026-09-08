@@ -1,10 +1,7 @@
 :: Build script for appveyor, https://www.appveyor.com
 :: Builds one version linked against wxWidgets 3.2
 
-@echo on
-echo Starting AppVeyor build...
-echo Current directory: %CD%
-dir
+@echo off
 setlocal enabledelayedexpansion
 
 set "SCRIPTDIR=%~dp0"
@@ -43,8 +40,6 @@ echo subprocess.call(['dumpbin', '/dependents', lib], shell=True) >> ldd.py
 python ldd.py
 
 echo Uploading artifact
-echo Current directory: %CD%
-dir /s /b *.tar.gz
 call upload.bat
 
 echo Pushing updates to catalog
