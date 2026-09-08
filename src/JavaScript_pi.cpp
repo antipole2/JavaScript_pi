@@ -158,7 +158,8 @@ int JavaScript_pi::Init(void)
             WANTS_AIS_SENTENCES |
             WANTS_PREFERENCES |
             WANTS_ONPAINT_VIEWPORT |
-            WANTS_KEYBOARD_EVENTS
+            WANTS_KEYBOARD_EVENTS |
+            WANTS_MOUSE_EVENTS
             );
 }
 
@@ -536,7 +537,7 @@ void JavaScript_pi::SetNMEASentence(wxString &sentence){    // NMEA sentence rec
 					duk_put_prop_literal(ctx, -2, "value");
 				duk_push_boolean(ctx, OK);
 					duk_put_prop_literal(ctx, -2, "OK");
-				if (!pEntry->persistant) pConsole->mCallbacks.erase(pConsole->mCallbacks.begin() + i);
+				if (!pEntry->persistant) pConsole->mCallbacks.erase(pConsole->mCallbacks.begin() + i--);	// NB i decremented so we do not miss next in shuffle
 				// the above simple remove is OK as this type of entry does not have dependents	
 				Completions outcome = pConsole->executeCallableNargs(pEntry->func_heapptr, 1);	// only one object on stack
 				if (!pConsole->isBusy()){
@@ -563,7 +564,7 @@ void JavaScript_pi::SetAISSentence(wxString &sentence) {    // AIS sentence rece
 		for (size_t i = 0; i < pConsole->mCallbacks.size(); ++i) {
 			std::shared_ptr<callbackEntry> pEntry	=  pConsole->mCallbacks[i];
 			if (pEntry->type != CB_AIS) continue;
-			if (!pEntry->persistant)  pConsole->mCallbacks.erase( pConsole->mCallbacks.begin() + i);
+			if (!pEntry->persistant)  pConsole->mCallbacks.erase( pConsole->mCallbacks.begin() + i--); 	// NB i decremented so we do not miss next in shuffle
 			// the above simple erase is OK as this type of entry does not have dependents	
 			TRACE(1001, "SetAISSentence have customer for " + sentence);
 			m_SetActive.set(CB_AIS, true);
@@ -671,6 +672,87 @@ void JavaScript_pi::SetPluginMessage(wxString &message_id, wxString &message_bod
         TRACE(15, "Captured openCPNConfig");
         openCPNConfig = message_body;
         }
+    }
+    
+bool JavaScript_pi::MouseEventHook(wxMouseEvent &event){    // handle mouse event
+    void JSduk_start_exec_timeout(Console);
+    void  JSduk_clear_exec_timeout(Console);   
+    if (!m_SetActive.test(CB_MOUSE_EVENTS)) return false;	// nothing to do so do not hang around and say we did not handle it
+    m_SetActive.set(CB_MOUSE_EVENTS, false);	// will be set true if any console waiting for these events
+    bool passThrough = false; // whether we pass the event through to OPCPN
+    bool consumed = false;
+    for (auto* pConsole : pJavaScript_pi->m_consoles){
+        if (pConsole == nullptr) continue;  // ignore if not ready
+        if (!pConsole->isWaiting()) continue;
+        for (unsigned int i = 0; i < pConsole->mCallbacks.size(); i++){ // work through all callback entries
+        	std::shared_ptr<callbackEntry> pEntry = pConsole->mCallbacks[i];
+        	if (pEntry->type == CB_MOUSE_EVENTS){ // this one may be for us
+/*        	TRACE(98765, wxString::Format("type=%d count=%d "
+       "LD=%s LU=%s RD=%s RU=%s "
+       "LDC=%s RDC=%s\n",
+       static_cast<int>(event.GetEventType()),
+       event.GetClickCount(),
+       event.LeftDown()  ? "true" : "false",
+       event.LeftUp()    ? "true" : "false",
+       event.RightDown() ? "true" : "false",
+       event.RightUp()   ? "true" : "false",
+       event.LeftDClick()  ? "true" : "false",
+       event.RightDClick() ? "true" : "false"));
+*/
+        	    m_SetActive.set(CB_MOUSE_EVENTS, true);       	    
+        		int eventTypes = 0;
+         		if (event.LeftDown()) eventTypes |= static_cast<int>(JsMouseEvent::LeftDown);
+        		if (event.LeftUp()) eventTypes |= static_cast<int>(JsMouseEvent::LeftUp);
+        		if (event.RightDown()) eventTypes |= static_cast<int>(JsMouseEvent::RightDown);
+        		if (event.RightUp()) eventTypes |= static_cast<int>(JsMouseEvent::RightUp);
+        		if (event.MiddleDown()) eventTypes |= static_cast<int>(JsMouseEvent::MiddleDown);
+        		if (event.MiddleUp()) eventTypes |= static_cast<int>(JsMouseEvent::MiddleUp);
+        		if (event.Dragging()) eventTypes |= static_cast<int>(JsMouseEvent::Dragging);
+        		eventTypes &= pEntry->_MOUSE_EVENTS;	// ignore any we are not listening for
+        		TRACE(98765, wxString("In MouseEventHook consoleLoop matched event type %d", eventTypes));
+        		if (eventTypes != 0){ // there was a match      		
+					if (pEntry->_MOUSE_EVENT_PASSTHROUGH) passThrough = true;
+					consumed = true;	
+					duk_context *ctx = pConsole->mpCtx;
+					
+					duk_push_number(ctx, eventTypes); 	// 1st return argument
+					
+					duk_push_number(ctx, event.GetClickCount());	// 2nd is click count
+					
+					duk_push_boolean(ctx, event.ButtonDClick());
+					
+					duk_push_boolean(ctx, event.LeftDClick());
+					duk_push_boolean(ctx, event.RightDClick());
+					
+					duk_push_object(ctx);	// rd return argument is the position
+					duk_push_number(ctx, pJavaScript_pi->mCursorPosition.lat);
+					duk_put_prop_literal(ctx, -2, "latitude");
+					duk_push_number(ctx,pJavaScript_pi->mCursorPosition.lon);
+					duk_put_prop_literal(ctx, -2, "longitude");
+					
+					// 4th argument is context object
+					std::shared_ptr<HostApi121::PiPointContext> context = m_api_121->GetContextAtPoint(event.GetX(), event.GetY(), GetCanvasIndexUnderMouse());
+                	if (context){
+                	    duk_push_object(ctx);
+						duk_push_int(ctx, static_cast<int>(context->object_type));
+						duk_put_prop_literal(ctx, -2, "objectType");
+						duk_push_string(ctx, context->object_ident.c_str());
+						duk_put_prop_literal(ctx, -2, (context->object_type == HostApi121::PiContextObjectType::kObjectAisTarget) ? "MMSI" : "GUID");
+                    	}
+                                                  				
+					if (!pEntry->persistant) pConsole->mCallbacks.erase(pConsole->mCallbacks.begin() + i--);	// NB i decremented so that next is not missed by shuffle
+					// the above simple remove is OK as this type of entry does not have dependents	
+					Completions outcome = pConsole->executeCallableNargs(pEntry->func_heapptr, 7);	// four objects on stack
+					if (!pConsole->isBusy()){
+						pConsole->wrapUp(outcome);
+						break;
+						}
+					}
+        		}
+        	}
+        }   // end for this console
+    if (!consumed) return false;	// Nothing matched so always pass through regardless  
+	return (passThrough ? false:true);		// if any console asked for it to be passed through, do so.
     }
 
 #include "toolsDialogImp.h"

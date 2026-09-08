@@ -398,6 +398,27 @@ void define_wxFileModes(duk_context *ctx){
 	addNAME(ctx, "WRITE_EXCL", 4);
 	duk_pop(ctx);	// global object
 	}
+	
+void define_wxMouseEvents(duk_context *ctx){
+	duk_push_global_object(ctx);
+	addNAME(ctx, "LEFT_DOWN", 1);
+	addNAME(ctx, "LEFT_UP", 2);
+	addNAME(ctx, "RIGHT_DOWN", 4);
+	addNAME(ctx, "RIGHT_UP", 8);
+	addNAME(ctx, "MIDDLE_DOWN", 16);
+	addNAME(ctx, "MIDDLE_UP", 32);
+	addNAME(ctx, "DRAGGING", 64);
+	}
+	
+void define_objectTypes(duk_context *ctx){
+	duk_push_global_object(ctx);
+	addNAME(ctx, "CHART", 0);
+	addNAME(ctx, "ROUTE_POINT", 1);
+	addNAME(ctx, "ROUTE_SEGMENT", 2);
+	addNAME(ctx, "TRACK_SEGMENT", 3);
+	addNAME(ctx, "AIS_TARGET", 4);
+	addNAME(ctx, "UNKNOWN", 5);
+	}
 
 #if 0
 void register_keyboard(duk_context *ctx){
@@ -411,11 +432,18 @@ void register_keyboard(duk_context *ctx){
 
 bool loadComponent(duk_context *ctx, wxString name) {	// load C-coded functions
 	// returns true if only C-code from here
-	// returns false if shoukld ontinue to load .js component
+	// returns false if should ontinue to load .js component
     bool result {false};
     
     if (name == "Consoles") {register_console(ctx); result = true;}
-    if (name == "File") {define_wxFileModes(ctx); result = false;}	// continue to load .js file
+    else if (name == "File") {define_wxFileModes(ctx); result = false;}	// continue to load .js file
+    else if (name == "mouseEvents") {
+    	define_wxMouseEvents(ctx);
+    	define_objectTypes(ctx);
+    	result = true;
+    	}
+    else if (name == "objectTypes"){ define_objectTypes(ctx); result = true;}
+    
 //	if (name == "Keyboard") {register_keyboard(ctx); result = true;}  not working
     
 #ifdef SOCKETS

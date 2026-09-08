@@ -116,9 +116,10 @@ struct callbackEntry {
 	wxString string1 = wxEmptyString;
 	wxString string2 = wxEmptyString;
 	int integer1 = 0;
+	bool bool1 = false;
 	std::unique_ptr<JsDialog> dialogue = nullptr;	
 	};
-		
+		 
 /*
 In addition to attributes required for all callbacks, the structure includes attributes needed for specific types of callback.
 Some of these are used for different purposes in different types of callback.
@@ -134,6 +135,8 @@ They have been given aliases to make them meaningful for that particular callbac
 // for onConsoleResult
 #define _CONSOLE_NAME string1	// this and next may not be used any more?
 #define _BRIEF string2
+#define _MOUSE_EVENTS integer1	// bit mask of awaited mouse events
+#define _MOUSE_EVENT_PASSTHROUGH bool1 // bool1	mouse event to be passed through to OCPN
 
 /*
 The callbackEntry entities are managed through methods included below

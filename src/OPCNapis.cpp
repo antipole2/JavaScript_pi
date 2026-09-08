@@ -1228,7 +1228,6 @@ static duk_ret_t addRoute(duk_context *ctx) { // add the route to OpenCPN
     duk_require_object(ctx,0);
     auto p_route = js_duk_to_opcn_route(ctx, true);    // construct the opcn route, providing a GUID if not supplied
 	bool result = pJavaScript_pi->m_api_121->AddRoute(p_route);
-//    result = AddPlugInRouteExV2(p_route);
     if (!result){
         throwErrorByCtx(ctx, "OCPNaddRoute called with existant GUID " + p_route->m_GUID);
         }
@@ -1816,6 +1815,37 @@ static duk_ret_t onMessageNamePersist(duk_context *ctx){  // to wait for message
 	return 1;
 	}	
 	
+static duk_ret_t onMouseEventGuts(duk_context *ctx, bool persist) {  // to wait for mouse event
+	duk_idx_t nargs = duk_get_top(ctx);   // number of arguments in call
+	Console* pConsole = findConsoleByCtx(ctx);
+	if ((nargs > 1) && duk_is_callable(ctx, 0) && duk_is_number(ctx, 1)){ // set up new callback
+		if (pConsole->mStatus.test(INEXIT)){
+        	throwErrorByCtx(ctx, "OCPNonMouseEvent within onExit");
+        	}
+		std::shared_ptr<callbackEntry> pEntry = pConsole->newCallbackEntry(CB_MOUSE_EVENTS);
+		pEntry->func_heapptr = duk_get_heapptr(ctx, 0);
+		pEntry->persistant = persist;
+		pEntry->_MOUSE_EVENTS = duk_get_int(ctx, 1);
+		if (nargs == 3) pEntry->_MOUSE_EVENT_PASSTHROUGH = duk_get_boolean(ctx, 2);
+		duk_pop_n(ctx, nargs);
+		duk_push_int(ctx, pEntry->id);
+		pJavaScript_pi->m_SetActive.set(CB_MOUSE_EVENTS, true);	// warn handler we are expecting mouse event
+
+	    }
+	else cancelCallbackPerCtx(ctx, pConsole, CB_MOUSE_EVENTS, "OCPNonMouseEvent");
+	return 1;
+	};
+
+static duk_ret_t onMouseEvent(duk_context *ctx){  // to wait for message - save function to call
+	onMouseEventGuts(ctx, false);
+	return 1;
+	}
+	
+static duk_ret_t onAllMouseEvent(duk_context *ctx){  // to wait for message - save function to call
+	onMouseEventGuts(ctx, true);
+	return 1;
+	}	
+
 duk_ret_t getMaxNotificationLevel(duk_context* ctx){
 	// level = OCPNgetMaxNotificationLevels()
 	duk_push_int(ctx, (int)GetMaxActiveNotificationLevel());
@@ -2213,6 +2243,16 @@ void ocpn_apis_init(duk_context *ctx) { // register the OpenCPN APIs
     duk_push_string(ctx, "OCPNparseDMS");
     duk_push_c_function(ctx, parseSDMM, 1);
     duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonMouseEvent");
+    duk_push_c_function(ctx, onMouseEvent, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+    
+    duk_push_string(ctx, "OCPNonAllMouseEvent");
+    duk_push_c_function(ctx, onAllMouseEvent, DUK_VARARGS);
+    duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE | DUK_DEFPROP_SET_WRITABLE | DUK_DEFPROP_SET_CONFIGURABLE);
+
+
     
 /*  awaiting API 121
     duk_push_string(ctx, "OCPNnavToPosition");

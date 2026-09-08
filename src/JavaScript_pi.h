@@ -79,6 +79,7 @@ typedef enum CallbackType {	// types of callback
 	CB_AIS,
 	CB_DIALOGUE,
 	CB_CONSOLE,
+	CB_MOUSE_EVENTS,
 	CallbackTypes_count
 	} CallbackType;
 typedef	std::bitset<CallbackTypes_count> setActive_t;			//status for optimising set-type callbacks
@@ -94,6 +95,16 @@ struct pgn_registration {	// entry recording pgns registered for given handle
 	DriverHandle	handle;
 	std::vector <pgn_t> pgns;	
 	};
+	
+enum class JsMouseEvent {
+    LeftDown	= 1,
+    LeftUp		= 2,
+    RightDown	= 4,
+    RightUp		= 8,
+    MiddleDown	= 16,
+    MiddleUp	= 32,
+    Dragging	= 64
+};
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
@@ -148,8 +159,9 @@ public:
     void ShowTools (wxWindow* m_parent_window, int page);
     void SetCurrentViewPort(PlugIn_ViewPort &vp);
 #ifdef KEYBOARD_EVENT_HOOK
-    bool KeyboardEventHook(wxKeyEvent &event);
+    bool KeyboardEventHook(wxKeyEvent &event); 
 #endif
+	bool MouseEventHook(wxMouseEvent &event);
     ToolsClass *pTools {nullptr};   // points to the Tools dialogue if exists, else nullptr
     wxArrayString recentFiles;	// array of recent file strings
     wxSortedArrayString favouriteFiles; //array of favourite file strings
