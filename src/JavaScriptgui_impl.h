@@ -295,7 +295,7 @@ public:
 			entries[1].Set(wxACCEL_CMD, 'P', ID_TIDY_PARKING);
 #else
 			entries[0].Set(wxACCEL_CTRL, 'F', ID_CONSOLE_FORMAT);
-			entries[1].Set(wxACCEL_CTRL, 'P', ID_TIDY_PARKING)
+			entries[1].Set(wxACCEL_CTRL, 'P', ID_TIDY_PARKING);
 #endif
 			wxAcceleratorTable accel(2, entries);
 			SetAcceleratorTable(accel);
