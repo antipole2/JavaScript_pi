@@ -76,6 +76,11 @@ enum {
     // ID_CONSOLE_CLEAR
 	};
 
+// We have problems with identifying keyboard states on bot mac and Windows, so define our pwn
+#define JS_KEY_SHIFT    10001
+#define JS_KEY_CONTROL  10002
+#define JS_KEY_OPTION   10003
+#define JS_KEY_MENU     10004
 
 /******************************** Callbacks ************************************
 Starting with v3, all callbacks (apart from onExit()) are implemented through a unified approach.
@@ -498,12 +503,12 @@ public:
         Console *findConsoleByCtx(duk_context *ctx); // ******
         duk_int_t duk_outcome;
         duk_context *ctx = mpCtx;
-        TRACE(66, wxString::Format("Entered executeCallableNargs with nargs %i\n", nargs) + findConsoleByCtx(ctx)->dukDump());
+        TRACE(8236, wxString::Format("Entered executeCallableNargs with nargs %i\n", nargs) + findConsoleByCtx(ctx)->dukDump());
         if (mStatus.test(HAD_ERROR)){ // an error has been thrown elsewhere and duktape has unwound etc.
         	return(HAD_ERROR);	// don't try and call the handler
         	}
         duk_push_heapptr(mpCtx, heapptr);
-        TRACE(66, wxString::Format("Pushed heapptr\n") + findConsoleByCtx(ctx)->dukDump());
+        TRACE(8236, wxString::Format("Pushed heapptr\n") + findConsoleByCtx(ctx)->dukDump());
         if (!duk_is_callable(mpCtx, -1)) {
         	message(STYLE_RED, "Callback error - no longer callable");
         	duk_pop_n(ctx, nargs);
@@ -512,11 +517,12 @@ public:
         // the handler is on top above the nargs.  Need to shuffle it below them.
         duk_idx_t pos = -1;
         for (int i = nargs; i > 0; i--, pos--) duk_swap(ctx, pos, pos-1);
-        TRACE(66, "Before call " + dukDump());
+        TRACE(8236, "Before call " + dukDump());
+        mWaitingCached = false;
         startTimeout();
         duk_outcome = duk_pcall(ctx, nargs);   // call with nargs 
         clearTimeout();
-        TRACE(66, "After call " + dukDump() + _("Result is ") + ((duk_outcome == DUK_EXEC_SUCCESS)?"success":"error"));
+        TRACE(8236, "After call " + dukDump() + _("Result is ") + ((duk_outcome == DUK_EXEC_SUCCESS)?"success":"error"));
 		return(afterwards(duk_outcome));
 		}
     
@@ -672,7 +678,13 @@ public:
 		}
 		
 	void clearCallbacks(){// clears all reasons a console might be called back
-		mCallbacks.clear();
+		// first, stop with any timers
+		std::shared_ptr<callbackEntry> pEntry;
+		for (auto it = mCallbacks.cbegin(); it < mCallbacks.cend(); ++it){
+			pEntry = (*it);
+			if (pEntry->type == CB_TIMER) pEntry->timer->Stop();
+			}
+		mCallbacks.clear();	// for the rest, this is sufficient
 		clearAlert();
         mRunningMain = false;
         if (mpMessageDialog != nullptr){
@@ -744,7 +756,7 @@ public:
         wxString statusesToString(status_t mStatus);
 #endif
 		
-        TRACE(4, wxString::Format("%s->afterwards() with dukOutcome %d and status now %s",mConsoleName, dukOutcome, statusesToString(mStatus)));
+        TRACE(8236, wxString::Format("%s->afterwards() with dukOutcome %d and status now %s",mConsoleName, dukOutcome, statusesToString(mStatus)));
         mWaiting = false;
 		mWaitingCached = true;
 		// here we determine the order of presidence of the various outcomes 
@@ -768,13 +780,13 @@ public:
    
 	   if (isWaiting()){ // if script set up call-backs with nominated functions, check they exist
 		  outcome = MORETODO;
-		  TRACE(4, mConsoleName + "->afterwards()  completed with something to wait for");
+		  TRACE(8236, mConsoleName + "->afterwards()  completed with something to wait for");
 		  }
 		return(outcome);
 		}
 
 	void wrapUp(Completions reason) {    // clear down and maybe destroy ctx
-		TRACE(66, wxString::Format("%s->wrapUp() called with reason %d", mConsoleName, reason));
+		TRACE(8236, wxString::Format("%s->wrapUp() called with reason %d", mConsoleName, reason));
 		wrapUpWorks(reason);
 		}
 

@@ -12,16 +12,13 @@ function Route(){
 			this.isActive = undefined;
 			this.waypoints = [];
 			break;
-		case 1:	// argument should be route
+		case 1:	// argument should be route or GUID of route
 			rt = arguments[0];
-			this.name = rt.name;
-			this.from = rt.from;
-			this.to = rt.to;
-			this.description = rt.description;
-			this.isVisible = rt.isVisible;
-			this.isActive = rt.isActive;
-			this.GUID = rt.GUID;
-			this.waypoints = rt.waypoints;
+			if (typeof rt == "string"){ // is GUID
+				rt = OCPNgetRoute(rt);
+				}
+			//now it is a route
+			Object.assign(this, rt);
 			break;
 		default:	throw("Route constructor invalid call");
 		}	
@@ -31,29 +28,13 @@ function Route(){
 		gotRoute = OCPNgetRoute(GUID);
 		if (!gotRoute) return false;
 		// the gotRoute is a bare objct without methods.  Will copy into this object
-		this.GUID = gotRoute.GUID;
-		this.name = gotRoute.name;
-		this.from = gotRoute.from;
-		this.to = gotRoute.to;
-		this.description = gotRoute.description;
-		this.isVisible = gotRoute.isVisible;
-		this.isActive = gotRoute.isActive;
+		Object.assign(this, gotRoute);
 		// need to construct the waypoint objects so they have their methods
-		for (i = 0; i <gotRoute.waypoints.length; i++){
-			waypoint = new Waypoint();
-			waypoint.GUID = gotRoute.waypoints[i].GUID;
-			waypoint.markName = gotRoute.waypoints[i].markName;
-			waypoint.iconName = gotRoute.waypoints[i].iconName;
-			waypoint.description = gotRoute.waypoints[i].description;
-			waypoint.position.latitude = gotRoute.waypoints[i].position.latitude;
-			waypoint.position.longitude = gotRoute.waypoints[i].position.longitude;
-			waypoint.creationDateTime = gotRoute.waypoints[i].creationDateTime;
-			waypoint.isVisible = gotRoute.waypoints[i].isVisible;
-			waypoint.hyperlinkList = gotRoute.waypoints[i].hyperlinkList;
+		this.waypoints = [];
+		for (i = 0; i < gotRoute.waypoints.length; i++){
+			waypoint = new Waypoint(gotRoute.waypoints[i]);
 			this.waypoints.push(waypoint);
-			delete waypoint;
 			}
-		delete gotRoute;
 		return true;
 		}
 	this.update = function(){ // update route to OpenCPN

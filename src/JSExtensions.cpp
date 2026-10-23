@@ -1185,22 +1185,22 @@ static duk_ret_t NMEAchecksum(duk_context *ctx){
 
 static duk_ret_t keyboardState(duk_context *ctx){
 	// state = keyboardState();
+	bool IsModifierDown(int key);
+	
     duk_push_object(ctx);
-        duk_push_boolean(ctx, wxGetKeyState(WXK_SHIFT));
-            duk_put_prop_literal(ctx, -2, "shift");
-		// the following is a confusing mess between MacOS and Windows
-/*
-#ifdef __WXMAC__
-		duk_push_boolean(ctx, wxGetKeyState(WXK_MENU));
-            duk_put_prop_literal(ctx, -2, "control");
-#endif
-*/
-        duk_push_boolean(ctx, wxGetKeyState(WXK_RAW_CONTROL));
-            duk_put_prop_literal(ctx, -2, "control");
-        duk_push_boolean(ctx, wxGetKeyState(WXK_ALT));
-            duk_put_prop_literal(ctx, -2, "option");
-        duk_push_boolean(ctx, wxGetKeyState(WXK_CONTROL));
-            duk_put_prop_literal(ctx, -2, "menu");            
+    
+	duk_push_boolean(ctx, IsModifierDown(JS_KEY_SHIFT));
+	duk_put_prop_literal(ctx, -2, "shift");
+	
+	duk_push_boolean(ctx, IsModifierDown(JS_KEY_CONTROL));
+	duk_put_prop_literal(ctx, -2, "control");
+	
+	duk_push_boolean(ctx, IsModifierDown(JS_KEY_OPTION));
+	duk_put_prop_literal(ctx, -2, "option");
+	
+	duk_push_boolean(ctx, IsModifierDown(JS_KEY_MENU));
+	duk_put_prop_literal(ctx, -2, "menu"); 
+	       
     return 1;
     }
     

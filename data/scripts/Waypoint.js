@@ -10,14 +10,12 @@ function Waypoint(lat, lon){
 		this.GUID = "";
 		this.markName = "";
 		this.description = "";
-		this.creationDateTime = "";
-		this.isVisible = true;
-		this.iconName = "";
+		this.isVisible = false;
 		this.hyperlinkList = [];
 		break;
 		case 1:	// argument could be waypoint or position
 		var wp = arguments[0];
-		if (!wp.position  != undefined){  // it is a position
+		if (!(wp.position  != undefined)){  // it is a position
 			this.position = {};
 			this.position.latitude = wp.latitude;
 			this.position.longitude = wp.longitude;
@@ -28,16 +26,9 @@ function Waypoint(lat, lon){
 			this.iconName = "diamond";
 			this.hyperlinkList = [];
 			}
-		else{
-			this.position.latitude = wp.position.latitude;
-			this.position.longitude = wp.position.longitude;
-			this.GUID = wp.GUID;
-			this.markName = wp.markName;
-			this.description = wp.description;
-			this.creationDateTime = wp.creationDateTime;
-			this.isVisible = wp.isVisible;
-			this.iconName = wp.iconName;
-			this.hyperlinkList = wp.hyperlinkList;
+		else{	// its a waypoint
+			Object.assign(this, wp);
+			this.position = new Position(wp.position);
 			}
 		break;
 		default:	throw("Waypoint constructor invalid call");
@@ -61,18 +52,9 @@ function Waypoint(lat, lon){
 	this.get = function(GUID){ // get waypoint by GUID
 		if (typeof GUID == "undefined") GUID = this.GUID;
 		if (typeof GUID == "undefined") throw("Attempting to get waypoint without GUID");
-		waypoint = OCPNgetSingleWaypoint(GUID);
-		if (!waypoint) return false;
-		this.GUID = waypoint.GUID;
-		this.markName = waypoint.markName;
-		this.description = waypoint.description;
-		this.position.latitude = waypoint.position.latitude;
-		this.position.longitude = waypoint.position.longitude;
-		this.creationDateTime = waypoint.creationDateTime;
-		this.isVisible = waypoint.isVisible;
-		this.iconName = waypoint.iconName;
-		this.hyperlinkList = waypoint.hyperlinkList;
-		delete waypoint;
+		var wp = OCPNgetSingleWaypoint(GUID);
+		if (!wp) return false;
+		Object.assign(this, wp);
 		return (true);
 		}
 	this.delete = function(GUID){ // delete waypoint in OpenCPN

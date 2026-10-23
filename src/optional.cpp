@@ -290,7 +290,7 @@ duk_ret_t console_run(duk_context* ctx){
 	if (pConsole->mStatus.test(INEXIT)){
 		throwErrorByCtx(ctx, "OCPNonConsoleResult within onExit");
 		}
-    if (nargs == 1) cancelCallbackPerCtx(ctx, pConsole, CB_AIS, "OCPNonConsoleResult");
+    if (nargs == 1) cancelCallbackPerCtx(ctx, pConsole, CB_CONSOLE, "OCPNonConsoleResult");
     else {
     	wxString otherConsoleName;
     	Console* otherConsole;

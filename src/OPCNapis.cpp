@@ -1830,7 +1830,6 @@ static duk_ret_t onMouseEventGuts(duk_context *ctx, bool persist) {  // to wait 
 		duk_pop_n(ctx, nargs);
 		duk_push_int(ctx, pEntry->id);
 		pJavaScript_pi->m_SetActive.set(CB_MOUSE_EVENTS, true);	// warn handler we are expecting mouse event
-
 	    }
 	else cancelCallbackPerCtx(ctx, pConsole, CB_MOUSE_EVENTS, "OCPNonMouseEvent");
 	return 1;

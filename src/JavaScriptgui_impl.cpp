@@ -28,6 +28,7 @@
 #define FAIL(X) do { error = X; goto failed; } while(0)
 
 extern JavaScript_pi *pJavaScript_pi;
+bool IsModifierDown(int key);
 
 void updateRecentFiles(wxString fileString){
     //  Updates the array of recent file names
@@ -116,8 +117,8 @@ void Console::OnSaveAs( wxCommandEvent& event ) {
     wxDialog query;
     
     if (m_Script->IsEmpty()) return;    
-    fileName = savedPath.GetName();	// pick up filename if one exists, else em empty string
-	if (wxGetKeyState(WXK_SHIFT) && wxGetKeyState(WXK_ALT)){	// To save to built-in directory
+    fileName = savedPath.GetFullName();	// pick up filename if one exists, else em empty string
+	if (IsModifierDown(JS_KEY_SHIFT) && IsModifierDown(JS_KEY_OPTION)){	// To save to built-in directory
 		fileDirectory.SetPath(GetPluginDataDir("JavaScript_pi"));
 		fileDirectory.AppendDir("data");
 		fileDirectory.AppendDir("scripts");
@@ -250,7 +251,7 @@ void Console::OnClose(wxCloseEvent& event) {
     void reviewParking();
     TRACE(1, "Closing console " + this->mConsoleName + " Can veto is " + (event.CanVeto()?"true":"false"));
     if (event.CanVeto()){	// only if can take control
-    	if ( wxGetKeyState(WXK_CONTROL)){
+    	if ( IsModifierDown(JS_KEY_MENU)){
     		std::shared_ptr<callbackEntry> pEntry;
     		for (auto it = mCallbacks.begin(); it != mCallbacks.end(); /* ++it */) {
 				pEntry = *it;	
@@ -352,7 +353,7 @@ void Console::HandleTimer(wxTimerEvent& event){
 		}
 	void* heapptr = pEntry->func_heapptr;
 	wxString parameter = pEntry->parameter;
-	mWaitingCached = false;
+//	mWaitingCached = false;
 	duk_push_string(mpCtx, parameter.c_str());
 	Completions outcome = executeCallableNargs(heapptr, 1);
 	TRACE(75, wxString::Format("mCallbacks entry IsOneShot %s", pEntry->timer->IsOneShot()?"True":"False"));
@@ -493,7 +494,7 @@ void Console::HandleMessage(ObservedEvt& ev, int messageId) {
 	PluginMsgId id(pEntry->parameter.ToStdString());
 	wxString message = GetPluginMsgPayload(id, ev);
 	duk_push_string(mpCtx, message);
-	mWaitingCached = false;
+//	mWaitingCached = false;
 	Completions outcome = executeCallableNargs(heapptr, 1);
 	if (!isBusy()) wrapUp(outcome);
 	return;
@@ -533,7 +534,7 @@ void Console::PollSocket(wxTimerEvent& event){
 			duk_push_string(mpCtx, payload);
 			}		
 		}
-	mWaitingCached = false;
+//	mWaitingCached = false;
 	Completions outcome = executeCallableNargs(pEntry->func_heapptr, (errorNumber == 0) ? 2 : 1);
 	if (!isBusy()) wrapUp(outcome);
 	return;

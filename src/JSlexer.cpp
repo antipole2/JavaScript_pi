@@ -49,7 +49,7 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             false finally for function\
             if in\
             new null NaN\
-            package private protected public\
+            Object\
             return\
             switch\
             this throw true try typeof\
@@ -131,6 +131,8 @@ void JSlexit(wxStyledTextCtrl* pane){  // lex the script window
             OCPNonAllTrackContextMenu\
             OCPNonAISContextMenu\
             OCPNonAllAISContextMenu\
+            OCPNonMouseEvent\
+            OCPNonAllMouseEvent\
             OCPNgetNewGUID\
             OCPNgetWaypointGUIDs\
             OCPNgetPluginConfig\

@@ -21,6 +21,12 @@
 #include <wx/clipbrd.h>
 #include "trace.h"
 #include "algorithm"
+#ifdef __WXMAC__
+#include <ApplicationServices/ApplicationServices.h>
+#endif
+#ifdef __WXMSW__
+#include <windows.h>
+#endif
 
 extern JavaScript_pi *pJavaScript_pi;
 void throwErrorByCtx(duk_context *ctx, wxString message);
@@ -319,6 +325,49 @@ wxString resolveFileName(wxString inputName, Console* pConsole, int mode){
     	}
     return fullPath;
     };
+    
+
+bool IsModifierDown(int key) {
+#ifdef __WXMAC__
+
+    CGEventFlags flags =
+        CGEventSourceFlagsState(kCGEventSourceStateCombinedSessionState);
+    switch (key) {
+        case JS_KEY_SHIFT:
+            return (flags & kCGEventFlagMaskShift) != 0;
+        case JS_KEY_CONTROL:
+            return (flags & kCGEventFlagMaskControl) != 0;
+        case JS_KEY_OPTION:
+            return (flags & kCGEventFlagMaskAlternate) != 0;
+        case JS_KEY_MENU:
+            return (flags & kCGEventFlagMaskCommand) != 0;
+        default:
+            return false;
+    }
+
+#elif defined(__WXMSW__)
+    if (key == JS_KEY_CONTROL)
+        return (GetKeyState(VK_LWIN) & 0x8000) ||
+               (GetKeyState(VK_RWIN) & 0x8000);
+    if (key == JS_KEY_MENU)
+        return (GetKeyState(VK_CONTROL) & 0x8000);
+    if (key == JS_KEY_OPTION)
+        return wxGetKeyState(WXK_ALT);
+    if (key == JS_KEY_SHIFT)
+        return wxGetKeyState(WXK_SHIFT);
+    return false;
+
+#else
+    // Linux/other platforms
+    if (key == JS_KEY_SHIFT)
+        return wxGetKeyState(WXK_SHIFT);
+    if (key == JS_KEY_CONTROL)
+        return wxGetKeyState(WXK_CONTROL);
+    if (key == JS_KEY_OPTION)
+        return wxGetKeyState(WXK_ALT);
+    return false;
+#endif
+	}
     
 wxString NMEAchecksum(wxString sentence){
 	// given an NMEA sentence, returns the checksum as a string

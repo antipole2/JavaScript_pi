@@ -644,7 +644,7 @@ void JavaScript_pi::OnContextMenuItemCallbackExt(int menuID, std::string identif
 		TRACE(655, wxString::Format("OnContextMenuItemCallbackExt stack\n%s", dukdump_to_string(ctx)));
 		void* heapptr = pEntry->func_heapptr;
 		outcome = pConsole->executeCallableNargs(heapptr, 1);
-		pConsole->mWaitingCached = false;
+//		pConsole->mWaitingCached = false;
 		if (!pConsole->isBusy()){
 			pConsole->wrapUp(outcome);
 			}
@@ -717,20 +717,13 @@ bool JavaScript_pi::MouseEventHook(wxMouseEvent &event){    // handle mouse even
 					
 					duk_push_number(ctx, eventTypes); 	// 1st return argument
 					
-					duk_push_number(ctx, event.GetClickCount());	// 2nd is click count
-					
-					duk_push_boolean(ctx, event.ButtonDClick());
-					
-					duk_push_boolean(ctx, event.LeftDClick());
-					duk_push_boolean(ctx, event.RightDClick());
-					
-					duk_push_object(ctx);	// rd return argument is the position
+					duk_push_object(ctx);	// 2nd return argument is the position
 					duk_push_number(ctx, pJavaScript_pi->mCursorPosition.lat);
 					duk_put_prop_literal(ctx, -2, "latitude");
 					duk_push_number(ctx,pJavaScript_pi->mCursorPosition.lon);
 					duk_put_prop_literal(ctx, -2, "longitude");
-					
-					// 4th argument is context object
+
+					// 3rd return argument is context object
 					std::shared_ptr<HostApi121::PiPointContext> context = m_api_121->GetContextAtPoint(event.GetX(), event.GetY(), GetCanvasIndexUnderMouse());
                 	if (context){
                 	    duk_push_object(ctx);
@@ -739,9 +732,17 @@ bool JavaScript_pi::MouseEventHook(wxMouseEvent &event){    // handle mouse even
 						duk_push_string(ctx, context->object_ident.c_str());
 						duk_put_prop_literal(ctx, -2, (context->object_type == HostApi121::PiContextObjectType::kObjectAisTarget) ? "MMSI" : "GUID");
                     	}
+
+					// extra undocumented arguments for diagnostic purposes
+					duk_push_number(ctx, event.GetClickCount());	// 4th is click count					
+					duk_push_boolean(ctx, event.ButtonDClick());	//5th
+					duk_push_boolean(ctx, event.LeftDClick());		// 6th
+					duk_push_boolean(ctx, event.RightDClick());		// 7th
+										
                                                   				
 					if (!pEntry->persistant) pConsole->mCallbacks.erase(pConsole->mCallbacks.begin() + i--);	// NB i decremented so that next is not missed by shuffle
 					// the above simple remove is OK as this type of entry does not have dependents	
+//					pConsole->mWaitingCached = false;
 					Completions outcome = pConsole->executeCallableNargs(pEntry->func_heapptr, 7);	// four objects on stack
 					if (!pConsole->isBusy()){
 						pConsole->wrapUp(outcome);

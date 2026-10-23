@@ -269,7 +269,7 @@ function NMEA2000(arg, data, options){
 			us["timestamp"] = new Date();
 			}
 		data = data.slice(13);	// now dispense with actisense header and start on NMEA2000 data proper
-		printBlue("Inner data:", data, "\n");
+//		printBlue("Inner data:", data, "\n");
 		nextBitIndex = 0;	// the index within data of the next bit to be processed
 		canCheckBitOffset = true;	// BitOffset should tally with nextBitIndex.  Not possible after variable length or first repeating field
 		
